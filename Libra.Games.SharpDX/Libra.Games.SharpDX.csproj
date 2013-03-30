@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{18B2993B-626D-4337-91A2-ED0239B8D843}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Libra.Games.SharpDX</RootNamespace>
+    <AssemblyName>Libra.Games.SharpDX</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="SharpDX">
+      <HintPath>..\..\..\SharpDX\SharpDX-Full-2.4.2\Bin\Standard-net40\SharpDX.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SdxFormGamePlatform.cs" />
+    <Compile Include="SdxGameTimer.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Libra.Games\Libra.Games.csproj">
+      <Project>{5FF1176C-7EA3-49A9-93D0-0868886FB9AF}</Project>
+      <Name>Libra.Games</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Libra.Graphics.SharpDX\Libra.Graphics.SharpDX.csproj">
+      <Project>{FAEE2668-AB77-477D-9405-26D59951501D}</Project>
+      <Name>Libra.Graphics.SharpDX</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Libra.Graphics\Libra.Graphics.csproj">
+      <Project>{CDFAB2B9-00DB-4719-B424-C2A973A7BC4C}</Project>
+      <Name>Libra.Graphics</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Libra.Input.Forms\Libra.Input.Forms.csproj">
+      <Project>{F9E7007E-C9BD-4C95-B9D8-8E50EDF6EAE5}</Project>
+      <Name>Libra.Input.Forms</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Libra.Input.SharpDX\Libra.Input.SharpDX.csproj">
+      <Project>{AFD05BCE-8CBE-4CDB-A641-A4FA3BA678F0}</Project>
+      <Name>Libra.Input.SharpDX</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Libra.Input\Libra.Input.csproj">
+      <Project>{EBCC5AFA-0E37-4863-B71E-2AC201CB2864}</Project>
+      <Name>Libra.Input</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Libra\Libra.csproj">
+      <Project>{BDCF4398-A4F9-48B0-BB3F-1B98CD3131B2}</Project>
+      <Name>Libra</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

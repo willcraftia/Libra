@@ -1,0 +1,100 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{FAEE2668-AB77-477D-9405-26D59951501D}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Libra.Graphics.SharpDX</RootNamespace>
+    <AssemblyName>Libra.Graphics.SharpDX</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="SharpDX, Version=2.4.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Libs\SharpDX\Standard-net40\SharpDX.dll</HintPath>
+    </Reference>
+    <Reference Include="SharpDX.Direct3D11, Version=2.4.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Libs\SharpDX\Standard-net40\SharpDX.Direct3D11.dll</HintPath>
+    </Reference>
+    <Reference Include="SharpDX.DXGI, Version=2.4.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Libs\SharpDX\Standard-net40\SharpDX.DXGI.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ColorExtension.cs" />
+    <Compile Include="RectangleExtension.cs" />
+    <Compile Include="FormatHelper.cs" />
+    <Compile Include="ResourceHelper.cs" />
+    <Compile Include="SdxDeviceFeatures.cs" />
+    <Compile Include="SdxConstantBuffer.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SdxAdapter.cs" />
+    <Compile Include="SdxDepthStencil.cs" />
+    <Compile Include="SdxDepthStencilView.cs" />
+    <Compile Include="SdxDevice.cs" />
+    <Compile Include="SdxDeviceContext.cs" />
+    <Compile Include="SdxGraphicsFactory.cs" />
+    <Compile Include="SdxIndexBuffer.cs" />
+    <Compile Include="SdxInputLayout.cs" />
+    <Compile Include="SdxOcclusionQuery.cs" />
+    <Compile Include="SdxOutput.cs" />
+    <Compile Include="SdxOutputCollection.cs" />
+    <Compile Include="SdxPixelShader.cs" />
+    <Compile Include="SdxRenderTarget.cs" />
+    <Compile Include="SdxRenderTargetView.cs" />
+    <Compile Include="SdxShaderResourceView.cs" />
+    <Compile Include="SdxStateManager.cs" />
+    <Compile Include="SdxSwapChain.cs" />
+    <Compile Include="SdxTexture2D.cs" />
+    <Compile Include="SdxVertexBuffer.cs" />
+    <Compile Include="SdxVertexShader.cs" />
+    <Compile Include="ViewportExtension.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Libra.Graphics\Libra.Graphics.csproj">
+      <Project>{CDFAB2B9-00DB-4719-B424-C2A973A7BC4C}</Project>
+      <Name>Libra.Graphics</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Libra\Libra.csproj">
+      <Project>{BDCF4398-A4F9-48B0-BB3F-1B98CD3131B2}</Project>
+      <Name>Libra</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
