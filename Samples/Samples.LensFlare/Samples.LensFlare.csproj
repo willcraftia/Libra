@@ -61,10 +61,6 @@
       <Project>{5FF1176C-7EA3-49A9-93D0-0868886FB9AF}</Project>
       <Name>Libra.Games</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Libra.Graphics.SharpDX.Compiler\Libra.Graphics.SharpDX.Compiler.csproj">
-      <Project>{59E12C98-86A5-4FBD-8D04-236BABB15F51}</Project>
-      <Name>Libra.Graphics.SharpDX.Compiler</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Libra.Graphics.SharpDX\Libra.Graphics.SharpDX.csproj">
       <Project>{FAEE2668-AB77-477D-9405-26D59951501D}</Project>
       <Name>Libra.Graphics.SharpDX</Name>

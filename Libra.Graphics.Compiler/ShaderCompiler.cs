@@ -5,18 +5,11 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Text;
 
-using D3DCEffectFlags = SharpDX.D3DCompiler.EffectFlags;
-using D3DCInclude = SharpDX.D3DCompiler.Include;
-using D3DCIncludeType = SharpDX.D3DCompiler.IncludeType;
-using D3DCShaderBytecode = SharpDX.D3DCompiler.ShaderBytecode;
-using D3DCShaderFlags = SharpDX.D3DCompiler.ShaderFlags;
-using D3DCShaderSignature = SharpDX.D3DCompiler.ShaderSignature;
-
 #endregion
 
-namespace Libra.Graphics.SharpDX.Compiler
+namespace Libra.Graphics.Compiler
 {
-    public sealed class ShaderCompiler : IDisposable
+    public abstract class ShaderCompiler : IDisposable
     {
         #region PathCollection
 
@@ -27,41 +20,37 @@ namespace Libra.Graphics.SharpDX.Compiler
 
         #endregion
 
-        #region D3DCIncludeImpl
+        #region CompileFlags
 
-        sealed class D3DCIncludeImpl : D3DCInclude
+        [Flags]
+        protected enum CompileFlags
         {
-            ShaderCompiler compiler;
+            None                            = 0,
 
-            public IDisposable Shadow { get; set; }
+            Debug                           = (1 << 0),
+            SkipValidation                  = (1 << 1),
+            SkipOptimization                = (1 << 2),
+            PackMatrixRowMajor              = (1 << 3),
+            PackMatrixColumnMajor           = (1 << 4),
+            PartialPrecision                = (1 << 5),
+            ForceVSSoftwareNoOpt            = (1 << 6),
+            ForcePSSoftwareNoOpt            = (1 << 7),
+            NoPreshader                     = (1 << 8),
+            AvoidFlowControl                = (1 << 9),
+            PreferFlowControl               = (1 << 10),
+            EnableStrictness                = (1 << 11),
+            EnableBackwardsCompatibility    = (1 << 12),
+            IeeeStrictness                  = (1 << 13),
 
-            internal D3DCIncludeImpl(ShaderCompiler compiler)
-            {
-                this.compiler = compiler;
-            }
+            OptimizationLevel0              = (1 << 14),
+            OptimizationLevel1              = 0,
+            OptimizationLevel2              = ((1 << 14) | (1 << 15)),
+            OptimizationLevel3              = (1 << 15),
 
-            public Stream Open(D3DCIncludeType type, string fileName, Stream parentStream)
-            {
-                return compiler.OpenIncludeFile(type, fileName);
-            }
-
-            public void Close(Stream stream)
-            {
-                compiler.CloseIncludeFile(stream);
-            }
-
-            public void Dispose()
-            {
-                // TODO
-                // これで良いの？説明が足りない。
-                if (Shadow != null)
-                    Shadow.Dispose();
-            }
+            WarningsAreErrors               = (1 << 18),
         }
 
         #endregion
-
-        D3DCIncludeImpl d3dcInclude;
 
         string parentFilePath;
 
@@ -180,30 +169,33 @@ namespace Libra.Graphics.SharpDX.Compiler
 
         public PixelShaderProfile PixelShaderProfile { get; set; }
 
-        public ShaderCompiler()
+        protected ShaderCompiler()
         {
-            d3dcInclude = new D3DCIncludeImpl(this);
-
-            OptimizationLevel = OptimizationLevels.Level1;
-            
             SystemIncludePaths = new PathCollection();
+            OptimizationLevel = OptimizationLevels.Level1;
             VertexShaderProfile = VertexShaderProfile.vs_5_0;
             PixelShaderProfile = PixelShaderProfile.ps_5_0;
         }
 
-        public static byte[] ParseInputSignature(byte[] shaderBytecode)
+        public byte[] GetInputSignature(byte[] shaderBytecode)
         {
-            return D3DCShaderSignature.GetInputSignature(shaderBytecode).Data;
+            if (shaderBytecode == null) throw new ArgumentNullException("shaderBytecode");
+
+            return GetInputSignatureCore(shaderBytecode);
         }
 
-        public static byte[] ParseOutputSignature(byte[] shaderBytecode)
+        public byte[] GetOutputSignature(byte[] shaderBytecode)
         {
-            return D3DCShaderSignature.GetOutputSignature(shaderBytecode).Data;
+            if (shaderBytecode == null) throw new ArgumentNullException("shaderBytecode");
+
+            return GetOutputSignatureCore(shaderBytecode);
         }
 
-        public static byte[] ParseInputOutputSignature(byte[] shaderBytecode)
+        public byte[] GetInputAndOutputSignature(byte[] shaderBytecode)
         {
-            return D3DCShaderSignature.GetInputOutputSignature(shaderBytecode).Data;
+            if (shaderBytecode == null) throw new ArgumentNullException("shaderBytecode");
+
+            return GetInputAndOutputSignatureCore(shaderBytecode);
         }
 
         public byte[] CompileVertexShader(Stream stream, string entrypoint)
@@ -214,46 +206,6 @@ namespace Libra.Graphics.SharpDX.Compiler
         public byte[] CompilePixelShader(Stream stream, string entrypoint)
         {
             return Compile(stream, entrypoint, ToString(PixelShaderProfile));
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <remarks>
-        /// ストリームからシェーダ コードをを読み込む場合、
-        /// シェーダ ファイルのパスは不明であるため、
-        /// ローカル インクルード (#include "filename" 形式) は、
-        /// 絶対パス指定、あるいは、カレント ディレクトリからの相対パスのみが有効となります。
-        /// </remarks>
-        /// <param name="stream"></param>
-        /// <param name="entrypoint"></param>
-        /// <param name="profile"></param>
-        /// <returns></returns>
-        public byte[] Compile(Stream stream, string entrypoint, string profile)
-        {
-            if (stream == null) throw new ArgumentNullException("stream");
-            if (entrypoint == null) throw new ArgumentNullException("entrypoint");
-            if (profile == null) throw new ArgumentNullException("profile");
-
-            // 注意
-            //
-            // シェーダ ファイルは ASCII 限定。
-            // Shift-JIS ならば日本語を含める事が可能だが、
-            // UTF-8 はコンパイル エラーとなる。
-
-            string shaderSource;
-            using (var reader = new StreamReader(stream, Encoding.ASCII))
-            {
-                shaderSource = reader.ReadToEnd();
-            }
-
-            var d3dcShaderFlags = ResolveD3DCShaderFlags();
-
-            var d3dCCompilationResult = D3DCShaderBytecode.Compile(
-                Encoding.ASCII.GetBytes(shaderSource), entrypoint, profile,
-                d3dcShaderFlags, D3DCEffectFlags.None, null, d3dcInclude);
-
-            return d3dCCompilationResult.Bytecode.Data;
         }
 
         public byte[] CompileVertexShader(string path, string entrypoint)
@@ -267,7 +219,6 @@ namespace Libra.Graphics.SharpDX.Compiler
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <remarks>
         /// ファイルからシェーダ コードを読み込む場合、
@@ -304,7 +255,53 @@ namespace Libra.Graphics.SharpDX.Compiler
             }
         }
 
-        static string ToString(VertexShaderProfile profile)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <remarks>
+        /// ストリームからシェーダ コードをを読み込む場合、
+        /// シェーダ ファイルのパスは不明であるため、
+        /// ローカル インクルード (#include "filename" 形式) は、
+        /// 絶対パス指定、あるいは、カレント ディレクトリからの相対パスのみが有効となります。
+        /// </remarks>
+        /// <param name="stream"></param>
+        /// <param name="entrypoint"></param>
+        /// <param name="profile"></param>
+        /// <returns></returns>
+        public byte[] Compile(Stream stream, string entrypoint, string profile)
+        {
+            if (stream == null) throw new ArgumentNullException("stream");
+            if (entrypoint == null) throw new ArgumentNullException("entrypoint");
+            if (profile == null) throw new ArgumentNullException("profile");
+
+            // 注意
+            //
+            // シェーダ ファイルは ASCII 限定。
+            // Shift-JIS ならば日本語を含める事が可能だが、
+            // UTF-8 はコンパイル エラーとなる。
+
+            string sourceCode;
+            using (var reader = new StreamReader(stream, Encoding.ASCII))
+            {
+                sourceCode = reader.ReadToEnd();
+            }
+
+            var sourceCodeBytes = Encoding.ASCII.GetBytes(sourceCode);
+            var flags = ResolveCompileFlags();
+
+            return CompileCore(sourceCodeBytes, entrypoint, profile, flags);
+            
+        }
+
+        protected abstract byte[] CompileCore(byte[] sourceCode, string entrypoint, string profile, CompileFlags flags);
+
+        protected abstract byte[] GetInputSignatureCore(byte[] shaderBytecode);
+
+        protected abstract byte[] GetOutputSignatureCore(byte[] shaderBytecode);
+
+        protected abstract byte[] GetInputAndOutputSignatureCore(byte[] shaderBytecode);
+
+        public static string ToString(VertexShaderProfile profile)
         {
             switch (profile)
             {
@@ -330,12 +327,12 @@ namespace Libra.Graphics.SharpDX.Compiler
                     return "vs_4_1";
                 case VertexShaderProfile.vs_5_0:
                     return "vs_5_0";
-                default:
-                    throw new InvalidOperationException();
             }
+
+            throw new InvalidOperationException();
         }
 
-        static string ToString(PixelShaderProfile profile)
+        public static string ToString(PixelShaderProfile profile)
         {
             switch (profile)
             {
@@ -361,25 +358,25 @@ namespace Libra.Graphics.SharpDX.Compiler
                     return "ps_4_1";
                 case PixelShaderProfile.ps_5_0:
                     return "ps_5_0";
-                default:
-                    throw new InvalidOperationException();
             }
+
+            throw new InvalidOperationException();
         }
 
-        Stream OpenIncludeFile(D3DCIncludeType type, string fileName)
+        protected Stream OpenIncludeFile(IncludeType type, string fileName)
         {
             var filePath = ResolveIncludePath(type, fileName);
             return File.OpenRead(filePath);
         }
 
-        void CloseIncludeFile(Stream stream)
+        protected void CloseIncludeFile(Stream stream)
         {
             stream.Close();
         }
 
-        string ResolveIncludePath(D3DCIncludeType type, string fileName)
+        string ResolveIncludePath(IncludeType type, string fileName)
         {
-            if (type == D3DCIncludeType.Local)
+            if (type == IncludeType.Local)
                 return ResolveLocalIncludePath(fileName);
 
             return ResolveSystemIncludePath(fileName);
@@ -413,56 +410,56 @@ namespace Libra.Graphics.SharpDX.Compiler
             throw new FileNotFoundException("System include file not found: " + fileName);
         }
 
-        D3DCShaderFlags ResolveD3DCShaderFlags()
+        CompileFlags ResolveCompileFlags()
         {
-            var flags = D3DCShaderFlags.None;
+            var flags = CompileFlags.None;
 
             if (EnableDebug)
-                flags |= D3DCShaderFlags.Debug;
+                flags |= CompileFlags.Debug;
 
             if (SkipValidation)
-                flags |= D3DCShaderFlags.SkipValidation;
+                flags |= CompileFlags.SkipValidation;
 
             if (SkipOptimization)
-                flags |= D3DCShaderFlags.SkipOptimization;
+                flags |= CompileFlags.SkipOptimization;
 
             if (PackMatrixRowMajor)
-                flags |= D3DCShaderFlags.PackMatrixRowMajor;
+                flags |= CompileFlags.PackMatrixRowMajor;
 
             if (PackMatrixColumnMajor)
-                flags |= D3DCShaderFlags.PackMatrixColumnMajor;
+                flags |= CompileFlags.PackMatrixColumnMajor;
 
             if (EnableStrictness)
-                flags |= D3DCShaderFlags.EnableStrictness;
+                flags |= CompileFlags.EnableStrictness;
 
             if (EnableBackwardsCompatibility)
-                flags |= D3DCShaderFlags.EnableBackwardsCompatibility;
+                flags |= CompileFlags.EnableBackwardsCompatibility;
 
             switch (OptimizationLevel)
             {
                 case OptimizationLevels.Level0:
-                    flags |= D3DCShaderFlags.OptimizationLevel0;
+                    flags |= CompileFlags.OptimizationLevel0;
                     break;
                 case OptimizationLevels.Level1:
-                    flags |= D3DCShaderFlags.OptimizationLevel1;
+                    flags |= CompileFlags.OptimizationLevel1;
                     break;
                 case OptimizationLevels.Level2:
-                    flags |= D3DCShaderFlags.OptimizationLevel2;
+                    flags |= CompileFlags.OptimizationLevel2;
                     break;
                 case OptimizationLevels.Level3:
-                    flags |= D3DCShaderFlags.OptimizationLevel3;
+                    flags |= CompileFlags.OptimizationLevel3;
                     break;
             }
 
             if (WarningsAreErrors)
-                flags |= D3DCShaderFlags.WarningsAreErrors;
+                flags |= CompileFlags.WarningsAreErrors;
 
             return flags;
         }
 
         #region IDisposable
 
-        bool disposed;
+        protected bool IsDisposed { get; private set; }
 
         ~ShaderCompiler()
         {
@@ -475,16 +472,15 @@ namespace Libra.Graphics.SharpDX.Compiler
             GC.SuppressFinalize(this);
         }
 
+        protected virtual void DisposeOverride(bool disposing) { }
+
         void Dispose(bool disposing)
         {
-            if (disposed) return;
+            if (IsDisposed) return;
 
-            if (disposing)
-            {
-                d3dcInclude.Dispose();
-            }
+            DisposeOverride(disposing);
 
-            disposed = true;
+            IsDisposed = true;
         }
 
         #endregion

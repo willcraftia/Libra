@@ -4,7 +4,7 @@ using System;
 
 #endregion
 
-namespace Libra.Graphics.SharpDX.Compiler
+namespace Libra.Graphics.Compiler
 {
     /// <summary>
     /// 最適化レベルを定義する列挙型です。

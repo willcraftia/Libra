@@ -5,7 +5,8 @@ using Libra;
 using Libra.Games;
 using Libra.Games.SharpDX;
 using Libra.Graphics;
-using Libra.Graphics.SharpDX.Compiler;
+using Libra.Graphics.Compiler;
+using Libra.Graphics.Compiler.SharpDX;
 
 #endregion
 
@@ -85,7 +86,7 @@ namespace Samples.MiniCube
         protected override void LoadContent()
         {
             // ここではテストのために行優先でコンパイル。
-            var compiler = new ShaderCompiler();
+            var compiler = new SdxShaderCompiler();
             compiler.RootPath = "Shaders";
             compiler.PackMatrixRowMajor = true;
             compiler.EnableStrictness = true;

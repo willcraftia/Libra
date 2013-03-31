@@ -5,11 +5,11 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{59E12C98-86A5-4FBD-8D04-236BABB15F51}</ProjectGuid>
+    <ProjectGuid>{79116E63-224F-4271-905E-B08BF2B6DD9C}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Libra.Graphics.SharpDX.Compiler</RootNamespace>
-    <AssemblyName>Libra.Graphics.SharpDX.Compiler</AssemblyName>
+    <RootNamespace>Libra.Collections</RootNamespace>
+    <AssemblyName>Libra.Collections</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -31,22 +31,19 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="SharpDX">
-      <HintPath>..\Libs\SharpDX\Standard-net40\SharpDX.dll</HintPath>
-    </Reference>
-    <Reference Include="SharpDX.D3DCompiler">
-      <HintPath>..\Libs\SharpDX\Standard-net40\SharpDX.D3DCompiler.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="OptimizationLevels.cs" />
-    <Compile Include="PixelShaderProfile.cs" />
+    <Compile Include="ConcurrentPool.cs" />
+    <Compile Include="Pool.cs" />
+    <Compile Include="PriorityQueue.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ShaderCompiler.cs" />
-    <Compile Include="VertexShaderProfile.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
