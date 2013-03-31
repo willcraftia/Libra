@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using Libra;
 using Libra.Games;
-using Libra.Games.SharpDX;
+using Libra.Games.Forms.SharpDX;
 using Libra.Graphics;
 using Libra.Graphics.Compiler;
 using Libra.Input;

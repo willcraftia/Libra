@@ -53,9 +53,13 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Libra.Games.SharpDX\Libra.Games.SharpDX.csproj">
+    <ProjectReference Include="..\..\Libra.Games.Forms.SharpDX\Libra.Games.Forms.SharpDX.csproj">
       <Project>{18B2993B-626D-4337-91A2-ED0239B8D843}</Project>
-      <Name>Libra.Games.SharpDX</Name>
+      <Name>Libra.Games.Forms.SharpDX</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Libra.Games.Forms\Libra.Games.Forms.csproj">
+      <Project>{FEBB9768-3083-40C9-866C-C5314E1DDDF3}</Project>
+      <Name>Libra.Games.Forms</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Libra.Games\Libra.Games.csproj">
       <Project>{5FF1176C-7EA3-49A9-93D0-0868886FB9AF}</Project>

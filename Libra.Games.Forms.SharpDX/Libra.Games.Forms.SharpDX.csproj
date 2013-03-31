@@ -2,20 +2,18 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{C51BBBBE-41F2-4AF3-AFB8-E00A0BFDC915}</ProjectGuid>
-    <OutputType>WinExe</OutputType>
+    <ProjectGuid>{18B2993B-626D-4337-91A2-ED0239B8D843}</ProjectGuid>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Samples.MiniCubeIndexed</RootNamespace>
-    <AssemblyName>Samples.MiniCubeIndexed</AssemblyName>
+    <RootNamespace>Libra.Games.Forms.SharpDX</RootNamespace>
+    <AssemblyName>Libra.Games.Forms.SharpDX</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
-    <PlatformTarget>x86</PlatformTarget>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -24,8 +22,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
-    <PlatformTarget>x86</PlatformTarget>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -33,10 +30,10 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup>
-    <StartupObject />
-  </PropertyGroup>
   <ItemGroup>
+    <Reference Include="SharpDX">
+      <HintPath>..\..\..\SharpDX\SharpDX-Full-2.4.2\Bin\Standard-net40\SharpDX.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
@@ -44,50 +41,42 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MainGame.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SdxFormGamePlatform.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\MiniCube.fx">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\Libra.Games.Forms.SharpDX\Libra.Games.Forms.SharpDX.csproj">
-      <Project>{18B2993B-626D-4337-91A2-ED0239B8D843}</Project>
-      <Name>Libra.Games.Forms.SharpDX</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Libra.Games.Forms\Libra.Games.Forms.csproj">
+    <ProjectReference Include="..\Libra.Games.Forms\Libra.Games.Forms.csproj">
       <Project>{FEBB9768-3083-40C9-866C-C5314E1DDDF3}</Project>
       <Name>Libra.Games.Forms</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Libra.Games\Libra.Games.csproj">
+    <ProjectReference Include="..\Libra.Games\Libra.Games.csproj">
       <Project>{5FF1176C-7EA3-49A9-93D0-0868886FB9AF}</Project>
       <Name>Libra.Games</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Libra.Graphics.Compiler.SharpDX\Libra.Graphics.Compiler.SharpDX.csproj">
-      <Project>{59E12C98-86A5-4FBD-8D04-236BABB15F51}</Project>
-      <Name>Libra.Graphics.Compiler.SharpDX</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Libra.Graphics.Compiler\Libra.Graphics.Compiler.csproj">
-      <Project>{909EE421-8DAC-435B-BF19-147CA0A5FDDE}</Project>
-      <Name>Libra.Graphics.Compiler</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Libra.Graphics.SharpDX\Libra.Graphics.SharpDX.csproj">
+    <ProjectReference Include="..\Libra.Graphics.SharpDX\Libra.Graphics.SharpDX.csproj">
       <Project>{FAEE2668-AB77-477D-9405-26D59951501D}</Project>
       <Name>Libra.Graphics.SharpDX</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Libra.Graphics\Libra.Graphics.csproj">
+    <ProjectReference Include="..\Libra.Graphics\Libra.Graphics.csproj">
       <Project>{CDFAB2B9-00DB-4719-B424-C2A973A7BC4C}</Project>
       <Name>Libra.Graphics</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Libra\Libra.csproj">
+    <ProjectReference Include="..\Libra.Input.Forms\Libra.Input.Forms.csproj">
+      <Project>{F9E7007E-C9BD-4C95-B9D8-8E50EDF6EAE5}</Project>
+      <Name>Libra.Input.Forms</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Libra.Input.SharpDX\Libra.Input.SharpDX.csproj">
+      <Project>{AFD05BCE-8CBE-4CDB-A641-A4FA3BA678F0}</Project>
+      <Name>Libra.Input.SharpDX</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Libra.Input\Libra.Input.csproj">
+      <Project>{EBCC5AFA-0E37-4863-B71E-2AC201CB2864}</Project>
+      <Name>Libra.Input</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Libra\Libra.csproj">
       <Project>{BDCF4398-A4F9-48B0-BB3F-1B98CD3131B2}</Project>
       <Name>Libra</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="README.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

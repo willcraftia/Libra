@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // アセンブリに関する一般情報は以下の属性セットをとおして制御されます。
 // アセンブリに関連付けられている情報を変更するには、
 // これらの属性値を変更してください。
-[assembly: AssemblyTitle("Libra.Games.SharpDX")]
+[assembly: AssemblyTitle("Libra.Games.Forms")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Libra.Games.SharpDX")]
+[assembly: AssemblyProduct("Libra.Games.Forms")]
 [assembly: AssemblyCopyright("Copyright ©  2013")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // 次の GUID は、このプロジェクトが COM に公開される場合の、typelib の ID です
-[assembly: Guid("3eb48ed0-f086-4255-91f3-3e19ca44c429")]
+[assembly: Guid("227f5156-e3bb-4118-85b2-d4179c385cea")]
 
 // アセンブリのバージョン情報は、以下の 4 つの値で構成されています:
 //

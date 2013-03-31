@@ -3,19 +3,14 @@
 using System;
 using System.Windows.Forms;
 using Libra.Graphics;
-using Libra.Graphics.SharpDX;
 using Libra.Input;
 using Libra.Input.Forms;
-using Libra.Input.SharpDX;
-
-using SDXWRenderForm = SharpDX.Windows.RenderForm;
-using SDXWRenderLoop = SharpDX.Windows.RenderLoop;
 
 #endregion
 
-namespace Libra.Games.SharpDX
+namespace Libra.Games.Forms
 {
-    public sealed class SdxFormGamePlatform : IGamePlatform, IDisposable
+    public abstract class FormGamePlatform : IGamePlatform, IDisposable
     {
         #region FormGameWindow
 
@@ -94,10 +89,6 @@ namespace Libra.Games.SharpDX
 
         MessageFilter messageFilter;
 
-        SdxDirectInput sdxDirectInput;
-
-        SdxJoystick sdxJoystick;
-
         public GameWindow Window { get; private set; }
 
         public IGraphicsFactory GraphicsFactory { get; private set; }
@@ -106,64 +97,69 @@ namespace Libra.Games.SharpDX
 
         public bool DirectInputEnabled { get; set; }
 
-        public SdxFormGamePlatform(Game game, Form form = null)
+        public FormGamePlatform(Game game, Form form)
         {
             if (game == null) throw new ArgumentNullException("game");
+            if (form == null) throw new ArgumentNullException("form");
 
             this.game = game;
-            Form = form ?? new SDXWRenderForm(game.GetType().Name);
+            Form = form;
             Form.Activated += OnActivated;
             Form.Deactivate += OnDeactivated;
             Form.FormClosing += OnClosing;
 
+            // TODO
+            //
+            // Game インスタンスと共に初期化されるオブジェクトを
+            // サービス登録することはおかしい。
+
             game.Services.AddService<IGamePlatform>(this);
         }
 
-        public void Initialize()
+        public virtual void Initialize()
         {
             if (Window != null)
                 throw new InvalidOperationException("GameWindow already exists.");
 
             Window = new FormGameWindow(Form);
-            GraphicsFactory = new SdxGraphicsFactory();
+            GraphicsFactory = CreateGraphicsFactory();
 
             messageFilter = new MessageFilter(Window.Handle);
             Application.AddMessageFilter(messageFilter);
 
-            Keyboard.Initialize(FormKeyboard.Instance);
-            Mouse.Initialize(FormMouse.Instance);
-
-            if (DirectInputEnabled)
-            {
-                sdxDirectInput = new SdxDirectInput();
-                sdxJoystick = sdxDirectInput.CreateJoystick();
-                Joystick.Initialize(sdxJoystick);
-            }
+            if (!Keyboard.Initialized) Keyboard.Initialize(CreateKeyboard());
+            if (!Mouse.Initialized) Mouse.Initialize(CreateMouse());
+            if (!Joystick.Initialized) Joystick.Initialize(CreateJoystick());
         }
 
-        public void Run(TickCallback tick)
-        {
-            SDXWRenderLoop.Run(Form, new SDXWRenderLoop.RenderCallback(tick));
-        }
+        protected abstract IGraphicsFactory CreateGraphicsFactory();
 
-        public void Exit()
+        protected abstract IKeyboard CreateKeyboard();
+
+        protected abstract IMouse CreateMouse();
+
+        protected abstract IJoystick CreateJoystick();
+
+        public abstract void Run(TickCallback tick);
+
+        public virtual void Exit()
         {
             Form.Close();
         }
 
-        void OnActivated(object sender, EventArgs e)
+        protected virtual void OnActivated(object sender, EventArgs e)
         {
             if (Activated != null)
                 Activated(this, EventArgs.Empty);
         }
 
-        void OnDeactivated(object sender, EventArgs e)
+        protected virtual void OnDeactivated(object sender, EventArgs e)
         {
             if (Deactivated != null)
                 Deactivated(this, EventArgs.Empty);
         }
 
-        void OnClosing(object sender, FormClosingEventArgs e)
+        protected virtual void OnClosing(object sender, FormClosingEventArgs e)
         {
             if (Exiting != null)
                 Exiting(this, EventArgs.Empty);
@@ -171,9 +167,9 @@ namespace Libra.Games.SharpDX
 
         #region IDisposable
 
-        bool disposed;
+        protected bool IsDisposed { get; private set; }
 
-        ~SdxFormGamePlatform()
+        ~FormGamePlatform()
         {
             Dispose(false);
         }
@@ -184,23 +180,21 @@ namespace Libra.Games.SharpDX
             GC.SuppressFinalize(this);
         }
 
+        protected virtual void DisposeOverride(bool disposing) { }
+
         void Dispose(bool disposing)
         {
-            if (disposed) return;
+            if (IsDisposed) return;
 
             if (disposing)
             {
                 if (messageFilter != null)
                     Application.RemoveMessageFilter(messageFilter);
-
-                if (sdxJoystick != null)
-                    sdxJoystick.Dispose();
-
-                if (sdxDirectInput != null)
-                    sdxDirectInput.Dispose();
             }
 
-            disposed = true;
+            DisposeOverride(disposing);
+
+            IsDisposed = true;
         }
 
         #endregion
