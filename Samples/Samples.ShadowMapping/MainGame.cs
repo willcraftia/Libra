@@ -6,7 +6,6 @@ using Libra.Games;
 using Libra.Games.SharpDX;
 using Libra.Graphics;
 using Libra.Graphics.Compiler;
-using Libra.Graphics.Compiler.SharpDX;
 using Libra.Input;
 using Libra.Xnb;
 
@@ -35,7 +34,7 @@ namespace Samples.ShadowMapping
 
             public ConstantBuffer ConstantBuffer { get; private set; }
 
-            public CreateShadowMapShader(IDevice device, SdxShaderCompiler compiler)
+            public CreateShadowMapShader(IDevice device, ShaderCompiler compiler)
             {
                 VertexShader = device.CreateVertexShader();
                 VertexShader.Initialize(compiler.CompileVertexShader("CreateShadowMap.fx", "VS"));
@@ -89,7 +88,7 @@ namespace Samples.ShadowMapping
 
             public ConstantBuffer ConstantBuffer { get; private set; }
 
-            public DrawModelShader(IDevice device, SdxShaderCompiler compiler)
+            public DrawModelShader(IDevice device, ShaderCompiler compiler)
             {
                 VertexShader = device.CreateVertexShader();
                 VertexShader.Initialize(compiler.CompileVertexShader("DrawModel.fx", "VS"));
@@ -186,7 +185,7 @@ namespace Samples.ShadowMapping
 
         protected override void LoadContent()
         {
-            var compiler = new SdxShaderCompiler();
+            var compiler = ShaderCompiler.CreateShaderCompiler();
             compiler.RootPath = "../../Shaders/";
             compiler.EnableStrictness = true;
             compiler.OptimizationLevel = OptimizationLevels.Level3;

@@ -7,7 +7,6 @@ using Libra.Games;
 using Libra.Games.SharpDX;
 using Libra.Graphics;
 using Libra.Graphics.Compiler;
-using Libra.Graphics.Compiler.SharpDX;
 using Libra.Input;
 using Libra.Xnb;
 
@@ -133,7 +132,7 @@ namespace Samples.InstancedModel
 
         protected override void LoadContent()
         {
-            var compiler = new SdxShaderCompiler();
+            var compiler = ShaderCompiler.CreateShaderCompiler();
             compiler.RootPath = "../../Shaders/";
             compiler.EnableStrictness = true;
             compiler.OptimizationLevel = OptimizationLevels.Level3;

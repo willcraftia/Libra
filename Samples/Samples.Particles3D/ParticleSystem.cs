@@ -6,7 +6,6 @@ using Libra;
 using Libra.Games;
 using Libra.Graphics;
 using Libra.Graphics.Compiler;
-using Libra.Graphics.Compiler.SharpDX;
 using Libra.PackedVector;
 using Libra.Xnb;
 
@@ -168,7 +167,7 @@ namespace Samples.Particles3D
             // シェーダは全てのパーティクル システムで共通であるため、
             // 外部から指定するか、あるいは、共有リソースとして定義すべき。
 
-            var compiler = new SdxShaderCompiler();
+            var compiler = ShaderCompiler.CreateShaderCompiler();
             compiler.RootPath = "Shaders";
             compiler.EnableStrictness = true;
             compiler.OptimizationLevel = OptimizationLevels.Level3;

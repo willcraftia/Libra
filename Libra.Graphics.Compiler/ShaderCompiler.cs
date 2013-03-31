@@ -3,6 +3,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Reflection;
 using System.Text;
 
 #endregion
@@ -51,6 +52,8 @@ namespace Libra.Graphics.Compiler
         }
 
         #endregion
+
+        const string DefaultShaderCompilerName = "Libra.Graphics.Compiler.SharpDX.SdxShaderCompiler, Libra.Graphics.Compiler.SharpDX, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null";
 
         string parentFilePath;
 
@@ -175,6 +178,52 @@ namespace Libra.Graphics.Compiler
             OptimizationLevel = OptimizationLevels.Level1;
             VertexShaderProfile = VertexShaderProfile.vs_5_0;
             PixelShaderProfile = PixelShaderProfile.ps_5_0;
+        }
+
+        public static ShaderCompiler CreateShaderCompiler()
+        {
+            return CreateShaderCompiler(DefaultShaderCompilerName);
+        }
+
+        public static ShaderCompiler CreateShaderCompiler(string assemblyQualifiedName)
+        {
+            if (assemblyQualifiedName == null) throw new ArgumentNullException("assemblyQualifiedName");
+
+            var type = Type.GetType(assemblyQualifiedName);
+            return Activator.CreateInstance(type) as ShaderCompiler;
+        }
+
+        public static ShaderCompiler CreateShaderCompiler(Assembly assembly)
+        {
+            if (assembly == null) throw new ArgumentNullException("assembly");
+
+            var type = FindShaderCompiler(assembly);
+            if (type == null)
+                throw new ArgumentException("ShaderCompiler not found.", "assembly");
+
+            return Activator.CreateInstance(type) as ShaderCompiler;
+        }
+
+        static Type FindShaderCompiler(Assembly assembly)
+        {
+            Type[] types;
+
+            try
+            {
+                types = assembly.GetTypes();
+            }
+            catch
+            {
+                return null;
+            }
+
+            foreach (var type in types)
+            {
+                if (!type.IsAbstract && typeof(ShaderCompiler).IsAssignableFrom(type))
+                    return type;
+            }
+
+            return null;
         }
 
         public byte[] GetInputSignature(byte[] shaderBytecode)
