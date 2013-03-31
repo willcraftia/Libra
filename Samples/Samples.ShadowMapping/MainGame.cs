@@ -136,10 +136,6 @@ namespace Samples.ShadowMapping
  
         Vector3 lightDir = new Vector3(-0.3333333f, 0.6666667f, 0.6666667f);
 
-        IKeyboard keyboard;
-
-        IJoystick joystick;
-
         KeyboardState currentKeyboardState;
         
         JoystickState currentJoystickState;
@@ -209,9 +205,6 @@ namespace Samples.ShadowMapping
 
             shadowRenderTargetView = Device.CreateRenderTargetView();
             shadowRenderTargetView.Initialize(shadowRenderTarget);
-
-            keyboard = platform.CreateKeyboard();
-            joystick = platform.CreateJoystick();
         }
 
         protected override void Update(GameTime gameTime)
@@ -371,8 +364,8 @@ namespace Samples.ShadowMapping
         {
             float time = (float) gameTime.ElapsedGameTime.TotalMilliseconds;
 
-            currentKeyboardState = keyboard.GetState();
-            currentJoystickState = joystick.GetState();
+            currentKeyboardState = Keyboard.GetState();
+            currentJoystickState = Joystick.GetState();
 
             rotateDude += currentJoystickState.Triggers.Right * time * 0.2f;
             rotateDude -= currentJoystickState.Triggers.Left * time * 0.2f;

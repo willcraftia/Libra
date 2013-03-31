@@ -25,12 +25,6 @@ namespace Samples.Primitives3D
 
         SpriteFont spriteFont;
 
-        IKeyboard keyboard;
-
-        IMouse mouse;
-
-        IJoystick joystick;
-
         KeyboardState currentKeyboardState;
 
         KeyboardState lastKeyboardState;
@@ -82,10 +76,6 @@ namespace Samples.Primitives3D
             primitives.Add(new CylinderPrimitive(Device));
             primitives.Add(new TorusPrimitive(Device));
             primitives.Add(new TeapotPrimitive(Device));
-
-            keyboard = platform.CreateKeyboard();
-            mouse = platform.CreateMouse();
-            joystick = platform.CreateJoystick();
 
             base.LoadContent();
         }
@@ -149,9 +139,9 @@ namespace Samples.Primitives3D
             lastJoystickState = currentJoystickState;
             lastMouseState = currentMouseState;
 
-            currentKeyboardState = keyboard.GetState();
-            currentJoystickState = joystick.GetState();
-            currentMouseState = mouse.GetState();
+            currentKeyboardState = Keyboard.GetState();
+            currentJoystickState = Joystick.GetState();
+            currentMouseState = Mouse.GetState();
 
             if (IsPressed(Keys.Escape, Buttons.Back))
             {

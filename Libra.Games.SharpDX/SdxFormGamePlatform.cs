@@ -142,8 +142,15 @@ namespace Libra.Games.SharpDX
             messageFilter = new MessageFilter(Window.Handle);
             Application.AddMessageFilter(messageFilter);
 
+            Keyboard.Initialize(FormKeyboard.Instance);
+            Mouse.Initialize(FormMouse.Instance);
+
             if (DirectInputEnabled)
+            {
                 sdxDirectInput = new SdxDirectInput();
+                sdxJoystick = sdxDirectInput.CreateJoystick();
+                Joystick.Initialize(sdxJoystick);
+            }
         }
 
         public void Run(TickCallback tick)
@@ -154,31 +161,6 @@ namespace Libra.Games.SharpDX
         public void Exit()
         {
             Form.Close();
-        }
-
-        public IKeyboard CreateKeyboard()
-        {
-            return FormKeyboard.Instance;
-        }
-
-        public IMouse CreateMouse()
-        {
-            return FormMouse.Instance;
-        }
-
-        public IJoystick CreateJoystick()
-        {
-            if (DirectInputEnabled)
-            {
-                if (sdxJoystick == null)
-                    sdxJoystick = sdxDirectInput.CreateJoystick();
-
-                return sdxJoystick;
-            }
-            else
-            {
-                return new MockJoystick();
-            }
         }
 
         void OnActivated(object sender, EventArgs e)

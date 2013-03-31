@@ -53,10 +53,6 @@ namespace Samples.Particles3D
 
         Random random = new Random();
 
-        IKeyboard keyboard;
-
-        IJoystick joystick;
-
         KeyboardState currentKeyboardState;
         
         JoystickState currentGamePadState;
@@ -106,9 +102,6 @@ namespace Samples.Particles3D
 
             font = content.Load<SpriteFont>("font");
             grid = content.Load<Model>("grid");
-
-            keyboard = platform.CreateKeyboard();
-            joystick = platform.CreateJoystick();
         }
 
         protected override void Update(GameTime gameTime)
@@ -257,8 +250,8 @@ namespace Samples.Particles3D
             lastKeyboardState = currentKeyboardState;
             lastGamePadState = currentGamePadState;
 
-            currentKeyboardState = keyboard.GetState();
-            currentGamePadState = joystick.GetState();
+            currentKeyboardState = Keyboard.GetState();
+            currentGamePadState = Joystick.GetState();
 
             if (currentKeyboardState.IsKeyDown(Keys.Escape) ||
                 currentGamePadState.Buttons.Back == ButtonState.Pressed)

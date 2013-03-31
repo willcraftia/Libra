@@ -18,10 +18,6 @@ namespace Samples.LensFlare
 
         GraphicsManager graphics;
 
-        IKeyboard keyboard;
-
-        IJoystick joystick;
-
         KeyboardState currentKeyboardState = new KeyboardState();
 
         JoystickState currentJoystickState = new JoystickState();
@@ -54,9 +50,6 @@ namespace Samples.LensFlare
         protected override void LoadContent()
         {
             terrain = Content.Load<Model>("terrain");
-
-            keyboard = platform.CreateKeyboard();
-            joystick = platform.CreateJoystick();
         }
 
         protected override void Update(GameTime gameTime)
@@ -114,8 +107,8 @@ namespace Samples.LensFlare
 
         void HandleInput()
         {
-            currentKeyboardState = keyboard.GetState();
-            currentJoystickState = joystick.GetState();
+            currentKeyboardState = Keyboard.GetState();
+            currentJoystickState = Joystick.GetState();
 
             if (currentKeyboardState.IsKeyDown(Keys.Escape) ||
                 currentJoystickState.Buttons.Back == ButtonState.Pressed)

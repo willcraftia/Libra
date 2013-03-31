@@ -41,14 +41,17 @@
     <Compile Include="IJoystick.cs" />
     <Compile Include="IKeyboard.cs" />
     <Compile Include="IMouse.cs" />
+    <Compile Include="Joystick.cs" />
     <Compile Include="JoystickButtons.cs" />
     <Compile Include="JoystickDPad.cs" />
     <Compile Include="JoystickState.cs" />
     <Compile Include="JoystickThumbSticks.cs" />
     <Compile Include="JoystickTriggers.cs" />
+    <Compile Include="Keyboard.cs" />
     <Compile Include="KeyboardState.cs" />
     <Compile Include="Keys.cs" />
     <Compile Include="KeyState.cs" />
+    <Compile Include="Mouse.cs" />
     <Compile Include="MouseState.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

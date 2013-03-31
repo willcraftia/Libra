@@ -98,10 +98,6 @@ namespace Samples.InstancedModel
         
         TimeSpan elapsedTime;
 
-        IKeyboard keyboard;
-
-        IJoystick joystick;
-
         KeyboardState lastKeyboardState;
         
         JoystickState lastGamePadState;
@@ -171,9 +167,6 @@ namespace Samples.InstancedModel
             instanceInputLayout.Initialize(instanceVertexShader,
                 new VertexDeclarationBinding(instancedModel.Meshes[0].MeshParts[0].VertexBuffer.VertexDeclaration),
                 new VertexDeclarationBinding(instanceVertexDeclaration, 1, true, 1));
-
-            keyboard = platform.CreateKeyboard();
-            joystick = platform.CreateJoystick();
         }
 
         protected override void Update(GameTime gameTime)
@@ -372,8 +365,8 @@ namespace Samples.InstancedModel
             lastKeyboardState = currentKeyboardState;
             lastGamePadState = currentGamePadState;
 
-            currentKeyboardState = keyboard.GetState();
-            currentGamePadState = joystick.GetState();
+            currentKeyboardState = Keyboard.GetState();
+            currentGamePadState = Joystick.GetState();
 
             if (currentKeyboardState.IsKeyDown(Keys.Escape) ||
                 currentGamePadState.Buttons.Back == ButtonState.Pressed)
