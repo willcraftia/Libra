@@ -21,46 +21,29 @@ namespace Libra.Games.Forms.SharpDX
 
         SdxJoystick sdxJoystick;
 
-        public SdxFormGamePlatform(Game game)
-            : base(game, new SDXWRenderForm(game.GetType().Name))
+        public bool DirectInputEnabled { get; set; }
+
+        protected override IJoystick Joystick
         {
+            get { return sdxJoystick; }
         }
 
-        public SdxFormGamePlatform(Game game, Form form)
-            : base(game, form)
+        protected override void Initialize()
         {
+            base.Initialize();
+
+            sdxDirectInput = new SdxDirectInput();
+            sdxJoystick = sdxDirectInput.CreateJoystick();
         }
 
-        public override void Run(TickCallback tick)
+        protected override void Run(TickCallback tick)
         {
             SDXWRenderLoop.Run(Form, new SDXWRenderLoop.RenderCallback(tick));
         }
 
-        protected override IGraphicsFactory CreateGraphicsFactory()
+        protected override Form CreateForm()
         {
-            return new SdxGraphicsFactory();
-        }
-
-        protected override IKeyboard CreateKeyboard()
-        {
-            return FormKeyboard.Instance;
-        }
-
-        protected override IMouse CreateMouse()
-        {
-            return FormMouse.Instance;
-        }
-
-        protected override IJoystick CreateJoystick()
-        {
-            if (DirectInputEnabled)
-            {
-                sdxDirectInput = new SdxDirectInput();
-                sdxJoystick = sdxDirectInput.CreateJoystick();
-                return sdxJoystick;
-            }
-
-            return null;
+            return new SDXWRenderForm();
         }
 
         #region IDisposable

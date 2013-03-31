@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using Libra;
 using Libra.Games;
-using Libra.Games.Forms.SharpDX;
 using Libra.Graphics;
 using Libra.Graphics.Compiler;
 using Libra.Input;
@@ -48,8 +47,6 @@ namespace Samples.InstancedModel
         }
 
         #endregion
-
-        IGamePlatform platform;
 
         GraphicsManager graphics;
 
@@ -108,10 +105,6 @@ namespace Samples.InstancedModel
 
         public MainGame()
         {
-            platform = new SdxFormGamePlatform(this)
-            {
-                DirectInputEnabled = true
-            };
             graphics = new GraphicsManager(this);
 
             content = new XnbManager(Services, "Content");

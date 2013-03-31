@@ -3,9 +3,9 @@
 using System;
 using Libra;
 using Libra.Games;
-using Libra.Games.Forms.SharpDX;
 using Libra.Graphics;
 using Libra.Graphics.Compiler;
+using Libra.Input;
 
 #endregion
 
@@ -64,8 +64,6 @@ namespace Samples.MiniCubeIndexed
 
         #endregion
 
-        IGamePlatform platform;
-
         GraphicsManager graphicsManager;
 
         VertexShader vertexShader;
@@ -82,7 +80,6 @@ namespace Samples.MiniCubeIndexed
 
         public MainGame()
         {
-            platform = new SdxFormGamePlatform(this);
             graphicsManager = new GraphicsManager(this);
         }
 
@@ -118,6 +115,14 @@ namespace Samples.MiniCubeIndexed
             constantBuffer.Initialize<Matrix>();
 
             base.LoadContent();
+        }
+
+        protected override void Update(GameTime gameTime)
+        {
+            if (Keyboard.GetState().IsKeyDown(Keys.Escape))
+                Exit();
+
+            base.Update(gameTime);
         }
 
         protected override void Draw(GameTime gameTime)

@@ -86,6 +86,10 @@
       <Project>{CDFAB2B9-00DB-4719-B424-C2A973A7BC4C}</Project>
       <Name>Libra.Graphics</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Libra.Input\Libra.Input.csproj">
+      <Project>{EBCC5AFA-0E37-4863-B71E-2AC201CB2864}</Project>
+      <Name>Libra.Input</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Libra\Libra.csproj">
       <Project>{BDCF4398-A4F9-48B0-BB3F-1B98CD3131B2}</Project>
       <Name>Libra</Name>

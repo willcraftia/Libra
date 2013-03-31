@@ -9,11 +9,7 @@ namespace Libra.Input.Forms
 {
     public sealed class FormMouse : IMouse
     {
-        public static readonly FormMouse Instance = new FormMouse();
-
-        FormMouse() { }
-
-        public MouseState State;
+        internal MouseState State;
 
         public MouseState GetState()
         {

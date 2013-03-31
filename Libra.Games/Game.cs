@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Libra.Graphics;
+using Libra.Input;
 
 #endregion
 
@@ -102,7 +103,7 @@ namespace Libra.Games
 
         TimeSpan inactiveSleepTime;
 
-        IGamePlatform gamePlatform;
+        GamePlatform gamePlatform;
 
         IGraphicsManager graphicsManager;
 
@@ -161,6 +162,12 @@ namespace Libra.Games
         public IDevice Device { get; private set; }
 
         public SwapChain SwapChain { get; private set; }
+
+        public IKeyboard Keyboard { get; private set; }
+
+        public IMouse Mouse { get; private set; }
+
+        public IJoystick Joystick { get; private set; }
 
         public Game()
         {
@@ -339,7 +346,7 @@ namespace Libra.Games
         protected virtual void Initialize()
         {
             // ゲーム プラットフォームの初期化。
-            gamePlatform = Services.GetRequiredService<IGamePlatform>();
+            gamePlatform = GamePlatform.CreateGamePlatform();
             gamePlatform.Activated += OnActivated;
             gamePlatform.Deactivated += OnDeactivated;
             gamePlatform.Exiting += OnExiting;
@@ -359,6 +366,11 @@ namespace Libra.Games
             var graphicsService = Services.GetRequiredService<IGraphicsService>();
             Device = graphicsService.Device;
             SwapChain = graphicsService.SwapChain;
+
+            // 入力デバイスの取得。
+            Keyboard = gamePlatform.Keyboard;
+            Mouse = gamePlatform.Mouse;
+            Joystick = gamePlatform.Joystick;
 
             // コンテンツのロード。
             LoadContent();

@@ -3,7 +3,6 @@
 using System;
 using Libra;
 using Libra.Games;
-using Libra.Games.Forms.SharpDX;
 using Libra.Graphics;
 using Libra.Graphics.Compiler;
 using Libra.Input;
@@ -120,8 +119,6 @@ namespace Samples.ShadowMapping
 
         const int windowHeight = 480;
 
-        IGamePlatform platform;
-
         GraphicsManager graphicsManager;
 
         XnbManager content;
@@ -164,10 +161,6 @@ namespace Samples.ShadowMapping
 
         public MainGame()
         {
-            platform = new SdxFormGamePlatform(this)
-            {
-                DirectInputEnabled = true
-            };
             graphicsManager = new GraphicsManager(this);
 
             content = new XnbManager(Services, "Content");

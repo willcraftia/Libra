@@ -10,7 +10,7 @@ using Libra.Input.Forms;
 
 namespace Libra.Games.Forms
 {
-    public abstract class FormGamePlatform : IGamePlatform, IDisposable
+    public abstract class FormGamePlatform : GamePlatform, IDisposable
     {
         #region FormGameWindow
 
@@ -79,85 +79,82 @@ namespace Libra.Games.Forms
 
         #endregion
 
-        public event EventHandler Activated;
+        #region NullJoystick
 
-        public event EventHandler Deactivated;
+        sealed class NullJoystick : IJoystick
+        {
+            public JoystickState GetState()
+            {
+                return new JoystickState();
+            }
+        }
 
-        public event EventHandler Exiting;
+        #endregion
 
-        Game game;
+        GameWindow window;
 
         MessageFilter messageFilter;
 
-        public GameWindow Window { get; private set; }
+        FormKeyboard keyboard;
 
-        public IGraphicsFactory GraphicsFactory { get; private set; }
-        
-        public Form Form { get; private set; }
+        FormMouse mouse;
 
-        public bool DirectInputEnabled { get; set; }
+        NullJoystick joystick;
 
-        public FormGamePlatform(Game game, Form form)
+        protected Form Form { get; private set; }
+
+        protected override GameWindow Window
         {
-            if (game == null) throw new ArgumentNullException("game");
-            if (form == null) throw new ArgumentNullException("form");
+            get { return window; }
+        }
 
-            this.game = game;
-            Form = form;
+        protected override IKeyboard Keyboard
+        {
+            get { return keyboard; }
+        }
+
+        protected override IMouse Mouse
+        {
+            get { return mouse; }
+        }
+
+        protected override IJoystick Joystick
+        {
+            get { return joystick; }
+        }
+
+        protected FormGamePlatform() { }
+
+        protected override void Initialize()
+        {
+            Form = CreateForm();
             Form.Activated += OnActivated;
             Form.Deactivate += OnDeactivated;
             Form.FormClosing += OnClosing;
 
-            game.Services.AddService<IGamePlatform>(this);
-        }
+            window = new FormGameWindow(Form);
 
-        public virtual void Initialize()
-        {
-            if (Window != null)
-                throw new InvalidOperationException("GameWindow already exists.");
+            keyboard = new FormKeyboard();
+            mouse = new FormMouse();
+            joystick = new NullJoystick();
 
-            Window = new FormGameWindow(Form);
-            GraphicsFactory = CreateGraphicsFactory();
-
-            messageFilter = new MessageFilter(Window.Handle);
+            messageFilter = new MessageFilter(window.Handle, keyboard, mouse);
             Application.AddMessageFilter(messageFilter);
-
-            if (!Keyboard.Initialized) Keyboard.Initialize(CreateKeyboard());
-            if (!Mouse.Initialized) Mouse.Initialize(CreateMouse());
-            if (!Joystick.Initialized) Joystick.Initialize(CreateJoystick());
         }
 
-        protected abstract IGraphicsFactory CreateGraphicsFactory();
-
-        protected abstract IKeyboard CreateKeyboard();
-
-        protected abstract IMouse CreateMouse();
-
-        protected abstract IJoystick CreateJoystick();
-
-        public abstract void Run(TickCallback tick);
-
-        public virtual void Exit()
+        protected override void Exit()
         {
             Form.Close();
         }
 
-        protected virtual void OnActivated(object sender, EventArgs e)
+        protected virtual Form CreateForm()
         {
-            if (Activated != null)
-                Activated(this, EventArgs.Empty);
-        }
-
-        protected virtual void OnDeactivated(object sender, EventArgs e)
-        {
-            if (Deactivated != null)
-                Deactivated(this, EventArgs.Empty);
+            return new Form();
         }
 
         protected virtual void OnClosing(object sender, FormClosingEventArgs e)
         {
-            if (Exiting != null)
-                Exiting(this, EventArgs.Empty);
+            OnExiting(this, EventArgs.Empty);
         }
 
         #region IDisposable

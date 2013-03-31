@@ -54,12 +54,19 @@ namespace Libra.Input.Forms
 
         const int TME_LEAVE = 0x00000002;
 
+        FormKeyboard keyboard;
+
+        FormMouse mouse;
+
         MouseEvent mouseEvent;
 
         bool trackingMouse;
 
-        public MessageFilter(IntPtr windowHandle)
+        public MessageFilter(IntPtr windowHandle, FormKeyboard keyboard, FormMouse mouse)
         {
+            this.keyboard = keyboard;
+            this.mouse = mouse;
+
             mouseEvent = new MouseEvent();
             mouseEvent.structureSize = Marshal.SizeOf(this.mouseEvent);
             mouseEvent.flags = TME_LEAVE;
@@ -76,13 +83,13 @@ namespace Libra.Input.Forms
                 case WindowMessages.KEYDOWN:
                     {
                         int key = message.WParam.ToInt32();
-                        FormKeyboard.Instance.State[(Keys) key] = KeyState.Down;
+                        keyboard.State[(Keys) key] = KeyState.Down;
                         break;
                     }
                 case WindowMessages.KEYUP:
                     {
                         int key = message.WParam.ToInt32();
-                        FormKeyboard.Instance.State[(Keys) key] = KeyState.Up;
+                        keyboard.State[(Keys) key] = KeyState.Up;
                         break;
                     }
 
@@ -97,44 +104,44 @@ namespace Libra.Input.Forms
                         short x = (short) (message.LParam.ToInt32() & 0xFFFF);
                         short y = (short) (message.LParam.ToInt32() >> 16);
 
-                        FormMouse.Instance.State.X = x;
-                        FormMouse.Instance.State.Y = y;
+                        mouse.State.X = x;
+                        mouse.State.Y = y;
                         break;
                     }
 
                 case WindowMessages.LBUTTONDOWN:
                 case WindowMessages.LBUTTONDBLCLK:
                     {
-                        FormMouse.Instance.State.LeftButton = ButtonState.Pressed;
+                        mouse.State.LeftButton = ButtonState.Pressed;
                         break;
                     }
                 case WindowMessages.LBUTTONUP:
                     {
-                        FormMouse.Instance.State.LeftButton = ButtonState.Released;
+                        mouse.State.LeftButton = ButtonState.Released;
                         break;
                     }
 
                 case WindowMessages.RBUTTONDOWN:
                 case WindowMessages.RBUTTONDBLCLK:
                     {
-                        FormMouse.Instance.State.RightButton = ButtonState.Pressed;
+                        mouse.State.RightButton = ButtonState.Pressed;
                         break;
                     }
                 case WindowMessages.RBUTTONUP:
                     {
-                        FormMouse.Instance.State.RightButton = ButtonState.Released;
+                        mouse.State.RightButton = ButtonState.Released;
                         break;
                     }
 
                 case WindowMessages.MBUTTONDOWN:
                 case WindowMessages.MBUTTONDBLCLK:
                     {
-                        FormMouse.Instance.State.MiddleButton = ButtonState.Pressed;
+                        mouse.State.MiddleButton = ButtonState.Pressed;
                         break;
                     }
                 case WindowMessages.MBUTTONUP:
                     {
-                        FormMouse.Instance.State.MiddleButton = ButtonState.Released;
+                        mouse.State.MiddleButton = ButtonState.Released;
                         break;
                     }
 
@@ -144,11 +151,11 @@ namespace Libra.Input.Forms
                         short button = (short) (message.WParam.ToInt32() >> 16);
                         if (button == 1)
                         {
-                            FormMouse.Instance.State.XButton1 = ButtonState.Pressed;
+                            mouse.State.XButton1 = ButtonState.Pressed;
                         }
                         if (button == 2)
                         {
-                            FormMouse.Instance.State.XButton2 = ButtonState.Pressed;
+                            mouse.State.XButton2 = ButtonState.Pressed;
                         }
 
                         break;
@@ -158,11 +165,11 @@ namespace Libra.Input.Forms
                         short button = (short) (message.WParam.ToInt32() >> 16);
                         if (button == 1)
                         {
-                            FormMouse.Instance.State.XButton1 = ButtonState.Released;
+                            mouse.State.XButton1 = ButtonState.Released;
                         }
                         if (button == 2)
                         {
-                            FormMouse.Instance.State.XButton2 = ButtonState.Released;
+                            mouse.State.XButton2 = ButtonState.Released;
                         }
 
                         break;
@@ -171,14 +178,14 @@ namespace Libra.Input.Forms
                 case WindowMessages.MOUSEHWHEEL:
                     {
                         short ticks = (short) (message.WParam.ToInt32() >> 16);
-                        FormMouse.Instance.State.ScrollWheelValue = ticks;
+                        mouse.State.ScrollWheelValue = ticks;
                         break;
                     }
 
                 case WindowMessages.MOUSELEAVE:
                     {
-                        FormMouse.Instance.State.X = -1;
-                        FormMouse.Instance.State.Y = -1;
+                        mouse.State.X = -1;
+                        mouse.State.Y = -1;
                         this.trackingMouse = false;
                         break;
                     }

@@ -3,7 +3,6 @@
 using System;
 using Libra;
 using Libra.Games;
-using Libra.Games.Forms.SharpDX;
 using Libra.Graphics;
 using Libra.Input;
 using Libra.Xnb;
@@ -14,8 +13,6 @@ namespace Samples.LensFlare
 {
     public sealed class MainGame : Game
     {
-        IGamePlatform platform;
-
         GraphicsManager graphics;
 
         KeyboardState currentKeyboardState = new KeyboardState();
@@ -34,10 +31,6 @@ namespace Samples.LensFlare
 
         public MainGame()
         {
-            platform = new SdxFormGamePlatform(this)
-            {
-                DirectInputEnabled = true
-            };
             graphics = new GraphicsManager(this);
 
             Content = new XnbManager(Services, "Content");

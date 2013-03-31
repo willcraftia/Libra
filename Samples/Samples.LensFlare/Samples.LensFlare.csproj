@@ -73,14 +73,6 @@
       <Project>{CDFAB2B9-00DB-4719-B424-C2A973A7BC4C}</Project>
       <Name>Libra.Graphics</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Libra.Input.Forms\Libra.Input.Forms.csproj">
-      <Project>{F9E7007E-C9BD-4C95-B9D8-8E50EDF6EAE5}</Project>
-      <Name>Libra.Input.Forms</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Libra.Input.SharpDX\Libra.Input.SharpDX.csproj">
-      <Project>{AFD05BCE-8CBE-4CDB-A641-A4FA3BA678F0}</Project>
-      <Name>Libra.Input.SharpDX</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Libra.Input\Libra.Input.csproj">
       <Project>{EBCC5AFA-0E37-4863-B71E-2AC201CB2864}</Project>
       <Name>Libra.Input</Name>

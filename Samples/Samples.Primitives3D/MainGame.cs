@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using Libra;
 using Libra.Games;
-using Libra.Games.Forms.SharpDX;
 using Libra.Graphics;
 using Libra.Input;
 using Libra.Xnb;
@@ -15,8 +14,6 @@ namespace Samples.Primitives3D
 {
     public sealed class MainGame : Game
     {
-        IGamePlatform platform;
-
         GraphicsManager graphicsManager;
 
         XnbManager content;
@@ -56,10 +53,6 @@ namespace Samples.Primitives3D
 
         public MainGame()
         {
-            platform = new SdxFormGamePlatform(this)
-            {
-                DirectInputEnabled = true
-            };
             graphicsManager = new GraphicsManager(this);
 
             content = new XnbManager(Services, "Content");

@@ -62,7 +62,7 @@ namespace Libra.Games
 
         Game game;
 
-        IGraphicsFactory graphicsFactory;
+        GraphicsFactory graphicsFactory;
 
         int preferredBackBufferWidth;
 
@@ -162,8 +162,7 @@ namespace Libra.Games
         public void Initialize()
         {
             // ファクトリの取得。
-            var gamePlatform = game.Services.GetRequiredService<IGamePlatform>();
-            graphicsFactory = gamePlatform.GraphicsFactory;
+            graphicsFactory = GraphicsFactory.CreateGraphicsFactory();
 
             InitializeDevice();
             InitializeSwapChain();
