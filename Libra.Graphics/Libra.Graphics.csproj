@@ -156,6 +156,7 @@
     <Compile Include="VertexPositionColor.cs" />
     <Compile Include="VertexPositionColorTexture.cs" />
     <Compile Include="VertexPositionNormal.cs" />
+    <Compile Include="VertexPositionNormalColorTexture.cs" />
     <Compile Include="VertexPositionNormalTexture.cs" />
     <Compile Include="VertexPositionTexture.cs" />
     <Compile Include="VertexShader.cs" />
