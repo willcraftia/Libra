@@ -9,6 +9,10 @@ namespace Libra.Games
 {
     public sealed class GameTimer
     {
+        // TODO
+        //
+        // 後で Stopwatch を使わない実装へ変更したい。
+
         long lastRawTime;
         
         public TimeSpan ElapsedTime { get; private set; }
