@@ -112,8 +112,6 @@ namespace Libra.Games.SharpDX
 
         public GameWindow Window { get; private set; }
 
-        public IGameTimer GameTimer { get; private set; }
-
         public IGraphicsFactory GraphicsFactory { get; private set; }
         
         public Form Form { get; private set; }
@@ -139,7 +137,6 @@ namespace Libra.Games.SharpDX
                 throw new InvalidOperationException("GameWindow already exists.");
 
             Window = new FormGameWindow(Form);
-            GameTimer = new SdxGameTimer();
             GraphicsFactory = new SdxGraphicsFactory();
 
             messageFilter = new MessageFilter(Window.Handle);

@@ -43,7 +43,6 @@
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SdxFormGamePlatform.cs" />
-    <Compile Include="SdxGameTimer.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Libra.Games\Libra.Games.csproj">

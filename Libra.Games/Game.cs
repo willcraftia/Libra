@@ -86,7 +86,7 @@ namespace Libra.Games
 
         GameTime gameTime;
 
-        IGameTimer timer;
+        GameTimer timer;
 
         UpdateCountHistory updateCountHistory;
 
@@ -349,8 +349,8 @@ namespace Libra.Games
             Window = gamePlatform.Window;
             Window.ClientSizeChanged += OnWindowClientSizeChanged;
 
-            // タイマーの取得。
-            timer = gamePlatform.GameTimer;
+            // タイマー。
+            timer = new GameTimer();
 
             // デバイスの初期化。
             graphicsManager = Services.GetRequiredService<IGraphicsManager>();

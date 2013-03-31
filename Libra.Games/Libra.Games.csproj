@@ -43,12 +43,12 @@
     <Compile Include="GameComponentCollectionEventArgs.cs" />
     <Compile Include="GameServiceContainer.cs" />
     <Compile Include="GameTime.cs" />
+    <Compile Include="GameTimer.cs" />
     <Compile Include="GameWindow.cs" />
     <Compile Include="GraphicsManager.cs" />
     <Compile Include="IDrawable.cs" />
     <Compile Include="IGameComponent.cs" />
     <Compile Include="IGamePlatform.cs" />
-    <Compile Include="IGameTimer.cs" />
     <Compile Include="IGraphicsManager.cs" />
     <Compile Include="IUpdateable.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

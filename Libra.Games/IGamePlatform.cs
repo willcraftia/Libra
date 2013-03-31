@@ -18,8 +18,6 @@ namespace Libra.Games
 
         GameWindow Window { get; }
 
-        IGameTimer GameTimer { get; }
-
         IGraphicsFactory GraphicsFactory { get; }
 
         void Initialize();
