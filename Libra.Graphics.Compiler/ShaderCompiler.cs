@@ -58,9 +58,9 @@ namespace Libra.Graphics.Compiler
 
         public const string DefaultPixelShaderEntrypoint = "PS";
 
-        public const string ShaderCompilerAppSettingKey = "Libra.Graphics.Compiler.ShaderCompiler";
+        public const string AppSettingKey = "Libra.Graphics.Compiler.ShaderCompiler";
 
-        const string DefaultShaderCompilerName = "Libra.Graphics.Compiler.SharpDX.SdxShaderCompiler, Libra.Graphics.Compiler.SharpDX, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null";
+        const string DefaultImplementation = "Libra.Graphics.Compiler.SharpDX.SdxShaderCompiler, Libra.Graphics.Compiler.SharpDX, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null";
 
         string parentFilePath;
 
@@ -190,13 +190,13 @@ namespace Libra.Graphics.Compiler
         public static ShaderCompiler CreateShaderCompiler()
         {
             // app.config 定義を参照。
-            var compilerTypeName = ConfigurationManager.AppSettings[ShaderCompilerAppSettingKey];
+            var compilerTypeName = ConfigurationManager.AppSettings[AppSettingKey];
 
             // app.config で未定義ならば SharpDX 実装をデフォルト指定。
             if (compilerTypeName == null)
-                compilerTypeName = DefaultShaderCompilerName;
+                compilerTypeName = DefaultImplementation;
 
-            return CreateShaderCompiler(DefaultShaderCompilerName);
+            return CreateShaderCompiler(DefaultImplementation);
         }
 
         public static ShaderCompiler CreateShaderCompiler(string assemblyQualifiedName)
