@@ -84,18 +84,6 @@ namespace Libra.Games.SharpDX
 
         #endregion
 
-        #region MockJoystick
-
-        sealed class MockJoystick : IJoystick
-        {
-            public JoystickState GetState()
-            {
-                return new JoystickState();
-            }
-        }
-
-        #endregion
-
         public event EventHandler Activated;
 
         public event EventHandler Deactivated;
