@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.ObjectModel;
+using System.Configuration;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -56,6 +57,8 @@ namespace Libra.Graphics.Compiler
         public const string DefaultVertexShaderEntrypoint = "VS";
 
         public const string DefaultPixelShaderEntrypoint = "PS";
+
+        public const string ShaderCompilerAppSettingKey = "Libra.Graphics.Compiler.ShaderCompiler";
 
         const string DefaultShaderCompilerName = "Libra.Graphics.Compiler.SharpDX.SdxShaderCompiler, Libra.Graphics.Compiler.SharpDX, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null";
 
@@ -186,6 +189,13 @@ namespace Libra.Graphics.Compiler
 
         public static ShaderCompiler CreateShaderCompiler()
         {
+            // app.config 定義を参照。
+            var compilerTypeName = ConfigurationManager.AppSettings[ShaderCompilerAppSettingKey];
+
+            // app.config で未定義ならば SharpDX 実装をデフォルト指定。
+            if (compilerTypeName == null)
+                compilerTypeName = DefaultShaderCompilerName;
+
             return CreateShaderCompiler(DefaultShaderCompilerName);
         }
 
