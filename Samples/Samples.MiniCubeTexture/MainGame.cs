@@ -96,8 +96,8 @@ namespace Samples.MiniCubeTexture
             compiler.OptimizationLevel = OptimizationLevels.Level3;
             compiler.WarningsAreErrors = true;
 
-            var vsBytecode = compiler.CompileVertexShader("MiniCubeTexture.fx", "VS");
-            var psBytecode = compiler.CompilePixelShader("MiniCubeTexture.fx", "PS");
+            var vsBytecode = compiler.CompileVertexShader("MiniCubeTexture.fx");
+            var psBytecode = compiler.CompilePixelShader("MiniCubeTexture.fx");
 
             vertexShader = Device.CreateVertexShader();
             vertexShader.Initialize(vsBytecode);

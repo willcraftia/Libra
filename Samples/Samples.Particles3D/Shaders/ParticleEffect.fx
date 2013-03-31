@@ -100,7 +100,7 @@ float2x2 ComputeParticleRotation(float randomValue, float age)
     return float2x2(c, -s, s, c);
 }
 
-VertexShaderOutput ParticleVertexShader(VertexShaderInput input)
+VertexShaderOutput VS(VertexShaderInput input)
 {
     VertexShaderOutput output;
 
@@ -123,7 +123,7 @@ VertexShaderOutput ParticleVertexShader(VertexShaderInput input)
     return output;
 }
 
-float4 ParticlePixelShader(VertexShaderOutput input) : SV_Target
+float4 PS(VertexShaderOutput input) : SV_Target
 {
     return Texture.Sample(Sampler, input.TextureCoordinate) * input.Color;
 }

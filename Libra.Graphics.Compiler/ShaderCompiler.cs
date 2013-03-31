@@ -53,6 +53,10 @@ namespace Libra.Graphics.Compiler
 
         #endregion
 
+        public const string DefaultVertexShaderEntrypoint = "VS";
+
+        public const string DefaultPixelShaderEntrypoint = "PS";
+
         const string DefaultShaderCompilerName = "Libra.Graphics.Compiler.SharpDX.SdxShaderCompiler, Libra.Graphics.Compiler.SharpDX, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null";
 
         string parentFilePath;
@@ -247,22 +251,22 @@ namespace Libra.Graphics.Compiler
             return GetInputAndOutputSignatureCore(shaderBytecode);
         }
 
-        public byte[] CompileVertexShader(Stream stream, string entrypoint)
+        public byte[] CompileVertexShader(Stream stream, string entrypoint = DefaultVertexShaderEntrypoint)
         {
             return Compile(stream, entrypoint, ToString(VertexShaderProfile));
         }
 
-        public byte[] CompilePixelShader(Stream stream, string entrypoint)
+        public byte[] CompilePixelShader(Stream stream, string entrypoint = DefaultPixelShaderEntrypoint)
         {
             return Compile(stream, entrypoint, ToString(PixelShaderProfile));
         }
 
-        public byte[] CompileVertexShader(string path, string entrypoint)
+        public byte[] CompileVertexShader(string path, string entrypoint = DefaultVertexShaderEntrypoint)
         {
             return CompileFromFile(path, entrypoint, ToString(VertexShaderProfile));
         }
 
-        public byte[] CompilePixelShader(string path, string entrypoint)
+        public byte[] CompilePixelShader(string path, string entrypoint = DefaultPixelShaderEntrypoint)
         {
             return CompileFromFile(path, entrypoint, ToString(PixelShaderProfile));
         }

@@ -92,8 +92,8 @@ namespace Samples.MiniCube
             compiler.OptimizationLevel = OptimizationLevels.Level3;
             compiler.WarningsAreErrors = true;
 
-            var vsBytecode = compiler.CompileVertexShader("MiniCube.fx", "VS");
-            var psBytecode = compiler.CompilePixelShader("MiniCube.fx", "PS");
+            var vsBytecode = compiler.CompileVertexShader("MiniCube.fx");
+            var psBytecode = compiler.CompilePixelShader("MiniCube.fx");
 
             vertexShader = Device.CreateVertexShader();
             vertexShader.Initialize(vsBytecode);

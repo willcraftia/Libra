@@ -37,10 +37,10 @@ namespace Samples.ShadowMapping
             public CreateShadowMapShader(IDevice device, ShaderCompiler compiler)
             {
                 VertexShader = device.CreateVertexShader();
-                VertexShader.Initialize(compiler.CompileVertexShader("CreateShadowMap.fx", "VS"));
+                VertexShader.Initialize(compiler.CompileVertexShader("CreateShadowMap.fx"));
 
                 PixelShader = device.CreatePixelShader();
-                PixelShader.Initialize(compiler.CompilePixelShader("CreateShadowMap.fx", "PS"));
+                PixelShader.Initialize(compiler.CompilePixelShader("CreateShadowMap.fx"));
 
                 ConstantBuffer = device.CreateConstantBuffer();
                 ConstantBuffer.Usage = ResourceUsage.Dynamic;
@@ -91,10 +91,10 @@ namespace Samples.ShadowMapping
             public DrawModelShader(IDevice device, ShaderCompiler compiler)
             {
                 VertexShader = device.CreateVertexShader();
-                VertexShader.Initialize(compiler.CompileVertexShader("DrawModel.fx", "VS"));
+                VertexShader.Initialize(compiler.CompileVertexShader("DrawModel.fx"));
 
                 PixelShader = device.CreatePixelShader();
-                PixelShader.Initialize(compiler.CompilePixelShader("DrawModel.fx", "PS"));
+                PixelShader.Initialize(compiler.CompilePixelShader("DrawModel.fx"));
 
                 ConstantBuffer = device.CreateConstantBuffer();
                 ConstantBuffer.Usage = ResourceUsage.Dynamic;

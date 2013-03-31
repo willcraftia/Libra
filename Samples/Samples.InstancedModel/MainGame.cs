@@ -140,7 +140,7 @@ namespace Samples.InstancedModel
 
             var instanceVsBytecode = compiler.CompileVertexShader("InstancedModel.fx", "HWInstancingVS");
             var vsBytecode = compiler.CompileVertexShader("InstancedModel.fx", "NoInstancingVS");
-            var psBytecode = compiler.CompilePixelShader("InstancedModel.fx", "PS");
+            var psBytecode = compiler.CompilePixelShader("InstancedModel.fx");
 
             instanceVertexShader = Device.CreateVertexShader();
             instanceVertexShader.Initialize(instanceVsBytecode);

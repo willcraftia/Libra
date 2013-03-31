@@ -173,8 +173,8 @@ namespace Samples.Particles3D
             compiler.OptimizationLevel = OptimizationLevels.Level3;
             compiler.WarningsAreErrors = true;
 
-            var vsBytecode = compiler.CompileVertexShader("ParticleEffect.fx", "ParticleVertexShader");
-            var psBytecode = compiler.CompilePixelShader("ParticleEffect.fx", "ParticlePixelShader");
+            var vsBytecode = compiler.CompileVertexShader("ParticleEffect.fx");
+            var psBytecode = compiler.CompilePixelShader("ParticleEffect.fx");
 
             vertexShader = Device.CreateVertexShader();
             vertexShader.Initialize(vsBytecode);
