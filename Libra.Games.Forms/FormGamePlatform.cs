@@ -108,11 +108,6 @@ namespace Libra.Games.Forms
             Form.Deactivate += OnDeactivated;
             Form.FormClosing += OnClosing;
 
-            // TODO
-            //
-            // Game インスタンスと共に初期化されるオブジェクトを
-            // サービス登録することはおかしい。
-
             game.Services.AddService<IGamePlatform>(this);
         }
 
