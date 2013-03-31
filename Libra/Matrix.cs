@@ -11,8 +11,6 @@ using System.Runtime.InteropServices;
 
 namespace Libra
 {
-    [Serializable]
-    [StructLayout(LayoutKind.Sequential)]
     public struct Matrix : IEquatable<Matrix>
     {
         public static readonly Matrix Zero = new Matrix();

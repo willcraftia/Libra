@@ -11,8 +11,6 @@ using System.Runtime.InteropServices;
 
 namespace Libra
 {
-    [Serializable]
-    [StructLayout(LayoutKind.Sequential)]
     public struct Vector3 : IEquatable<Vector3>
     {
         public static readonly Vector3 Zero = new Vector3(0.0f);

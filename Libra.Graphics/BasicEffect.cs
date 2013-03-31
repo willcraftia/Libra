@@ -118,7 +118,6 @@ namespace Libra.Graphics
 
         #region Constants
 
-        [StructLayout(LayoutKind.Sequential)]
         struct Constants
         {
             // http://msdn.microsoft.com/en-us/library/ff476182(v=vs.85).aspx

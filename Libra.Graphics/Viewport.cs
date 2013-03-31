@@ -7,8 +7,6 @@ using System.Runtime.InteropServices;
 
 namespace Libra.Graphics
 {
-    [Serializable]
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public struct Viewport
     {
         public float X;

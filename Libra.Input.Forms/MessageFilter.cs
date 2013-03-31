@@ -14,7 +14,6 @@ namespace Libra.Input.Forms
 
     public sealed class MessageFilter : IMessageFilter
     {
-        [StructLayout(LayoutKind.Sequential)]
         struct MouseEvent
         {
             public Int32 structureSize;

@@ -11,8 +11,6 @@ using System.Runtime.InteropServices;
 
 namespace Libra
 {
-    [Serializable]
-    [StructLayout(LayoutKind.Sequential)]
     public struct Quaternion : IEquatable<Quaternion>
     {
         public static readonly Quaternion Zero = new Quaternion();

@@ -11,8 +11,6 @@ using System.Runtime.InteropServices;
 
 namespace Libra
 {
-    [Serializable]
-    [StructLayout(LayoutKind.Sequential)]
     public struct Color : IPackedVector<uint>, IEquatable<Color>
     {
         #region Palette

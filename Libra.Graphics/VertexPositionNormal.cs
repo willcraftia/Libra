@@ -8,7 +8,6 @@ using System.Runtime.InteropServices;
 
 namespace Libra.Graphics
 {
-    [StructLayout(LayoutKind.Sequential)]
     public struct VertexPositionNormal : IVertexType, IEquatable<VertexPositionNormal>
     {
         public static readonly VertexDeclaration VertexDeclaration =
