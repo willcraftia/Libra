@@ -175,8 +175,11 @@ namespace Libra.Graphics.SharpDX
                 // TODO
                 //
                 // MSDN の DXGI_SWAP_CHAIN_DESC には、
-                // 全画面表示では専用のフロント バッファがあり、
-                // ウィンドウ表示ではデスクトップがフロント バッファである、と記載されている。
+                // 全画面表示では一般的にフロント バッファを数に含める、とある。
+                // また、全画面表示では専用のフロント バッファがあり、
+                // ウィンドウ表示ではデスクトップがフロント バッファである、とある。
+                // Windows Phone などでは 1 でなければならないなどの制約もあるらしい。
+                // SwapEffect との関係もあるようだが、あるべき設定がいまいちわからない。
                 BufferCount = settings.Windowed ? 1 : 2,
                 OutputHandle = settings.OutputWindow,
                 IsWindowed = settings.Windowed,
