@@ -19,11 +19,6 @@ namespace Libra.Graphics.SharpDX
 {
     public sealed class SdxSwapChain : SwapChain
     {
-        /// <summary>
-        /// バック バッファ数。
-        /// </summary>
-        public const int BackBufferCount = 2;
-
         int backBufferWidth;
 
         int backBufferHeight;
@@ -177,7 +172,12 @@ namespace Libra.Graphics.SharpDX
                     Quality = settings.BackBufferMultisampleQuality
                 },
                 Usage = DXGIUsage.RenderTargetOutput | DXGIUsage.ShaderInput,
-                BufferCount = BackBufferCount,
+                // TODO
+                //
+                // MSDN の DXGI_SWAP_CHAIN_DESC には、
+                // 全画面表示では専用のフロント バッファがあり、
+                // ウィンドウ表示ではデスクトップがフロント バッファである、と記載されている。
+                BufferCount = settings.Windowed ? 1 : 2,
                 OutputHandle = settings.OutputWindow,
                 IsWindowed = settings.Windowed,
                 SwapEffect = DXGISwapEffect.Discard,
