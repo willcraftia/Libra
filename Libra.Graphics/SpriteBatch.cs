@@ -272,7 +272,7 @@ namespace Libra.Graphics
 
         RasterizerState rasterizerState;
 
-        Action setCustomShaders;
+        Action<DeviceContext> setCustomShaders;
 
         Matrix transformMatrix;
 
@@ -323,7 +323,7 @@ namespace Libra.Graphics
             SamplerState samplerState = null,
             DepthStencilState depthStencilState = null,
             RasterizerState rasterizerState = null,
-            Action setCustomShaders = null)
+            Action<DeviceContext> setCustomShaders = null)
         {
             Begin(sortMode, blendState, samplerState, depthStencilState, rasterizerState, setCustomShaders, Matrix.Identity);
         }
@@ -334,7 +334,7 @@ namespace Libra.Graphics
             SamplerState samplerState,
             DepthStencilState depthStencilState,
             RasterizerState rasterizerState,
-            Action setCustomShaders,
+            Action<DeviceContext> setCustomShaders,
             Matrix transformMatrix)
         {
             if (inBeginEndPair)
@@ -520,7 +520,7 @@ namespace Libra.Graphics
 
             if (setCustomShaders != null)
             {
-                setCustomShaders();
+                setCustomShaders(context);
             }
         }
 
