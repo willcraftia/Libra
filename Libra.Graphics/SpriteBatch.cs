@@ -154,7 +154,7 @@ namespace Libra.Graphics
 
             public float Depth;
 
-            public IShaderResourceView Texture;
+            public ShaderResourceView Texture;
 
             public int Flags;
         }
@@ -384,21 +384,21 @@ namespace Libra.Graphics
             inBeginEndPair = false;
         }
 
-        public void Draw(IShaderResourceView texture, Vector2 position, Color color)
+        public void Draw(ShaderResourceView texture, Vector2 position, Color color)
         {
             var destination = new RectangleF(position.X, position.Y, 1, 1);
 
             Draw(texture, destination, null, color, 0, Vector2.Zero, 0, 0);
         }
 
-        public void Draw(IShaderResourceView texture, Vector2 position, Rectangle? sourceRectangle, Color color)
+        public void Draw(ShaderResourceView texture, Vector2 position, Rectangle? sourceRectangle, Color color)
         {
             var destination = new RectangleF(position.X, position.Y, 1, 1);
 
             Draw(texture, destination, sourceRectangle, color, 0, Vector2.Zero, 0, 0);
         }
 
-        public void Draw(IShaderResourceView texture, Vector2 position, Rectangle? sourceRectangle, Color color,
+        public void Draw(ShaderResourceView texture, Vector2 position, Rectangle? sourceRectangle, Color color,
             float rotation, Vector2 origin, float scale, SpriteEffects effects = SpriteEffects.None, float depth = 0)
         {
             var destination = new RectangleF(position.X, position.Y, scale, scale);
@@ -406,7 +406,7 @@ namespace Libra.Graphics
             Draw(texture, destination, sourceRectangle, color, rotation, origin, depth, (int) effects);
         }
 
-        public void Draw(IShaderResourceView texture, Vector2 position, Rectangle? sourceRectangle, Color color,
+        public void Draw(ShaderResourceView texture, Vector2 position, Rectangle? sourceRectangle, Color color,
             float rotation, Vector2 origin, Vector2 scale, SpriteEffects effects = SpriteEffects.None, float depth = 0)
         {
             var destination = new RectangleF(position.X, position.Y, scale.X, scale.Y);
@@ -414,21 +414,21 @@ namespace Libra.Graphics
             Draw(texture, destination, sourceRectangle, color, rotation, origin, depth, (int) effects);
         }
 
-        public void Draw(IShaderResourceView texture, Rectangle destinationRectangle, Color color)
+        public void Draw(ShaderResourceView texture, Rectangle destinationRectangle, Color color)
         {
             var destination = new RectangleF(destinationRectangle);
 
             Draw(texture, destination, null, color, 0, Vector2.Zero, 0, DestSizeInPixels);
         }
 
-        public void Draw(IShaderResourceView texture, Rectangle destinationRectangle, Rectangle? sourceRectangle, Color color)
+        public void Draw(ShaderResourceView texture, Rectangle destinationRectangle, Rectangle? sourceRectangle, Color color)
         {
             var destination = new RectangleF(destinationRectangle);
 
             Draw(texture, destination, sourceRectangle, color, 0, Vector2.Zero, 0, DestSizeInPixels);
         }
 
-        public void Draw(IShaderResourceView texture, Rectangle destinationRectangle, Rectangle? sourceRectangle, Color color,
+        public void Draw(ShaderResourceView texture, Rectangle destinationRectangle, Rectangle? sourceRectangle, Color color,
             float rotation, Vector2 origin, SpriteEffects effects = SpriteEffects.None, float depth = 0)
         {
             var destination = new RectangleF(destinationRectangle);
@@ -436,7 +436,7 @@ namespace Libra.Graphics
             Draw(texture, destination, sourceRectangle, color, rotation, origin, depth, ((int) effects) | DestSizeInPixels);
         }
 
-        void Draw(IShaderResourceView texture, RectangleF destination, Rectangle? sourceRectangle, Color color,
+        void Draw(ShaderResourceView texture, RectangleF destination, Rectangle? sourceRectangle, Color color,
             float rotation, Vector2 origin, float depth, int flags)
         {
             if (texture == null) throw new ArgumentNullException("texture");
@@ -531,7 +531,7 @@ namespace Libra.Graphics
 
             SortSprites();
 
-            IShaderResourceView batchTexture = null;
+            ShaderResourceView batchTexture = null;
             int batchStart = 0;
 
             // 同一テクスチャの処理を纏めながら描画。
@@ -577,7 +577,7 @@ namespace Libra.Graphics
             }
         }
 
-        void RenderBatch(IShaderResourceView texture, int startIndex, int spriteCount)
+        void RenderBatch(ShaderResourceView texture, int startIndex, int spriteCount)
         {
             context.PixelShaderResources[0] = texture;
 
@@ -718,7 +718,7 @@ namespace Libra.Graphics
             }
         }
 
-        void GetTextureSize(IShaderResourceView texture, out Vector2 result)
+        void GetTextureSize(ShaderResourceView texture, out Vector2 result)
         {
             var texture2D = texture.Resource as Texture2D;
             if (texture2D == null)

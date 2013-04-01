@@ -256,23 +256,10 @@ namespace Libra.Graphics.SharpDX
             GetD3D11CommonShaderStage(shaderStage).SetSampler(slot, d3dSamplerState);
         }
 
-        protected override void SetShaderResourceCore(ShaderStage shaderStage, int slot, IShaderResourceView view)
+        protected override void SetShaderResourceCore(ShaderStage shaderStage, int slot, ShaderResourceView view)
         {
-            D3D11ShaderResourceView d3d11View = null;
-            if (view != null)
-            {
-                var renderTargetView = view as SdxRenderTargetView;
-                if (renderTargetView != null)
-                {
-                    d3d11View = renderTargetView.D3D11ShaderResourceView;
-                }
-                else
-                {
-                    d3d11View = (view as SdxShaderResourceView).D3D11ShaderResourceView;
-                }
-            }
-
-            GetD3D11CommonShaderStage(shaderStage).SetShaderResource(slot, d3d11View);
+            var d3d11ShaderResourceView = (view as SdxShaderResourceView).D3D11ShaderResourceView;
+            GetD3D11CommonShaderStage(shaderStage).SetShaderResource(slot, d3d11ShaderResourceView);
         }
 
         D3D11CommonShaderStage GetD3D11CommonShaderStage(ShaderStage shaderStage)

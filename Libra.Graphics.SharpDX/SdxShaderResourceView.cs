@@ -29,6 +29,10 @@ namespace Libra.Graphics.SharpDX
             {
                 d3d11Resource = (Resource as SdxTexture2D).D3D11Texture2D;
             }
+            else if (Resource is SdxRenderTarget)
+            {
+                d3d11Resource = (Resource as SdxRenderTarget).D3D11Texture2D;
+            }
             else
             {
                 throw new NotSupportedException();

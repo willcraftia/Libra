@@ -149,8 +149,6 @@ namespace Samples.ShadowMapping
 
         RenderTarget shadowRenderTarget;
 
-        RenderTargetView shadowRenderTargetView;
-
         Matrix world;
         
         Matrix view;
@@ -195,9 +193,6 @@ namespace Samples.ShadowMapping
             shadowRenderTarget.Format = SurfaceFormat.Single;
             shadowRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
             shadowRenderTarget.Initialize();
-
-            shadowRenderTargetView = Device.CreateRenderTargetView();
-            shadowRenderTargetView.Initialize(shadowRenderTarget);
         }
 
         protected override void Update(GameTime gameTime)
@@ -259,7 +254,7 @@ namespace Samples.ShadowMapping
         {
             var context = Device.ImmediateContext;
 
-            context.SetRenderTarget(shadowRenderTargetView);
+            context.SetRenderTarget(shadowRenderTarget.GetRenderTargetView());
 
             context.Clear(Color.White);
 
@@ -305,7 +300,7 @@ namespace Samples.ShadowMapping
                 drawModelShader.Constants.AmbientColor = new Vector4(0.15f, 0.15f, 0.15f, 1.0f);
                 drawModelShader.Apply(context);
 
-                context.PixelShaderResources[1] = shadowRenderTargetView;
+                context.PixelShaderResources[1] = shadowRenderTarget.GetShaderResourceView();
             }
 
             context.PrimitiveTopology = PrimitiveTopology.TriangleList;
@@ -344,7 +339,7 @@ namespace Samples.ShadowMapping
         void DrawShadowMapToScreen()
         {
             spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Opaque, SamplerState.PointClamp);
-            spriteBatch.Draw(shadowRenderTargetView, new Rectangle(0, 0, 128, 128), Color.White);
+            spriteBatch.Draw(shadowRenderTarget.GetShaderResourceView(), new Rectangle(0, 0, 128, 128), Color.White);
             spriteBatch.End();
 
             var context = Device.ImmediateContext;

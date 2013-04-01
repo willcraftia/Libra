@@ -6,7 +6,7 @@ using System;
 
 namespace Libra.Graphics
 {
-    public abstract class RenderTargetView : IShaderResourceView, IDisposable
+    public abstract class RenderTargetView : IDisposable
     {
         bool initialized;
 
@@ -15,11 +15,6 @@ namespace Libra.Graphics
         public RenderTarget RenderTarget { get; private set; }
 
         public DepthStencilView DepthStencilView { get; private set; }
-
-        Resource IShaderResourceView.Resource
-        {
-            get { return RenderTarget; }
-        }
 
         protected RenderTargetView(IDevice device)
         {

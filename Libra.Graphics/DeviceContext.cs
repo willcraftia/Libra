@@ -204,11 +204,11 @@ namespace Libra.Graphics
 
             ShaderStage shaderStage;
 
-            IShaderResourceView[] resources;
+            ShaderResourceView[] resources;
 
             int dirtyFlags;
 
-            public IShaderResourceView this[int index]
+            public ShaderResourceView this[int index]
             {
                 get
                 {
@@ -234,7 +234,7 @@ namespace Libra.Graphics
                 this.context = context;
                 this.shaderStage = shaderStage;
 
-                resources = new IShaderResourceView[Count];
+                resources = new ShaderResourceView[Count];
             }
 
             internal void Apply()
@@ -614,7 +614,7 @@ namespace Libra.Graphics
 
         protected abstract void SetSamplerCore(ShaderStage shaderStage, int slot, SamplerState state);
 
-        protected abstract void SetShaderResourceCore(ShaderStage shaderStage, int slot, IShaderResourceView view);
+        protected abstract void SetShaderResourceCore(ShaderStage shaderStage, int slot, ShaderResourceView view);
 
         public void ClearRenderTargetView(RenderTargetView renderTarget, Color color)
         {

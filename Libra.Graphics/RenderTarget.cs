@@ -11,6 +11,8 @@ namespace Libra.Graphics
     {
         bool initialized;
 
+        RenderTargetView renderTargetView;
+
         public bool IsBackBuffer { get; private set; }
 
         public DepthFormat DepthFormat { get; set; }
@@ -38,6 +40,16 @@ namespace Libra.Graphics
             InitializeCore(swapChain, index);
 
             initialized = true;
+        }
+
+        public RenderTargetView GetRenderTargetView()
+        {
+            if (renderTargetView == null)
+            {
+                renderTargetView = Device.CreateRenderTargetView();
+                renderTargetView.Initialize(this);
+            }
+            return renderTargetView;
         }
 
         protected sealed override void InitializeCore()
@@ -68,6 +80,9 @@ namespace Libra.Graphics
         {
             if (disposing)
             {
+                if (renderTargetView != null)
+                    renderTargetView.Dispose();
+
                 if (DepthStencil != null)
                     DepthStencil.Dispose();
             }

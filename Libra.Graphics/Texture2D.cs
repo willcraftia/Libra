@@ -22,6 +22,8 @@ namespace Libra.Graphics
 
         int multisampleCount;
 
+        ShaderResourceView shaderResourceView;
+
         public int Width
         {
             get { return width; }
@@ -122,6 +124,16 @@ namespace Libra.Graphics
             {
                 Initialize(stream);
             }
+        }
+
+        public ShaderResourceView GetShaderResourceView()
+        {
+            if (shaderResourceView == null)
+            {
+                shaderResourceView = Device.CreateShaderResourceView();
+                shaderResourceView.Initialize(this);
+            }
+            return shaderResourceView;
         }
 
         public void Save(DeviceContext context, Stream stream, ImageFileFormat format = ImageFileFormat.Png)
@@ -267,6 +279,17 @@ namespace Libra.Graphics
 
         protected abstract void GetDataCore<T>(
             DeviceContext context, int level, Rectangle? rectangle, T[] data, int startIndex, int elementCount) where T : struct;
+
+        protected override void DisposeOverride(bool disposing)
+        {
+            if (disposing)
+            {
+                if (shaderResourceView != null)
+                    shaderResourceView.Dispose();
+            }
+
+            base.DisposeOverride(disposing);
+        }
 
         void AssertNotInitialized()
         {

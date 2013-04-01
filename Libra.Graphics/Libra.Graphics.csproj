@@ -78,7 +78,6 @@
     <Compile Include="InputLayout.cs" />
     <Compile Include="IOutput.cs" />
     <Compile Include="IOutputCollection.cs" />
-    <Compile Include="IShaderResourceView.cs" />
     <Compile Include="IVertexType.cs" />
     <Compile Include="Model.cs" />
     <Compile Include="ModelBone.cs" />
