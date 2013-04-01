@@ -60,7 +60,7 @@ namespace Libra.Graphics.Compiler
 
         public const string AppSettingKey = "Libra.Graphics.Compiler.ShaderCompiler";
 
-        const string DefaultImplementation = "Libra.Graphics.Compiler.SharpDX.SdxShaderCompiler, Libra.Graphics.Compiler.SharpDX, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null";
+        public const string DefaultImplementation = "Libra.Graphics.Compiler.SharpDX.SdxShaderCompiler, Libra.Graphics.Compiler.SharpDX, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null";
 
         string parentFilePath;
 

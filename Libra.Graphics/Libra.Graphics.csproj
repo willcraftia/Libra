@@ -40,36 +40,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BasicEffect.cs" />
-    <Compile Include="BasicEffect.PSBasic.cs" />
-    <Compile Include="BasicEffect.PSBasicNoFog.cs" />
-    <Compile Include="BasicEffect.PSBasicPixelLighting.cs" />
-    <Compile Include="BasicEffect.PSBasicPixelLightingTx.cs" />
-    <Compile Include="BasicEffect.PSBasicTx.cs" />
-    <Compile Include="BasicEffect.PSBasicTxNoFog.cs" />
-    <Compile Include="BasicEffect.PSBasicVertexLighting.cs" />
-    <Compile Include="BasicEffect.PSBasicVertexLightingNoFog.cs" />
-    <Compile Include="BasicEffect.PSBasicVertexLightingTx.cs" />
-    <Compile Include="BasicEffect.PSBasicVertexLightingTxNoFog.cs" />
-    <Compile Include="BasicEffect.VSBasic.cs" />
-    <Compile Include="BasicEffect.VSBasicNoFog.cs" />
-    <Compile Include="BasicEffect.VSBasicOneLight.cs" />
-    <Compile Include="BasicEffect.VSBasicOneLightTx.cs" />
-    <Compile Include="BasicEffect.VSBasicOneLightTxVc.cs" />
-    <Compile Include="BasicEffect.VSBasicOneLightVc.cs" />
-    <Compile Include="BasicEffect.VSBasicPixelLighting.cs" />
-    <Compile Include="BasicEffect.VSBasicPixelLightingTx.cs" />
-    <Compile Include="BasicEffect.VSBasicPixelLightingTxVc.cs" />
-    <Compile Include="BasicEffect.VSBasicPixelLightingVc.cs" />
-    <Compile Include="BasicEffect.VSBasicTx.cs" />
-    <Compile Include="BasicEffect.VSBasicTxNoFog.cs" />
-    <Compile Include="BasicEffect.VSBasicTxVc.cs" />
-    <Compile Include="BasicEffect.VSBasicTxVcNoFog.cs" />
-    <Compile Include="BasicEffect.VSBasicVc.cs" />
-    <Compile Include="BasicEffect.VSBasicVcNoFog.cs" />
-    <Compile Include="BasicEffect.VSBasicVertexLighting.cs" />
-    <Compile Include="BasicEffect.VSBasicVertexLightingTx.cs" />
-    <Compile Include="BasicEffect.VSBasicVertexLightingTxVc.cs" />
-    <Compile Include="BasicEffect.VSBasicVertexLightingVc.cs" />
     <Compile Include="Blend.cs" />
     <Compile Include="BlendFunction.cs" />
     <Compile Include="BlendState.cs" />
@@ -122,6 +92,11 @@
     <Compile Include="PixelShader.cs" />
     <Compile Include="PrimitiveTopology.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="RasterizerState.cs" />
     <Compile Include="RefreshRate.cs" />
     <Compile Include="RenderTarget.cs" />
@@ -135,8 +110,6 @@
     <Compile Include="ShaderResourceView.cs" />
     <Compile Include="SharedResourcePool.cs" />
     <Compile Include="SpriteBatch.cs" />
-    <Compile Include="SpriteBatch.SpritePixelShader.cs" />
-    <Compile Include="SpriteBatch.SpriteVertexShader.cs" />
     <Compile Include="SpriteEffects.cs" />
     <Compile Include="SpriteFont.cs" />
     <Compile Include="SpriteSortMode.cs" />
@@ -167,6 +140,52 @@
       <Project>{BDCF4398-A4F9-48B0-BB3F-1B98CD3131B2}</Project>
       <Name>Libra</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\BasicEffect.fx" />
+    <None Include="Shaders\Common.fxh" />
+    <None Include="Shaders\Compiled\BasicEffectPSBasic.bin" />
+    <None Include="Shaders\Compiled\BasicEffectPSBasicNoFog.bin" />
+    <None Include="Shaders\Compiled\BasicEffectPSBasicPixelLighting.bin" />
+    <None Include="Shaders\Compiled\BasicEffectPSBasicPixelLightingTx.bin" />
+    <None Include="Shaders\Compiled\BasicEffectPSBasicTx.bin" />
+    <None Include="Shaders\Compiled\BasicEffectPSBasicTxNoFog.bin" />
+    <None Include="Shaders\Compiled\BasicEffectPSBasicVertexLighting.bin" />
+    <None Include="Shaders\Compiled\BasicEffectPSBasicVertexLightingNoFog.bin" />
+    <None Include="Shaders\Compiled\BasicEffectPSBasicVertexLightingTx.bin" />
+    <None Include="Shaders\Compiled\BasicEffectPSBasicVertexLightingTxNoFog.bin" />
+    <None Include="Shaders\Compiled\BasicEffectVSBasic.bin" />
+    <None Include="Shaders\Compiled\BasicEffectVSBasicNoFog.bin" />
+    <None Include="Shaders\Compiled\BasicEffectVSBasicOneLight.bin" />
+    <None Include="Shaders\Compiled\BasicEffectVSBasicOneLightTx.bin" />
+    <None Include="Shaders\Compiled\BasicEffectVSBasicOneLightTxVc.bin" />
+    <None Include="Shaders\Compiled\BasicEffectVSBasicOneLightVc.bin" />
+    <None Include="Shaders\Compiled\BasicEffectVSBasicPixelLighting.bin" />
+    <None Include="Shaders\Compiled\BasicEffectVSBasicPixelLightingTx.bin" />
+    <None Include="Shaders\Compiled\BasicEffectVSBasicPixelLightingTxVc.bin" />
+    <None Include="Shaders\Compiled\BasicEffectVSBasicPixelLightingVc.bin" />
+    <None Include="Shaders\Compiled\BasicEffectVSBasicTx.bin" />
+    <None Include="Shaders\Compiled\BasicEffectVSBasicTxNoFog.bin" />
+    <None Include="Shaders\Compiled\BasicEffectVSBasicTxVc.bin" />
+    <None Include="Shaders\Compiled\BasicEffectVSBasicTxVcNoFog.bin" />
+    <None Include="Shaders\Compiled\BasicEffectVSBasicVc.bin" />
+    <None Include="Shaders\Compiled\BasicEffectVSBasicVcNoFog.bin" />
+    <None Include="Shaders\Compiled\BasicEffectVSBasicVertexLighting.bin" />
+    <None Include="Shaders\Compiled\BasicEffectVSBasicVertexLightingTx.bin" />
+    <None Include="Shaders\Compiled\BasicEffectVSBasicVertexLightingTxVc.bin" />
+    <None Include="Shaders\Compiled\BasicEffectVSBasicVertexLightingVc.bin" />
+    <None Include="Shaders\Compiled\SpriteEffectPS.bin" />
+    <None Include="Shaders\Compiled\SpriteEffectVS.bin" />
+    <None Include="Shaders\CompileShaders.cmd" />
+    <None Include="Shaders\Lighting.fxh" />
+    <None Include="Shaders\SpriteEffect.fx" />
+    <None Include="Shaders\Structures.fxh" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

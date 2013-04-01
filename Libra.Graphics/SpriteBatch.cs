@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Libra.Graphics.Properties;
 
 #endregion
 
@@ -10,7 +11,7 @@ using System.Text;
 
 namespace Libra.Graphics
 {
-    public sealed partial class SpriteBatch : IDisposable
+    public sealed class SpriteBatch : IDisposable
     {
         #region DeviceResources
 
@@ -31,13 +32,13 @@ namespace Libra.Graphics
                 this.device = device;
 
                 VertexShader = device.CreateVertexShader();
-                VertexShader.Initialize(SpriteVertexShader);
+                VertexShader.Initialize(Resources.SpriteEffectVS);
 
                 PixelShader = device.CreatePixelShader();
-                PixelShader.Initialize(SpritePixelShader);
+                PixelShader.Initialize(Resources.SpriteEffectPS);
 
                 InputLayout = device.CreateInputLayout();
-                InputLayout.Initialize(SpriteVertexShader, VertexPositionColorTexture.VertexDeclaration);
+                InputLayout.Initialize(VertexShader, VertexPositionColorTexture.VertexDeclaration);
 
                 IndexBuffer = device.CreateIndexBuffer();
                 IndexBuffer.Usage = ResourceUsage.Immutable;

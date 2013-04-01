@@ -3,12 +3,13 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using Libra.Graphics.Properties;
 
 #endregion
 
 namespace Libra.Graphics
 {
-    public sealed partial class BasicEffect : IEffect, IEffectMatrices
+    public sealed class BasicEffect : IEffect, IEffectMatrices
     {
         #region VertexShaderDefinition
 
@@ -44,9 +45,9 @@ namespace Libra.Graphics
 
         #endregion
 
-        #region Resources
+        #region DeviceResources
 
-        sealed class Resources
+        sealed class DeviceResources
         {
             IDevice device;
 
@@ -56,7 +57,7 @@ namespace Libra.Graphics
 
             PixelShader[] pixelShaders;
 
-            public Resources(IDevice device)
+            public DeviceResources(IDevice device)
             {
                 this.device = device;
 
@@ -456,7 +457,7 @@ namespace Libra.Graphics
             9,      // pixel lighting + texture + vertex color, no fog
         };
 
-        static readonly Dictionary<IDevice, Resources> ResourcesByDevice = new Dictionary<IDevice, Resources>();
+        static readonly Dictionary<IDevice, DeviceResources> ResourcesByDevice = new Dictionary<IDevice, DeviceResources>();
 
         static BasicEffect()
         {
@@ -467,45 +468,45 @@ namespace Libra.Graphics
 
             VertexShaderDefinitions = new[]
             {
-                new VertexShaderDefinition(VSBasic, "BasicEffect_VSBasic"),
-                new VertexShaderDefinition(VSBasicNoFog, "BasicEffect_VSBasicNoFog"),
-                new VertexShaderDefinition(VSBasicVc, "BasicEffect_VSBasicVc"),
-                new VertexShaderDefinition(VSBasicVcNoFog, "BasicEffect_VSBasicVcNoFog"),
-                new VertexShaderDefinition(VSBasicTx, "BasicEffect_VSBasicTx"),
-                new VertexShaderDefinition(VSBasicTxNoFog, "BasicEffect_VSBasicTxNoFog"),
-                new VertexShaderDefinition(VSBasicTxVc, "BasicEffect_VSBasicTxVc"),
-                new VertexShaderDefinition(VSBasicTxVcNoFog, "BasicEffect_VSBasicTxVcNoFog"),
+                new VertexShaderDefinition(Resources.BasicEffectVSBasic, "BasicEffect_VSBasic"),
+                new VertexShaderDefinition(Resources.BasicEffectVSBasicNoFog, "BasicEffect_VSBasicNoFog"),
+                new VertexShaderDefinition(Resources.BasicEffectVSBasicVc, "BasicEffect_VSBasicVc"),
+                new VertexShaderDefinition(Resources.BasicEffectVSBasicVcNoFog, "BasicEffect_VSBasicVcNoFog"),
+                new VertexShaderDefinition(Resources.BasicEffectVSBasicTx, "BasicEffect_VSBasicTx"),
+                new VertexShaderDefinition(Resources.BasicEffectVSBasicTxNoFog, "BasicEffect_VSBasicTxNoFog"),
+                new VertexShaderDefinition(Resources.BasicEffectVSBasicTxVc, "BasicEffect_VSBasicTxVc"),
+                new VertexShaderDefinition(Resources.BasicEffectVSBasicTxVcNoFog, "BasicEffect_VSBasicTxVcNoFog"),
 
-                new VertexShaderDefinition(VSBasicVertexLighting, "BasicEffect_VSBasicVertexLighting"),
-                new VertexShaderDefinition(VSBasicVertexLightingVc, "BasicEffect_VSBasicVertexLightingVc"),
-                new VertexShaderDefinition(VSBasicVertexLightingTx, "BasicEffect_VSBasicVertexLightingTx"),
-                new VertexShaderDefinition(VSBasicVertexLightingTxVc, "BasicEffect_VSBasicVertexLightingTxVc"),
+                new VertexShaderDefinition(Resources.BasicEffectVSBasicVertexLighting, "BasicEffect_VSBasicVertexLighting"),
+                new VertexShaderDefinition(Resources.BasicEffectVSBasicVertexLightingVc, "BasicEffect_VSBasicVertexLightingVc"),
+                new VertexShaderDefinition(Resources.BasicEffectVSBasicVertexLightingTx, "BasicEffect_VSBasicVertexLightingTx"),
+                new VertexShaderDefinition(Resources.BasicEffectVSBasicVertexLightingTxVc, "BasicEffect_VSBasicVertexLightingTxVc"),
 
-                new VertexShaderDefinition(VSBasicOneLight, "BasicEffect_VSBasicOneLight"),
-                new VertexShaderDefinition(VSBasicOneLightVc, "BasicEffect_VSBasicOneLightVc"),
-                new VertexShaderDefinition(VSBasicOneLightTx, "BasicEffect_VSBasicOneLightTx"),
-                new VertexShaderDefinition(VSBasicOneLightTxVc, "BasicEffect_VSBasicOneLightTxVc"),
+                new VertexShaderDefinition(Resources.BasicEffectVSBasicOneLight, "BasicEffect_VSBasicOneLight"),
+                new VertexShaderDefinition(Resources.BasicEffectVSBasicOneLightVc, "BasicEffect_VSBasicOneLightVc"),
+                new VertexShaderDefinition(Resources.BasicEffectVSBasicOneLightTx, "BasicEffect_VSBasicOneLightTx"),
+                new VertexShaderDefinition(Resources.BasicEffectVSBasicOneLightTxVc, "BasicEffect_VSBasicOneLightTxVc"),
 
-                new VertexShaderDefinition(VSBasicPixelLighting, "BasicEffect_VSBasicPixelLighting"),
-                new VertexShaderDefinition(VSBasicPixelLightingVc, "BasicEffect_VSBasicPixelLightingVc"),
-                new VertexShaderDefinition(VSBasicPixelLightingTx, "BasicEffect_VSBasicPixelLightingTx"),
-                new VertexShaderDefinition(VSBasicPixelLightingTxVc, "BasicEffect_VSBasicPixelLightingTxVc"),
+                new VertexShaderDefinition(Resources.BasicEffectVSBasicPixelLighting, "BasicEffect_VSBasicPixelLighting"),
+                new VertexShaderDefinition(Resources.BasicEffectVSBasicPixelLightingVc, "BasicEffect_VSBasicPixelLightingVc"),
+                new VertexShaderDefinition(Resources.BasicEffectVSBasicPixelLightingTx, "BasicEffect_VSBasicPixelLightingTx"),
+                new VertexShaderDefinition(Resources.BasicEffectVSBasicPixelLightingTxVc, "BasicEffect_VSBasicPixelLightingTxVc"),
             };
 
             PixelShaderDefinitions = new[]
             {
-                new PixelShaderDefinition(PSBasic, "BasicEffect_PSBasic"),
-                new PixelShaderDefinition(PSBasicNoFog, "BasicEffect_PSBasicNoFog"),
-                new PixelShaderDefinition(PSBasicTx, "BasicEffect_PSBasicTx"),
-                new PixelShaderDefinition(PSBasicTxNoFog, "BasicEffect_PSBasicTxNoFog"),
+                new PixelShaderDefinition(Resources.BasicEffectPSBasic, "BasicEffect_PSBasic"),
+                new PixelShaderDefinition(Resources.BasicEffectPSBasicNoFog, "BasicEffect_PSBasicNoFog"),
+                new PixelShaderDefinition(Resources.BasicEffectPSBasicTx, "BasicEffect_PSBasicTx"),
+                new PixelShaderDefinition(Resources.BasicEffectPSBasicTxNoFog, "BasicEffect_PSBasicTxNoFog"),
 
-                new PixelShaderDefinition(PSBasicVertexLighting, "BasicEffect_PSBasicVertexLighting"),
-                new PixelShaderDefinition(PSBasicVertexLightingNoFog, "BasicEffect_PSBasicVertexLightingNoFog"),
-                new PixelShaderDefinition(PSBasicVertexLightingTx, "BasicEffect_PSBasicVertexLightingTx"),
-                new PixelShaderDefinition(PSBasicVertexLightingTxNoFog, "BasicEffect_PSBasicVertexLightingTxNoFog"),
+                new PixelShaderDefinition(Resources.BasicEffectPSBasicVertexLighting, "BasicEffect_PSBasicVertexLighting"),
+                new PixelShaderDefinition(Resources.BasicEffectPSBasicVertexLightingNoFog, "BasicEffect_PSBasicVertexLightingNoFog"),
+                new PixelShaderDefinition(Resources.BasicEffectPSBasicVertexLightingTx, "BasicEffect_PSBasicVertexLightingTx"),
+                new PixelShaderDefinition(Resources.BasicEffectPSBasicVertexLightingTxNoFog, "BasicEffect_PSBasicVertexLightingTxNoFog"),
 
-                new PixelShaderDefinition(PSBasicPixelLighting, "BasicEffect_PSBasicPixelLighting"),
-                new PixelShaderDefinition(PSBasicPixelLightingTx, "BasicEffect_PSBasicPixelLightingTx"),
+                new PixelShaderDefinition(Resources.BasicEffectPSBasicPixelLighting, "BasicEffect_PSBasicPixelLighting"),
+                new PixelShaderDefinition(Resources.BasicEffectPSBasicPixelLightingTx, "BasicEffect_PSBasicPixelLightingTx"),
             };
         }
 
@@ -926,13 +927,13 @@ namespace Libra.Graphics
 
         void ApplyShaders(DeviceContext context, int permutation)
         {
-            Resources resources;
+            DeviceResources resources;
 
             lock (ResourcesByDevice)
             {
                 if (!ResourcesByDevice.TryGetValue(device, out resources))
                 {
-                    resources = new Resources(device);
+                    resources = new DeviceResources(device);
                     ResourcesByDevice[device] = resources;
                 }
             }
