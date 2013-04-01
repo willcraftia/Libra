@@ -1,5 +1,5 @@
 
-cbuffer Parameters : register(b1)
+cbuffer Parameters : register(b0)
 {
     float BloomIntensity    : packoffset(c0.x);
     float BaseIntensity     : packoffset(c0.y);

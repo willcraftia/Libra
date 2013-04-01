@@ -1,6 +1,6 @@
 #define SAMPLE_COUNT 15
 
-cbuffer Parameters : register(b1)
+cbuffer Parameters : register(b0)
 {
     float2 SampleOffsets[SAMPLE_COUNT]  : packoffset(c0);
     float SampleWeights[SAMPLE_COUNT]   : packoffset(c9);

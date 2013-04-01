@@ -1,4 +1,4 @@
-cbuffer Parameters : register(b1)
+cbuffer Parameters : register(b0)
 {
     float BloomThreshold;
 };
