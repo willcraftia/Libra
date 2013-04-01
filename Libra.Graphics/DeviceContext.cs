@@ -556,11 +556,11 @@ namespace Libra.Graphics
                 Array.Clear(activeRenderTargetViews, 0, activeRenderTargetViews.Length);
 
                 // #0 にバック バッファ レンダ ターゲットを設定。
-                activeRenderTargetViews[0] = Device.BackBufferRenderTargetView;
+                activeRenderTargetViews[0] = Device.BackBufferView;
 
                 SetRenderTargetsCore(null);
 
-                ClearRenderTargetView(Device.BackBufferRenderTargetView, DiscardColor);
+                ClearRenderTargetView(Device.BackBufferView, DiscardColor);
             }
             else
             {

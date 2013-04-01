@@ -25,9 +25,9 @@ namespace Libra.Graphics
 
         DeviceContext ImmediateContext { get; }
 
-        RenderTarget BackBufferRenderTarget { get; }
+        RenderTarget BackBuffer { get; }
 
-        RenderTargetView BackBufferRenderTargetView { get; }
+        RenderTargetView BackBufferView { get; }
 
         DeviceContext CreateDeferredContext();
 

@@ -166,7 +166,7 @@ namespace Libra.Graphics.SharpDX
                 // レンダ ターゲットと深度ステンシルの解除。
                 D3D11DeviceContext.OutputMerger.SetTargets((D3D11DepthStencilView) null, (D3D11RenderTargetView[]) null);
 
-                var renderTargetView = Device.BackBufferRenderTargetView;
+                var renderTargetView = Device.BackBufferView;
                 var depthStencilView = renderTargetView.DepthStencilView;
 
                 var d3d11RenderTargetView = (renderTargetView as SdxRenderTargetView).D3D11RenderTargetView;

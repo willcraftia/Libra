@@ -81,9 +81,9 @@ namespace Libra.Graphics.SharpDX
 
         public DepthStencilStateManager DepthStencilStateManager { get; private set; }
 
-        public RenderTarget BackBufferRenderTarget { get; private set; }
+        public RenderTarget BackBuffer { get; private set; }
 
-        public RenderTargetView BackBufferRenderTargetView { get; private set; }
+        public RenderTargetView BackBufferView { get; private set; }
 
         public SdxDevice(SdxAdapter adapter, DeviceSettings settings, DeviceProfile[] profiles)
         {
@@ -278,14 +278,14 @@ namespace Libra.Graphics.SharpDX
             // 深度ステンシルを共有している設定は自由に破棄できずに都合が悪い。
             // よって、共有不可 (RenderTargetUsage.Preserve) でレンダ ターゲットを生成。
 
-            BackBufferRenderTarget = CreateRenderTarget();
-            BackBufferRenderTarget.Name = "BackBuffer_0";
-            BackBufferRenderTarget.DepthFormat = swapChain.DepthStencilFormat;
-            BackBufferRenderTarget.RenderTargetUsage = RenderTargetUsage.Preserve;
-            BackBufferRenderTarget.Initialize(swapChain, 0);
+            BackBuffer = CreateRenderTarget();
+            BackBuffer.Name = "BackBuffer_0";
+            BackBuffer.DepthFormat = swapChain.DepthStencilFormat;
+            BackBuffer.RenderTargetUsage = RenderTargetUsage.Preserve;
+            BackBuffer.Initialize(swapChain, 0);
 
-            BackBufferRenderTargetView = CreateRenderTargetView();
-            BackBufferRenderTargetView.Initialize(BackBufferRenderTarget);
+            BackBufferView = CreateRenderTargetView();
+            BackBufferView.Initialize(BackBuffer);
 
             if (BackBuffersReset != null)
                 BackBuffersReset(this, EventArgs.Empty);
@@ -296,15 +296,15 @@ namespace Libra.Graphics.SharpDX
             if (BackBuffersResetting != null)
                 BackBuffersResetting(this, EventArgs.Empty);
 
-            if (BackBufferRenderTarget != null)
+            if (BackBuffer != null)
             {
-                BackBufferRenderTarget.Dispose();
-                BackBufferRenderTarget = null;
+                BackBuffer.Dispose();
+                BackBuffer = null;
             }
-            if (BackBufferRenderTargetView != null)
+            if (BackBufferView != null)
             {
-                BackBufferRenderTargetView.Dispose();
-                BackBufferRenderTargetView = null;
+                BackBufferView.Dispose();
+                BackBufferView = null;
             }
         }
 
