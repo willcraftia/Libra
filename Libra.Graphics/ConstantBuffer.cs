@@ -14,6 +14,7 @@ namespace Libra.Graphics
         protected ConstantBuffer(IDevice device)
             : base(device)
         {
+            Usage = ResourceUsage.Dynamic;
         }
 
         public void Initialize<T>() where T : struct
