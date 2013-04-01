@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Runtime.InteropServices;
 using Libra;
 using Libra.Games;
 using Libra.Graphics;
@@ -12,13 +13,58 @@ namespace Samples.BloomPostprocess
 {
     public sealed class BloomComponent : DrawableGameComponent
     {
+        #region BloomExtractConstants
+
+        [StructLayout(LayoutKind.Sequential, Size = 16)]
+        struct BloomExtractConstants
+        {
+            public float BloomThreshold;
+        }
+
+        #endregion
+
+        #region BloomExtractShader
+
+        sealed class BloomExtractShader
+        {
+            public BloomExtractConstants Constants;
+
+            ConstantBuffer constantBuffer;
+
+            PixelShader pixelShader;
+
+            public BloomExtractShader(IDevice device, byte[] bytecode)
+            {
+                pixelShader = device.CreatePixelShader();
+                pixelShader.Initialize(bytecode);
+
+                constantBuffer = device.CreateConstantBuffer();
+                constantBuffer.Initialize<BloomExtractConstants>();
+            }
+
+            public void ApplyConstants(DeviceContext context)
+            {
+                constantBuffer.SetData(context, Constants);
+                context.PixelShaderConstantBuffers[0] = constantBuffer;
+            }
+
+            public void ApplyShader(DeviceContext context)
+            {
+                context.PixelShader = pixelShader;
+            }
+        }
+
+        #endregion
+
         SpriteBatch spriteBatch;
 
-        PixelShader bloomExtractPixelShader;
+        BloomExtractShader bloomExtractShader;
 
         PixelShader bloomCombinePixelShader;
 
         PixelShader gaussianBlurPixelShader;
+
+        ConstantBuffer bloomExtractConstantBuffer;
 
         RenderTarget sceneRenderTarget;
 
@@ -70,8 +116,7 @@ namespace Samples.BloomPostprocess
             var compiler = ShaderCompiler.CreateShaderCompiler();
             compiler.RootPath = "../../Shaders";
 
-            bloomExtractPixelShader = Device.CreatePixelShader();
-            bloomExtractPixelShader.Initialize(compiler.CompilePixelShader("BloomExtract.fx"));
+            bloomExtractShader = new BloomExtractShader(Device, compiler.CompilePixelShader("BloomExtract.fx"));
 
             bloomCombinePixelShader = Device.CreatePixelShader();
             bloomCombinePixelShader.Initialize(compiler.CompilePixelShader("BloomCombine.fx"));
@@ -79,26 +124,36 @@ namespace Samples.BloomPostprocess
             gaussianBlurPixelShader = Device.CreatePixelShader();
             gaussianBlurPixelShader.Initialize(compiler.CompilePixelShader("GaussianBlur.fx"));
 
-            //PresentationParameters pp = GraphicsDevice.PresentationParameters;
+            bloomExtractConstantBuffer = Device.CreateConstantBuffer();
+            bloomExtractConstantBuffer.Initialize<BloomExtractConstants>();
 
-            //int width = pp.BackBufferWidth;
-            //int height = pp.BackBufferHeight;
+            var backBuffer = Device.BackBuffer;
+            var width = backBuffer.Width;
+            var height = backBuffer.Height;
+            var format = backBuffer.Format;
 
-            //SurfaceFormat format = pp.BackBufferFormat;
+            sceneRenderTarget = Device.CreateRenderTarget();
+            sceneRenderTarget.Width = width;
+            sceneRenderTarget.Height = height;
+            sceneRenderTarget.MultisampleCount = backBuffer.MultisampleCount;
+            sceneRenderTarget.Format = format;
+            sceneRenderTarget.DepthFormat = backBuffer.DepthFormat;
+            sceneRenderTarget.Initialize();
 
-            //sceneRenderTarget = Device.CreateRenderTarget();
-            //sceneRenderTarget.Width = width;
-            //sceneRenderTarget.Height = height;
+            width /= 2;
+            height /= 2;
 
-            //sceneRenderTarget = new RenderTarget2D(GraphicsDevice, width, height, false,
-            //                                       format, pp.DepthStencilFormat, pp.MultiSampleCount,
-            //                                       RenderTargetUsage.DiscardContents);
+            renderTarget1 = Device.CreateRenderTarget();
+            renderTarget1.Width = width;
+            renderTarget1.Height = height;
+            renderTarget1.Format = format;
+            renderTarget1.Initialize();
 
-            //width /= 2;
-            //height /= 2;
-
-            //renderTarget1 = new RenderTarget2D(GraphicsDevice, width, height, false, format, DepthFormat.None);
-            //renderTarget2 = new RenderTarget2D(GraphicsDevice, width, height, false, format, DepthFormat.None);
+            renderTarget2 = Device.CreateRenderTarget();
+            renderTarget2.Width = width;
+            renderTarget2.Height = height;
+            renderTarget2.Format = format;
+            renderTarget2.Initialize();
         }
 
         protected override void UnloadContent()
@@ -122,7 +177,8 @@ namespace Samples.BloomPostprocess
 
             context.PixelShaderSamplers[1] = SamplerState.LinearClamp;
 
-            //bloomExtractEffect.Parameters["BloomThreshold"].SetValue(Settings.BloomThreshold);
+            bloomExtractShader.Constants.BloomThreshold = Settings.BloomThreshold;
+            bloomExtractShader.ApplyConstants(context);
 
             //DrawFullscreenQuad(sceneRenderTarget, renderTarget1, bloomExtractEffect, IntermediateBuffer.PreBloom);
 
@@ -150,11 +206,11 @@ namespace Samples.BloomPostprocess
             //DrawFullscreenQuad(renderTarget1, viewport.Width, viewport.Height, bloomCombineEffect, IntermediateBuffer.FinalResult);
         }
 
-        //void DrawFullscreenQuad(Texture2D texture, RenderTargetView renderTarget, Effect effect, IntermediateBuffer currentBuffer)
+        //void DrawFullscreenQuad(Texture2D texture, RenderTargetView renderTargetView, Effect effect, IntermediateBuffer currentBuffer)
         //{
-        //    GraphicsDevice.SetRenderTarget(renderTarget);
+        //    Device.ImmediateContext.SetRenderTarget(renderTargetView);
 
-        //    DrawFullscreenQuad(texture, renderTarget.Width, renderTarget.Height, effect, currentBuffer);
+        //    DrawFullscreenQuad(texture, renderTargetView.Width, renderTargetView.Height, effect, currentBuffer);
         //}
 
         //void DrawFullscreenQuad(Texture2D texture, int width, int height, Effect effect, IntermediateBuffer currentBuffer)
