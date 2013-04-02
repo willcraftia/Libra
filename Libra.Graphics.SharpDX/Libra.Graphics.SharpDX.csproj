@@ -54,7 +54,6 @@
     <Compile Include="RectangleExtension.cs" />
     <Compile Include="FormatHelper.cs" />
     <Compile Include="ResourceHelper.cs" />
-    <Compile Include="SdxDeviceFeatures.cs" />
     <Compile Include="SdxConstantBuffer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SdxAdapter.cs" />

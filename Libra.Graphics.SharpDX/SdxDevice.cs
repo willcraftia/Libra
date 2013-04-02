@@ -67,8 +67,6 @@ namespace Libra.Graphics.SharpDX
 
         public DeviceProfile Profile { get; private set; }
 
-        public SdxDeviceFeatures Features { get; private set; }
-
         public DeviceContext ImmediateContext { get; private set; }
 
         public D3D11Device D3D11Device { get; private set; }
@@ -129,9 +127,6 @@ namespace Libra.Graphics.SharpDX
 
             // デバイス生成で選択されたプロファイルの記録。
             Profile = (DeviceProfile) D3D11Device.FeatureLevel;
-
-            // デバイス特性の記録。
-            Features = SdxDeviceFeatures.Create(D3D11Device);
 
             // ブレンド ステートの初期化。
             BlendStateManager = new BlendStateManager(this, CreateD3D11BlendState);
