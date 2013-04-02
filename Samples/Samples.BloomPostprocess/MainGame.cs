@@ -25,8 +25,6 @@ namespace Samples.BloomPostprocess
         
         Texture2D background;
 
-        ShaderResourceView backgroundView;
-
         Model model;
 
         BasicEffect basicEffect;
@@ -59,8 +57,6 @@ namespace Samples.BloomPostprocess
             spriteBatch = new SpriteBatch(Device.ImmediateContext);
             spriteFont = Content.Load<SpriteFont>("hudFont");
             background = Content.Load<Texture2D>("sunset");
-            backgroundView = Device.CreateShaderResourceView();
-            backgroundView.Initialize(background);
             model = Content.Load<Model>("tank");
         }
 
@@ -81,7 +77,7 @@ namespace Samples.BloomPostprocess
             context.Clear(Color.Black);
 
             spriteBatch.Begin(0, BlendState.Opaque);
-            spriteBatch.Draw(backgroundView, new Rectangle(0, 0, (int) viewport.Width, (int) viewport.Height), Color.White);
+            spriteBatch.Draw(background.GetShaderResourceView(), new Rectangle(0, 0, (int) viewport.Width, (int) viewport.Height), Color.White);
             spriteBatch.End();
 
             context.DepthStencilState = DepthStencilState.Default;
