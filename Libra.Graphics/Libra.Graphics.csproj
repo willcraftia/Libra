@@ -74,6 +74,7 @@
     <Compile Include="IndexBuffer.cs" />
     <Compile Include="IndexFormat.cs" />
     <Compile Include="InputElement.cs" />
+    <Compile Include="Semantics.cs" />
     <Compile Include="VertexFormat.cs" />
     <Compile Include="InputLayout.cs" />
     <Compile Include="IOutput.cs" />

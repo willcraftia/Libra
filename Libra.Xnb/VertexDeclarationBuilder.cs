@@ -46,7 +46,7 @@ namespace Libra.Xnb
 
         protected override void SetElementUsage(int value)
         {
-            currentElement.SemanticName = SemanticNameConverter.ToSemanticsName(value);
+            currentElement.SemanticName = SemanticsConverter.ToSemanticsName(value);
         }
 
         protected override void SetElementUsageIndex(uint value)

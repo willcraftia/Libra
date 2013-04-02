@@ -12,13 +12,17 @@ namespace Libra.Graphics
 
     public struct VertexElement : IEquatable<VertexElement>
     {
-        public static readonly VertexElement SVPosition = new VertexElement(InputElement.SemanticSVPosition, VertexFormat.Vector3);
+        // D3D では uint で 0xffffffff。
+        // int の -1 は、uint へのキャストで 0xffffffff となる。
+        public const int AppendAlignedElement = -1;
 
-        public static readonly VertexElement Normal = new VertexElement(InputElement.SemanticNormal, VertexFormat.Vector3);
+        public static readonly VertexElement SVPosition = new VertexElement(Semantics.SVPosition, VertexFormat.Vector3);
 
-        public static readonly VertexElement Color = new VertexElement(InputElement.SemanticColor, VertexFormat.Color);
+        public static readonly VertexElement Normal = new VertexElement(Semantics.Normal, VertexFormat.Vector3);
 
-        public static readonly VertexElement TexCoord = new VertexElement(InputElement.SemanticTexCoord, VertexFormat.Vector2);
+        public static readonly VertexElement Color = new VertexElement(Semantics.Color, VertexFormat.Color);
+
+        public static readonly VertexElement TexCoord = new VertexElement(Semantics.TexCoord, VertexFormat.Vector2);
 
         public string SemanticName;
 

@@ -12,40 +12,6 @@ namespace Libra.Graphics
         // int の -1 は、uint へのキャストで 0xffffffff となる。
         public const int AppendAlignedElement = -1;
 
-        public const string SemanticSVPosition = "SV_Position";
-
-        public const string SemanticNormal = "NORMAL";
-
-        public const string SemanticColor = "COLOR";
-
-        public const string SemanticTexCoord = "TEXCOORD";
-
-        public const string SemanticBinormal = "BINORMAL";
-
-        public const string SemanticTangent = "TANGENT";
-
-        public const string SemanticBlendIndices = "BLENDINDICES";
-
-        public const string SemanticBlendWeight = "BLENDWEIGHT";
-
-        public const string SemanticDepth = "SV_Depth";
-
-        public const string SemanticFog = "FOG";
-
-        public const string SemanticPSize = "PSIZE";
-
-        public const string SemanticSampleIndex = "SV_SampleIndex";
-
-        public const string SemanticTessFactor = "SV_TessFactor";
-
-        public static readonly InputElement SVPosition = new InputElement(SemanticSVPosition, VertexFormat.Vector3);
-
-        public static readonly InputElement Normal = new InputElement(SemanticNormal, VertexFormat.Vector3);
-
-        public static readonly InputElement Color = new InputElement(SemanticColor, VertexFormat.Color);
-
-        public static readonly InputElement TexCoord = new InputElement(SemanticTexCoord, VertexFormat.Vector2);
-
         public string SemanticName;
 
         public int SemanticIndex;
