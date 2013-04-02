@@ -560,7 +560,7 @@ namespace Libra.Graphics
 
                 SetRenderTargetsCore(null);
 
-                ClearRenderTargetView(Device.BackBufferView, DiscardColor);
+                ClearRenderTarget(Device.BackBufferView, DiscardColor);
             }
             else
             {
@@ -570,7 +570,7 @@ namespace Libra.Graphics
 
                 if (renderTargetView.RenderTarget.RenderTargetUsage == RenderTargetUsage.Discard)
                 {
-                    ClearRenderTargetView(renderTargetView, DiscardColor);
+                    ClearRenderTarget(renderTargetView, DiscardColor);
                 }
             }
         }
@@ -595,7 +595,7 @@ namespace Libra.Graphics
             {
                 foreach (var renderTargetView in renderTargetViews)
                 {
-                    ClearRenderTargetView(renderTargetView, DiscardColor);
+                    ClearRenderTarget(renderTargetView, DiscardColor);
                 }
             }
         }
@@ -616,26 +616,24 @@ namespace Libra.Graphics
 
         protected abstract void SetShaderResourceCore(ShaderStage shaderStage, int slot, ShaderResourceView view);
 
-        public void ClearRenderTargetView(RenderTargetView renderTarget, Color color)
+        public void ClearRenderTarget(RenderTargetView renderTarget, Color color)
         {
-            ClearRenderTargetView(renderTarget, ClearOptions.Target | ClearOptions.Depth | ClearOptions.Stencil, color, Viewport.MaxDepth);
+            ClearRenderTarget(renderTarget, ClearOptions.Target | ClearOptions.Depth | ClearOptions.Stencil, color, Viewport.MaxDepth);
         }
 
-        public void ClearRenderTargetView(RenderTargetView renderTarget, Vector4 color)
+        public void ClearRenderTarget(RenderTargetView renderTarget, Vector4 color)
         {
-            ClearRenderTargetView(renderTarget, ClearOptions.Target | ClearOptions.Depth | ClearOptions.Stencil, color, Viewport.MaxDepth);
+            ClearRenderTarget(renderTarget, ClearOptions.Target | ClearOptions.Depth | ClearOptions.Stencil, color, Viewport.MaxDepth);
         }
 
-        public void ClearRenderTargetView(
-            RenderTargetView renderTarget, ClearOptions options, Color color, float depth, byte stencil = 0)
+        public void ClearRenderTarget(RenderTargetView renderTarget, ClearOptions options, Color color, float depth, byte stencil = 0)
         {
             if (renderTarget == null) throw new ArgumentNullException("renderTarget");
 
-            ClearRenderTargetView(renderTarget, options, color.ToVector4(), depth, stencil);
+            ClearRenderTarget(renderTarget, options, color.ToVector4(), depth, stencil);
         }
 
-        public void ClearRenderTargetView(
-            RenderTargetView renderTarget, ClearOptions options, Vector4 color, float depth, byte stencil = 0)
+        public void ClearRenderTarget(RenderTargetView renderTarget, ClearOptions options, Vector4 color, float depth, byte stencil = 0)
         {
             if (renderTarget == null) throw new ArgumentNullException("renderTarget");
 
