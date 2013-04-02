@@ -23,60 +23,104 @@ namespace Samples.BloomPostprocess
 
         #endregion
 
-        #region BloomExtractShader
+        #region GaussianBlurSample
 
-        sealed class BloomExtractShader
+        [StructLayout(LayoutKind.Sequential, Size = 16)]
+        struct GaussianBlurSample
         {
-            public BloomExtractConstants Constants;
+            public Vector2 Offset;
+
+            public float Weight;
+        }
+
+        #endregion
+
+        #region BloomCombineConstants
+
+        struct BloomCombineConstants
+        {
+            public float BloomIntensity;
+
+            public float BaseIntensity;
+
+            public float BloomSaturation;
+
+            public float BaseSaturation;
+        }
+
+        #endregion
+
+        #region CustomShader
+
+        sealed class CustomShader<T> where T : struct
+        {
+            public T Constants;
 
             ConstantBuffer constantBuffer;
 
             PixelShader pixelShader;
 
-            public BloomExtractShader(IDevice device, byte[] bytecode)
+            public CustomShader(IDevice device, byte[] bytecode)
             {
                 pixelShader = device.CreatePixelShader();
                 pixelShader.Initialize(bytecode);
 
                 constantBuffer = device.CreateConstantBuffer();
-                constantBuffer.Initialize<BloomExtractConstants>();
+                constantBuffer.Initialize<T>();
             }
 
-            public void ApplyConstants(DeviceContext context)
+            public void Apply(DeviceContext context)
             {
                 constantBuffer.SetData(context, Constants);
                 context.PixelShaderConstantBuffers[0] = constantBuffer;
-            }
-
-            public void ApplyShader(DeviceContext context)
-            {
                 context.PixelShader = pixelShader;
             }
         }
 
         #endregion
 
+        sealed class GaussianBlurShader
+        {
+            public GaussianBlurSample[] Samples;
+
+            ConstantBuffer constantBuffer;
+
+            PixelShader pixelShader;
+
+            public GaussianBlurShader(IDevice device, byte[] bytecode)
+            {
+                Samples = new GaussianBlurSample[15];
+
+                pixelShader = device.CreatePixelShader();
+                pixelShader.Initialize(bytecode);
+
+                constantBuffer = device.CreateConstantBuffer();
+                constantBuffer.Initialize(Marshal.SizeOf(typeof(GaussianBlurSample)) * 15);
+            }
+
+            public void Apply(DeviceContext context)
+            {
+                constantBuffer.SetData(context, Samples);
+                context.PixelShaderConstantBuffers[0] = constantBuffer;
+                context.PixelShader = pixelShader;
+            }
+        }
+
         SpriteBatch spriteBatch;
 
-        BloomExtractShader bloomExtractShader;
+        CustomShader<BloomExtractConstants> bloomExtractShader;
 
-        PixelShader bloomCombinePixelShader;
+        GaussianBlurShader gaussianBlurShader;
 
-        PixelShader gaussianBlurPixelShader;
+        CustomShader<BloomCombineConstants> bloomCombineShader;
 
         ConstantBuffer bloomExtractConstantBuffer;
 
         RenderTarget sceneRenderTarget;
 
-        RenderTargetView sceneRenderTargetView;
-
         RenderTarget renderTarget1;
-
-        RenderTargetView renderTarget1View;
         
         RenderTarget renderTarget2;
-
-        RenderTargetView renderTarget2View;
 
         public BloomSettings Settings
         {
@@ -116,13 +160,14 @@ namespace Samples.BloomPostprocess
             var compiler = ShaderCompiler.CreateShaderCompiler();
             compiler.RootPath = "../../Shaders";
 
-            bloomExtractShader = new BloomExtractShader(Device, compiler.CompilePixelShader("BloomExtract.fx"));
+            bloomExtractShader = new CustomShader<BloomExtractConstants>(
+                Device, compiler.CompilePixelShader("BloomExtract.fx"));
 
-            bloomCombinePixelShader = Device.CreatePixelShader();
-            bloomCombinePixelShader.Initialize(compiler.CompilePixelShader("BloomCombine.fx"));
+            bloomCombineShader = new CustomShader<BloomCombineConstants>(
+                Device, compiler.CompilePixelShader("BloomCombine.fx"));
 
-            gaussianBlurPixelShader = Device.CreatePixelShader();
-            gaussianBlurPixelShader.Initialize(compiler.CompilePixelShader("GaussianBlur.fx"));
+            gaussianBlurShader = new GaussianBlurShader(
+                Device, compiler.CompilePixelShader("GaussianBlur.fx"));
 
             bloomExtractConstantBuffer = Device.CreateConstantBuffer();
             bloomExtractConstantBuffer.Initialize<BloomExtractConstants>();
@@ -167,7 +212,7 @@ namespace Samples.BloomPostprocess
         {
             if (Visible)
             {
-                Device.ImmediateContext.SetRenderTarget(sceneRenderTargetView);
+                Device.ImmediateContext.SetRenderTarget(sceneRenderTarget.GetRenderTargetView());
             }
         }
 
@@ -175,98 +220,91 @@ namespace Samples.BloomPostprocess
         {
             var context = Device.ImmediateContext;
 
-            context.PixelShaderSamplers[1] = SamplerState.LinearClamp;
+            context.PixelShaderSamplers[0] = SamplerState.LinearClamp;
 
             bloomExtractShader.Constants.BloomThreshold = Settings.BloomThreshold;
-            bloomExtractShader.ApplyConstants(context);
 
-            //DrawFullscreenQuad(sceneRenderTarget, renderTarget1, bloomExtractEffect, IntermediateBuffer.PreBloom);
+            DrawFullscreenQuad(sceneRenderTarget, renderTarget1, bloomExtractShader.Apply, IntermediateBuffer.PreBloom);
 
-            //SetBlurEffectParameters(1.0f / (float) renderTarget1.Width, 0);
+            SetBlurEffectParameters(1.0f / (float) renderTarget1.Width, 0);
 
-            //DrawFullscreenQuad(renderTarget1, renderTarget2, gaussianBlurEffect, IntermediateBuffer.BlurredHorizontally);
+            DrawFullscreenQuad(renderTarget1, renderTarget2, gaussianBlurShader.Apply, IntermediateBuffer.BlurredHorizontally);
 
-            //SetBlurEffectParameters(0, 1.0f / (float) renderTarget1.Height);
+            SetBlurEffectParameters(0, 1.0f / (float) renderTarget1.Height);
 
-            //DrawFullscreenQuad(renderTarget2, renderTarget1, gaussianBlurEffect, IntermediateBuffer.BlurredBothWays);
+            DrawFullscreenQuad(renderTarget2, renderTarget1, gaussianBlurShader.Apply, IntermediateBuffer.BlurredBothWays);
 
-            //GraphicsDevice.SetRenderTarget(null);
+            context.SetRenderTarget(null);
 
-            //EffectParameterCollection parameters = bloomCombineEffect.Parameters;
+            bloomCombineShader.Constants.BloomIntensity = Settings.BloomIntensity;
+            bloomCombineShader.Constants.BaseIntensity = Settings.BaseIntensity;
+            bloomCombineShader.Constants.BloomSaturation = Settings.BloomSaturation;
+            bloomCombineShader.Constants.BaseSaturation = Settings.BaseSaturation;
 
-            //parameters["BloomIntensity"].SetValue(Settings.BloomIntensity);
-            //parameters["BaseIntensity"].SetValue(Settings.BaseIntensity);
-            //parameters["BloomSaturation"].SetValue(Settings.BloomSaturation);
-            //parameters["BaseSaturation"].SetValue(Settings.BaseSaturation);
+            context.PixelShaderResources[1] = sceneRenderTarget.GetShaderResourceView();
 
-            //GraphicsDevice.Textures[1] = sceneRenderTarget;
+            var viewport = context.Viewport;
 
-            //Viewport viewport = GraphicsDevice.Viewport;
+            DrawFullscreenQuad(renderTarget1, (int) viewport.Width, (int) viewport.Height,
+                bloomCombineShader.Apply, IntermediateBuffer.FinalResult);
 
-            //DrawFullscreenQuad(renderTarget1, viewport.Width, viewport.Height, bloomCombineEffect, IntermediateBuffer.FinalResult);
+            // レンダ ターゲットをシェーダ リソースとして設定しているため、
+            // 必ず明示的にシェーダから解除しなければならない。
+            context.PixelShaderResources[1] = null;
         }
 
-        //void DrawFullscreenQuad(Texture2D texture, RenderTargetView renderTargetView, Effect effect, IntermediateBuffer currentBuffer)
-        //{
-        //    Device.ImmediateContext.SetRenderTarget(renderTargetView);
+        void DrawFullscreenQuad(Texture2D texture, RenderTarget renderTarget,
+            Action<DeviceContext> applyShader, IntermediateBuffer currentBuffer)
+        {
+            Device.ImmediateContext.SetRenderTarget(renderTarget.GetRenderTargetView());
 
-        //    DrawFullscreenQuad(texture, renderTargetView.Width, renderTargetView.Height, effect, currentBuffer);
-        //}
+            DrawFullscreenQuad(texture, renderTarget.Width, renderTarget.Height, applyShader, currentBuffer);
+        }
 
-        //void DrawFullscreenQuad(Texture2D texture, int width, int height, Effect effect, IntermediateBuffer currentBuffer)
-        //{
-        //    if (showBuffer < currentBuffer)
-        //    {
-        //        effect = null;
-        //    }
+        void DrawFullscreenQuad(Texture2D texture, int width, int height,
+            Action<DeviceContext> applyShader, IntermediateBuffer currentBuffer)
+        {
+            if (showBuffer < currentBuffer)
+            {
+                applyShader = null;
+            }
 
-        //    spriteBatch.Begin(0, BlendState.Opaque, null, null, null, effect);
-        //    spriteBatch.Draw(texture, new Rectangle(0, 0, width, height), Color.White);
-        //    spriteBatch.End();
-        //}
+            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Opaque, null, null, null, applyShader);
+            spriteBatch.Draw(texture.GetShaderResourceView(), new Rectangle(0, 0, width, height), Color.White);
+            spriteBatch.End();
+        }
 
-        //void SetBlurEffectParameters(float dx, float dy)
-        //{
-        //    EffectParameter weightsParameter, offsetsParameter;
+        void SetBlurEffectParameters(float dx, float dy)
+        {
+            int sampleCount = gaussianBlurShader.Samples.Length;
 
-        //    weightsParameter = gaussianBlurEffect.Parameters["SampleWeights"];
-        //    offsetsParameter = gaussianBlurEffect.Parameters["SampleOffsets"];
+            float totalWeights = ComputeGaussian(0);
 
-        //    int sampleCount = weightsParameter.Elements.Count;
+            gaussianBlurShader.Samples[0].Weight = totalWeights;
+            gaussianBlurShader.Samples[0].Offset = Vector2.Zero;
 
-        //    float[] sampleWeights = new float[sampleCount];
-        //    Vector2[] sampleOffsets = new Vector2[sampleCount];
+            for (int i = 0; i < sampleCount / 2; i++)
+            {
+                float weight = ComputeGaussian(i + 1);
 
-        //    sampleWeights[0] = ComputeGaussian(0);
-        //    sampleOffsets[0] = new Vector2(0);
+                gaussianBlurShader.Samples[i * 2 + 1].Weight = weight;
+                gaussianBlurShader.Samples[i * 2 + 2].Weight = weight;
 
-        //    float totalWeights = sampleWeights[0];
+                totalWeights += weight * 2;
 
-        //    for (int i = 0; i < sampleCount / 2; i++)
-        //    {
-        //        float weight = ComputeGaussian(i + 1);
+                float sampleOffset = i * 2 + 1.5f;
 
-        //        sampleWeights[i * 2 + 1] = weight;
-        //        sampleWeights[i * 2 + 2] = weight;
+                Vector2 delta = new Vector2(dx, dy) * sampleOffset;
 
-        //        totalWeights += weight * 2;
+                gaussianBlurShader.Samples[i * 2 + 1].Offset = delta;
+                gaussianBlurShader.Samples[i * 2 + 2].Offset = -delta;
+            }
 
-        //        float sampleOffset = i * 2 + 1.5f;
-
-        //        Vector2 delta = new Vector2(dx, dy) * sampleOffset;
-
-        //        sampleOffsets[i * 2 + 1] = delta;
-        //        sampleOffsets[i * 2 + 2] = -delta;
-        //    }
-
-        //    for (int i = 0; i < sampleWeights.Length; i++)
-        //    {
-        //        sampleWeights[i] /= totalWeights;
-        //    }
-
-        //    weightsParameter.SetValue(sampleWeights);
-        //    offsetsParameter.SetValue(sampleOffsets);
-        //}
+            for (int i = 0; i < sampleCount; i++)
+            {
+                gaussianBlurShader.Samples[i].Weight /= totalWeights;
+            }
+        }
 
         float ComputeGaussian(float n)
         {
