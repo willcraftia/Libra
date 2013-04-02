@@ -278,14 +278,14 @@ namespace Samples.BloomPostprocess
         {
             int sampleCount = gaussianBlurShader.Samples.Length;
 
-            float totalWeights = ComputeGaussian(0);
+            float totalWeights = MathHelper.CalculateGaussian(Settings.BlurAmount, 0);
 
             gaussianBlurShader.Samples[0].Weight = totalWeights;
             gaussianBlurShader.Samples[0].Offset = Vector2.Zero;
 
             for (int i = 0; i < sampleCount / 2; i++)
             {
-                float weight = ComputeGaussian(i + 1);
+                float weight = MathHelper.CalculateGaussian(Settings.BlurAmount, i + 1);
 
                 gaussianBlurShader.Samples[i * 2 + 1].Weight = weight;
                 gaussianBlurShader.Samples[i * 2 + 2].Weight = weight;
@@ -304,16 +304,6 @@ namespace Samples.BloomPostprocess
             {
                 gaussianBlurShader.Samples[i].Weight /= totalWeights;
             }
-        }
-
-        float ComputeGaussian(float n)
-        {
-            float theta = Settings.BlurAmount;
-
-            // メモ
-            // ガウス関数になっていない気がするのだが。
-
-            return (float) ((1.0 / Math.Sqrt(2 * Math.PI * theta)) * Math.Exp(-(n * n) / (2 * theta * theta)));
         }
     }
 }
