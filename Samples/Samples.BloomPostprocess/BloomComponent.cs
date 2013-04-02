@@ -13,12 +13,31 @@ namespace Samples.BloomPostprocess
 {
     public sealed class BloomComponent : DrawableGameComponent
     {
-        #region BloomExtractConstants
+        #region BloomExtractShader
 
-        [StructLayout(LayoutKind.Sequential, Size = 16)]
-        struct BloomExtractConstants
+        sealed class BloomExtractShader
         {
             public float BloomThreshold;
+
+            ConstantBuffer constantBuffer;
+
+            PixelShader pixelShader;
+
+            public BloomExtractShader(IDevice device, byte[] bytecode)
+            {
+                pixelShader = device.CreatePixelShader();
+                pixelShader.Initialize(bytecode);
+
+                constantBuffer = device.CreateConstantBuffer();
+                constantBuffer.Initialize(16);
+            }
+
+            public void Apply(DeviceContext context)
+            {
+                constantBuffer.SetData(context, BloomThreshold);
+                context.PixelShaderConstantBuffers[0] = constantBuffer;
+                context.PixelShader = pixelShader;
+            }
         }
 
         #endregion
@@ -35,49 +54,7 @@ namespace Samples.BloomPostprocess
 
         #endregion
 
-        #region BloomCombineConstants
-
-        struct BloomCombineConstants
-        {
-            public float BloomIntensity;
-
-            public float BaseIntensity;
-
-            public float BloomSaturation;
-
-            public float BaseSaturation;
-        }
-
-        #endregion
-
-        #region CustomShader
-
-        sealed class CustomShader<T> where T : struct
-        {
-            public T Constants;
-
-            ConstantBuffer constantBuffer;
-
-            PixelShader pixelShader;
-
-            public CustomShader(IDevice device, byte[] bytecode)
-            {
-                pixelShader = device.CreatePixelShader();
-                pixelShader.Initialize(bytecode);
-
-                constantBuffer = device.CreateConstantBuffer();
-                constantBuffer.Initialize<T>();
-            }
-
-            public void Apply(DeviceContext context)
-            {
-                constantBuffer.SetData(context, Constants);
-                context.PixelShaderConstantBuffers[0] = constantBuffer;
-                context.PixelShader = pixelShader;
-            }
-        }
-
-        #endregion
+        #region GaussianBlurShader
 
         sealed class GaussianBlurShader
         {
@@ -106,15 +83,58 @@ namespace Samples.BloomPostprocess
             }
         }
 
+        #endregion
+
+        #region BloomCombineShader
+
+        sealed class BloomCombineShader
+        {
+            public float BloomIntensity;
+
+            public float BaseIntensity;
+
+            public float BloomSaturation;
+
+            public float BaseSaturation;
+
+            ConstantBuffer constantBuffer;
+
+            PixelShader pixelShader;
+
+            public BloomCombineShader(IDevice device, byte[] bytecode)
+            {
+                pixelShader = device.CreatePixelShader();
+                pixelShader.Initialize(bytecode);
+
+                constantBuffer = device.CreateConstantBuffer();
+                constantBuffer.Initialize(16);
+            }
+
+            public void Apply(DeviceContext context)
+            {
+                var constatns = new Vector4
+                {
+                    X = BloomIntensity,
+                    Y = BaseIntensity,
+                    Z = BloomSaturation,
+                    W = BaseSaturation
+                };
+
+                constantBuffer.SetData(context, constatns);
+                context.PixelShaderConstantBuffers[0] = constantBuffer;
+                context.PixelShader = pixelShader;
+            }
+        }
+
+        #endregion
+
         SpriteBatch spriteBatch;
 
-        CustomShader<BloomExtractConstants> bloomExtractShader;
+        BloomExtractShader bloomExtractShader;
 
         GaussianBlurShader gaussianBlurShader;
 
-        CustomShader<BloomCombineConstants> bloomCombineShader;
-
-        ConstantBuffer bloomExtractConstantBuffer;
+        BloomCombineShader bloomCombineShader;
 
         RenderTarget sceneRenderTarget;
 
@@ -160,17 +180,9 @@ namespace Samples.BloomPostprocess
             var compiler = ShaderCompiler.CreateShaderCompiler();
             compiler.RootPath = "../../Shaders";
 
-            bloomExtractShader = new CustomShader<BloomExtractConstants>(
-                Device, compiler.CompilePixelShader("BloomExtract.fx"));
-
-            bloomCombineShader = new CustomShader<BloomCombineConstants>(
-                Device, compiler.CompilePixelShader("BloomCombine.fx"));
-
-            gaussianBlurShader = new GaussianBlurShader(
-                Device, compiler.CompilePixelShader("GaussianBlur.fx"));
-
-            bloomExtractConstantBuffer = Device.CreateConstantBuffer();
-            bloomExtractConstantBuffer.Initialize<BloomExtractConstants>();
+            bloomExtractShader = new BloomExtractShader(Device, compiler.CompilePixelShader("BloomExtract.fx"));
+            bloomCombineShader = new BloomCombineShader(Device, compiler.CompilePixelShader("BloomCombine.fx"));
+            gaussianBlurShader = new GaussianBlurShader(Device, compiler.CompilePixelShader("GaussianBlur.fx"));
 
             var backBuffer = Device.BackBuffer;
             var width = backBuffer.Width;
@@ -222,7 +234,7 @@ namespace Samples.BloomPostprocess
 
             context.PixelShaderSamplers[0] = SamplerState.LinearClamp;
 
-            bloomExtractShader.Constants.BloomThreshold = Settings.BloomThreshold;
+            bloomExtractShader.BloomThreshold = Settings.BloomThreshold;
 
             DrawFullscreenQuad(sceneRenderTarget, renderTarget1, bloomExtractShader.Apply, IntermediateBuffer.PreBloom);
 
@@ -236,10 +248,10 @@ namespace Samples.BloomPostprocess
 
             context.SetRenderTarget(null);
 
-            bloomCombineShader.Constants.BloomIntensity = Settings.BloomIntensity;
-            bloomCombineShader.Constants.BaseIntensity = Settings.BaseIntensity;
-            bloomCombineShader.Constants.BloomSaturation = Settings.BloomSaturation;
-            bloomCombineShader.Constants.BaseSaturation = Settings.BaseSaturation;
+            bloomCombineShader.BloomIntensity = Settings.BloomIntensity;
+            bloomCombineShader.BaseIntensity = Settings.BaseIntensity;
+            bloomCombineShader.BloomSaturation = Settings.BloomSaturation;
+            bloomCombineShader.BaseSaturation = Settings.BaseSaturation;
 
             context.PixelShaderResources[1] = sceneRenderTarget.GetShaderResourceView();
 
