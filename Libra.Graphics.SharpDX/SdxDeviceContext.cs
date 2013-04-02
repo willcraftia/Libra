@@ -258,7 +258,11 @@ namespace Libra.Graphics.SharpDX
 
         protected override void SetShaderResourceCore(ShaderStage shaderStage, int slot, ShaderResourceView view)
         {
-            var d3d11ShaderResourceView = (view as SdxShaderResourceView).D3D11ShaderResourceView;
+            D3D11ShaderResourceView d3d11ShaderResourceView = null;
+            if (view != null)
+            {
+                d3d11ShaderResourceView = (view as SdxShaderResourceView).D3D11ShaderResourceView;
+            }
             GetD3D11CommonShaderStage(shaderStage).SetShaderResource(slot, d3d11ShaderResourceView);
         }
 
