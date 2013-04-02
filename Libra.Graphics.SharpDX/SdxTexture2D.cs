@@ -71,9 +71,6 @@ namespace Libra.Graphics.SharpDX
 
             var description = D3D11Texture2D.Description;
 
-            if (!FormatHelper.DXGIFormatsAsSurfaceFormat.Contains(description.Format))
-                throw new InvalidOperationException("Format not supported: " + description.Format);
-
             Width = description.Width;
             Height = description.Height;
             MipLevels = description.MipLevels;
