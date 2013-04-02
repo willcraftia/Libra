@@ -98,6 +98,46 @@ namespace Libra.Graphics
             }
         }
 
+        public void SetData<T>(DeviceContext context, T[] data) where T : struct
+        {
+            AssertInitialized();
+            if (context == null) throw new ArgumentNullException("context");
+            if (data == null) throw new ArgumentNullException("data");
+            if (Usage == ResourceUsage.Immutable)
+                throw new InvalidOperationException("Data can not be set from CPU.");
+
+            var gcHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
+            try
+            {
+                var sourcePointer = gcHandle.AddrOfPinnedObject();
+                var sizeInBytes = Marshal.SizeOf(typeof(T)) * data.Length;
+
+                unsafe
+                {
+                    if (Usage == ResourceUsage.Default)
+                    {
+                        context.UpdateSubresource(this, 0, null, sourcePointer, sizeInBytes, 0);
+                    }
+                    else
+                    {
+                        var mappedResource = context.Map(this, 0, DeviceContext.MapMode.WriteDiscard);
+                        try
+                        {
+                            GraphicsHelper.CopyMemory(mappedResource.Pointer, sourcePointer, sizeInBytes);
+                        }
+                        finally
+                        {
+                            context.Unmap(this, 0);
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                gcHandle.Free();
+            }
+        }
+
         protected abstract void InitializeCore(int byteWidth);
 
         protected abstract void InitializeCore<T>(int byteWidth, T data) where T : struct;
