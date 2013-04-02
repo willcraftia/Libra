@@ -105,6 +105,7 @@ namespace Libra.Xnb
         protected override void BeginBone(int index)
         {
             currentBone = new ModelBone();
+            currentBone.Index = index;
             bones.Add(currentBone);
         }
 
