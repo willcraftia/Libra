@@ -7,7 +7,7 @@ using Libra.Graphics;
 
 namespace Libra.Xnb
 {
-    internal static class InputElementFormatConverter
+    internal static class VertexFormatConverter
     {
         #region XnbVertexElementFormat
 
@@ -29,23 +29,23 @@ namespace Libra.Xnb
 
         #endregion
 
-        static readonly InputElementFormat[] Mapping =
+        static readonly VertexFormat[] Mapping =
         {
-            InputElementFormat.Single,
-            InputElementFormat.Vector2,
-            InputElementFormat.Vector3,
-            InputElementFormat.Vector4,
-            InputElementFormat.Color,
-            InputElementFormat.Byte4,
-            InputElementFormat.Short2,
-            InputElementFormat.Short4,
-            InputElementFormat.NormalizedShort2,
-            InputElementFormat.NormalizedShort4,
-            InputElementFormat.HalfVector2,
-            InputElementFormat.HalfVector4
+            VertexFormat.Single,
+            VertexFormat.Vector2,
+            VertexFormat.Vector3,
+            VertexFormat.Vector4,
+            VertexFormat.Color,
+            VertexFormat.Byte4,
+            VertexFormat.Short2,
+            VertexFormat.Short4,
+            VertexFormat.NormalizedShort2,
+            VertexFormat.NormalizedShort4,
+            VertexFormat.HalfVector2,
+            VertexFormat.HalfVector4
         };
 
-        public static InputElementFormat ToInputElement(int xnbValue)
+        public static VertexFormat ToInputElement(int xnbValue)
         {
             if ((uint) (Mapping.Length - 1) < (uint) xnbValue)
                 throw new NotSupportedException("Unknown vertex element format: " + xnbValue);

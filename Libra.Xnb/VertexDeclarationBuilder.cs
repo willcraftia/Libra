@@ -41,7 +41,7 @@ namespace Libra.Xnb
 
         protected override void SetElementFormat(int value)
         {
-            currentElement.Format = InputElementFormatConverter.ToInputElement(value);
+            currentElement.Format = VertexFormatConverter.ToInputElement(value);
         }
 
         protected override void SetElementUsage(int value)

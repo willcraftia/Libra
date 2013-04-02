@@ -38,19 +38,19 @@ namespace Libra.Graphics
 
         public const string SemanticTessFactor = "SV_TessFactor";
 
-        public static readonly InputElement SVPosition = new InputElement(SemanticSVPosition, InputElementFormat.Vector3);
+        public static readonly InputElement SVPosition = new InputElement(SemanticSVPosition, VertexFormat.Vector3);
 
-        public static readonly InputElement Normal = new InputElement(SemanticNormal, InputElementFormat.Vector3);
+        public static readonly InputElement Normal = new InputElement(SemanticNormal, VertexFormat.Vector3);
 
-        public static readonly InputElement Color = new InputElement(SemanticColor, InputElementFormat.Color);
+        public static readonly InputElement Color = new InputElement(SemanticColor, VertexFormat.Color);
 
-        public static readonly InputElement TexCoord = new InputElement(SemanticTexCoord, InputElementFormat.Vector2);
+        public static readonly InputElement TexCoord = new InputElement(SemanticTexCoord, VertexFormat.Vector2);
 
         public string SemanticName;
 
         public int SemanticIndex;
 
-        public InputElementFormat Format;
+        public VertexFormat Format;
 
         public int InputSlot;
 
@@ -65,7 +65,7 @@ namespace Libra.Graphics
             get { return FormatHelper.SizeInBytes(Format); }
         }
 
-        public InputElement(string semanticName, InputElementFormat format,
+        public InputElement(string semanticName, VertexFormat format,
             int inputSlot = 0, int alignedByteOffset = AppendAlignedElement,
             bool perInstance = false, int instanceDataStepRate = 0)
         {
@@ -78,7 +78,7 @@ namespace Libra.Graphics
             InstanceDataStepRate = instanceDataStepRate;
         }
 
-        public InputElement(string semanticName, int semanticIndex, InputElementFormat format,
+        public InputElement(string semanticName, int semanticIndex, VertexFormat format,
             int inputSlot = 0, int alignedByteOffset = AppendAlignedElement,
             bool perInstance = false, int instanceDataStepRate = 0)
         {

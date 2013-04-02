@@ -22,11 +22,11 @@ namespace Samples.Particles3D
         public float Time;
 
         public static readonly VertexDeclaration VertexDeclaration = new VertexDeclaration(
-            new VertexElement("CORNER", 0, InputElementFormat.Short2),
-            new VertexElement("POSITION", 0, InputElementFormat.Vector3),
-            new VertexElement("VELOCITY", 0, InputElementFormat.Vector3),
-            new VertexElement("RANDOM", 0, InputElementFormat.Color),
-            new VertexElement("TIME", 0, InputElementFormat.Single)
+            new VertexElement("CORNER",     0, VertexFormat.Short2),
+            new VertexElement("POSITION",   0, VertexFormat.Vector3),
+            new VertexElement("VELOCITY",   0, VertexFormat.Vector3),
+            new VertexElement("RANDOM",     0, VertexFormat.Color),
+            new VertexElement("TIME",       0, VertexFormat.Single)
             );
     }
 }

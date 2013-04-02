@@ -70,7 +70,7 @@ namespace Libra.Graphics.SharpDX
             return (int) DXGIFormatHelper.SizeOfInBytes((DXGIFormat) format);
         }
 
-        public static int SizeOfInBytes(InputElementFormat format)
+        public static int SizeOfInBytes(VertexFormat format)
         {
             // DXGI の定義で見た場合に、各要素のビット数を見て、
             // 8 ビット = 1 バイトであることを念頭に、

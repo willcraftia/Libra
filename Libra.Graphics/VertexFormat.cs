@@ -16,7 +16,7 @@ namespace Libra.Graphics
     // ※ただし、内部処理限定。外部は InputElementFormat がインタフェースとなるため、
     // 意図的な強制変換を試みない限り問題にはならないと判断。
 
-    public enum InputElementFormat
+    public enum VertexFormat
     {
         // DXGI_FORMAT_R8G8B8A8_UNORM
         Color               = 28,

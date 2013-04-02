@@ -12,19 +12,19 @@ namespace Libra.Graphics
 
     public struct VertexElement : IEquatable<VertexElement>
     {
-        public static readonly VertexElement SVPosition = new VertexElement(InputElement.SemanticSVPosition, InputElementFormat.Vector3);
+        public static readonly VertexElement SVPosition = new VertexElement(InputElement.SemanticSVPosition, VertexFormat.Vector3);
 
-        public static readonly VertexElement Normal = new VertexElement(InputElement.SemanticNormal, InputElementFormat.Vector3);
+        public static readonly VertexElement Normal = new VertexElement(InputElement.SemanticNormal, VertexFormat.Vector3);
 
-        public static readonly VertexElement Color = new VertexElement(InputElement.SemanticColor, InputElementFormat.Color);
+        public static readonly VertexElement Color = new VertexElement(InputElement.SemanticColor, VertexFormat.Color);
 
-        public static readonly VertexElement TexCoord = new VertexElement(InputElement.SemanticTexCoord, InputElementFormat.Vector2);
+        public static readonly VertexElement TexCoord = new VertexElement(InputElement.SemanticTexCoord, VertexFormat.Vector2);
 
         public string SemanticName;
 
         public int SemanticIndex;
 
-        public InputElementFormat Format;
+        public VertexFormat Format;
 
         public int AlignedByteOffset;
 
@@ -33,7 +33,7 @@ namespace Libra.Graphics
             get { return FormatHelper.SizeInBytes(Format); }
         }
 
-        public VertexElement(string semanticName, InputElementFormat format,
+        public VertexElement(string semanticName, VertexFormat format,
             int alignedByteOffset = InputElement.AppendAlignedElement)
         {
             SemanticName = semanticName;
@@ -42,7 +42,7 @@ namespace Libra.Graphics
             AlignedByteOffset = alignedByteOffset;
         }
 
-        public VertexElement(string semanticName, int semanticIndex, InputElementFormat format,
+        public VertexElement(string semanticName, int semanticIndex, VertexFormat format,
             int alignedByteOffset = InputElement.AppendAlignedElement)
         {
             SemanticName = semanticName;

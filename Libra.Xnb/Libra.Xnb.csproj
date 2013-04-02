@@ -42,7 +42,7 @@
     <Compile Include="BasicEffectBuilder.cs" />
     <Compile Include="BoundingSphereBuilder.cs" />
     <Compile Include="IndexBufferBuilder.cs" />
-    <Compile Include="InputElementFormatConverter.cs" />
+    <Compile Include="VertexFormatConverter.cs" />
     <Compile Include="MatrixBuilder.cs" />
     <Compile Include="ModelBuilder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

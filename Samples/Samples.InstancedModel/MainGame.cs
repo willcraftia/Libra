@@ -81,10 +81,10 @@ namespace Samples.InstancedModel
         VertexBuffer instanceVertexBuffer;
 
         static VertexDeclaration instanceVertexDeclaration = new VertexDeclaration(
-            new VertexElement("TRANSFORM", 0, InputElementFormat.Vector4,  0),
-            new VertexElement("TRANSFORM", 1, InputElementFormat.Vector4, 16),
-            new VertexElement("TRANSFORM", 2, InputElementFormat.Vector4, 32),
-            new VertexElement("TRANSFORM", 3, InputElementFormat.Vector4, 48)
+            new VertexElement("TRANSFORM", 0, VertexFormat.Vector4,  0),
+            new VertexElement("TRANSFORM", 1, VertexFormat.Vector4, 16),
+            new VertexElement("TRANSFORM", 2, VertexFormat.Vector4, 32),
+            new VertexElement("TRANSFORM", 3, VertexFormat.Vector4, 48)
             );
 
         InputLayout instanceInputLayout;
