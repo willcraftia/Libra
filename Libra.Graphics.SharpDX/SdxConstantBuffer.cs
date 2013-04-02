@@ -20,8 +20,6 @@ namespace Libra.Graphics.SharpDX
 {
     public sealed class SdxConstantBuffer : ConstantBuffer
     {
-        public int ByteWidth { get; private set; }
-
         public D3D11Device D3D11Device { get; private set; }
 
         public D3D11Buffer D3D11Buffer { get; private set; }
@@ -32,20 +30,16 @@ namespace Libra.Graphics.SharpDX
             D3D11Device = device.D3D11Device;
         }
 
-        protected override void InitializeCore(int byteWidth)
+        protected override void InitializeCore()
         {
-            ByteWidth = byteWidth;
-
             D3D11BufferDescription description;
             CreateD3D11BufferDescription(out description);
 
             D3D11Buffer = new D3D11Buffer(D3D11Device, description);
         }
 
-        protected override void InitializeCore<T>(int byteWidth, T data)
+        protected override void InitializeCore<T>(T data)
         {
-            ByteWidth = byteWidth;
-
             D3D11BufferDescription description;
             CreateD3D11BufferDescription(out description);
 

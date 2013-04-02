@@ -54,11 +54,30 @@ namespace Samples.BloomPostprocess
 
         #endregion
 
+        #region GaussianBlurConstatns
+
+        // 配列をフィールドに含む構造体を扱う場合の例として。
+
+        // GaussianBlurConstatns の形式ならば Marshal.StructurePtr での転送が可能。
+        // なお、GCHandle.Alloc によるポインタ固定は行えないため、
+        // 構造体を直接転送することは出来ない点に注意。
+
+        [StructLayout(LayoutKind.Sequential, Size = 16 * MaxSampleCount)]
+        struct GaussianBlurConstatns
+        {
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxSampleCount)]
+            public GaussianBlurSample[] Samples;
+        }
+
+        #endregion
+
         #region GaussianBlurShader
 
         sealed class GaussianBlurShader
         {
             public GaussianBlurSample[] Samples;
+
+            GaussianBlurConstatns constants;
 
             ConstantBuffer constantBuffer;
 
@@ -66,18 +85,19 @@ namespace Samples.BloomPostprocess
 
             public GaussianBlurShader(IDevice device, byte[] bytecode)
             {
-                Samples = new GaussianBlurSample[15];
+                Samples = new GaussianBlurSample[MaxSampleCount];
 
                 pixelShader = device.CreatePixelShader();
                 pixelShader.Initialize(bytecode);
 
                 constantBuffer = device.CreateConstantBuffer();
-                constantBuffer.Initialize(Marshal.SizeOf(typeof(GaussianBlurSample)) * 15);
+                constantBuffer.Initialize<GaussianBlurConstatns>();
             }
 
             public void Apply(DeviceContext context)
             {
-                constantBuffer.SetData(context, Samples);
+                constants.Samples = Samples;
+                constantBuffer.SetData(context, constants);
                 context.PixelShaderConstantBuffers[0] = constantBuffer;
                 context.PixelShader = pixelShader;
             }
@@ -127,6 +147,8 @@ namespace Samples.BloomPostprocess
         }
 
         #endregion
+
+        const int MaxSampleCount = 15;
 
         SpriteBatch spriteBatch;
 

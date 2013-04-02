@@ -11,6 +11,8 @@ namespace Libra.Graphics
     {
         bool initialized;
 
+        public int ByteWidth { get; private set; }
+
         protected ConstantBuffer(IDevice device)
             : base(device)
         {
@@ -35,7 +37,9 @@ namespace Libra.Graphics
             if (Usage == ResourceUsage.Immutable)
                 throw new InvalidOperationException("Usage must be not immutable.");
 
-            InitializeCore(byteWidth);
+            ByteWidth = byteWidth;
+
+            InitializeCore();
 
             initialized = true;
         }
@@ -46,7 +50,9 @@ namespace Libra.Graphics
             if (byteWidth < 1) throw new ArgumentOutOfRangeException("byteWidth");
             if ((byteWidth % 16) != 0) throw new ArgumentException("byteWidth must be a multiple of 16", "byteWidth");
 
-            InitializeCore<T>(byteWidth, data);
+            ByteWidth = byteWidth;
+
+            InitializeCore<T>(data);
 
             initialized = true;
         }
@@ -66,24 +72,29 @@ namespace Libra.Graphics
             if (Usage == ResourceUsage.Immutable)
                 throw new InvalidOperationException("Data can not be set from CPU.");
 
-            var gcHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
+            // 配列を含んだ構造体を扱うために必要な処理。
+            // Marshal.AllocHGlobal でアンマネージ領域にメモリを確保し、
+            // そこへ Marshal.StructureToPtr で構造体データを配置。
+            // この領域を更新元データとして UpdateSubresource で更新する、あるいは、
+            // Map されたリソースへコピーする。
+
+            var sourcePointer = Marshal.AllocHGlobal(ByteWidth);
             try
             {
-                var sourcePointer = gcHandle.AddrOfPinnedObject();
-                var sizeInBytes = Marshal.SizeOf(typeof(T));
+                Marshal.StructureToPtr(data, sourcePointer, false);
 
                 unsafe
                 {
                     if (Usage == ResourceUsage.Default)
                     {
-                        context.UpdateSubresource(this, 0, null, sourcePointer, sizeInBytes, 0);
+                        context.UpdateSubresource(this, 0, null, sourcePointer, ByteWidth, 0);
                     }
                     else
                     {
                         var mappedResource = context.Map(this, 0, DeviceContext.MapMode.WriteDiscard);
                         try
                         {
-                            GraphicsHelper.CopyMemory(mappedResource.Pointer, sourcePointer, sizeInBytes);
+                            GraphicsHelper.CopyMemory(mappedResource.Pointer, sourcePointer, ByteWidth);
                         }
                         finally
                         {
@@ -94,53 +105,13 @@ namespace Libra.Graphics
             }
             finally
             {
-                gcHandle.Free();
+                Marshal.FreeHGlobal(sourcePointer);
             }
         }
 
-        public void SetData<T>(DeviceContext context, T[] data) where T : struct
-        {
-            AssertInitialized();
-            if (context == null) throw new ArgumentNullException("context");
-            if (data == null) throw new ArgumentNullException("data");
-            if (Usage == ResourceUsage.Immutable)
-                throw new InvalidOperationException("Data can not be set from CPU.");
+        protected abstract void InitializeCore();
 
-            var gcHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
-            try
-            {
-                var sourcePointer = gcHandle.AddrOfPinnedObject();
-                var sizeInBytes = Marshal.SizeOf(typeof(T)) * data.Length;
-
-                unsafe
-                {
-                    if (Usage == ResourceUsage.Default)
-                    {
-                        context.UpdateSubresource(this, 0, null, sourcePointer, sizeInBytes, 0);
-                    }
-                    else
-                    {
-                        var mappedResource = context.Map(this, 0, DeviceContext.MapMode.WriteDiscard);
-                        try
-                        {
-                            GraphicsHelper.CopyMemory(mappedResource.Pointer, sourcePointer, sizeInBytes);
-                        }
-                        finally
-                        {
-                            context.Unmap(this, 0);
-                        }
-                    }
-                }
-            }
-            finally
-            {
-                gcHandle.Free();
-            }
-        }
-
-        protected abstract void InitializeCore(int byteWidth);
-
-        protected abstract void InitializeCore<T>(int byteWidth, T data) where T : struct;
+        protected abstract void InitializeCore<T>(T data) where T : struct;
 
         protected abstract void GetDataCore<T>(DeviceContext context, out T data) where T : struct;
 
