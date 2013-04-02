@@ -1,4 +1,3 @@
-
 cbuffer Parameters : register(b0)
 {
     float BloomIntensity    : packoffset(c0.x);
@@ -10,8 +9,8 @@ cbuffer Parameters : register(b0)
 Texture2D Bloom : register(t0);
 Texture2D Base : register(t1);
 
-SamplerState BloomSampler : register(s0);
-SamplerState BaseSampler : register(s1);
+sampler BloomSampler : register(s0);
+sampler BaseSampler : register(s1);
 
 float4 AdjustSaturation(float4 color, float saturation)
 {
@@ -20,8 +19,9 @@ float4 AdjustSaturation(float4 color, float saturation)
     return lerp(grey, color, saturation);
 }
 
-
-float4 PS(float2 texCoord : TEXCOORD0) : SV_Target
+// SpriteEffect の PS シグネチャに合わせて COLOR0 を指定しないと上手く稼働しない。
+float4 PS(float4 color    : COLOR0,
+          float2 texCoord : TEXCOORD0) : SV_Target
 {
     float4 bloom = Bloom.Sample(BloomSampler, texCoord);
     float4 base = Base.Sample(BaseSampler, texCoord);

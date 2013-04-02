@@ -3,10 +3,12 @@ cbuffer Parameters : register(b0)
     float BloomThreshold;
 };
 
-Texture2D Texture : register(t0);
-SamplerState TextureSampler : register(s0);
+Texture2D<float4> Texture : register(t0);
+sampler TextureSampler : register(s0);
 
-float4 PS(float2 texCoord : TEXCOORD0) : SV_Target
+// SpriteEffect の PS シグネチャに合わせて COLOR0 を指定しないと上手く稼働しない。
+float4 PS(float4 color    : COLOR0,
+          float2 texCoord : TEXCOORD0) : SV_Target
 {
     float4 c = Texture.Sample(TextureSampler, texCoord);
 
