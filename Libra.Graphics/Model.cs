@@ -65,7 +65,8 @@ namespace Libra.Graphics
                 }
                 else
                 {
-                    Matrix.Multiply(ref bone.Transform, ref bone.Parent.Transform, out destinationBoneTransforms[i]);
+                    var parentIndex = bone.Parent.Index;
+                    Matrix.Multiply(ref bone.Transform, ref destinationBoneTransforms[parentIndex], out destinationBoneTransforms[i]);
                 }
             }
         }
