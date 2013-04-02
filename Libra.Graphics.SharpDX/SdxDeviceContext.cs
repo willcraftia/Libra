@@ -26,6 +26,7 @@ using D3D11VertexShader = SharpDX.Direct3D11.VertexShader;
 using DXGIFormat = SharpDX.DXGI.Format;
 using SDXColor4 = SharpDX.Color4;
 using SDXDataBox = SharpDX.DataBox;
+using SDXRectangle = SharpDX.Rectangle;
 using SDXUtilities = SharpDX.Utilities;
 
 #endregion
@@ -127,7 +128,10 @@ namespace Libra.Graphics.SharpDX
 
         protected override void OnScissorRectangleChanged()
         {
-            D3D11DeviceContext.Rasterizer.SetScissorRectangles(ScissorRectangle.ToSDXRectangle());
+            var rectangle = ScissorRectangle;
+            var sdxRectangle = new SDXRectangle(rectangle.Left, rectangle.Top, rectangle.Right, rectangle.Bottom);
+
+            D3D11DeviceContext.Rasterizer.SetScissorRectangles(sdxRectangle);
         }
 
         protected override void OnBlendStateChanged()
