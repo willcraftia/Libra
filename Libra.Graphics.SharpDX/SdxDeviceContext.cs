@@ -28,6 +28,7 @@ using SDXColor4 = SharpDX.Color4;
 using SDXDataBox = SharpDX.DataBox;
 using SDXRectangle = SharpDX.Rectangle;
 using SDXUtilities = SharpDX.Utilities;
+using SDXViewportF = SharpDX.ViewportF;
 
 #endregion
 
@@ -123,7 +124,13 @@ namespace Libra.Graphics.SharpDX
 
         protected override void OnViewportChanged()
         {
-            D3D11DeviceContext.Rasterizer.SetViewports(Viewport.ToSDXViewportF());
+            var viewport = Viewport;
+            var sdxViewportF = new SDXViewportF(
+                viewport.X, viewport.Y,
+                viewport.Width, viewport.Height,
+                viewport.MinDepth, viewport.MaxDepth);
+
+            D3D11DeviceContext.Rasterizer.SetViewports(sdxViewportF);
         }
 
         protected override void OnScissorRectangleChanged()

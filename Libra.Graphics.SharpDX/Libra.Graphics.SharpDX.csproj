@@ -74,7 +74,6 @@
     <Compile Include="SdxTexture2D.cs" />
     <Compile Include="SdxVertexBuffer.cs" />
     <Compile Include="SdxVertexShader.cs" />
-    <Compile Include="ViewportExtension.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Libra.Graphics\Libra.Graphics.csproj">
