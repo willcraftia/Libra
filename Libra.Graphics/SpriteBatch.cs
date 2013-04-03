@@ -17,7 +17,7 @@ namespace Libra.Graphics
 
         sealed class DeviceResources
         {
-            IDevice device;
+            Device device;
 
             public InputLayout InputLayout { get; private set; }
 
@@ -27,7 +27,7 @@ namespace Libra.Graphics
 
             public IndexBuffer IndexBuffer { get; private set; }
 
-            public DeviceResources(IDevice device)
+            public DeviceResources(Device device)
             {
                 this.device = device;
 
@@ -232,7 +232,7 @@ namespace Libra.Graphics
 
         #endregion
 
-        static readonly SharedResourcePool<IDevice, DeviceResources> DeviceResourcesPool;
+        static readonly SharedResourcePool<Device, DeviceResources> DeviceResourcesPool;
 
         static readonly SharedResourcePool<DeviceContext, ContextResoruces> ContextResourcesPool;
 
@@ -282,7 +282,7 @@ namespace Libra.Graphics
 
         static SpriteBatch()
         {
-            DeviceResourcesPool = new SharedResourcePool<IDevice, DeviceResources>(CreateDeviceResources);
+            DeviceResourcesPool = new SharedResourcePool<Device, DeviceResources>(CreateDeviceResources);
             ContextResourcesPool = new SharedResourcePool<DeviceContext, ContextResoruces>(CreateContextResoruces);
         }
 
@@ -299,7 +299,7 @@ namespace Libra.Graphics
             sprites = new List<SpriteInfo>();
         }
 
-        static DeviceResources CreateDeviceResources(IDevice device)
+        static DeviceResources CreateDeviceResources(Device device)
         {
             return new DeviceResources(device);
         }

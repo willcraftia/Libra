@@ -10,7 +10,7 @@ namespace Libra.Graphics
     {
         event EventHandler DeviceDisposing;
 
-        IDevice Device { get; }
+        Device Device { get; }
 
         SwapChain SwapChain { get; }
     }

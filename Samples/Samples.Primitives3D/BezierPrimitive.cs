@@ -10,7 +10,7 @@ namespace Samples.Primitives3D
 {
     public abstract class BezierPrimitive : GeometricPrimitive
     {
-        protected BezierPrimitive(IDevice device)
+        protected BezierPrimitive(Device device)
             : base(device)
         {
         }

@@ -41,33 +41,35 @@ namespace Libra.Graphics.SharpDX
     using RasterizerStateManager = SdxStateManager<RasterizerState, D3D11RasterizerState>;
     using DepthStencilStateManager = SdxStateManager<DepthStencilState, D3D11DepthStencilState>;
 
-    public sealed class SdxDevice : IDevice
+    public sealed class SdxDevice : Device
     {
-        // D3D11 ではデバイス ロストが無いので DeviceLost イベントは不要。
+        DeviceProfile profile;
 
-        // デバイスのリセットも考える必要がないのでは？
-        // あり得るとしたらアダプタあるいはプロファイルの変更だが・・・そんな事する？
-        // 自分には重要ではないので DeviceResetting/DeviceReset イベントは不要。
-        // アダプタやプロファイルを変更したいなら、アプリケーション全体を再初期化すれば良い。
+        DeviceContext immediateContext;
 
-        // ResourceCreated/ResourceDestroyed イベントは実装しない。
-        // ShaprDX では、各リソースに対応するクラスのコンストラクタで
-        // Device のリソース生成メソッドを隠蔽しているため、
-        // イベントを発生させるためのトリガーを作れない。
+        RenderTarget backBuffer;
 
-        public event EventHandler Disposing;
+        RenderTargetView backBufferView;
 
-        public event EventHandler BackBuffersResetting;
+        public override DeviceProfile Profile
+        {
+            get { return profile; }
+        }
 
-        public event EventHandler BackBuffersReset;
+        public override DeviceContext ImmediateContext
+        {
+            get { return immediateContext; }
+        }
 
-        public readonly DeviceSettings Settings;
+        public override RenderTarget BackBuffer
+        {
+            get { return backBuffer; }
+        }
 
-        public IAdapter Adapter { get; private set; }
-
-        public DeviceProfile Profile { get; private set; }
-
-        public DeviceContext ImmediateContext { get; private set; }
+        public override RenderTargetView BackBufferView
+        {
+            get { return backBufferView; }
+        }
 
         public D3D11Device D3D11Device { get; private set; }
 
@@ -79,15 +81,9 @@ namespace Libra.Graphics.SharpDX
 
         public DepthStencilStateManager DepthStencilStateManager { get; private set; }
 
-        public RenderTarget BackBuffer { get; private set; }
-
-        public RenderTargetView BackBufferView { get; private set; }
-
         public SdxDevice(SdxAdapter adapter, DeviceSettings settings, DeviceProfile[] profiles)
+            : base(adapter, settings)
         {
-            Adapter = adapter;
-            Settings = settings;
-
             // デバイスの初期化。
             var creationFlags = ResolveD3D11DeviceCreationFlags(settings);
             var featureLevels = ToD3DFeatureLevels(profiles);
@@ -123,10 +119,10 @@ namespace Libra.Graphics.SharpDX
             }
 
             // コンテキストの初期化。
-            ImmediateContext = new SdxDeviceContext(this, D3D11Device.ImmediateContext);
+            immediateContext = new SdxDeviceContext(this, D3D11Device.ImmediateContext);
 
             // デバイス生成で選択されたプロファイルの記録。
-            Profile = (DeviceProfile) D3D11Device.FeatureLevel;
+            profile = (DeviceProfile) D3D11Device.FeatureLevel;
 
             // ブレンド ステートの初期化。
             BlendStateManager = new BlendStateManager(this, CreateD3D11BlendState);
@@ -157,78 +153,78 @@ namespace Libra.Graphics.SharpDX
             DepthStencilStateManager.Register(DepthStencilState.None);
         }
 
-        public DeviceContext CreateDeferredContext()
+        public override DeviceContext CreateDeferredContext()
         {
             var d3d11DeviceContext = new D3D11DeviceContext(D3D11Device);
             return new SdxDeviceContext(this, d3d11DeviceContext);
         }
 
-        public VertexShader CreateVertexShader()
+        public override VertexShader CreateVertexShader()
         {
             return new SdxVertexShader(this);
         }
 
-        public PixelShader CreatePixelShader()
+        public override PixelShader CreatePixelShader()
         {
             return new SdxPixelShader(this);
         }
 
-        public InputLayout CreateInputLayout()
+        public override InputLayout CreateInputLayout()
         {
             return new SdxInputLayout(this);
         }
 
-        public ConstantBuffer CreateConstantBuffer()
+        public override ConstantBuffer CreateConstantBuffer()
         {
             return new SdxConstantBuffer(this);
         }
 
-        public VertexBuffer CreateVertexBuffer()
+        public override VertexBuffer CreateVertexBuffer()
         {
             return new SdxVertexBuffer(this);
         }
 
-        public IndexBuffer CreateIndexBuffer()
+        public override IndexBuffer CreateIndexBuffer()
         {
             return new SdxIndexBuffer(this);
         }
 
-        public Texture2D CreateTexture2D()
+        public override Texture2D CreateTexture2D()
         {
             return new SdxTexture2D(this);
         }
 
-        public DepthStencil CreateDepthStencil()
+        public override DepthStencil CreateDepthStencil()
         {
             return new SdxDepthStencil(this);
         }
 
-        public RenderTarget CreateRenderTarget()
+        public override RenderTarget CreateRenderTarget()
         {
             return new SdxRenderTarget(this, false);
         }
 
-        public ShaderResourceView CreateShaderResourceView()
+        public override ShaderResourceView CreateShaderResourceView()
         {
             return new SdxShaderResourceView(this);
         }
 
-        public DepthStencilView CreateDepthStencilView()
+        public override DepthStencilView CreateDepthStencilView()
         {
             return new SdxDepthStencilView(this);
         }
 
-        public RenderTargetView CreateRenderTargetView()
+        public override RenderTargetView CreateRenderTargetView()
         {
             return new SdxRenderTargetView(this);
         }
 
-        public OcclusionQuery CreateOcclusionQuery()
+        public override OcclusionQuery CreateOcclusionQuery()
         {
             return new SdxOcclusionQuery(this);
         }
 
-        public int CheckMultisampleQualityLevels(SurfaceFormat format, int sampleCount)
+        public override int CheckMultisampleQualityLevels(SurfaceFormat format, int sampleCount)
         {
             if (sampleCount < 1) throw new ArgumentOutOfRangeException("sampleCount");
 
@@ -237,7 +233,7 @@ namespace Libra.Graphics.SharpDX
             return D3D11Device.CheckMultisampleQualityLevels((DXGIFormat) format, sampleCount);
         }
 
-        public int CheckMultisampleQualityLevels(DepthFormat format, int sampleCount)
+        public override int CheckMultisampleQualityLevels(DepthFormat format, int sampleCount)
         {
             if (sampleCount < 1) throw new ArgumentOutOfRangeException("sampleCount");
 
@@ -246,7 +242,7 @@ namespace Libra.Graphics.SharpDX
             return D3D11Device.CheckMultisampleQualityLevels((DXGIFormat) format, sampleCount);
         }
 
-        public void SetSwapChain(SwapChain swapChain)
+        public override void SetSwapChain(SwapChain swapChain)
         {
             swapChain.BackBuffersResizing += OnSwapChainBackBuffersResizing;
             swapChain.BackBuffersResized += OnSwapChainBackBuffersResized;
@@ -273,33 +269,31 @@ namespace Libra.Graphics.SharpDX
             // 深度ステンシルを共有している設定は自由に破棄できずに都合が悪い。
             // よって、共有不可 (RenderTargetUsage.Preserve) でレンダ ターゲットを生成。
 
-            BackBuffer = CreateRenderTarget();
-            BackBuffer.Name = "BackBuffer_0";
-            BackBuffer.DepthFormat = swapChain.DepthStencilFormat;
-            BackBuffer.RenderTargetUsage = RenderTargetUsage.Preserve;
-            BackBuffer.Initialize(swapChain, 0);
+            backBuffer = CreateRenderTarget();
+            backBuffer.Name = "BackBuffer_0";
+            backBuffer.DepthFormat = swapChain.DepthStencilFormat;
+            backBuffer.RenderTargetUsage = RenderTargetUsage.Preserve;
+            backBuffer.Initialize(swapChain, 0);
 
-            BackBufferView = CreateRenderTargetView();
-            BackBufferView.Initialize(BackBuffer);
+            backBufferView = CreateRenderTargetView();
+            backBufferView.Initialize(BackBuffer);
 
-            if (BackBuffersReset != null)
-                BackBuffersReset(this, EventArgs.Empty);
+            OnBackBuffersReset(this, EventArgs.Empty);
         }
 
         void ReleaseBackBufferRenderTarget()
         {
-            if (BackBuffersResetting != null)
-                BackBuffersResetting(this, EventArgs.Empty);
+            OnBackBuffersResetting(this, EventArgs.Empty);
 
-            if (BackBuffer != null)
+            if (backBuffer != null)
             {
-                BackBuffer.Dispose();
-                BackBuffer = null;
+                backBuffer.Dispose();
+                backBuffer = null;
             }
-            if (BackBufferView != null)
+            if (backBufferView != null)
             {
-                BackBufferView.Dispose();
-                BackBufferView = null;
+                backBufferView.Dispose();
+                backBufferView = null;
             }
         }
 
@@ -426,41 +420,18 @@ namespace Libra.Graphics.SharpDX
             return result;
         }
 
-        #region IDisposable
-
-        public bool IsDisposed { get; private set; }
-
-        ~SdxDevice()
+        protected override void DisposeOverride(bool disposing)
         {
-            Dispose(false);
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        void Dispose(bool disposing)
-        {
-            if (IsDisposed) return;
-
-            if (Disposing != null)
-                Disposing(this, EventArgs.Empty);
-
             if (disposing)
             {
                 BlendStateManager.Dispose();
                 SamplerStateManager.Dispose();
                 RasterizerStateManager.Dispose();
                 DepthStencilStateManager.Dispose();
-                ImmediateContext.Dispose();
                 D3D11Device.Dispose();
             }
 
-            IsDisposed = true;
+            base.DisposeOverride(disposing);
         }
-
-        #endregion
     }
 }

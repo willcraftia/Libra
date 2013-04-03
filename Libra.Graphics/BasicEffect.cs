@@ -49,7 +49,7 @@ namespace Libra.Graphics
 
         sealed class DeviceResources
         {
-            IDevice device;
+            Device device;
 
             InputLayout[] inputLayouts;
 
@@ -57,7 +57,7 @@ namespace Libra.Graphics
 
             PixelShader[] pixelShaders;
 
-            public DeviceResources(IDevice device)
+            public DeviceResources(Device device)
             {
                 this.device = device;
 
@@ -457,7 +457,7 @@ namespace Libra.Graphics
             9,      // pixel lighting + texture + vertex color, no fog
         };
 
-        static readonly Dictionary<IDevice, DeviceResources> ResourcesByDevice = new Dictionary<IDevice, DeviceResources>();
+        static readonly Dictionary<Device, DeviceResources> ResourcesByDevice = new Dictionary<Device, DeviceResources>();
 
         static BasicEffect()
         {
@@ -510,7 +510,7 @@ namespace Libra.Graphics
             };
         }
 
-        IDevice device;
+        Device device;
 
         DirtyFlags dirtyFlags;
 
@@ -705,7 +705,7 @@ namespace Libra.Graphics
 
         public ShaderResourceView Texture { get; set; }
 
-        public BasicEffect(IDevice device)
+        public BasicEffect(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 

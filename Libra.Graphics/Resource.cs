@@ -8,13 +8,13 @@ namespace Libra.Graphics
 {
     public abstract class Resource : IDisposable
     {
-        public IDevice Device { get; private set; }
+        public Device Device { get; private set; }
 
         public string Name { get; set; }
 
         public ResourceUsage Usage { get; set; }
 
-        protected Resource(IDevice device)
+        protected Resource(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 

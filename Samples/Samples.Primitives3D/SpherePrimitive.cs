@@ -10,12 +10,12 @@ namespace Samples.Primitives3D
 {
     public sealed class SpherePrimitive : GeometricPrimitive
     {
-        public SpherePrimitive(IDevice device)
+        public SpherePrimitive(Device device)
             : this(device, 1, 16)
         {
         }
 
-        public SpherePrimitive(IDevice device, float diameter, int tessellation)
+        public SpherePrimitive(Device device, float diameter, int tessellation)
             : base(device)
         {
             if (tessellation < 3) throw new ArgumentOutOfRangeException("tessellation");

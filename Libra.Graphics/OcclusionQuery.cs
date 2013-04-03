@@ -16,7 +16,7 @@ namespace Libra.Graphics
 
         bool isQueryResultStillOutstanding;
 
-        public IDevice Device { get; private set; }
+        public Device Device { get; private set; }
 
         public bool IsComplete
         {
@@ -45,7 +45,7 @@ namespace Libra.Graphics
 
         public ulong PixelCount { get; private set; }
 
-        protected OcclusionQuery(IDevice device)
+        protected OcclusionQuery(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 

@@ -10,11 +10,11 @@ namespace Libra.Graphics
     {
         bool initialized;
 
-        public IDevice Device { get; private set; }
+        public Device Device { get; private set; }
 
         public Resource Resource { get; private set; }
 
-        protected ShaderResourceView(IDevice device)
+        protected ShaderResourceView(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 

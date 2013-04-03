@@ -82,7 +82,7 @@ namespace Libra.Graphics
             }
         }
 
-        protected DepthStencil(IDevice device)
+        protected DepthStencil(Device device)
             : base(device)
         {
             width = 1;

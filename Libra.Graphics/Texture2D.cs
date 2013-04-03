@@ -85,7 +85,7 @@ namespace Libra.Graphics
 
         public int MultisampleQuality { get; protected set; }
 
-        protected Texture2D(IDevice device)
+        protected Texture2D(Device device)
             : base(device)
         {
             width = 1;

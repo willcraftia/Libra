@@ -21,7 +21,7 @@ namespace Libra.Graphics
 
         public DepthStencil DepthStencil { get; private set; }
 
-        protected RenderTarget(IDevice device, bool isBackBuffer)
+        protected RenderTarget(Device device, bool isBackBuffer)
             : base(device)
         {
             IsBackBuffer = isBackBuffer;
@@ -37,7 +37,10 @@ namespace Libra.Graphics
             if (swapChain == null) throw new ArgumentNullException("swapChain");
             if (index < 0) throw new ArgumentOutOfRangeException("index");
 
-            InitializeCore(swapChain, index);
+            InitializeRenderTarget(swapChain, index);
+
+            if (DepthFormat != DepthFormat.None)
+                DepthStencil = InitializeDepthStencil();
 
             initialized = true;
         }
@@ -68,7 +71,7 @@ namespace Libra.Graphics
                 DepthStencil = InitializeDepthStencil();
         }
 
-        protected abstract void InitializeCore(SwapChain swapChain, int index);
+        protected abstract void InitializeRenderTarget(SwapChain swapChain, int index);
 
         protected abstract void InitializeRenderTarget();
 

@@ -43,7 +43,7 @@ namespace Libra.Games
             }
         }
 
-        public IDevice Device
+        public Device Device
         {
             get { return Game.Device; }
         }

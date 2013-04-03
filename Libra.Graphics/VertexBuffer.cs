@@ -15,7 +15,7 @@ namespace Libra.Graphics
 
         public int VertexCount { get; private set; }
 
-        protected VertexBuffer(IDevice device)
+        protected VertexBuffer(Device device)
             : base(device)
         {
         }

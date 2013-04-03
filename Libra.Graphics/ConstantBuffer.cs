@@ -13,7 +13,7 @@ namespace Libra.Graphics
 
         public int ByteWidth { get; private set; }
 
-        protected ConstantBuffer(IDevice device)
+        protected ConstantBuffer(Device device)
             : base(device)
         {
             Usage = ResourceUsage.Dynamic;

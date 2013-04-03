@@ -26,7 +26,7 @@ namespace Libra.Graphics
 
         public int IndexCount { get; private set; }
 
-        protected IndexBuffer(IDevice device)
+        protected IndexBuffer(Device device)
             : base(device)
         {
             format = IndexFormat.SixteenBits;

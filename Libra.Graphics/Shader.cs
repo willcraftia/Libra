@@ -10,13 +10,13 @@ namespace Libra.Graphics
     {
         internal bool initialized;
 
-        public IDevice Device { get; private set; }
+        public Device Device { get; private set; }
 
         public string Name { get; set; }
 
         protected internal byte[] ShaderBytecode { get; private set; }
 
-        protected Shader(IDevice device)
+        protected Shader(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 

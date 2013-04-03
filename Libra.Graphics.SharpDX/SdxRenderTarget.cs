@@ -35,7 +35,7 @@ namespace Libra.Graphics.SharpDX
             D3D11Device = device.D3D11Device;
         }
 
-        protected override void InitializeCore(SwapChain swapChain, int index)
+        protected override void InitializeRenderTarget(SwapChain swapChain, int index)
         {
             var dxgiSwapChain = (swapChain as SdxSwapChain).DXGISwapChain;
 

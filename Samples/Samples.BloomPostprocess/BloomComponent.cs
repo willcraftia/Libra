@@ -23,7 +23,7 @@ namespace Samples.BloomPostprocess
 
             PixelShader pixelShader;
 
-            public BloomExtractShader(IDevice device, byte[] bytecode)
+            public BloomExtractShader(Device device, byte[] bytecode)
             {
                 pixelShader = device.CreatePixelShader();
                 pixelShader.Initialize(bytecode);
@@ -83,7 +83,7 @@ namespace Samples.BloomPostprocess
 
             PixelShader pixelShader;
 
-            public GaussianBlurShader(IDevice device, byte[] bytecode)
+            public GaussianBlurShader(Device device, byte[] bytecode)
             {
                 Samples = new GaussianBlurSample[MaxSampleCount];
 
@@ -121,7 +121,7 @@ namespace Samples.BloomPostprocess
 
             PixelShader pixelShader;
 
-            public BloomCombineShader(IDevice device, byte[] bytecode)
+            public BloomCombineShader(Device device, byte[] bytecode)
             {
                 pixelShader = device.CreatePixelShader();
                 pixelShader.Initialize(bytecode);

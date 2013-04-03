@@ -15,11 +15,11 @@ namespace Libra.Graphics
 
         protected InputElement[] Elements;
 
-        public IDevice Device { get; private set; }
+        public Device Device { get; private set; }
 
         public int InputStride { get; private set; }
 
-        protected InputLayout(IDevice device)
+        protected InputLayout(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 

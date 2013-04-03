@@ -10,12 +10,12 @@ namespace Samples.Primitives3D
 {
     public class CubePrimitive : GeometricPrimitive
     {
-        public CubePrimitive(IDevice device)
+        public CubePrimitive(Device device)
             : this(device, 1)
         {
         }
 
-        public CubePrimitive(IDevice device, float size)
+        public CubePrimitive(Device device, float size)
             : base(device)
         {
             Vector3[] normals =

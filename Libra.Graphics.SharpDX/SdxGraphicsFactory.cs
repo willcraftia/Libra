@@ -45,12 +45,12 @@ namespace Libra.Graphics.SharpDX
             }
         }
 
-        public override IDevice CreateDevice(IAdapter adapter, DeviceSettings settings, DeviceProfile[] profiles)
+        public override Device CreateDevice(IAdapter adapter, DeviceSettings settings, DeviceProfile[] profiles)
         {
             return new SdxDevice(adapter as SdxAdapter, settings, profiles);
         }
 
-        public override SwapChain CreateSwapChain(IDevice device, SwapChainSettings settings)
+        public override SwapChain CreateSwapChain(Device device, SwapChainSettings settings)
         {
             return new SdxSwapChain(device as SdxDevice, settings);
         }

@@ -21,9 +21,9 @@ namespace Samples.Primitives3D
 
         BasicEffect basicEffect;
 
-        protected IDevice Device { get; private set; }
+        protected Device Device { get; private set; }
 
-        protected GeometricPrimitive(IDevice device)
+        protected GeometricPrimitive(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 

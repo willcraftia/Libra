@@ -14,7 +14,7 @@ namespace Libra.Graphics
 
         Dictionary<VertexDeclaration, InputLayout> inputLayoutMap;
 
-        protected VertexShader(IDevice device)
+        protected VertexShader(Device device)
             : base(device)
         {
             inputLayoutMap = new Dictionary<VertexDeclaration, InputLayout>();

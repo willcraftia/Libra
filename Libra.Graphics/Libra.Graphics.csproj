@@ -65,7 +65,7 @@
     <Compile Include="FormatHelper.cs" />
     <Compile Include="GraphicsHelper.cs" />
     <Compile Include="IAdapter.cs" />
-    <Compile Include="IDevice.cs" />
+    <Compile Include="Device.cs" />
     <Compile Include="IEffect.cs" />
     <Compile Include="IEffectMatrices.cs" />
     <Compile Include="GraphicsFactory.cs" />

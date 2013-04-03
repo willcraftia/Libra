@@ -18,9 +18,9 @@ namespace Libra.Graphics
 
         public abstract IAdapter DefaultAdapter { get; }
 
-        public abstract IDevice CreateDevice(IAdapter adapter, DeviceSettings settings, DeviceProfile[] profiles);
+        public abstract Device CreateDevice(IAdapter adapter, DeviceSettings settings, DeviceProfile[] profiles);
 
-        public abstract SwapChain CreateSwapChain(IDevice device, SwapChainSettings settings);
+        public abstract SwapChain CreateSwapChain(Device device, SwapChainSettings settings);
 
         public static GraphicsFactory CreateGraphicsFactory()
         {

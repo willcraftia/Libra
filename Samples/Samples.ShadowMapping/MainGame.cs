@@ -33,7 +33,7 @@ namespace Samples.ShadowMapping
 
             public ConstantBuffer ConstantBuffer { get; private set; }
 
-            public CreateShadowMapShader(IDevice device, ShaderCompiler compiler)
+            public CreateShadowMapShader(Device device, ShaderCompiler compiler)
             {
                 VertexShader = device.CreateVertexShader();
                 VertexShader.Initialize(compiler.CompileVertexShader("CreateShadowMap.fx"));
@@ -87,7 +87,7 @@ namespace Samples.ShadowMapping
 
             public ConstantBuffer ConstantBuffer { get; private set; }
 
-            public DrawModelShader(IDevice device, ShaderCompiler compiler)
+            public DrawModelShader(Device device, ShaderCompiler compiler)
             {
                 VertexShader = device.CreateVertexShader();
                 VertexShader.Initialize(compiler.CompileVertexShader("DrawModel.fx"));

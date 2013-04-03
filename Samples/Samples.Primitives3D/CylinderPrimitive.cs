@@ -10,12 +10,12 @@ namespace Samples.Primitives3D
 {
     public sealed class CylinderPrimitive : GeometricPrimitive
     {
-        public CylinderPrimitive(IDevice device)
+        public CylinderPrimitive(Device device)
             : this(device, 1, 1, 32)
         {
         }
 
-        public CylinderPrimitive(IDevice device, float height, float diameter, int tessellation)
+        public CylinderPrimitive(Device device, float height, float diameter, int tessellation)
             : base(device)
         {
             if (tessellation < 3) throw new ArgumentOutOfRangeException("tessellation");

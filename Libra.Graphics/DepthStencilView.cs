@@ -10,11 +10,11 @@ namespace Libra.Graphics
     {
         bool initialized;
 
-        public IDevice Device { get; private set; }
+        public Device Device { get; private set; }
 
         public DepthStencil DepthStencil { get; private set; }
 
-        protected DepthStencilView(IDevice device)
+        protected DepthStencilView(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 

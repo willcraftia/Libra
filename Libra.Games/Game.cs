@@ -159,7 +159,7 @@ namespace Libra.Games
             set { inactiveSleepTime = value; }
         }
 
-        public IDevice Device { get; private set; }
+        public Device Device { get; private set; }
 
         public SwapChain SwapChain { get; private set; }
 

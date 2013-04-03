@@ -12,7 +12,7 @@ namespace Libra.Graphics
 
         public event EventHandler BackBuffersResized;
 
-        public IDevice Device { get; private set; }
+        public Device Device { get; private set; }
 
         public abstract int BackBufferWidth { get; }
 
@@ -32,7 +32,7 @@ namespace Libra.Graphics
 
         public abstract int SyncInterval { get; }
 
-        protected SwapChain(IDevice device)
+        protected SwapChain(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 

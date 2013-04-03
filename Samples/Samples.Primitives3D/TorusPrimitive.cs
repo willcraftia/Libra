@@ -10,12 +10,12 @@ namespace Samples.Primitives3D
 {
     public sealed class TorusPrimitive : GeometricPrimitive
     {
-        public TorusPrimitive(IDevice device)
+        public TorusPrimitive(Device device)
             : this(device, 1, 0.333f, 32)
         {
         }
 
-        public TorusPrimitive(IDevice device, float diameter, float thickness, int tessellation)
+        public TorusPrimitive(Device device, float diameter, float thickness, int tessellation)
             : base(device)
         {
             if (tessellation < 3) throw new ArgumentOutOfRangeException("tessellation");

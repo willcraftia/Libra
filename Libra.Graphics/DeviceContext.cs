@@ -298,7 +298,7 @@ namespace Libra.Graphics
 
         public event EventHandler Disposing;
 
-        public IDevice Device { get; private set; }
+        public Device Device { get; private set; }
 
         public abstract bool Deferred { get; }
 
@@ -443,7 +443,7 @@ namespace Libra.Graphics
 
         public ShaderResourceCollection PixelShaderResources { get; private set; }
 
-        protected DeviceContext(IDevice device)
+        protected DeviceContext(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 

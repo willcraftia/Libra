@@ -8,7 +8,7 @@ namespace Libra.Graphics
 {
     public abstract class PixelShader : Shader
     {
-        protected PixelShader(IDevice device)
+        protected PixelShader(Device device)
             : base(device)
         {
         }

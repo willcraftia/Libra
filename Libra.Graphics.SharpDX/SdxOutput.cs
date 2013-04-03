@@ -65,7 +65,7 @@ namespace Libra.Graphics.SharpDX
             return result;
         }
 
-        public void GetClosestMatchingMode(IDevice device, ref DisplayMode preferredMode, out DisplayMode result)
+        public void GetClosestMatchingMode(Device device, ref DisplayMode preferredMode, out DisplayMode result)
         {
             var d3d11Device = (device as SdxDevice).D3D11Device;
 

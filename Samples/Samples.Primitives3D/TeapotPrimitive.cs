@@ -10,12 +10,12 @@ namespace Samples.Primitives3D
 {
     public sealed class TeapotPrimitive : BezierPrimitive
     {
-        public TeapotPrimitive(IDevice device)
+        public TeapotPrimitive(Device device)
             : this(device, 1, 8)
         {
         }
 
-        public TeapotPrimitive(IDevice device, float size, int tessellation)
+        public TeapotPrimitive(Device device, float size, int tessellation)
             : base(device)
         {
             if (tessellation < 1) throw new ArgumentOutOfRangeException("tessellation");

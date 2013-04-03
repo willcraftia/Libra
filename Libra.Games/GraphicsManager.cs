@@ -77,7 +77,7 @@ namespace Libra.Games
 
         public bool DeviceDebugEnabled { get; set; }
 
-        public IDevice Device { get; private set; }
+        public Device Device { get; private set; }
 
         public SwapChain SwapChain { get; private set; }
 
@@ -283,7 +283,7 @@ namespace Libra.Games
             return graphicsFactory.DefaultAdapter;
         }
 
-        protected virtual DisplayMode ResolveOutputMode(IDevice device)
+        protected virtual DisplayMode ResolveOutputMode(Device device)
         {
             // デフォルト実装では、デフォルト アダプタの主モニタを対象に、
             // デスクトップへの出力に相応しいモードを検索。
@@ -308,7 +308,7 @@ namespace Libra.Games
             return resolvedMode;
         }
 
-        protected virtual DisplayMode ResolveFullScreenBackBufferMode(IDevice device)
+        protected virtual DisplayMode ResolveFullScreenBackBufferMode(Device device)
         {
             // デフォルト実装では、推奨設定に最も適合する表示モードを、
             // DXGI の機能により主モニタの表示モードから自動選択。

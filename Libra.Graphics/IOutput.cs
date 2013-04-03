@@ -18,6 +18,6 @@ namespace Libra.Graphics
 
         DisplayMode[] GetModes(SurfaceFormat format, EnumerateDisplayModes flags);
 
-        void GetClosestMatchingMode(IDevice device, ref DisplayMode preferredMode, out DisplayMode result);
+        void GetClosestMatchingMode(Device device, ref DisplayMode preferredMode, out DisplayMode result);
     }
 }
