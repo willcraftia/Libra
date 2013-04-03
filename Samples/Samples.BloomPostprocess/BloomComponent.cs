@@ -123,11 +123,11 @@ namespace Samples.BloomPostprocess
             gaussianBlurShader.Height = renderTarget1.Height;
 
             // ガウス ブラー シェーダ の Horizon パス。
-            gaussianBlurShader.Direction = BlurDirection.Horizon;
+            gaussianBlurShader.Pass = GaussianBlurShaderPass.Horizon;
             DrawFullscreenQuad(renderTarget1, renderTarget2, gaussianBlurShader.Apply, IntermediateBuffer.BlurredHorizontally);
 
             // ガウス ブラー シェーダ の Vertical パス。
-            gaussianBlurShader.Direction = BlurDirection.Vertical;
+            gaussianBlurShader.Pass = GaussianBlurShaderPass.Vertical;
             DrawFullscreenQuad(renderTarget2, renderTarget1, gaussianBlurShader.Apply, IntermediateBuffer.BlurredBothWays);
 
             context.SetRenderTarget(null);

@@ -113,7 +113,7 @@ namespace Libra.Graphics.Toolkit
 
         DirtyFlags dirtyFlags;
 
-        public BlurDirection Direction { get; set; }
+        public GaussianBlurShaderPass Pass { get; set; }
 
         public int Radius
         {
@@ -226,16 +226,16 @@ namespace Libra.Graphics.Toolkit
             }
 
             // 定数バッファの設定。
-            switch (Direction)
+            switch (Pass)
             {
-                case BlurDirection.Horizon:
+                case GaussianBlurShaderPass.Horizon:
                     context.PixelShaderConstantBuffers[0] = horizontalConstantBuffer;
                     break;
-                case BlurDirection.Vertical:
+                case GaussianBlurShaderPass.Vertical:
                     context.PixelShaderConstantBuffers[0] = verticalConstantBufffer;
                     break;
                 default:
-                    throw new InvalidOperationException("Unknown direction: " + Direction);
+                    throw new InvalidOperationException("Unknown direction: " + Pass);
             }
 
             // ピクセル シェーダの設定。

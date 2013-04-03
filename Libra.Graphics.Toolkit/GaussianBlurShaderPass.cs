@@ -6,7 +6,7 @@ using System;
 
 namespace Libra.Graphics.Toolkit
 {
-    public enum BlurDirection
+    public enum GaussianBlurShaderPass
     {
         Horizon,
         Vertical

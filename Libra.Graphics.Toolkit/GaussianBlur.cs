@@ -59,15 +59,15 @@ namespace Libra.Graphics.Toolkit
 
         public void Filter(ShaderResourceView source, RenderTargetView destination)
         {
-            Filter(source, backingRenderTarget.GetRenderTargetView(), BlurDirection.Horizon);
-            Filter(backingRenderTarget.GetShaderResourceView(), destination, BlurDirection.Vertical);
+            Filter(source, backingRenderTarget.GetRenderTargetView(), GaussianBlurShaderPass.Horizon);
+            Filter(backingRenderTarget.GetShaderResourceView(), destination, GaussianBlurShaderPass.Vertical);
 
             context.SetRenderTarget(null);
         }
 
-        void Filter(ShaderResourceView source, RenderTargetView destination, BlurDirection direction)
+        void Filter(ShaderResourceView source, RenderTargetView destination, GaussianBlurShaderPass direction)
         {
-            shader.Direction = direction;
+            shader.Pass = direction;
 
             context.SetRenderTarget(destination);
             

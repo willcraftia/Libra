@@ -41,7 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BloomShader.cs" />
-    <Compile Include="BlurDirection.cs" />
+    <Compile Include="GaussianBlurShaderPass.cs" />
     <Compile Include="GaussianBlur.cs" />
     <Compile Include="GaussianBlurShader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
