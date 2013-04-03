@@ -208,8 +208,6 @@ namespace Libra.Graphics
 
             int dirtyFlags;
 
-            int renderTargetFlags;
-
             public ShaderResourceView this[int index]
             {
                 get
@@ -222,32 +220,62 @@ namespace Libra.Graphics
                 {
                     if ((uint) resources.Length <= (uint) index) throw new ArgumentOutOfRangeException("index");
 
-                    // レンダ ターゲットは、レンダ ターゲット ビューを設定する際に、
-                    // シェーダ リソース ビュー等の他の読み込みビューが存在する場合、
-                    // そのスロットを null に設定する。
+                    // D3D の振る舞いとして、
+                    // RenderTarget の RenderTargetView が OMSetRenderTargetView に渡された時点で、
+                    // RenderTarget の ShaderResourceView が設定されているスロットが自動的に null に設定される。
+                    // これは、RenderTarget に対する同時読み書きを避けるための振る舞いである。
                     //
-                    // TODO
+                    // このため、このクラスにおいても同様の振る舞いをエミュレートする必要がある。
                     //
-                    // このクラスでは、設定されるインスタンスが同一ならば GPU への転送を省いているが、
-                    // レンダ ターゲットのシェーダ リソース ビューである場合、
-                    // レンダ ターゲット ビューとして設定する際に D3D 内部では自動的に null となる一方で、
-                    // このクラスではビューが存在するという不整合が発生する。
-                    if (resources[index] == value && !(value.Resource is RenderTarget))
+                    // RenderTarget の RenderTargetView が OMSetRenderTargetView に渡される直前に、
+                    // RenderTarget はイベント BindingToOutputMerger を発行する。
+                    // ここでは、BindingToOutputMerger を受け取り、対応するスロットを null へ設定する。
+                    //
+                    // 仮に、D3D の振る舞いをエミュレートしなかった場合、
+                    // このクラスには D3D 内部では null にされているスロットに ShaderResourceView が残り、
+                    // 次回の ShaderResourceView では状態変更無しと判定される可能性があり、
+                    // ShaderResourceView が正しく反映されないまま描画が行われる問題が発生する。
+                    if (resources[index] == value)
                         return;
+
+                    if (resources[index] != null)
+                    {
+                        var renderTarget = resources[index].Resource as RenderTarget;
+                        if (renderTarget != null)
+                        {
+                            renderTarget.BindingToOutputMerger -= OnRenderTargetBindingToOutputMerger;
+                        }
+                    }
 
                     resources[index] = value;
 
-                    int flag = 1 << index;
-
-                    dirtyFlags |= flag;
-
-                    if (value != null && value.Resource is RenderTarget)
+                    if (resources[index] != null)
                     {
-                        renderTargetFlags |= flag;
+                        var renderTarget = resources[index].Resource as RenderTarget;
+                        if (renderTarget != null)
+                        {
+                            renderTarget.BindingToOutputMerger += OnRenderTargetBindingToOutputMerger;
+                        }
                     }
-                    else
+
+                    dirtyFlags |= 1 << index;
+                }
+            }
+
+            void OnRenderTargetBindingToOutputMerger(object sender, EventArgs e)
+            {
+                var renderTarget = sender as RenderTarget;
+
+                for (int i = 0; i < resources.Length; i++)
+                {
+                    if (resources[i].Resource == renderTarget)
                     {
-                        renderTargetFlags &= ~flag;
+                        renderTarget.BindingToOutputMerger -= OnRenderTargetBindingToOutputMerger;
+                        resources[i] = null;
+
+                        dirtyFlags |= 1 << i;
+
+                        return;
                     }
                 }
             }
@@ -276,43 +304,6 @@ namespace Libra.Graphics
                     }
 
                     if (dirtyFlags == 0)
-                        break;
-                }
-            }
-
-            public void Remove(ShaderResourceView resource)
-            {
-                if (resource == null) throw new ArgumentNullException("resource");
-
-                for (int i = 0; i < resources.Length; i++)
-                {
-                    if (resources[i] == resource)
-                    {
-                        resources[i] = null;
-                        context.SetShaderResourceCore(shaderStage, i, null);
-                        return;
-                    }
-                }
-            }
-
-            public void UnbindRenderTargets()
-            {
-                if (renderTargetFlags == 0)
-                    return;
-
-                for (int i = 0; i < resources.Length; i++)
-                {
-                    int flag = 1 << i;
-                    if ((renderTargetFlags & flag) != 0)
-                    {
-                        resources[i] = null;
-                        context.SetShaderResourceCore(shaderStage, i, null);
-
-                        renderTargetFlags &= ~flag;
-                        //dirtyFlags &= ~flag;
-                    }
-
-                    if (renderTargetFlags == 0)
                         break;
                 }
             }
@@ -618,6 +609,9 @@ namespace Libra.Graphics
                 // #0 にバック バッファ レンダ ターゲットを設定。
                 activeRenderTargetViews[0] = Device.BackBufferView;
 
+                // OM ステージに設定される事を通知。
+                activeRenderTargetViews[0].RenderTarget.OnBindingToOutputMerger();
+
                 SetRenderTargetsCore(null);
 
                 ClearRenderTarget(Device.BackBufferView, DiscardColor);
@@ -625,6 +619,9 @@ namespace Libra.Graphics
             else
             {
                 activeRenderTargetViews[0] = renderTargetView;
+
+                // OM ステージに設定される事を通知。
+                activeRenderTargetViews[0].RenderTarget.OnBindingToOutputMerger();
 
                 SetRenderTargetsCore(activeRenderTargetViews);
 
@@ -645,15 +642,28 @@ namespace Libra.Graphics
             if (renderTargetViews[0] == null)
                 throw new ArgumentException(string.Format("renderTargetViews[{0}] is null.", 0), "renderTargetViews");
 
-            Array.Copy(renderTargetViews, activeRenderTargetViews, renderTargetViews.Length);
-            if (renderTargetViews.Length < RenderTargetCount)
-                Array.Clear(activeRenderTargetViews, renderTargetViews.Length, (RenderTargetCount - renderTargetViews.Length));
+            for (int i = 0; i < activeRenderTargetViews.Length; i++)
+            {
+                if (i < renderTargetViews.Length)
+                {
+                    var renderTargetView = renderTargetViews[i];
+
+                    activeRenderTargetViews[i] = renderTargetView;
+
+                    // OM ステージに設定される事を通知。
+                    renderTargetView.RenderTarget.OnBindingToOutputMerger();
+                }
+                else
+                {
+                    activeRenderTargetViews[i] = null;
+                }
+            }
 
             SetRenderTargetsCore(renderTargetViews);
 
-            if (renderTargetViews[0].RenderTarget.RenderTargetUsage == RenderTargetUsage.Discard)
+            foreach (var renderTargetView in renderTargetViews)
             {
-                foreach (var renderTargetView in renderTargetViews)
+                if (renderTargetView.RenderTarget.RenderTargetUsage == RenderTargetUsage.Discard)
                 {
                     ClearRenderTarget(renderTargetView, DiscardColor);
                 }

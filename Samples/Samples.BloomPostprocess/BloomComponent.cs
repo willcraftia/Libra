@@ -224,13 +224,6 @@ namespace Samples.BloomPostprocess
 
             DrawFullscreenQuad(renderTarget1, (int) viewport.Width, (int) viewport.Height,
                 bloomCombineShader.Apply, IntermediateBuffer.FinalResult);
-
-            // レンダ ターゲットをシェーダ リソースとして設定しているため、
-            // 必ず明示的にシェーダから解除しなければならない。
-            //context.PixelShaderResources[0] = null;
-            //context.PixelShaderResources[1] = null;
-            //context.PixelShaderResources.UnbindRenderTargets();
-            //context.PixelShaderResources.Remove(sceneRenderTarget.GetShaderResourceView());
         }
 
         void DrawFullscreenQuad(Texture2D texture, RenderTarget renderTarget,
