@@ -19,7 +19,7 @@ namespace Libra.Graphics
 
         public RenderTargetUsage RenderTargetUsage { get; set; }
 
-        public DepthStencil DepthStencil { get; protected set; }
+        public DepthStencil DepthStencil { get; private set; }
 
         protected RenderTarget(IDevice device, bool isBackBuffer)
             : base(device)

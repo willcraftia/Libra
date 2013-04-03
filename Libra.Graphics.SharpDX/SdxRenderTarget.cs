@@ -50,9 +50,6 @@ namespace Libra.Graphics.SharpDX
             MultisampleCount = description.SampleDescription.Count;
             MultisampleQuality = description.SampleDescription.Quality;
             Usage = (ResourceUsage) description.Usage;
-
-            if (DepthFormat != DepthFormat.None)
-                DepthStencil = InitializeDepthStencil();
         }
 
         protected override void InitializeRenderTarget()
