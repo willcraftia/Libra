@@ -40,6 +40,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BloomShader.cs" />
     <Compile Include="BlurDirection.cs" />
     <Compile Include="GaussianBlur.cs" />
     <Compile Include="GaussianBlurShader.cs" />
@@ -49,6 +50,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="BloomShaderPass.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Libra.Graphics.Compiler.SharpDX\Libra.Graphics.Compiler.SharpDX.csproj">
@@ -75,6 +77,8 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Shaders\BloomCombine.hlsl" />
+    <None Include="Shaders\BloomExtract.hlsl" />
     <None Include="Shaders\Compiled\GaussianBlurPS.bin" />
     <None Include="Shaders\CompileShaders.cmd" />
     <None Include="Shaders\GaussianBlur.hlsl" />

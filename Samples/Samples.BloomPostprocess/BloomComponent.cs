@@ -227,7 +227,10 @@ namespace Samples.BloomPostprocess
 
             // レンダ ターゲットをシェーダ リソースとして設定しているため、
             // 必ず明示的にシェーダから解除しなければならない。
-            context.PixelShaderResources[1] = null;
+            //context.PixelShaderResources[0] = null;
+            //context.PixelShaderResources[1] = null;
+            //context.PixelShaderResources.UnbindRenderTargets();
+            //context.PixelShaderResources.Remove(sceneRenderTarget.GetShaderResourceView());
         }
 
         void DrawFullscreenQuad(Texture2D texture, RenderTarget renderTarget,

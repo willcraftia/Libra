@@ -208,6 +208,8 @@ namespace Libra.Graphics
 
             int dirtyFlags;
 
+            int renderTargetFlags;
+
             public ShaderResourceView this[int index]
             {
                 get
@@ -220,12 +222,33 @@ namespace Libra.Graphics
                 {
                     if ((uint) resources.Length <= (uint) index) throw new ArgumentOutOfRangeException("index");
 
-                    if (resources[index] == value)
+                    // レンダ ターゲットは、レンダ ターゲット ビューを設定する際に、
+                    // シェーダ リソース ビュー等の他の読み込みビューが存在する場合、
+                    // そのスロットを null に設定する。
+                    //
+                    // TODO
+                    //
+                    // このクラスでは、設定されるインスタンスが同一ならば GPU への転送を省いているが、
+                    // レンダ ターゲットのシェーダ リソース ビューである場合、
+                    // レンダ ターゲット ビューとして設定する際に D3D 内部では自動的に null となる一方で、
+                    // このクラスではビューが存在するという不整合が発生する。
+                    if (resources[index] == value && !(value.Resource is RenderTarget))
                         return;
 
                     resources[index] = value;
 
-                    dirtyFlags |= 1 << index;
+                    int flag = 1 << index;
+
+                    dirtyFlags |= flag;
+
+                    if (value != null && value.Resource is RenderTarget)
+                    {
+                        renderTargetFlags |= flag;
+                    }
+                    else
+                    {
+                        renderTargetFlags &= ~flag;
+                    }
                 }
             }
 
@@ -253,6 +276,43 @@ namespace Libra.Graphics
                     }
 
                     if (dirtyFlags == 0)
+                        break;
+                }
+            }
+
+            public void Remove(ShaderResourceView resource)
+            {
+                if (resource == null) throw new ArgumentNullException("resource");
+
+                for (int i = 0; i < resources.Length; i++)
+                {
+                    if (resources[i] == resource)
+                    {
+                        resources[i] = null;
+                        context.SetShaderResourceCore(shaderStage, i, null);
+                        return;
+                    }
+                }
+            }
+
+            public void UnbindRenderTargets()
+            {
+                if (renderTargetFlags == 0)
+                    return;
+
+                for (int i = 0; i < resources.Length; i++)
+                {
+                    int flag = 1 << i;
+                    if ((renderTargetFlags & flag) != 0)
+                    {
+                        resources[i] = null;
+                        context.SetShaderResourceCore(shaderStage, i, null);
+
+                        renderTargetFlags &= ~flag;
+                        //dirtyFlags &= ~flag;
+                    }
+
+                    if (renderTargetFlags == 0)
                         break;
                 }
             }
