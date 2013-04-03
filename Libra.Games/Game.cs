@@ -67,7 +67,7 @@ namespace Libra.Games
         
         public event EventHandler Exiting;
 
-        const long defaultTargetElapsedTicks = 10000000L / 60L;
+        const long DefaultTargetElapsedTicks = 10000000L / 60L;
 
         bool isFixedTimeStep;
 
