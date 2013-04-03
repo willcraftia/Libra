@@ -113,6 +113,17 @@ namespace Libra.Graphics
 
         protected abstract void InitializeCore();
 
+        protected override void DisposeOverride(bool disposing)
+        {
+            if (disposing)
+            {
+                if (depthStencilView != null)
+                    depthStencilView.Dispose();
+            }
+
+            base.DisposeOverride(disposing);
+        }
+
         void AssertNotInitialized()
         {
             if (initialized) throw new InvalidOperationException("Already initialized.");
