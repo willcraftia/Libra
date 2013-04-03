@@ -38,9 +38,6 @@ namespace Libra.Games
         
         public event EventHandler Disposed;
 
-        // D3D11.h: D3D11_MAX_MULTISAMPLE_SAMPLE_COUNT ( 32 )
-        public const int MaxMultisampleCount = 32;
-
         public const int DefaultBackBufferWidth = 800;
 
         public const int DefaultBackBufferHeight = 480;
@@ -51,7 +48,7 @@ namespace Libra.Games
 
         // 自動的に利用可能なサンプル数が選択されるので、
         // デフォルトは最大サンプル数とする。
-        public const int DefaultBackBufferMultisampleCount = MaxMultisampleCount;
+        public const int DefaultBackBufferMultisampleCount = D3D11Constants.MaxMultisampleCount;
 
         static readonly DeviceProfile[] profiles =
         {
@@ -75,6 +72,10 @@ namespace Libra.Games
         int preferredBackBufferMultisampleCount;
 
         object resizeSwapChainLock = new object();
+
+        public bool DeviceSingleThreaded { get; set; }
+
+        public bool DeviceDebugEnabled { get; set; }
 
         public IDevice Device { get; private set; }
 
@@ -148,6 +149,9 @@ namespace Libra.Games
 
             this.game = game;
 
+            DeviceSingleThreaded = true;
+            DeviceDebugEnabled = false;
+
             preferredBackBufferWidth = DefaultBackBufferWidth;
             preferredBackBufferHeight = DefaultBackBufferHeight;
             preferredBackBufferFormat = DefaultBackBufferFormat;
@@ -172,7 +176,11 @@ namespace Libra.Games
 
         void InitializeDevice()
         {
-            var settings = new DeviceSettings();
+            var settings = new DeviceSettings
+            {
+                SingleThreaded = DeviceSingleThreaded,
+                Debug = DeviceDebugEnabled
+            };
 
             var adapter = ResolveAdapter();
 

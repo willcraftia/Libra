@@ -11,16 +11,23 @@ namespace Libra.Graphics
         /// <summary>
         /// </summary>
         /// <remarks>
-        /// D3D11.h: D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT
+        /// D3D11.h: D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT ( 32 )
         /// </remarks>
         public const int IAVertexInputResourceSlotCount = 32;
 
         /// <summary>
         /// </summary>
         /// <remarks>
-        /// D3D11.h:  D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT。
+        /// D3D11.h:  D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT ( 8 )
         /// </remarks>
         public const int SimultaneousRenderTargetCount = 8;
+
+        /// <summary>
+        /// </summary>
+        /// <remarks>
+        /// D3D11.h: D3D11_MAX_MULTISAMPLE_SAMPLE_COUNT ( 32 )
+        /// </remarks>
+        public const int MaxMultisampleCount = 32;
 
         /// <summary>
         /// </summary>
