@@ -6,6 +6,7 @@ using Libra;
 using Libra.Games;
 using Libra.Graphics;
 using Libra.Graphics.Compiler;
+using Libra.Graphics.Toolkit;
 
 #endregion
 
@@ -35,69 +36,6 @@ namespace Samples.BloomPostprocess
             public void Apply(DeviceContext context)
             {
                 constantBuffer.SetData(context, BloomThreshold);
-                context.PixelShaderConstantBuffers[0] = constantBuffer;
-                context.PixelShader = pixelShader;
-            }
-        }
-
-        #endregion
-
-        #region GaussianBlurSample
-
-        [StructLayout(LayoutKind.Sequential, Size = 16)]
-        struct GaussianBlurSample
-        {
-            public Vector2 Offset;
-
-            public float Weight;
-        }
-
-        #endregion
-
-        #region GaussianBlurConstatns
-
-        // 配列をフィールドに含む構造体を扱う場合の例として。
-
-        // GaussianBlurConstatns の形式ならば Marshal.StructurePtr での転送が可能。
-        // なお、GCHandle.Alloc によるポインタ固定は行えないため、
-        // 構造体を直接転送することは出来ない点に注意。
-
-        [StructLayout(LayoutKind.Sequential, Size = 16 * MaxSampleCount)]
-        struct GaussianBlurConstatns
-        {
-            [MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxSampleCount)]
-            public GaussianBlurSample[] Samples;
-        }
-
-        #endregion
-
-        #region GaussianBlurShader
-
-        sealed class GaussianBlurShader
-        {
-            public GaussianBlurSample[] Samples;
-
-            GaussianBlurConstatns constants;
-
-            ConstantBuffer constantBuffer;
-
-            PixelShader pixelShader;
-
-            public GaussianBlurShader(Device device, byte[] bytecode)
-            {
-                Samples = new GaussianBlurSample[MaxSampleCount];
-
-                pixelShader = device.CreatePixelShader();
-                pixelShader.Initialize(bytecode);
-
-                constantBuffer = device.CreateConstantBuffer();
-                constantBuffer.Initialize<GaussianBlurConstatns>();
-            }
-
-            public void Apply(DeviceContext context)
-            {
-                constants.Samples = Samples;
-                constantBuffer.SetData(context, constants);
                 context.PixelShaderConstantBuffers[0] = constantBuffer;
                 context.PixelShader = pixelShader;
             }
@@ -154,9 +92,9 @@ namespace Samples.BloomPostprocess
 
         BloomExtractShader bloomExtractShader;
 
-        GaussianBlurShader gaussianBlurShader;
-
         BloomCombineShader bloomCombineShader;
+
+        GaussianBlurShader gaussianBlurShader;
 
         RenderTarget sceneRenderTarget;
 
@@ -204,7 +142,8 @@ namespace Samples.BloomPostprocess
 
             bloomExtractShader = new BloomExtractShader(Device, compiler.CompilePixelShader("BloomExtract.fx"));
             bloomCombineShader = new BloomCombineShader(Device, compiler.CompilePixelShader("BloomCombine.fx"));
-            gaussianBlurShader = new GaussianBlurShader(Device, compiler.CompilePixelShader("GaussianBlur.fx"));
+
+            gaussianBlurShader = new GaussianBlurShader(Device.ImmediateContext);
 
             var backBuffer = Device.BackBuffer;
             var width = backBuffer.Width;
@@ -260,12 +199,16 @@ namespace Samples.BloomPostprocess
 
             DrawFullscreenQuad(sceneRenderTarget, renderTarget1, bloomExtractShader.Apply, IntermediateBuffer.PreBloom);
 
-            SetBlurEffectParameters(1.0f / (float) renderTarget1.Width, 0);
+            // ガウス ブラー シェーダへのレンダ ターゲットのサイズの設定。
+            gaussianBlurShader.Width = renderTarget1.Width;
+            gaussianBlurShader.Height = renderTarget1.Height;
 
+            // 水平方向のブラー。
+            gaussianBlurShader.Direction = BlurDirection.Horizon;
             DrawFullscreenQuad(renderTarget1, renderTarget2, gaussianBlurShader.Apply, IntermediateBuffer.BlurredHorizontally);
 
-            SetBlurEffectParameters(0, 1.0f / (float) renderTarget1.Height);
-
+            // 垂直方向のブラー。
+            gaussianBlurShader.Direction = BlurDirection.Vertical;
             DrawFullscreenQuad(renderTarget2, renderTarget1, gaussianBlurShader.Apply, IntermediateBuffer.BlurredBothWays);
 
             context.SetRenderTarget(null);
@@ -306,38 +249,6 @@ namespace Samples.BloomPostprocess
             spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Opaque, null, null, null, applyShader);
             spriteBatch.Draw(texture.GetShaderResourceView(), new Rectangle(0, 0, width, height), Color.White);
             spriteBatch.End();
-        }
-
-        void SetBlurEffectParameters(float dx, float dy)
-        {
-            int sampleCount = gaussianBlurShader.Samples.Length;
-
-            float totalWeights = MathHelper.CalculateGaussian(Settings.BlurAmount, 0);
-
-            gaussianBlurShader.Samples[0].Weight = totalWeights;
-            gaussianBlurShader.Samples[0].Offset = Vector2.Zero;
-
-            for (int i = 0; i < sampleCount / 2; i++)
-            {
-                float weight = MathHelper.CalculateGaussian(Settings.BlurAmount, i + 1);
-
-                gaussianBlurShader.Samples[i * 2 + 1].Weight = weight;
-                gaussianBlurShader.Samples[i * 2 + 2].Weight = weight;
-
-                totalWeights += weight * 2;
-
-                float sampleOffset = i * 2 + 1.5f;
-
-                Vector2 delta = new Vector2(dx, dy) * sampleOffset;
-
-                gaussianBlurShader.Samples[i * 2 + 1].Offset = delta;
-                gaussianBlurShader.Samples[i * 2 + 2].Offset = -delta;
-            }
-
-            for (int i = 0; i < sampleCount; i++)
-            {
-                gaussianBlurShader.Samples[i].Weight /= totalWeights;
-            }
         }
     }
 }
