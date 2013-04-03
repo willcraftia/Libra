@@ -36,32 +36,6 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        #region ContextResoruces
-
-        sealed class ContextResoruces
-        {
-            DeviceContext context;
-
-            public ConstantBuffer HorizontalConstantBuffer { get; private set; }
-
-            public ConstantBuffer VerticalConstantBufffer { get; private set; }
-
-            public ContextResoruces(DeviceContext context)
-            {
-                this.context = context;
-
-                var device = context.Device;
-
-                HorizontalConstantBuffer = device.CreateConstantBuffer();
-                HorizontalConstantBuffer.Initialize<Constants>();
-
-                VerticalConstantBufffer = device.CreateConstantBuffer();
-                VerticalConstantBufffer.Initialize<Constants>();
-            }
-        }
-
-        #endregion
-
         #region Kernel
 
         [StructLayout(LayoutKind.Sequential, Size = 16)]
@@ -113,15 +87,15 @@ namespace Libra.Graphics.Toolkit
 
         static readonly SharedResourcePool<Device, DeviceResources> DeviceResourcesPool;
 
-        static readonly SharedResourcePool<DeviceContext, ContextResoruces> ContextResourcesPool;
-
-        DeviceContext context;
+        Device device;
 
         DeviceResources deviceResources;
 
-        ContextResoruces contextResoruces;
-
         Constants constants;
+
+        ConstantBuffer horizontalConstantBuffer;
+
+        ConstantBuffer verticalConstantBufffer;
 
         int kernelSize;
 
@@ -205,18 +179,21 @@ namespace Libra.Graphics.Toolkit
         {
             DeviceResourcesPool = new SharedResourcePool<Device, DeviceResources>(
                 (device) => { return new DeviceResources(device); });
-            ContextResourcesPool = new SharedResourcePool<DeviceContext, ContextResoruces>(
-                (context) => { return new ContextResoruces(context); });
         }
 
-        public GaussianBlurShader(DeviceContext context)
+        public GaussianBlurShader(Device device)
         {
-            if (context == null) throw new ArgumentNullException("context");
+            if (device == null) throw new ArgumentNullException("device");
 
-            this.context = context;
+            this.device = device;
 
-            deviceResources = DeviceResourcesPool.Get(context.Device);
-            contextResoruces = ContextResourcesPool.Get(context);
+            deviceResources = DeviceResourcesPool.Get(device);
+
+            horizontalConstantBuffer = device.CreateConstantBuffer();
+            horizontalConstantBuffer.Initialize<Constants>();
+
+            verticalConstantBufffer = device.CreateConstantBuffer();
+            verticalConstantBufffer.Initialize<Constants>();
 
             horizontalKernels = new Kernel[MaxKernelSize];
             verticalKernels = new Kernel[MaxKernelSize];
@@ -231,7 +208,7 @@ namespace Libra.Graphics.Toolkit
 
         public void Apply(DeviceContext context)
         {
-            if (this.context != context) throw new ArgumentException("DeviceContext inconsistent.", "context");
+            if (context == null) throw new ArgumentNullException("context");
 
             SetKernelSize();
             SetKernelOffsets();
@@ -240,10 +217,10 @@ namespace Libra.Graphics.Toolkit
             if ((dirtyFlags & DirtyFlags.Constants) != 0)
             {
                 constants.Kernels = horizontalKernels;
-                contextResoruces.HorizontalConstantBuffer.SetData(context, constants);
+                horizontalConstantBuffer.SetData(context, constants);
 
                 constants.Kernels = verticalKernels;
-                contextResoruces.VerticalConstantBufffer.SetData(context, constants);
+                verticalConstantBufffer.SetData(context, constants);
 
                 dirtyFlags &= ~DirtyFlags.Constants;
             }
@@ -252,10 +229,10 @@ namespace Libra.Graphics.Toolkit
             switch (Direction)
             {
                 case BlurDirection.Horizon:
-                    context.PixelShaderConstantBuffers[0] = contextResoruces.HorizontalConstantBuffer;
+                    context.PixelShaderConstantBuffers[0] = horizontalConstantBuffer;
                     break;
                 case BlurDirection.Vertical:
-                    context.PixelShaderConstantBuffers[0] = contextResoruces.VerticalConstantBufffer;
+                    context.PixelShaderConstantBuffers[0] = verticalConstantBufffer;
                     break;
                 default:
                     throw new InvalidOperationException("Unknown direction: " + Direction);
@@ -370,7 +347,8 @@ namespace Libra.Graphics.Toolkit
             if (disposing)
             {
                 deviceResources = null;
-                contextResoruces = null;
+                horizontalConstantBuffer.Dispose();
+                verticalConstantBufffer.Dispose();
             }
 
             disposed = true;

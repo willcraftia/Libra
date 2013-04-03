@@ -143,7 +143,7 @@ namespace Samples.BloomPostprocess
             bloomExtractShader = new BloomExtractShader(Device, compiler.CompilePixelShader("BloomExtract.fx"));
             bloomCombineShader = new BloomCombineShader(Device, compiler.CompilePixelShader("BloomCombine.fx"));
 
-            gaussianBlurShader = new GaussianBlurShader(Device.ImmediateContext);
+            gaussianBlurShader = new GaussianBlurShader(Device);
 
             var backBuffer = Device.BackBuffer;
             var width = backBuffer.Width;

@@ -44,7 +44,7 @@ namespace Libra.Graphics.Toolkit
             Width = width;
             Height = height;
 
-            shader = new GaussianBlurShader(context);
+            shader = new GaussianBlurShader(context.Device);
             shader.Width = width;
             shader.Height = height;
             
