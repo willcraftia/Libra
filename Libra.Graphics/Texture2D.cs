@@ -85,6 +85,11 @@ namespace Libra.Graphics
 
         public int MultisampleQuality { get; protected set; }
 
+        public Rectangle Bounds
+        {
+            get { return new Rectangle(0, 0, width, height); }
+        }
+
         protected Texture2D(Device device)
             : base(device)
         {
