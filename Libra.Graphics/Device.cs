@@ -27,7 +27,7 @@ namespace Libra.Graphics
 
         public event EventHandler BackBuffersReset;
 
-        public IAdapter Adapter { get; private set; }
+        public Adapter Adapter { get; private set; }
 
         public DeviceSettings Settings { get; private set; }
 
@@ -39,7 +39,7 @@ namespace Libra.Graphics
 
         public RenderTargetView BackBufferView { get; private set; }
 
-        protected Device(IAdapter adapter, DeviceSettings settings)
+        protected Device(Adapter adapter, DeviceSettings settings)
         {
             Adapter = adapter;
             Settings = settings;

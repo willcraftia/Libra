@@ -275,7 +275,7 @@ namespace Libra.Games
             SwapChain.ResizeTarget();
         }
 
-        protected virtual IAdapter ResolveAdapter()
+        protected virtual Adapter ResolveAdapter()
         {
             // デフォルト実装ではデフォルト アダプタを利用。
             // 推奨設定に見合う表示モードをデフォルト アダプタが提供できるか否かを考慮しない。

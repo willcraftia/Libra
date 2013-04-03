@@ -64,7 +64,7 @@
     <Compile Include="FillMode.cs" />
     <Compile Include="FormatHelper.cs" />
     <Compile Include="GraphicsHelper.cs" />
-    <Compile Include="IAdapter.cs" />
+    <Compile Include="Adapter.cs" />
     <Compile Include="Device.cs" />
     <Compile Include="IEffect.cs" />
     <Compile Include="IEffectMatrices.cs" />
@@ -77,8 +77,6 @@
     <Compile Include="Semantics.cs" />
     <Compile Include="VertexFormat.cs" />
     <Compile Include="InputLayout.cs" />
-    <Compile Include="IOutput.cs" />
-    <Compile Include="IOutputCollection.cs" />
     <Compile Include="IVertexType.cs" />
     <Compile Include="Model.cs" />
     <Compile Include="ModelBone.cs" />

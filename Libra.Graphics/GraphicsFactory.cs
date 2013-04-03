@@ -14,11 +14,11 @@ namespace Libra.Graphics
 
         const string DefaultImplementation = "Libra.Graphics.SharpDX.SdxGraphicsFactory, Libra.Graphics.SharpDX, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null";
 
-        public abstract ReadOnlyCollection<IAdapter> Adapters { get; }
+        public abstract ReadOnlyCollection<Adapter> Adapters { get; }
 
-        public abstract IAdapter DefaultAdapter { get; }
+        public abstract Adapter DefaultAdapter { get; }
 
-        public abstract Device CreateDevice(IAdapter adapter, DeviceSettings settings, DeviceProfile[] profiles);
+        public abstract Device CreateDevice(Adapter adapter, DeviceSettings settings, DeviceProfile[] profiles);
 
         public abstract SwapChain CreateSwapChain(Device device, SwapChainSettings settings);
 
