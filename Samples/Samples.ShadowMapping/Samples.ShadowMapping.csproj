@@ -76,6 +76,10 @@
       <Project>{FAEE2668-AB77-477D-9405-26D59951501D}</Project>
       <Name>Libra.Graphics.SharpDX</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Libra.Graphics.Toolkit\Libra.Graphics.Toolkit.csproj">
+      <Project>{7E6353FF-27C2-48CB-B582-530450AF0553}</Project>
+      <Name>Libra.Graphics.Toolkit</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Libra.Graphics\Libra.Graphics.csproj">
       <Project>{CDFAB2B9-00DB-4719-B424-C2A973A7BC4C}</Project>
       <Name>Libra.Graphics</Name>
@@ -100,9 +104,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\DrawModel.fx" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Shaders\CreateShadowMap.fx" />
   </ItemGroup>
   <ItemGroup>
     <None Include="README.txt" />

@@ -16,6 +16,12 @@ call :CompileShader BloomCombine PS %ps_profile%
 ::
 call :CompileShader GaussianBlur PS %ps_profile%
 
+::
+:: StandardShadowMap VS/PS
+::
+call :CompileShader StandardShadowMap VS %vs_profile%
+call :CompileShader StandardShadowMap PS %ps_profile%
+
 echo.
 
 if %error% == 0 (

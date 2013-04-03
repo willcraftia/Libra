@@ -5,6 +5,7 @@ using Libra;
 using Libra.Games;
 using Libra.Graphics;
 using Libra.Graphics.Compiler;
+using Libra.Graphics.Toolkit;
 using Libra.Input;
 using Libra.Xnb;
 
@@ -14,50 +15,6 @@ namespace Samples.ShadowMapping
 {
     public sealed class MainGame : Game
     {
-        #region CreateShadowMapShader
-
-        sealed class CreateShadowMapShader
-        {
-            public struct CreateShadowMapShaderConstants
-            {
-                public Matrix World;
-
-                public Matrix LightViewProjection;
-            }
-
-            public CreateShadowMapShaderConstants Constants;
-
-            public VertexShader VertexShader { get; private set; }
-
-            public PixelShader PixelShader { get; private set; }
-
-            public ConstantBuffer ConstantBuffer { get; private set; }
-
-            public CreateShadowMapShader(Device device, ShaderCompiler compiler)
-            {
-                VertexShader = device.CreateVertexShader();
-                VertexShader.Initialize(compiler.CompileVertexShader("CreateShadowMap.fx"));
-
-                PixelShader = device.CreatePixelShader();
-                PixelShader.Initialize(compiler.CompilePixelShader("CreateShadowMap.fx"));
-
-                ConstantBuffer = device.CreateConstantBuffer();
-                ConstantBuffer.Usage = ResourceUsage.Dynamic;
-                ConstantBuffer.Initialize<CreateShadowMapShaderConstants>();
-            }
-
-            public void Apply(DeviceContext context)
-            {
-                ConstantBuffer.SetData(context, Constants);
-
-                context.VertexShaderConstantBuffers[0] = ConstantBuffer;
-                context.VertexShader = VertexShader;
-                context.PixelShader = PixelShader;
-            }
-        }
-
-        #endregion
-
         #region DrawModelShader
 
         sealed class DrawModelShader
@@ -137,7 +94,7 @@ namespace Samples.ShadowMapping
         
         JoystickState currentJoystickState;
 
-        CreateShadowMapShader createShadowMapShader;
+        StandardShadowMapShader standardShadowMapShader;
 
         DrawModelShader drawModelShader;
 
@@ -178,7 +135,7 @@ namespace Samples.ShadowMapping
             compiler.OptimizationLevel = OptimizationLevels.Level3;
             compiler.WarningsAreErrors = true;
 
-            createShadowMapShader = new CreateShadowMapShader(Device, compiler);
+            standardShadowMapShader = new StandardShadowMapShader(Device);
             drawModelShader = new DrawModelShader(Device, compiler);
 
             spriteBatch = new SpriteBatch(Device.ImmediateContext);
@@ -285,9 +242,9 @@ namespace Samples.ShadowMapping
 
             if (createShadowMap)
             {
-                Matrix.Transpose(ref world, out createShadowMapShader.Constants.World);
-                Matrix.Transpose(ref lightViewProjection, out createShadowMapShader.Constants.LightViewProjection);
-                createShadowMapShader.Apply(context);
+                standardShadowMapShader.World = world;
+                standardShadowMapShader.LightViewProjection = lightViewProjection;
+                standardShadowMapShader.Apply(context);
             }
             else
             {

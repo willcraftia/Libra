@@ -51,6 +51,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="BloomShaderPass.cs" />
+    <Compile Include="StandardShadowMapShader.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Libra.Graphics.Compiler.SharpDX\Libra.Graphics.Compiler.SharpDX.csproj">
@@ -82,8 +83,12 @@
     <None Include="Shaders\Compiled\BloomCombinePS.bin" />
     <None Include="Shaders\Compiled\BloomExtractPS.bin" />
     <None Include="Shaders\Compiled\GaussianBlurPS.bin" />
+    <None Include="Shaders\Compiled\StandardShadowMapPS.bin" />
+    <None Include="Shaders\Compiled\StandardShadowMapVS.bin" />
     <None Include="Shaders\CompileShaders.cmd" />
     <None Include="Shaders\GaussianBlur.hlsl" />
+    <None Include="Shaders\StandardShadowMap.hlsl" />
+    <None Include="Shaders\VarianceShadowMap.hlsl" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
