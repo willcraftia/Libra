@@ -1,8 +1,7 @@
 ﻿#region Using
 
 using System;
-
-using Libra.Graphics.Compiler;
+using Libra.Graphics.Toolkit.Properties;
 
 #endregion
 
@@ -24,15 +23,11 @@ namespace Libra.Graphics.Toolkit
             {
                 this.device = device;
 
-                // TODO
-                var compiler = ShaderCompiler.CreateShaderCompiler();
-                compiler.RootPath = "../../Shaders";
-
                 ExtractPixelShader = device.CreatePixelShader();
-                ExtractPixelShader.Initialize(compiler.CompilePixelShader("BloomExtract.hlsl"));
+                ExtractPixelShader.Initialize(Resources.BloomExtractPS);
 
                 CombinePixelShader = device.CreatePixelShader();
-                CombinePixelShader.Initialize(compiler.CompilePixelShader("BloomCombine.hlsl"));
+                CombinePixelShader.Initialize(Resources.BloomCombinePS);
             }
         }
 

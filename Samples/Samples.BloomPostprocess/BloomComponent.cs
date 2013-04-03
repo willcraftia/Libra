@@ -5,7 +5,6 @@ using System.Runtime.InteropServices;
 using Libra;
 using Libra.Games;
 using Libra.Graphics;
-using Libra.Graphics.Compiler;
 using Libra.Graphics.Toolkit;
 
 #endregion
@@ -14,85 +13,9 @@ namespace Samples.BloomPostprocess
 {
     public sealed class BloomComponent : DrawableGameComponent
     {
-        #region BloomExtractShader
-
-        sealed class BloomExtractShader
-        {
-            public float BloomThreshold;
-
-            ConstantBuffer constantBuffer;
-
-            PixelShader pixelShader;
-
-            public BloomExtractShader(Device device, byte[] bytecode)
-            {
-                pixelShader = device.CreatePixelShader();
-                pixelShader.Initialize(bytecode);
-
-                constantBuffer = device.CreateConstantBuffer();
-                constantBuffer.Initialize(16);
-            }
-
-            public void Apply(DeviceContext context)
-            {
-                constantBuffer.SetData(context, BloomThreshold);
-                context.PixelShaderConstantBuffers[0] = constantBuffer;
-                context.PixelShader = pixelShader;
-            }
-        }
-
-        #endregion
-
-        #region BloomCombineShader
-
-        sealed class BloomCombineShader
-        {
-            public float BloomIntensity;
-
-            public float BaseIntensity;
-
-            public float BloomSaturation;
-
-            public float BaseSaturation;
-
-            ConstantBuffer constantBuffer;
-
-            PixelShader pixelShader;
-
-            public BloomCombineShader(Device device, byte[] bytecode)
-            {
-                pixelShader = device.CreatePixelShader();
-                pixelShader.Initialize(bytecode);
-
-                constantBuffer = device.CreateConstantBuffer();
-                constantBuffer.Initialize(16);
-            }
-
-            public void Apply(DeviceContext context)
-            {
-                var constatns = new Vector4
-                {
-                    X = BloomIntensity,
-                    Y = BaseIntensity,
-                    Z = BloomSaturation,
-                    W = BaseSaturation
-                };
-
-                constantBuffer.SetData(context, constatns);
-                context.PixelShaderConstantBuffers[0] = constantBuffer;
-                context.PixelShader = pixelShader;
-            }
-        }
-
-        #endregion
-
-        const int MaxSampleCount = 15;
-
         SpriteBatch spriteBatch;
 
-        BloomExtractShader bloomExtractShader;
-
-        BloomCombineShader bloomCombineShader;
+        BloomShader bloomShader;
 
         GaussianBlurShader gaussianBlurShader;
 
@@ -137,12 +60,7 @@ namespace Samples.BloomPostprocess
         {
             spriteBatch = new SpriteBatch(Device.ImmediateContext);
 
-            var compiler = ShaderCompiler.CreateShaderCompiler();
-            compiler.RootPath = "../../Shaders";
-
-            bloomExtractShader = new BloomExtractShader(Device, compiler.CompilePixelShader("BloomExtract.fx"));
-            bloomCombineShader = new BloomCombineShader(Device, compiler.CompilePixelShader("BloomCombine.fx"));
-
+            bloomShader = new BloomShader(Device);
             gaussianBlurShader = new GaussianBlurShader(Device);
 
             var backBuffer = Device.BackBuffer;
@@ -195,35 +113,37 @@ namespace Samples.BloomPostprocess
 
             context.PixelShaderSamplers[0] = SamplerState.LinearClamp;
 
-            bloomExtractShader.BloomThreshold = Settings.BloomThreshold;
+            // ブルーム シェーダの Extract パス。
+            bloomShader.BloomThreshold = Settings.BloomThreshold;
+            bloomShader.Pass = BloomShaderPass.Extract;
+            DrawFullscreenQuad(sceneRenderTarget, renderTarget1, bloomShader.Apply, IntermediateBuffer.PreBloom);
 
-            DrawFullscreenQuad(sceneRenderTarget, renderTarget1, bloomExtractShader.Apply, IntermediateBuffer.PreBloom);
-
-            // ガウス ブラー シェーダへのレンダ ターゲットのサイズの設定。
+            // ガウス ブラー シェーダへのサイズの設定。
             gaussianBlurShader.Width = renderTarget1.Width;
             gaussianBlurShader.Height = renderTarget1.Height;
 
-            // 水平方向のブラー。
+            // ガウス ブラー シェーダ の Horizon パス。
             gaussianBlurShader.Direction = BlurDirection.Horizon;
             DrawFullscreenQuad(renderTarget1, renderTarget2, gaussianBlurShader.Apply, IntermediateBuffer.BlurredHorizontally);
 
-            // 垂直方向のブラー。
+            // ガウス ブラー シェーダ の Vertical パス。
             gaussianBlurShader.Direction = BlurDirection.Vertical;
             DrawFullscreenQuad(renderTarget2, renderTarget1, gaussianBlurShader.Apply, IntermediateBuffer.BlurredBothWays);
 
             context.SetRenderTarget(null);
 
-            bloomCombineShader.BloomIntensity = Settings.BloomIntensity;
-            bloomCombineShader.BaseIntensity = Settings.BaseIntensity;
-            bloomCombineShader.BloomSaturation = Settings.BloomSaturation;
-            bloomCombineShader.BaseSaturation = Settings.BaseSaturation;
-
-            context.PixelShaderResources[1] = sceneRenderTarget.GetShaderResourceView();
+            // ブルーム シェーダの Combine パス。
+            bloomShader.BloomIntensity = Settings.BloomIntensity;
+            bloomShader.BaseIntensity = Settings.BaseIntensity;
+            bloomShader.BloomSaturation = Settings.BloomSaturation;
+            bloomShader.BaseSaturation = Settings.BaseSaturation;
+            bloomShader.BloomTexture = renderTarget1.GetShaderResourceView();
+            bloomShader.BaseTexture = sceneRenderTarget.GetShaderResourceView();
+            bloomShader.Pass = BloomShaderPass.Combine;
 
             var viewport = context.Viewport;
-
             DrawFullscreenQuad(renderTarget1, (int) viewport.Width, (int) viewport.Height,
-                bloomCombineShader.Apply, IntermediateBuffer.FinalResult);
+                bloomShader.Apply, IntermediateBuffer.FinalResult);
         }
 
         void DrawFullscreenQuad(Texture2D texture, RenderTarget renderTarget,

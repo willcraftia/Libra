@@ -14,7 +14,7 @@ sampler BaseSampler : register(s1);
 
 float4 AdjustSaturation(float4 color, float saturation)
 {
-    float grey = dot(color, float3(0.3, 0.59, 0.11));
+    float grey = dot(color, float4(0.3, 0.59, 0.11, 1));
 
     return lerp(grey, color, saturation);
 }

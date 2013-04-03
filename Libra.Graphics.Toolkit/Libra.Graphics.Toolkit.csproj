@@ -79,6 +79,8 @@
   <ItemGroup>
     <None Include="Shaders\BloomCombine.hlsl" />
     <None Include="Shaders\BloomExtract.hlsl" />
+    <None Include="Shaders\Compiled\BloomCombinePS.bin" />
+    <None Include="Shaders\Compiled\BloomExtractPS.bin" />
     <None Include="Shaders\Compiled\GaussianBlurPS.bin" />
     <None Include="Shaders\CompileShaders.cmd" />
     <None Include="Shaders\GaussianBlur.hlsl" />

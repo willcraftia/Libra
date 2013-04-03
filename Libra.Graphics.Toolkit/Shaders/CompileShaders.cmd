@@ -6,6 +6,12 @@ set vs_profile=vs_5_0
 set ps_profile=ps_5_0
 
 ::
+:: Bloom PS
+::
+call :CompileShader BloomExtract PS %ps_profile%
+call :CompileShader BloomCombine PS %ps_profile%
+
+::
 :: GaussianBlur PS
 ::
 call :CompileShader GaussianBlur PS %ps_profile%

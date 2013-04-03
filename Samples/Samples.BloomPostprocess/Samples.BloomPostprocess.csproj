@@ -102,12 +102,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\BloomCombine.fx" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Shaders\BloomExtract.fx" />
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="README.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
