@@ -240,9 +240,6 @@ namespace Libra.Graphics.Toolkit
 
             // ピクセル シェーダの設定。
             context.PixelShader = deviceResources.PixelShader;
-
-            // ステートの設定。
-            context.PixelShaderSamplers[0] = SamplerState.PointClamp;
         }
 
         void SetKernelSize()
