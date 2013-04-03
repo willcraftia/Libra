@@ -47,10 +47,6 @@ namespace Libra.Graphics.SharpDX
 
         DeviceContext immediateContext;
 
-        RenderTarget backBuffer;
-
-        RenderTargetView backBufferView;
-
         public override DeviceProfile Profile
         {
             get { return profile; }
@@ -59,16 +55,6 @@ namespace Libra.Graphics.SharpDX
         public override DeviceContext ImmediateContext
         {
             get { return immediateContext; }
-        }
-
-        public override RenderTarget BackBuffer
-        {
-            get { return backBuffer; }
-        }
-
-        public override RenderTargetView BackBufferView
-        {
-            get { return backBufferView; }
         }
 
         public D3D11Device D3D11Device { get; private set; }
@@ -240,61 +226,6 @@ namespace Libra.Graphics.SharpDX
             if (sampleCount == 1) return 0;
 
             return D3D11Device.CheckMultisampleQualityLevels((DXGIFormat) format, sampleCount);
-        }
-
-        public override void SetSwapChain(SwapChain swapChain)
-        {
-            swapChain.BackBuffersResizing += OnSwapChainBackBuffersResizing;
-            swapChain.BackBuffersResized += OnSwapChainBackBuffersResized;
-
-            InitializeBackBufferRenderTarget(swapChain);
-
-            // バック バッファ レンダ ターゲットの設定。
-            ImmediateContext.SetRenderTarget(null);
-        }
-
-        void OnSwapChainBackBuffersResizing(object sender, EventArgs e)
-        {
-            ReleaseBackBufferRenderTarget();
-        }
-
-        void OnSwapChainBackBuffersResized(object sender, EventArgs e)
-        {
-            InitializeBackBufferRenderTarget(sender as SwapChain);
-        }
-
-        void InitializeBackBufferRenderTarget(SwapChain swapChain)
-        {
-            // バッファ リサイズ時にバッファの破棄が発生するため、
-            // 深度ステンシルを共有している設定は自由に破棄できずに都合が悪い。
-            // よって、共有不可 (RenderTargetUsage.Preserve) でレンダ ターゲットを生成。
-
-            backBuffer = CreateRenderTarget();
-            backBuffer.Name = "BackBuffer_0";
-            backBuffer.DepthFormat = swapChain.DepthStencilFormat;
-            backBuffer.RenderTargetUsage = RenderTargetUsage.Preserve;
-            backBuffer.Initialize(swapChain, 0);
-
-            backBufferView = CreateRenderTargetView();
-            backBufferView.Initialize(BackBuffer);
-
-            OnBackBuffersReset(this, EventArgs.Empty);
-        }
-
-        void ReleaseBackBufferRenderTarget()
-        {
-            OnBackBuffersResetting(this, EventArgs.Empty);
-
-            if (backBuffer != null)
-            {
-                backBuffer.Dispose();
-                backBuffer = null;
-            }
-            if (backBufferView != null)
-            {
-                backBufferView.Dispose();
-                backBufferView = null;
-            }
         }
 
         D3DFeatureLevel[] ToD3DFeatureLevels(DeviceProfile[] profiles)

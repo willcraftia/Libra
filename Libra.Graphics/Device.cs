@@ -35,9 +35,9 @@ namespace Libra.Graphics
 
         public abstract DeviceContext ImmediateContext { get; }
 
-        public abstract RenderTarget BackBuffer { get; }
+        public RenderTarget BackBuffer { get; private set; }
 
-        public abstract RenderTargetView BackBufferView { get; }
+        public RenderTargetView BackBufferView { get; private set; }
 
         protected Device(IAdapter adapter, DeviceSettings settings)
         {
@@ -77,7 +77,16 @@ namespace Libra.Graphics
 
         public abstract int CheckMultisampleQualityLevels(DepthFormat format, int sampleCount);
 
-        public abstract void SetSwapChain(SwapChain swapChain);
+        public void SetSwapChain(SwapChain swapChain)
+        {
+            swapChain.BackBuffersResizing += OnSwapChainBackBuffersResizing;
+            swapChain.BackBuffersResized += OnSwapChainBackBuffersResized;
+
+            InitializeBackBufferRenderTarget(swapChain);
+
+            // バック バッファ レンダ ターゲットの設定。
+            ImmediateContext.SetRenderTarget(null);
+        }
 
         protected virtual void OnBackBuffersResetting(object sender, EventArgs e)
         {
@@ -89,6 +98,51 @@ namespace Libra.Graphics
         {
             if (BackBuffersReset != null)
                 BackBuffersReset(sender, e);
+        }
+
+
+        void OnSwapChainBackBuffersResizing(object sender, EventArgs e)
+        {
+            ReleaseBackBufferRenderTarget();
+        }
+
+        void OnSwapChainBackBuffersResized(object sender, EventArgs e)
+        {
+            InitializeBackBufferRenderTarget(sender as SwapChain);
+        }
+
+        void InitializeBackBufferRenderTarget(SwapChain swapChain)
+        {
+            // バッファ リサイズ時にバッファの破棄が発生するため、
+            // 深度ステンシルを共有している設定は自由に破棄できずに都合が悪い。
+            // よって、共有不可 (RenderTargetUsage.Preserve) でレンダ ターゲットを生成。
+
+            BackBuffer = CreateRenderTarget();
+            BackBuffer.Name = "BackBuffer_0";
+            BackBuffer.DepthFormat = swapChain.DepthStencilFormat;
+            BackBuffer.RenderTargetUsage = RenderTargetUsage.Preserve;
+            BackBuffer.Initialize(swapChain, 0);
+
+            BackBufferView = CreateRenderTargetView();
+            BackBufferView.Initialize(BackBuffer);
+
+            OnBackBuffersReset(this, EventArgs.Empty);
+        }
+
+        void ReleaseBackBufferRenderTarget()
+        {
+            OnBackBuffersResetting(this, EventArgs.Empty);
+
+            if (BackBuffer != null)
+            {
+                BackBuffer.Dispose();
+                BackBuffer = null;
+            }
+            if (BackBufferView != null)
+            {
+                BackBufferView.Dispose();
+                BackBufferView = null;
+            }
         }
 
         #region IDisposable
