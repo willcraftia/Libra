@@ -8,6 +8,13 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
+    /// <summary>
+    /// ガウシアン ブラーを適用するシェーダです。
+    /// </summary>
+    /// <remarks>
+    /// このシェーダは SpriteBatch と共に利用する事を前提としており、
+    /// 頂点シェーダには SpriteBatch の頂点シェーダを用います。
+    /// </remarks>
     public sealed class GaussianBlurShader : IDisposable
     {
         #region DeviceResources
