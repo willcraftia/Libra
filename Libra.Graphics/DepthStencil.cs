@@ -20,6 +20,8 @@ namespace Libra.Graphics
 
         int multisampleQuality;
 
+        DepthStencilView depthStencilView;
+
         public int Width
         {
             get { return width; }
@@ -97,6 +99,16 @@ namespace Libra.Graphics
             InitializeCore();
 
             initialized = true;
+        }
+
+        public DepthStencilView GetDepthStencilView()
+        {
+            if (depthStencilView == null)
+            {
+                depthStencilView = Device.CreateDepthStencilView();
+                depthStencilView.Initialize(this);
+            }
+            return depthStencilView;
         }
 
         protected abstract void InitializeCore();
