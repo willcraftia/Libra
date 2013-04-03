@@ -204,7 +204,7 @@ namespace Libra.Graphics
 
             ShaderStage shaderStage;
 
-            ShaderResourceView[] resources;
+            ShaderResourceView[] views;
 
             int dirtyFlags;
 
@@ -212,13 +212,13 @@ namespace Libra.Graphics
             {
                 get
                 {
-                    if ((uint) resources.Length <= (uint) index) throw new ArgumentOutOfRangeException("index");
+                    if ((uint) views.Length <= (uint) index) throw new ArgumentOutOfRangeException("index");
 
-                    return resources[index];
+                    return views[index];
                 }
                 set
                 {
-                    if ((uint) resources.Length <= (uint) index) throw new ArgumentOutOfRangeException("index");
+                    if ((uint) views.Length <= (uint) index) throw new ArgumentOutOfRangeException("index");
 
                     // D3D の振る舞いとして、
                     // RenderTarget の RenderTargetView が OMSetRenderTargetView に渡された時点で、
@@ -235,23 +235,23 @@ namespace Libra.Graphics
                     // このクラスには D3D 内部では null にされているスロットに ShaderResourceView が残り、
                     // 次回の ShaderResourceView では状態変更無しと判定される可能性があり、
                     // ShaderResourceView が正しく反映されないまま描画が行われる問題が発生する。
-                    if (resources[index] == value)
+                    if (views[index] == value)
                         return;
 
-                    if (resources[index] != null)
+                    if (views[index] != null)
                     {
-                        var renderTarget = resources[index].Resource as RenderTarget;
+                        var renderTarget = views[index].Resource as RenderTarget;
                         if (renderTarget != null)
                         {
                             renderTarget.BindingToOutputMerger -= OnRenderTargetBindingToOutputMerger;
                         }
                     }
 
-                    resources[index] = value;
+                    views[index] = value;
 
-                    if (resources[index] != null)
+                    if (views[index] != null)
                     {
-                        var renderTarget = resources[index].Resource as RenderTarget;
+                        var renderTarget = views[index].Resource as RenderTarget;
                         if (renderTarget != null)
                         {
                             renderTarget.BindingToOutputMerger += OnRenderTargetBindingToOutputMerger;
@@ -266,12 +266,14 @@ namespace Libra.Graphics
             {
                 var renderTarget = sender as RenderTarget;
 
-                for (int i = 0; i < resources.Length; i++)
+                for (int i = 0; i < views.Length; i++)
                 {
-                    if (resources[i].Resource == renderTarget)
+                    var view = views[i];
+
+                    if (view != null && view.Resource == renderTarget)
                     {
                         renderTarget.BindingToOutputMerger -= OnRenderTargetBindingToOutputMerger;
-                        resources[i] = null;
+                        views[i] = null;
 
                         dirtyFlags |= 1 << i;
 
@@ -285,7 +287,7 @@ namespace Libra.Graphics
                 this.context = context;
                 this.shaderStage = shaderStage;
 
-                resources = new ShaderResourceView[Count];
+                views = new ShaderResourceView[Count];
             }
 
             internal void Apply()
@@ -293,12 +295,12 @@ namespace Libra.Graphics
                 if (dirtyFlags == 0)
                     return;
 
-                for (int i = 0; i < resources.Length; i++)
+                for (int i = 0; i < views.Length; i++)
                 {
                     int flag = 1 << i;
                     if ((dirtyFlags & flag) != 0)
                     {
-                        context.SetShaderResourceCore(shaderStage, i, resources[i]);
+                        context.SetShaderResourceCore(shaderStage, i, views[i]);
 
                         dirtyFlags &= ~flag;
                     }

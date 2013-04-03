@@ -320,20 +320,6 @@ namespace Samples.ShadowMapping
                     context.DrawIndexed(meshPart.IndexCount, meshPart.StartIndexLocation, meshPart.BaseVertexLocation);
                 }
             }
-
-            if (!createShadowMap)
-            {
-                // レンダ ターゲットの場合、明示的に参照を外す必要がある。
-                // レンダ ターゲットの Texture2D を、RenderTargetView と ShaderResourceView の
-                // 両方で同時に参照された状態となる時、
-                // 入力側 (ShaderResourceView) には 0 で埋められたテクスチャが強制的に設定される。
-                //
-                // 恐らく、ここでレンダ ターゲットの ShaderResourceView を外さなかった場合、
-                // 次の描画で深度マップを描画する際に RenderTargetView として設定するが、
-                // シェーダ ステージには ShaderResourceView として残っているため、
-                // そのタイミングで ShaderResourceView が強制リセットされるのではないか、と。
-                context.PixelShaderResources[1] = null;
-            }
         }
 
         void DrawShadowMapToScreen()
