@@ -19,7 +19,7 @@ namespace Samples.ShadowMapping
 
         sealed class DrawModelShader
         {
-            public struct DrawModelShaderConstants
+            struct Constants
             {
                 public Matrix World;
 
@@ -36,48 +36,76 @@ namespace Samples.ShadowMapping
                 public Vector4 AmbientColor;
             }
 
-            public DrawModelShaderConstants Constants;
-            
-            public VertexShader VertexShader { get; private set; }
+            public Matrix World;
 
-            public PixelShader StandardPixelShader { get; private set; }
+            public Matrix View;
 
-            public PixelShader VariancePixelShader { get; private set; }
+            public Matrix Projection;
 
-            public ConstantBuffer ConstantBuffer { get; private set; }
+            public Matrix LightViewProjection;
+
+            public Vector3 LightDirection;
+
+            public float DepthBias;
+
+            public Vector4 AmbientColor;
+
+            Constants constants;
+
+            VertexShader vertexShader;
+
+            PixelShader basicPixelShader;
+
+            PixelShader variancePixelShader;
+
+            ConstantBuffer constantBuffer;
 
             public ShadowMapEffectForm ShadowMapEffectForm { get; set; }
 
-            public DrawModelShader(Device device, ShaderCompiler compiler)
+            public DrawModelShader(Device device)
             {
-                VertexShader = device.CreateVertexShader();
-                VertexShader.Initialize(compiler.CompileVertexShader("DrawModel.fx"));
+                var compiler = ShaderCompiler.CreateShaderCompiler();
+                compiler.RootPath = "../../Shaders";
+                compiler.OptimizationLevel = OptimizationLevels.Level3;
+                compiler.EnableStrictness = true;
+                compiler.WarningsAreErrors = true;
 
-                StandardPixelShader = device.CreatePixelShader();
-                StandardPixelShader.Initialize(compiler.CompilePixelShader("DrawModel.fx", "BasicPS"));
+                vertexShader = device.CreateVertexShader();
+                vertexShader.Initialize(compiler.CompileVertexShader("DrawModel.fx"));
 
-                VariancePixelShader = device.CreatePixelShader();
-                VariancePixelShader.Initialize(compiler.CompilePixelShader("DrawModel.fx", "VariancePS"));
+                basicPixelShader = device.CreatePixelShader();
+                basicPixelShader.Initialize(compiler.CompilePixelShader("DrawModel.fx", "BasicPS"));
 
-                ConstantBuffer = device.CreateConstantBuffer();
-                ConstantBuffer.Usage = ResourceUsage.Dynamic;
-                ConstantBuffer.Initialize<DrawModelShaderConstants>();
+                variancePixelShader = device.CreatePixelShader();
+                variancePixelShader.Initialize(compiler.CompilePixelShader("DrawModel.fx", "VariancePS"));
+
+                constantBuffer = device.CreateConstantBuffer();
+                constantBuffer.Usage = ResourceUsage.Dynamic;
+                constantBuffer.Initialize<Constants>();
             }
 
             public void Apply(DeviceContext context)
             {
-                ConstantBuffer.SetData(context, Constants);
+                Matrix.Transpose(ref World, out constants.World);
+                Matrix.Transpose(ref View, out constants.View);
+                Matrix.Transpose(ref Projection, out constants.Projection);
+                Matrix.Transpose(ref LightViewProjection, out constants.LightViewProjection);
+                constants.LightDirection = LightDirection;
+                constants.DepthBias = DepthBias;
+                constants.AmbientColor = AmbientColor;
 
-                context.VertexShaderConstantBuffers[0] = ConstantBuffer;
-                context.PixelShaderConstantBuffers[0] = ConstantBuffer;
-                context.VertexShader = VertexShader;
+                constantBuffer.SetData(context, constants);
+
+                context.VertexShaderConstantBuffers[0] = constantBuffer;
+                context.PixelShaderConstantBuffers[0] = constantBuffer;
+                context.VertexShader = vertexShader;
                 if (ShadowMapEffectForm == ShadowMapEffectForm.Variance)
                 {
-                    context.PixelShader = VariancePixelShader;
+                    context.PixelShader = variancePixelShader;
                 }
                 else
                 {
-                    context.PixelShader = StandardPixelShader;
+                    context.PixelShader = basicPixelShader;
                 }
             }
         }
@@ -159,14 +187,8 @@ namespace Samples.ShadowMapping
 
         protected override void LoadContent()
         {
-            var compiler = ShaderCompiler.CreateShaderCompiler();
-            compiler.RootPath = "../../Shaders/";
-            compiler.EnableStrictness = true;
-            compiler.OptimizationLevel = OptimizationLevels.Level3;
-            compiler.WarningsAreErrors = true;
-
             shadowMapEffect = new ShadowMapEffect(Device);
-            drawModelShader = new DrawModelShader(Device, compiler);
+            drawModelShader = new DrawModelShader(Device);
 
             spriteBatch = new SpriteBatch(Device.ImmediateContext);
             spriteFont = content.Load<SpriteFont>("hudFont");
@@ -309,13 +331,13 @@ namespace Samples.ShadowMapping
             }
             else
             {
-                Matrix.Transpose(ref world, out drawModelShader.Constants.World);
-                Matrix.Transpose(ref view, out drawModelShader.Constants.View);
-                Matrix.Transpose(ref projection, out drawModelShader.Constants.Projection);
-                Matrix.Transpose(ref lightViewProjection, out drawModelShader.Constants.LightViewProjection);
-                drawModelShader.Constants.LightDirection = lightDir;
-                drawModelShader.Constants.DepthBias = 0.001f;
-                drawModelShader.Constants.AmbientColor = new Vector4(0.15f, 0.15f, 0.15f, 1.0f);
+                drawModelShader.World = world;
+                drawModelShader.View = view;
+                drawModelShader.Projection = projection;
+                drawModelShader.LightViewProjection = lightViewProjection;
+                drawModelShader.LightDirection = lightDir;
+                drawModelShader.DepthBias = 0.001f;
+                drawModelShader.AmbientColor = new Vector4(0.15f, 0.15f, 0.15f, 1.0f);
                 drawModelShader.ShadowMapEffectForm = shadowMapEffectForm;
                 drawModelShader.Apply(context);
 
