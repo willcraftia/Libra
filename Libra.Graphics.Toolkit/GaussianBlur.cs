@@ -16,6 +16,14 @@ namespace Libra.Graphics.Toolkit
 
         SpriteBatch spriteBatch;
 
+        BlendState previousBlendState;
+
+        SamplerState previousSamplerState;
+
+        DepthStencilState previousDepthStencilState;
+
+        RasterizerState previousRasterizerState;
+
         public int Width { get; private set; }
 
         public int Height { get; private set; }
@@ -59,6 +67,11 @@ namespace Libra.Graphics.Toolkit
 
         public void Filter(ShaderResourceView source, RenderTargetView destination)
         {
+            previousBlendState = context.BlendState;
+            previousSamplerState = context.PixelShaderSamplers[0];
+            previousDepthStencilState = context.DepthStencilState;
+            previousRasterizerState = context.RasterizerState;
+
             Filter(source, backingRenderTarget.GetRenderTargetView(), GaussianBlurEffectPass.Horizon);
             Filter(backingRenderTarget.GetShaderResourceView(), destination, GaussianBlurEffectPass.Vertical);
 
@@ -74,6 +87,14 @@ namespace Libra.Graphics.Toolkit
             spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Opaque, null, null, null, shader.Apply);
             spriteBatch.Draw(source, destination.RenderTarget.Bounds, Color.White);
             spriteBatch.End();
+
+            // SpriteBatch を暗黙的に利用していることから、
+            // SpriteBatch によるステート変更を忘れがちになる。
+            // このため、SpriteBatch によるステート変更前の状態へ戻す。
+            context.BlendState = previousBlendState;
+            context.PixelShaderSamplers[0] = previousSamplerState;
+            context.DepthStencilState = previousDepthStencilState;
+            context.RasterizerState = previousRasterizerState;
         }
 
         #region IDisposable
