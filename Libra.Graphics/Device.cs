@@ -27,6 +27,8 @@ namespace Libra.Graphics
 
         public event EventHandler BackBuffersReset;
 
+        Dictionary<Type, WeakReference> sharedResourceMap;
+
         public Adapter Adapter { get; private set; }
 
         public DeviceSettings Settings { get; private set; }
@@ -43,6 +45,68 @@ namespace Libra.Graphics
         {
             Adapter = adapter;
             Settings = settings;
+
+            sharedResourceMap = new Dictionary<Type, WeakReference>();
+        }
+
+        public TSharedResource GetSharedResource<TKey, TSharedResource>() where TSharedResource : class
+        {
+            return GetSharedResource(typeof(TKey), typeof(TSharedResource)) as TSharedResource;
+        }
+
+        /// <summary>
+        /// デバイス単位で共有するリソースを共有リソース キャッシュより取得します。
+        /// 共有リソース キャッシュに指定のリソースが存在しない場合には、
+        /// 新たに生成するインスタンスをキャッシュに追加してから返却します。
+        /// 
+        /// キャッシュする共有リソースのクラスは、
+        /// Device を引数とする公開コンストラクタを定義しなければなりません。
+        /// 
+        /// 共有リソースの利用側クラスは、このメソッドにより取得した共有リソースへの参照を
+        /// インスタンス フィールドで保持する必要があります。
+        /// これは、デバイスは共有リソースを弱参照でキャッシュしているためです。
+        /// 
+        /// 共有リソースを弱参照で管理しているため、
+        /// どのインスタンスからも参照されなくなった共有リソースはデバイスから自動的に削除されます。
+        /// </summary>
+        /// <remarks>
+        /// 共有リソースは、主に一連のグラフィックス パイプライン処理を纏めたクラスで利用します。
+        /// そのようなクラスで利用する頂点シェーダやピクセル シェーダはデバイスに一つだけ存在すれば良く、
+        /// また、デバイス コンテキスト単位で動的に状態を変更する事がないため、共有リソースの対象となります。
+        /// 一方、デバイス コンテキストで動的な変更を伴うリソースは、共有リソースの対象ではありません。
+        /// 例えば、Usage が Immutable の定数バッファは共有リソースの候補ですが、
+        /// Default や Dynamic の定数バッファは共有リソースとすべきではありません。
+        /// </remarks>
+        /// <param name="key"></param>
+        /// <param name="sharedResourceType"></param>
+        /// <returns></returns>
+        public object GetSharedResource(Type key, Type sharedResourceType)
+        {
+            if (key == null) throw new ArgumentNullException("key");
+            if (sharedResourceType == null) throw new ArgumentNullException("sharedResourceType");
+
+            lock (sharedResourceMap)
+            {
+                object sharedResource = null;
+                WeakReference reference;
+                if (sharedResourceMap.TryGetValue(key, out reference))
+                {
+                    sharedResource = reference.Target;
+                }
+                else
+                {
+                    reference = new WeakReference(null);
+                    sharedResourceMap[key] = reference;
+                }
+
+                if (sharedResource == null)
+                {
+                    sharedResource = Activator.CreateInstance(sharedResourceType, this);
+                    reference.Target = sharedResource;
+                }
+
+                return sharedResource;
+            }
         }
 
         public abstract DeviceContext CreateDeferredContext();

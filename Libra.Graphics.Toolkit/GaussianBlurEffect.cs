@@ -17,19 +17,16 @@ namespace Libra.Graphics.Toolkit
     /// </remarks>
     public sealed class GaussianBlurEffect : IDisposable
     {
-        #region DeviceResources
+        #region SharedDeviceResource
 
-        sealed class DeviceResources
+        sealed class SharedDeviceResource : SharedDeviceResourceBase
         {
-            Device device;
-
             public PixelShader PixelShader { get; private set; }
 
-            internal DeviceResources(Device device)
+            public SharedDeviceResource(Device device)
+                : base(device)
             {
-                this.device = device;
-
-                PixelShader = device.CreatePixelShader();
+                PixelShader = Device.CreatePixelShader();
                 PixelShader.Initialize(Resources.GaussianBlurPS);
             }
         }
@@ -85,11 +82,9 @@ namespace Libra.Graphics.Toolkit
 
         public const float DefaultAmount = 2.0f;
 
-        static readonly SharedResourcePool<Device, DeviceResources> DeviceResourcesPool;
-
         Device device;
 
-        DeviceResources deviceResources;
+        SharedDeviceResource sharedDeviceResource;
 
         Constants constants;
 
@@ -175,19 +170,13 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        static GaussianBlurEffect()
-        {
-            DeviceResourcesPool = new SharedResourcePool<Device, DeviceResources>(
-                (device) => { return new DeviceResources(device); });
-        }
-
         public GaussianBlurEffect(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 
             this.device = device;
 
-            deviceResources = DeviceResourcesPool.Get(device);
+            sharedDeviceResource = device.GetSharedResource<GaussianBlurEffect, SharedDeviceResource>();
 
             horizontalConstantBuffer = device.CreateConstantBuffer();
             horizontalConstantBuffer.Initialize<Constants>();
@@ -239,7 +228,7 @@ namespace Libra.Graphics.Toolkit
             }
 
             // ピクセル シェーダの設定。
-            context.PixelShader = deviceResources.PixelShader;
+            context.PixelShader = sharedDeviceResource.PixelShader;
         }
 
         void SetKernelSize()
@@ -343,7 +332,7 @@ namespace Libra.Graphics.Toolkit
 
             if (disposing)
             {
-                deviceResources = null;
+                sharedDeviceResource = null;
                 horizontalConstantBuffer.Dispose();
                 verticalConstantBufffer.Dispose();
             }

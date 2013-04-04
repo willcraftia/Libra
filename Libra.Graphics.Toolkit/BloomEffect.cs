@@ -9,35 +9,30 @@ namespace Libra.Graphics.Toolkit
 {
     public sealed class BloomEffect : IEffect
     {
-        #region DeviceResources
+        #region SharedDeviceResource
 
-        sealed class DeviceResources
+        sealed class SharedDeviceResource : SharedDeviceResourceBase
         {
-            Device device;
-
             public PixelShader ExtractPixelShader { get; private set; }
 
             public PixelShader CombinePixelShader { get; private set; }
 
-            internal DeviceResources(Device device)
+            public SharedDeviceResource(Device device)
+                : base(device)
             {
-                this.device = device;
-
-                ExtractPixelShader = device.CreatePixelShader();
+                ExtractPixelShader = Device.CreatePixelShader();
                 ExtractPixelShader.Initialize(Resources.BloomExtractPS);
 
-                CombinePixelShader = device.CreatePixelShader();
+                CombinePixelShader = Device.CreatePixelShader();
                 CombinePixelShader.Initialize(Resources.BloomCombinePS);
             }
         }
 
         #endregion
 
-        static readonly SharedResourcePool<Device, DeviceResources> DeviceResourcesPool;
-
         Device device;
 
-        DeviceResources deviceResources;
+        SharedDeviceResource sharedDeviceResource;
 
         ConstantBuffer extractConstantBuffer;
 
@@ -128,19 +123,13 @@ namespace Libra.Graphics.Toolkit
 
         public BloomEffectPass Pass { get; set; }
 
-        static BloomEffect()
-        {
-            DeviceResourcesPool = new SharedResourcePool<Device, DeviceResources>(
-                (device) => { return new DeviceResources(device); });
-        }
-
         public BloomEffect(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 
             this.device = device;
 
-            deviceResources = DeviceResourcesPool.Get(device);
+            sharedDeviceResource = device.GetSharedResource<BloomEffect, SharedDeviceResource>();
 
             extractConstantBuffer = device.CreateConstantBuffer();
             extractConstantBuffer.Initialize(16);
@@ -178,7 +167,7 @@ namespace Libra.Graphics.Toolkit
             }
 
             context.PixelShaderConstantBuffers[0] = extractConstantBuffer;
-            context.PixelShader = deviceResources.ExtractPixelShader;
+            context.PixelShader = sharedDeviceResource.ExtractPixelShader;
         }
 
         void ApplyCombinePass(DeviceContext context)
@@ -192,7 +181,7 @@ namespace Libra.Graphics.Toolkit
             }
 
             context.PixelShaderConstantBuffers[0] = combineConstantBuffer;
-            context.PixelShader = deviceResources.CombinePixelShader;
+            context.PixelShader = sharedDeviceResource.CombinePixelShader;
 
             context.PixelShaderResources[0] = BloomTexture;
             context.PixelShaderResources[1] = BaseTexture;

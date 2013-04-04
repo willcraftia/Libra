@@ -9,24 +9,21 @@ namespace Libra.Graphics.Toolkit
 {
     public sealed class StandardShadowMapEffect : IDisposable
     {
-        #region DeviceResources
+        #region SharedDeviceResource
 
-        sealed class DeviceResources
+        sealed class SharedDeviceResource : SharedDeviceResourceBase
         {
-            Device device;
-
             public VertexShader VertexShader { get; private set; }
 
             public PixelShader PixelShader { get; private set; }
 
-            internal DeviceResources(Device device)
+            public SharedDeviceResource(Device device)
+                : base(device)
             {
-                this.device = device;
-
-                VertexShader = device.CreateVertexShader();
+                VertexShader = Device.CreateVertexShader();
                 VertexShader.Initialize(Resources.StandardShadowMapVS);
 
-                PixelShader = device.CreatePixelShader();
+                PixelShader = Device.CreatePixelShader();
                 PixelShader.Initialize(Resources.StandardShadowMapPS);
             }
         }
@@ -56,11 +53,9 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        static readonly SharedResourcePool<Device, DeviceResources> DeviceResourcesPool;
-
         Device device;
 
-        DeviceResources deviceResources;
+        SharedDeviceResource sharedDeviceResource;
 
         ConstantBuffer constantBuffer;
 
@@ -98,19 +93,13 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        static StandardShadowMapEffect()
-        {
-            DeviceResourcesPool = new SharedResourcePool<Device, DeviceResources>(
-                (device) => { return new DeviceResources(device); });
-        }
-
         public StandardShadowMapEffect(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 
             this.device = device;
 
-            deviceResources = DeviceResourcesPool.Get(device);
+            sharedDeviceResource = device.GetSharedResource<StandardShadowMapEffect, SharedDeviceResource>();
 
             constantBuffer = device.CreateConstantBuffer();
             constantBuffer.Initialize<Constants>();
@@ -147,8 +136,8 @@ namespace Libra.Graphics.Toolkit
             }
 
             context.VertexShaderConstantBuffers[0] = constantBuffer;
-            context.VertexShader = deviceResources.VertexShader;
-            context.PixelShader = deviceResources.PixelShader;
+            context.VertexShader = sharedDeviceResource.VertexShader;
+            context.PixelShader = sharedDeviceResource.PixelShader;
         }
 
         #region IDisposable
@@ -172,7 +161,7 @@ namespace Libra.Graphics.Toolkit
 
             if (disposing)
             {
-                deviceResources = null;
+                sharedDeviceResource = null;
                 constantBuffer.Dispose();
             }
 
