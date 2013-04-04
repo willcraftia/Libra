@@ -17,10 +17,11 @@ call :CompileShader BloomCombine PS %ps_profile%
 call :CompileShader GaussianBlur PS %ps_profile%
 
 ::
-:: StandardShadowMap VS/PS
+:: ShadowMap VS/PS
 ::
-call :CompileShader StandardShadowMap VS %vs_profile%
-call :CompileShader StandardShadowMap PS %ps_profile%
+call :CompileShader ShadowMap VS %vs_profile%
+call :CompileShader ShadowMap BasicPS %ps_profile%
+call :CompileShader ShadowMap VariancePS %ps_profile%
 
 echo.
 

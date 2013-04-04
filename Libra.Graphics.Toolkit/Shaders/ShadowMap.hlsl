@@ -20,8 +20,14 @@ VSOutput VS(float4 position : SV_Position)
     return output;
 }
 
-float4 PS(VSOutput input) : SV_Target0
+float4 BasicPS(VSOutput input) : SV_Target0
 {
     float depth = input.PositionWVP.z / input.PositionWVP.w;
     return float4(depth, 0, 0, 0);
+}
+
+float4 VariancePS(VSOutput input) : SV_Target0
+{
+    float depth = input.PositionWVP.z / input.PositionWVP.w;
+    return float4(depth, depth * depth, 0, 0);
 }

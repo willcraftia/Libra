@@ -7,7 +7,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class StandardShadowMapEffect : IDisposable
+    public sealed class ShadowMapEffect : IDisposable
     {
         #region SharedDeviceResource
 
@@ -15,16 +15,21 @@ namespace Libra.Graphics.Toolkit
         {
             public VertexShader VertexShader { get; private set; }
 
-            public PixelShader PixelShader { get; private set; }
+            public PixelShader BasicPixelShader { get; private set; }
+
+            public PixelShader VariancePixelShader { get; private set; }
 
             public SharedDeviceResource(Device device)
                 : base(device)
             {
                 VertexShader = Device.CreateVertexShader();
-                VertexShader.Initialize(Resources.StandardShadowMapVS);
+                VertexShader.Initialize(Resources.ShadowMapVS);
 
-                PixelShader = Device.CreatePixelShader();
-                PixelShader.Initialize(Resources.StandardShadowMapPS);
+                BasicPixelShader = Device.CreatePixelShader();
+                BasicPixelShader.Initialize(Resources.ShadowMapBasicPS);
+
+                VariancePixelShader = Device.CreatePixelShader();
+                VariancePixelShader.Initialize(Resources.ShadowMapVariancePS);
             }
         }
 
@@ -93,19 +98,23 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        public StandardShadowMapEffect(Device device)
+        public ShadowMapEffectForm Form { get; set; }
+
+        public ShadowMapEffect(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 
             this.device = device;
 
-            sharedDeviceResource = device.GetSharedResource<StandardShadowMapEffect, SharedDeviceResource>();
+            sharedDeviceResource = device.GetSharedResource<ShadowMapEffect, SharedDeviceResource>();
 
             constantBuffer = device.CreateConstantBuffer();
             constantBuffer.Initialize<Constants>();
 
             world = Matrix.Identity;
             lightViewProjection = Matrix.Identity;
+
+            Form = ShadowMapEffectForm.Basic;
 
             dirtyFlags = DirtyFlags.World | DirtyFlags.LightViewProjection;
         }
@@ -137,14 +146,22 @@ namespace Libra.Graphics.Toolkit
 
             context.VertexShaderConstantBuffers[0] = constantBuffer;
             context.VertexShader = sharedDeviceResource.VertexShader;
-            context.PixelShader = sharedDeviceResource.PixelShader;
+
+            if (Form == ShadowMapEffectForm.Variance)
+            {
+                context.PixelShader = sharedDeviceResource.VariancePixelShader;
+            }
+            else
+            {
+                context.PixelShader = sharedDeviceResource.BasicPixelShader;
+            }
         }
 
         #region IDisposable
 
         bool disposed;
 
-        ~StandardShadowMapEffect()
+        ~ShadowMapEffect()
         {
             Dispose(false);
         }

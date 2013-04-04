@@ -81,16 +81,23 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
-        internal static byte[] StandardShadowMapPS {
+        internal static byte[] ShadowMapBasicPS {
             get {
-                object obj = ResourceManager.GetObject("StandardShadowMapPS", resourceCulture);
+                object obj = ResourceManager.GetObject("ShadowMapBasicPS", resourceCulture);
                 return ((byte[])(obj));
             }
         }
         
-        internal static byte[] StandardShadowMapVS {
+        internal static byte[] ShadowMapVariancePS {
             get {
-                object obj = ResourceManager.GetObject("StandardShadowMapVS", resourceCulture);
+                object obj = ResourceManager.GetObject("ShadowMapVariancePS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] ShadowMapVS {
+            get {
+                object obj = ResourceManager.GetObject("ShadowMapVS", resourceCulture);
                 return ((byte[])(obj));
             }
         }
