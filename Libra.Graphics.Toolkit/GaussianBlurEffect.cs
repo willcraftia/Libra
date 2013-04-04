@@ -259,8 +259,10 @@ namespace Libra.Graphics.Toolkit
                     int left = baseIndex + 1;
                     int right = baseIndex + 2;
 
-                    var offsetX = i * dx;
-                    var offsetY = i * dy;
+                    // XNA BloomPostprocess サンプルに従ってオフセットを決定。
+                    float sampleOffset = i * 2 + 1.5f;
+                    var offsetX = dx * sampleOffset;
+                    var offsetY = dy * sampleOffset;
 
                     horizontalKernels[left].Offset.X = -offsetX;
                     horizontalKernels[right].Offset.X = offsetX;
