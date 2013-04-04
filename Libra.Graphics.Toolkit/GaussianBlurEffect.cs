@@ -119,7 +119,7 @@ namespace Libra.Graphics.Toolkit
 
                 radius = value;
 
-                dirtyFlags |= DirtyFlags.KernelSize;
+                dirtyFlags |= DirtyFlags.KernelSize | DirtyFlags.KernelWeights;
             }
         }
 
@@ -279,7 +279,7 @@ namespace Libra.Graphics.Toolkit
             if ((dirtyFlags & DirtyFlags.KernelWeights) != 0)
             {
                 var totalWeight = 0.0f;
-                var sigma = amount;
+                var sigma = (float) radius / amount;
 
                 horizontalKernels[0].Weight = MathHelper.CalculateGaussian(sigma, 0);
                 totalWeight += horizontalKernels[0].Weight;
