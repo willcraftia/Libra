@@ -76,8 +76,6 @@ namespace Libra.Graphics.Toolkit
 
         public const int MaxKernelSize = MaxRadius * 2 + 1;
 
-        public const float MinAmount = 0.001f;
-
         public const int DefaultRadius = 7;
 
         public const float DefaultAmount = 2.0f;
@@ -130,7 +128,7 @@ namespace Libra.Graphics.Toolkit
             get { return amount; }
             set
             {
-                if (value < MinAmount) throw new ArgumentOutOfRangeException("value");
+                if (value < float.Epsilon) throw new ArgumentOutOfRangeException("value");
 
                 if (amount == value) return;
 
