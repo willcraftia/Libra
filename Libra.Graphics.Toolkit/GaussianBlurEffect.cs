@@ -237,7 +237,7 @@ namespace Libra.Graphics.Toolkit
                 constants.KernelSize = kernelSize;
 
                 dirtyFlags &= ~DirtyFlags.KernelSize;
-                dirtyFlags |= DirtyFlags.Constants;
+                dirtyFlags |= DirtyFlags.KernelOffsets | DirtyFlags.KernelWeights | DirtyFlags.Constants;
             }
         }
 
@@ -262,11 +262,11 @@ namespace Libra.Graphics.Toolkit
                     var offsetX = dx * sampleOffset;
                     var offsetY = dy * sampleOffset;
 
-                    horizontalKernels[left].Offset.X = -offsetX;
-                    horizontalKernels[right].Offset.X = offsetX;
+                    horizontalKernels[left].Offset.X = offsetX;
+                    horizontalKernels[right].Offset.X = -offsetX;
 
-                    verticalKernels[left].Offset.Y = -offsetY;
-                    verticalKernels[right].Offset.Y = offsetY;
+                    verticalKernels[left].Offset.Y = offsetY;
+                    verticalKernels[right].Offset.Y = -offsetY;
                 }
 
                 dirtyFlags &= ~DirtyFlags.KernelOffsets;
@@ -279,9 +279,10 @@ namespace Libra.Graphics.Toolkit
             if ((dirtyFlags & DirtyFlags.KernelWeights) != 0)
             {
                 var totalWeight = 0.0f;
-                var sigma = (float) radius / amount;
+                var sigma = amount;
 
                 horizontalKernels[0].Weight = MathHelper.CalculateGaussian(sigma, 0);
+                totalWeight += horizontalKernels[0].Weight;
 
                 for (int i = 0; i < kernelSize / 2; i++)
                 {
@@ -300,10 +301,11 @@ namespace Libra.Graphics.Toolkit
                 }
 
                 // Normalize
+                float inverseTotalWeights = 1.0f / totalWeight;
                 for (int i = 0; i < kernelSize; i++)
                 {
-                    horizontalKernels[i].Weight /= totalWeight;
-                    verticalKernels[i].Weight /= totalWeight;
+                    horizontalKernels[i].Weight *= inverseTotalWeights;
+                    verticalKernels[i].Weight *= inverseTotalWeights;
                 }
 
                 dirtyFlags &= ~DirtyFlags.KernelWeights;
