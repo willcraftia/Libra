@@ -40,17 +40,24 @@ namespace Samples.ShadowMapping
             
             public VertexShader VertexShader { get; private set; }
 
-            public PixelShader PixelShader { get; private set; }
+            public PixelShader StandardPixelShader { get; private set; }
+
+            public PixelShader VariancePixelShader { get; private set; }
 
             public ConstantBuffer ConstantBuffer { get; private set; }
+
+            public ShadowMapEffectForm ShadowMapEffectForm { get; set; }
 
             public DrawModelShader(Device device, ShaderCompiler compiler)
             {
                 VertexShader = device.CreateVertexShader();
                 VertexShader.Initialize(compiler.CompileVertexShader("DrawModel.fx"));
 
-                PixelShader = device.CreatePixelShader();
-                PixelShader.Initialize(compiler.CompilePixelShader("DrawModel.fx"));
+                StandardPixelShader = device.CreatePixelShader();
+                StandardPixelShader.Initialize(compiler.CompilePixelShader("DrawModel.fx", "BasicPS"));
+
+                VariancePixelShader = device.CreatePixelShader();
+                VariancePixelShader.Initialize(compiler.CompilePixelShader("DrawModel.fx", "VariancePS"));
 
                 ConstantBuffer = device.CreateConstantBuffer();
                 ConstantBuffer.Usage = ResourceUsage.Dynamic;
@@ -64,7 +71,14 @@ namespace Samples.ShadowMapping
                 context.VertexShaderConstantBuffers[0] = ConstantBuffer;
                 context.PixelShaderConstantBuffers[0] = ConstantBuffer;
                 context.VertexShader = VertexShader;
-                context.PixelShader = PixelShader;
+                if (ShadowMapEffectForm == ShadowMapEffectForm.Variance)
+                {
+                    context.PixelShader = VariancePixelShader;
+                }
+                else
+                {
+                    context.PixelShader = StandardPixelShader;
+                }
             }
         }
 
@@ -82,6 +96,8 @@ namespace Samples.ShadowMapping
 
         SpriteBatch spriteBatch;
 
+        SpriteFont spriteFont;
+
         Vector3 cameraPosition = new Vector3(0, 70, 100);
         
         Vector3 cameraForward = new Vector3(0, -0.4472136f, -0.8944272f);
@@ -90,11 +106,15 @@ namespace Samples.ShadowMapping
  
         Vector3 lightDir = new Vector3(-0.3333333f, 0.6666667f, 0.6666667f);
 
+        KeyboardState lastKeyboardState = new KeyboardState();
+
+        JoystickState lastJoystickState = new JoystickState();
+
         KeyboardState currentKeyboardState;
         
         JoystickState currentJoystickState;
 
-        StandardShadowMapEffect standardShadowMapEffect;
+        ShadowMapEffect shadowMapEffect;
 
         DrawModelShader drawModelShader;
 
@@ -104,7 +124,11 @@ namespace Samples.ShadowMapping
 
         float rotateDude = 0.0f;
 
-        RenderTarget shadowRenderTarget;
+        RenderTarget bsmRenderTarget;
+
+        RenderTarget vsmRenderTarget;
+
+        RenderTarget currentShadowRenderTarget;
 
         Matrix world;
         
@@ -113,6 +137,10 @@ namespace Samples.ShadowMapping
         Matrix projection;
 
         Matrix lightViewProjection;
+
+        GaussianBlur gaussianBlur;
+
+        ShadowMapEffectForm shadowMapEffectForm;
 
         public MainGame()
         {
@@ -125,6 +153,8 @@ namespace Samples.ShadowMapping
 
             var aspectRatio = (float) windowWidth / (float) windowHeight;
             projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspectRatio,  1.0f, 1000.0f);
+
+            shadowMapEffectForm = ShadowMapEffectForm.Variance;
         }
 
         protected override void LoadContent()
@@ -135,21 +165,33 @@ namespace Samples.ShadowMapping
             compiler.OptimizationLevel = OptimizationLevels.Level3;
             compiler.WarningsAreErrors = true;
 
-            standardShadowMapEffect = new StandardShadowMapEffect(Device);
+            shadowMapEffect = new ShadowMapEffect(Device);
             drawModelShader = new DrawModelShader(Device, compiler);
 
             spriteBatch = new SpriteBatch(Device.ImmediateContext);
+            spriteFont = content.Load<SpriteFont>("hudFont");
 
             gridModel = content.Load<Model>("grid");
             dudeModel = content.Load<Model>("dude");
 
-            shadowRenderTarget = Device.CreateRenderTarget();
-            shadowRenderTarget.Width = shadowMapWidthHeight;
-            shadowRenderTarget.Height = shadowMapWidthHeight;
-            shadowRenderTarget.MipLevels = 1;
-            shadowRenderTarget.Format = SurfaceFormat.Single;
-            shadowRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
-            shadowRenderTarget.Initialize();
+            bsmRenderTarget = Device.CreateRenderTarget();
+            bsmRenderTarget.Width = shadowMapWidthHeight;
+            bsmRenderTarget.Height = shadowMapWidthHeight;
+            bsmRenderTarget.Format = SurfaceFormat.Single;
+            bsmRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
+            bsmRenderTarget.Initialize();
+
+            vsmRenderTarget = Device.CreateRenderTarget();
+            vsmRenderTarget.Width = shadowMapWidthHeight;
+            vsmRenderTarget.Height = shadowMapWidthHeight;
+            vsmRenderTarget.Format = SurfaceFormat.Vector2;
+            vsmRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
+            vsmRenderTarget.Initialize();
+
+            gaussianBlur = new GaussianBlur(Device.ImmediateContext, vsmRenderTarget.Width, vsmRenderTarget.Height, SurfaceFormat.Vector2);
+            gaussianBlur.Radius = 2;
+            gaussianBlur.Amount = 8;
+            gaussianBlur.Enabled = true;
         }
 
         protected override void Update(GameTime gameTime)
@@ -170,11 +212,23 @@ namespace Samples.ShadowMapping
             context.BlendState = BlendState.Opaque;
             context.DepthStencilState = DepthStencilState.Default;
 
+            switch (shadowMapEffectForm)
+            {
+                case ShadowMapEffectForm.Basic:
+                    currentShadowRenderTarget = bsmRenderTarget;
+                    break;
+                case ShadowMapEffectForm.Variance:
+                    currentShadowRenderTarget = vsmRenderTarget;
+                    break;
+            }
+
             CreateShadowMap();
 
             DrawWithShadowMap();
 
             DrawShadowMapToScreen();
+
+            DrawOverlayText();
 
             base.Draw(gameTime);
         }
@@ -211,7 +265,7 @@ namespace Samples.ShadowMapping
         {
             var context = Device.ImmediateContext;
 
-            context.SetRenderTarget(shadowRenderTarget.GetRenderTargetView());
+            context.SetRenderTarget(currentShadowRenderTarget.GetRenderTargetView());
 
             context.Clear(Color.White);
 
@@ -219,6 +273,12 @@ namespace Samples.ShadowMapping
             DrawModel(dudeModel, true);
 
             context.SetRenderTarget(null);
+
+            if (shadowMapEffectForm == ShadowMapEffectForm.Variance)
+            {
+                gaussianBlur.Filter(currentShadowRenderTarget.GetShaderResourceView(),
+                                    currentShadowRenderTarget.GetRenderTargetView());
+            }
         }
 
         void DrawWithShadowMap()
@@ -242,9 +302,10 @@ namespace Samples.ShadowMapping
 
             if (createShadowMap)
             {
-                standardShadowMapEffect.World = world;
-                standardShadowMapEffect.LightViewProjection = lightViewProjection;
-                standardShadowMapEffect.Apply(context);
+                shadowMapEffect.World = world;
+                shadowMapEffect.LightViewProjection = lightViewProjection;
+                shadowMapEffect.Form = shadowMapEffectForm;
+                shadowMapEffect.Apply(context);
             }
             else
             {
@@ -255,9 +316,10 @@ namespace Samples.ShadowMapping
                 drawModelShader.Constants.LightDirection = lightDir;
                 drawModelShader.Constants.DepthBias = 0.001f;
                 drawModelShader.Constants.AmbientColor = new Vector4(0.15f, 0.15f, 0.15f, 1.0f);
+                drawModelShader.ShadowMapEffectForm = shadowMapEffectForm;
                 drawModelShader.Apply(context);
 
-                context.PixelShaderResources[1] = shadowRenderTarget.GetShaderResourceView();
+                context.PixelShaderResources[1] = currentShadowRenderTarget.GetShaderResourceView();
             }
 
             context.PrimitiveTopology = PrimitiveTopology.TriangleList;
@@ -282,18 +344,28 @@ namespace Samples.ShadowMapping
         void DrawShadowMapToScreen()
         {
             spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Opaque, SamplerState.PointClamp);
-            spriteBatch.Draw(shadowRenderTarget.GetShaderResourceView(), new Rectangle(0, 0, 128, 128), Color.White);
+            spriteBatch.Draw(currentShadowRenderTarget.GetShaderResourceView(), new Rectangle(0, 0, 128, 128), Color.White);
             spriteBatch.End();
-
-            var context = Device.ImmediateContext;
-            context.PixelShaderResources[0] = null;
-            context.PixelShaderSamplers[0] = SamplerState.LinearWrap;
         }
 
-        /// </summary>
+        void DrawOverlayText()
+        {
+            var text = "X = Shadow map form (" + shadowMapEffectForm + ")";
+
+            spriteBatch.Begin();
+
+            spriteBatch.DrawString(spriteFont, text, new Vector2(65, 300), Color.Black);
+            spriteBatch.DrawString(spriteFont, text, new Vector2(64, 299), Color.White);
+
+            spriteBatch.End();
+        }
+
         void HandleInput(GameTime gameTime)
         {
             float time = (float) gameTime.ElapsedGameTime.TotalMilliseconds;
+
+            lastKeyboardState = currentKeyboardState;
+            lastJoystickState = currentJoystickState;
 
             currentKeyboardState = Keyboard.GetState();
             currentJoystickState = Joystick.GetState();
@@ -305,6 +377,19 @@ namespace Samples.ShadowMapping
                 rotateDude -= time * 0.2f;
             if (currentKeyboardState.IsKeyDown(Keys.E))
                 rotateDude += time * 0.2f;
+
+            if (currentKeyboardState.IsKeyUp(Keys.X) && lastKeyboardState.IsKeyDown(Keys.X) ||
+                currentJoystickState.IsButtonUp(Buttons.X) && lastJoystickState.IsButtonDown(Buttons.X))
+            {
+                if (shadowMapEffectForm == ShadowMapEffectForm.Basic)
+                {
+                    shadowMapEffectForm = ShadowMapEffectForm.Variance;
+                }
+                else
+                {
+                    shadowMapEffectForm = ShadowMapEffectForm.Basic;
+                }
+            }
 
             if (currentKeyboardState.IsKeyDown(Keys.Escape) ||
                 currentJoystickState.Buttons.Back == ButtonState.Pressed)
