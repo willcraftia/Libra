@@ -57,6 +57,8 @@ namespace Libra.Graphics.Toolkit
             get { return bloomThreshold; }
             set
             {
+                if (value < 0) throw new ArgumentOutOfRangeException("value");
+
                 if (bloomThreshold == value) return;
 
                 bloomThreshold = value;
@@ -70,6 +72,8 @@ namespace Libra.Graphics.Toolkit
             get { return bloomIntensity; }
             set
             {
+                if (value < 0) throw new ArgumentOutOfRangeException("value");
+
                 if (bloomIntensity == value) return;
 
                 bloomIntensity = value;
@@ -83,6 +87,8 @@ namespace Libra.Graphics.Toolkit
             get { return baseIntensity; }
             set
             {
+                if (value < 0) throw new ArgumentOutOfRangeException("value");
+
                 if (baseIntensity == value) return;
 
                 baseIntensity = value;
@@ -96,6 +102,8 @@ namespace Libra.Graphics.Toolkit
             get { return bloomSaturation; }
             set
             {
+                if (value < 0) throw new ArgumentOutOfRangeException("value");
+
                 if (bloomSaturation == value) return;
 
                 bloomSaturation = value;
@@ -109,6 +117,8 @@ namespace Libra.Graphics.Toolkit
             get { return baseSaturation; }
             set
             {
+                if (value < 0) throw new ArgumentOutOfRangeException("value");
+
                 if (baseSaturation == value) return;
 
                 baseSaturation = value;
