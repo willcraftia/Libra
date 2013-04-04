@@ -7,10 +7,10 @@ cbuffer Parameters : register(b0)
 struct VSOutput
 {
     float4 Position     : SV_Position;
-    float4 PositionWVP  : TEXCOORD0;
+    float4 PositionWVP  : POSITION_WVP;
 };
 
-VSOutput VS(float4 position : POSITION)
+VSOutput VS(float4 position : SV_Position)
 {
     VSOutput output;
 
