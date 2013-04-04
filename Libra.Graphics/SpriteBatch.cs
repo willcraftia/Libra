@@ -280,6 +280,14 @@ namespace Libra.Graphics
 
         List<SpriteInfo> sprites;
 
+        BlendState previousBlendState;
+
+        SamplerState previousSamplerState;
+
+        DepthStencilState previousDepthStencilState;
+
+        RasterizerState previousRasterizerState;
+
         static SpriteBatch()
         {
             DeviceResourcesPool = new SharedResourcePool<Device, DeviceResources>(CreateDeviceResources);
@@ -378,6 +386,12 @@ namespace Libra.Graphics
                 PrepareForRendering();
                 FlushBatch();
             }
+
+            // ステートを Begin 以前の状態へ戻す。
+            context.BlendState = previousBlendState;
+            context.DepthStencilState = previousDepthStencilState;
+            context.RasterizerState = previousRasterizerState;
+            context.PixelShaderSamplers[0] = previousSamplerState;
 
             setCustomShaders = null;
 
@@ -489,6 +503,11 @@ namespace Libra.Graphics
 
         void PrepareForRendering()
         {
+            previousBlendState = context.BlendState;
+            previousDepthStencilState = context.DepthStencilState;
+            previousRasterizerState = context.RasterizerState;
+            previousSamplerState = context.PixelShaderSamplers[0];
+
             context.BlendState = blendState;
             context.DepthStencilState = depthStencilState;
             context.RasterizerState = rasterizerState;

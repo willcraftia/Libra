@@ -10,19 +10,11 @@ namespace Libra.Graphics.Toolkit
     {
         DeviceContext context;
 
-        GaussianBlurEffect shader;
+        GaussianBlurEffect effect;
 
         RenderTarget backingRenderTarget;
 
         SpriteBatch spriteBatch;
-
-        BlendState previousBlendState;
-
-        SamplerState previousSamplerState;
-
-        DepthStencilState previousDepthStencilState;
-
-        RasterizerState previousRasterizerState;
 
         public int Width { get; private set; }
 
@@ -32,15 +24,17 @@ namespace Libra.Graphics.Toolkit
 
         public int Radius
         {
-            get { return shader.Radius; }
-            set { shader.Radius = value; }
+            get { return effect.Radius; }
+            set { effect.Radius = value; }
         }
 
         public float Amount
         {
-            get { return shader.Amount; }
-            set { shader.Amount = value; }
+            get { return effect.Amount; }
+            set { effect.Amount = value; }
         }
+
+        public bool Enabled { get; set; }
 
         public GaussianBlur(DeviceContext context, int width, int height, SurfaceFormat format)
         {
@@ -52,9 +46,9 @@ namespace Libra.Graphics.Toolkit
             Width = width;
             Height = height;
 
-            shader = new GaussianBlurEffect(context.Device);
-            shader.Width = width;
-            shader.Height = height;
+            effect = new GaussianBlurEffect(context.Device);
+            effect.Width = width;
+            effect.Height = height;
             
             backingRenderTarget = context.Device.CreateRenderTarget();
             backingRenderTarget.Width = width;
@@ -63,15 +57,12 @@ namespace Libra.Graphics.Toolkit
             backingRenderTarget.Initialize();
 
             spriteBatch = new SpriteBatch(context);
+
+            Enabled = true;
         }
 
         public void Filter(ShaderResourceView source, RenderTargetView destination)
         {
-            previousBlendState = context.BlendState;
-            previousSamplerState = context.PixelShaderSamplers[0];
-            previousDepthStencilState = context.DepthStencilState;
-            previousRasterizerState = context.RasterizerState;
-
             Filter(source, backingRenderTarget.GetRenderTargetView(), GaussianBlurEffectPass.Horizon);
             Filter(backingRenderTarget.GetShaderResourceView(), destination, GaussianBlurEffectPass.Vertical);
 
@@ -80,21 +71,16 @@ namespace Libra.Graphics.Toolkit
 
         void Filter(ShaderResourceView source, RenderTargetView destination, GaussianBlurEffectPass direction)
         {
-            shader.Pass = direction;
+            effect.Pass = direction;
 
             context.SetRenderTarget(destination);
-            
-            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Opaque, null, null, null, shader.Apply);
+
+            Action<DeviceContext> applyShader = null;
+            if (Enabled) applyShader = effect.Apply;
+
+            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Opaque, null, null, null, applyShader);
             spriteBatch.Draw(source, destination.RenderTarget.Bounds, Color.White);
             spriteBatch.End();
-
-            // SpriteBatch を暗黙的に利用していることから、
-            // SpriteBatch によるステート変更を忘れがちになる。
-            // このため、SpriteBatch によるステート変更前の状態へ戻す。
-            context.BlendState = previousBlendState;
-            context.PixelShaderSamplers[0] = previousSamplerState;
-            context.DepthStencilState = previousDepthStencilState;
-            context.RasterizerState = previousRasterizerState;
         }
 
         #region IDisposable
@@ -118,7 +104,7 @@ namespace Libra.Graphics.Toolkit
 
             if (disposing)
             {
-                shader.Dispose();
+                effect.Dispose();
                 backingRenderTarget.Dispose();
                 spriteBatch.Dispose();
             }
