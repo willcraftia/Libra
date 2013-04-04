@@ -51,8 +51,6 @@ namespace Libra.Graphics
         {
             Device device;
 
-            InputLayout[] inputLayouts;
-
             VertexShader[] vertexShaders;
 
             PixelShader[] pixelShaders;
@@ -63,7 +61,6 @@ namespace Libra.Graphics
 
                 vertexShaders = new VertexShader[VertexShaderCount];
                 pixelShaders = new PixelShader[PixelShaderCount];
-                inputLayouts = new InputLayout[VertexShaderCount];
             }
 
             public VertexShader GetVertexShader(int index)
