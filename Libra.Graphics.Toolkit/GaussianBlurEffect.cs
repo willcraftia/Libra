@@ -15,7 +15,7 @@ namespace Libra.Graphics.Toolkit
     /// このシェーダは SpriteBatch と共に利用する事を前提としており、
     /// 頂点シェーダには SpriteBatch の頂点シェーダを用います。
     /// </remarks>
-    public sealed class GaussianBlurShader : IDisposable
+    public sealed class GaussianBlurEffect : IDisposable
     {
         #region DeviceResources
 
@@ -113,7 +113,7 @@ namespace Libra.Graphics.Toolkit
 
         DirtyFlags dirtyFlags;
 
-        public GaussianBlurShaderPass Pass { get; set; }
+        public GaussianBlurEffectPass Pass { get; set; }
 
         public int Radius
         {
@@ -175,13 +175,13 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        static GaussianBlurShader()
+        static GaussianBlurEffect()
         {
             DeviceResourcesPool = new SharedResourcePool<Device, DeviceResources>(
                 (device) => { return new DeviceResources(device); });
         }
 
-        public GaussianBlurShader(Device device)
+        public GaussianBlurEffect(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 
@@ -228,10 +228,10 @@ namespace Libra.Graphics.Toolkit
             // 定数バッファの設定。
             switch (Pass)
             {
-                case GaussianBlurShaderPass.Horizon:
+                case GaussianBlurEffectPass.Horizon:
                     context.PixelShaderConstantBuffers[0] = horizontalConstantBuffer;
                     break;
-                case GaussianBlurShaderPass.Vertical:
+                case GaussianBlurEffectPass.Vertical:
                     context.PixelShaderConstantBuffers[0] = verticalConstantBufffer;
                     break;
                 default:
@@ -326,7 +326,7 @@ namespace Libra.Graphics.Toolkit
 
         bool disposed;
 
-        ~GaussianBlurShader()
+        ~GaussianBlurEffect()
         {
             Dispose(false);
         }

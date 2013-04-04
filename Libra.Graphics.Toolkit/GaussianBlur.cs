@@ -10,7 +10,7 @@ namespace Libra.Graphics.Toolkit
     {
         DeviceContext context;
 
-        GaussianBlurShader shader;
+        GaussianBlurEffect shader;
 
         RenderTarget backingRenderTarget;
 
@@ -44,7 +44,7 @@ namespace Libra.Graphics.Toolkit
             Width = width;
             Height = height;
 
-            shader = new GaussianBlurShader(context.Device);
+            shader = new GaussianBlurEffect(context.Device);
             shader.Width = width;
             shader.Height = height;
             
@@ -59,13 +59,13 @@ namespace Libra.Graphics.Toolkit
 
         public void Filter(ShaderResourceView source, RenderTargetView destination)
         {
-            Filter(source, backingRenderTarget.GetRenderTargetView(), GaussianBlurShaderPass.Horizon);
-            Filter(backingRenderTarget.GetShaderResourceView(), destination, GaussianBlurShaderPass.Vertical);
+            Filter(source, backingRenderTarget.GetRenderTargetView(), GaussianBlurEffectPass.Horizon);
+            Filter(backingRenderTarget.GetShaderResourceView(), destination, GaussianBlurEffectPass.Vertical);
 
             context.SetRenderTarget(null);
         }
 
-        void Filter(ShaderResourceView source, RenderTargetView destination, GaussianBlurShaderPass direction)
+        void Filter(ShaderResourceView source, RenderTargetView destination, GaussianBlurEffectPass direction)
         {
             shader.Pass = direction;
 

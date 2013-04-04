@@ -94,7 +94,7 @@ namespace Samples.ShadowMapping
         
         JoystickState currentJoystickState;
 
-        StandardShadowMapShader standardShadowMapShader;
+        StandardShadowMapEffect standardShadowMapEffect;
 
         DrawModelShader drawModelShader;
 
@@ -135,7 +135,7 @@ namespace Samples.ShadowMapping
             compiler.OptimizationLevel = OptimizationLevels.Level3;
             compiler.WarningsAreErrors = true;
 
-            standardShadowMapShader = new StandardShadowMapShader(Device);
+            standardShadowMapEffect = new StandardShadowMapEffect(Device);
             drawModelShader = new DrawModelShader(Device, compiler);
 
             spriteBatch = new SpriteBatch(Device.ImmediateContext);
@@ -242,9 +242,9 @@ namespace Samples.ShadowMapping
 
             if (createShadowMap)
             {
-                standardShadowMapShader.World = world;
-                standardShadowMapShader.LightViewProjection = lightViewProjection;
-                standardShadowMapShader.Apply(context);
+                standardShadowMapEffect.World = world;
+                standardShadowMapEffect.LightViewProjection = lightViewProjection;
+                standardShadowMapEffect.Apply(context);
             }
             else
             {

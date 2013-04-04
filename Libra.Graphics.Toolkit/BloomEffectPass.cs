@@ -6,9 +6,9 @@ using System;
 
 namespace Libra.Graphics.Toolkit
 {
-    public enum GaussianBlurShaderPass
+    public enum BloomEffectPass
     {
-        Horizon,
-        Vertical
+        Extract,
+        Combine
     }
 }

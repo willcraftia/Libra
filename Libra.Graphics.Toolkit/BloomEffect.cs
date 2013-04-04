@@ -7,7 +7,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class BloomShader : IDisposable
+    public sealed class BloomEffect : IEffect
     {
         #region DeviceResources
 
@@ -126,15 +126,15 @@ namespace Libra.Graphics.Toolkit
 
         public ShaderResourceView BaseTexture { get; set; }
 
-        public BloomShaderPass Pass { get; set; }
+        public BloomEffectPass Pass { get; set; }
 
-        static BloomShader()
+        static BloomEffect()
         {
             DeviceResourcesPool = new SharedResourcePool<Device, DeviceResources>(
                 (device) => { return new DeviceResources(device); });
         }
 
-        public BloomShader(Device device)
+        public BloomEffect(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 
@@ -148,7 +148,7 @@ namespace Libra.Graphics.Toolkit
             combineConstantBuffer = device.CreateConstantBuffer();
             combineConstantBuffer.Initialize(16);
 
-            Pass = BloomShaderPass.Extract;
+            Pass = BloomEffectPass.Extract;
         }
 
         public void Apply(DeviceContext context)
@@ -157,10 +157,10 @@ namespace Libra.Graphics.Toolkit
 
             switch (Pass)
             {
-                case BloomShaderPass.Extract:
+                case BloomEffectPass.Extract:
                     ApplyExtractPass(context);
                     break;
-                case BloomShaderPass.Combine:
+                case BloomEffectPass.Combine:
                     ApplyCombinePass(context);
                     break;
                 default:
@@ -202,7 +202,7 @@ namespace Libra.Graphics.Toolkit
 
         bool disposed;
 
-        ~BloomShader()
+        ~BloomEffect()
         {
             Dispose(false);
         }

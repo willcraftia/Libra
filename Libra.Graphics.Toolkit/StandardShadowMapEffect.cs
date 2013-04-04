@@ -7,7 +7,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class StandardShadowMapShader
+    public sealed class StandardShadowMapEffect : IDisposable
     {
         #region DeviceResources
 
@@ -98,13 +98,13 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        static StandardShadowMapShader()
+        static StandardShadowMapEffect()
         {
             DeviceResourcesPool = new SharedResourcePool<Device, DeviceResources>(
                 (device) => { return new DeviceResources(device); });
         }
 
-        public StandardShadowMapShader(Device device)
+        public StandardShadowMapEffect(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 
@@ -150,5 +150,35 @@ namespace Libra.Graphics.Toolkit
             context.VertexShader = deviceResources.VertexShader;
             context.PixelShader = deviceResources.PixelShader;
         }
+
+        #region IDisposable
+
+        bool disposed;
+
+        ~StandardShadowMapEffect()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        void Dispose(bool disposing)
+        {
+            if (disposed) return;
+
+            if (disposing)
+            {
+                deviceResources = null;
+                constantBuffer.Dispose();
+            }
+
+            disposed = true;
+        }
+
+        #endregion
     }
 }

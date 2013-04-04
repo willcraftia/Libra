@@ -15,9 +15,9 @@ namespace Samples.BloomPostprocess
     {
         SpriteBatch spriteBatch;
 
-        BloomShader bloomShader;
+        BloomEffect bloomEffect;
 
-        GaussianBlurShader gaussianBlurShader;
+        GaussianBlurEffect gaussianBlurEffect;
 
         RenderTarget sceneRenderTarget;
 
@@ -60,8 +60,8 @@ namespace Samples.BloomPostprocess
         {
             spriteBatch = new SpriteBatch(Device.ImmediateContext);
 
-            bloomShader = new BloomShader(Device);
-            gaussianBlurShader = new GaussianBlurShader(Device);
+            bloomEffect = new BloomEffect(Device);
+            gaussianBlurEffect = new GaussianBlurEffect(Device);
 
             var backBuffer = Device.BackBuffer;
             var width = backBuffer.Width;
@@ -113,37 +113,37 @@ namespace Samples.BloomPostprocess
 
             context.PixelShaderSamplers[0] = SamplerState.LinearClamp;
 
-            // ブルーム シェーダの Extract パス。
-            bloomShader.BloomThreshold = Settings.BloomThreshold;
-            bloomShader.Pass = BloomShaderPass.Extract;
-            DrawFullscreenQuad(sceneRenderTarget, renderTarget1, bloomShader.Apply, IntermediateBuffer.PreBloom);
+            // BloomEffect Extract パス。
+            bloomEffect.BloomThreshold = Settings.BloomThreshold;
+            bloomEffect.Pass = BloomEffectPass.Extract;
+            DrawFullscreenQuad(sceneRenderTarget, renderTarget1, bloomEffect.Apply, IntermediateBuffer.PreBloom);
 
-            // ガウス ブラー シェーダへのサイズの設定。
-            gaussianBlurShader.Width = renderTarget1.Width;
-            gaussianBlurShader.Height = renderTarget1.Height;
+            // GaussianBlurEffect のサイズ設定。
+            gaussianBlurEffect.Width = renderTarget1.Width;
+            gaussianBlurEffect.Height = renderTarget1.Height;
 
-            // ガウス ブラー シェーダ の Horizon パス。
-            gaussianBlurShader.Pass = GaussianBlurShaderPass.Horizon;
-            DrawFullscreenQuad(renderTarget1, renderTarget2, gaussianBlurShader.Apply, IntermediateBuffer.BlurredHorizontally);
+            // GaussianBlurEffect Horizon パス。
+            gaussianBlurEffect.Pass = GaussianBlurEffectPass.Horizon;
+            DrawFullscreenQuad(renderTarget1, renderTarget2, gaussianBlurEffect.Apply, IntermediateBuffer.BlurredHorizontally);
 
-            // ガウス ブラー シェーダ の Vertical パス。
-            gaussianBlurShader.Pass = GaussianBlurShaderPass.Vertical;
-            DrawFullscreenQuad(renderTarget2, renderTarget1, gaussianBlurShader.Apply, IntermediateBuffer.BlurredBothWays);
+            // GaussianBlurEffect Vertical パス。
+            gaussianBlurEffect.Pass = GaussianBlurEffectPass.Vertical;
+            DrawFullscreenQuad(renderTarget2, renderTarget1, gaussianBlurEffect.Apply, IntermediateBuffer.BlurredBothWays);
 
             context.SetRenderTarget(null);
 
-            // ブルーム シェーダの Combine パス。
-            bloomShader.BloomIntensity = Settings.BloomIntensity;
-            bloomShader.BaseIntensity = Settings.BaseIntensity;
-            bloomShader.BloomSaturation = Settings.BloomSaturation;
-            bloomShader.BaseSaturation = Settings.BaseSaturation;
-            bloomShader.BloomTexture = renderTarget1.GetShaderResourceView();
-            bloomShader.BaseTexture = sceneRenderTarget.GetShaderResourceView();
-            bloomShader.Pass = BloomShaderPass.Combine;
+            // BloomEffect Combine パス。
+            bloomEffect.BloomIntensity = Settings.BloomIntensity;
+            bloomEffect.BaseIntensity = Settings.BaseIntensity;
+            bloomEffect.BloomSaturation = Settings.BloomSaturation;
+            bloomEffect.BaseSaturation = Settings.BaseSaturation;
+            bloomEffect.BloomTexture = renderTarget1.GetShaderResourceView();
+            bloomEffect.BaseTexture = sceneRenderTarget.GetShaderResourceView();
+            bloomEffect.Pass = BloomEffectPass.Combine;
 
             var viewport = context.Viewport;
             DrawFullscreenQuad(renderTarget1, (int) viewport.Width, (int) viewport.Height,
-                bloomShader.Apply, IntermediateBuffer.FinalResult);
+                bloomEffect.Apply, IntermediateBuffer.FinalResult);
         }
 
         void DrawFullscreenQuad(Texture2D texture, RenderTarget renderTarget,
