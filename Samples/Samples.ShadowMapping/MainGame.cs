@@ -15,9 +15,9 @@ namespace Samples.ShadowMapping
 {
     public sealed class MainGame : Game
     {
-        #region DrawModelShader
+        #region DrawModelEffect
 
-        sealed class DrawModelShader
+        sealed class DrawModelEffect
         {
             struct Constants
             {
@@ -62,7 +62,7 @@ namespace Samples.ShadowMapping
 
             public ShadowMapEffectForm ShadowMapEffectForm { get; set; }
 
-            public DrawModelShader(Device device)
+            public DrawModelEffect(Device device)
             {
                 var compiler = ShaderCompiler.CreateShaderCompiler();
                 compiler.RootPath = "../../Shaders";
@@ -144,7 +144,7 @@ namespace Samples.ShadowMapping
 
         ShadowMapEffect shadowMapEffect;
 
-        DrawModelShader drawModelShader;
+        DrawModelEffect drawModelShader;
 
         Model gridModel;
 
@@ -188,7 +188,7 @@ namespace Samples.ShadowMapping
         protected override void LoadContent()
         {
             shadowMapEffect = new ShadowMapEffect(Device);
-            drawModelShader = new DrawModelShader(Device);
+            drawModelShader = new DrawModelEffect(Device);
 
             spriteBatch = new SpriteBatch(Device.ImmediateContext);
             spriteFont = content.Load<SpriteFont>("hudFont");
