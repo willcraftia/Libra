@@ -281,8 +281,12 @@ namespace Libra.Graphics.Toolkit
                 var totalWeight = 0.0f;
                 var sigma = (float) radius / amount;
 
-                horizontalKernels[0].Weight = MathHelper.CalculateGaussian(sigma, 0);
-                totalWeight += horizontalKernels[0].Weight;
+                var weight = MathHelper.CalculateGaussian(sigma, 0);
+
+                horizontalKernels[0].Weight = weight;
+                verticalKernels[0].Weight = weight;
+
+                totalWeight += weight;
 
                 for (int i = 0; i < kernelSize / 2; i++)
                 {
@@ -290,7 +294,7 @@ namespace Libra.Graphics.Toolkit
                     int left = baseIndex + 1;
                     int right = baseIndex + 2;
 
-                    var weight = MathHelper.CalculateGaussian(sigma, i + 1);
+                    weight = MathHelper.CalculateGaussian(sigma, i + 1);
                     totalWeight += weight * 2;
 
                     horizontalKernels[left].Weight = weight;
