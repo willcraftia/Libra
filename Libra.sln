@@ -63,6 +63,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.BloomPostprocessCon
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Libra.Graphics.Toolkit", "Libra.Graphics.Toolkit\Libra.Graphics.Toolkit.csproj", "{7E6353FF-27C2-48CB-B582-530450AF0553}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Libra.Audio", "Libra.Audio\Libra.Audio.csproj", "{CA60A550-13AF-4815-A9A4-73CA45D79958}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Libra.Audio.SharpDX", "Libra.Audio.SharpDX\Libra.Audio.SharpDX.csproj", "{08491BB5-BE02-464B-8151-77234135C820}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -359,6 +363,26 @@ Global
 		{7E6353FF-27C2-48CB-B582-530450AF0553}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{7E6353FF-27C2-48CB-B582-530450AF0553}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{7E6353FF-27C2-48CB-B582-530450AF0553}.Release|x86.ActiveCfg = Release|Any CPU
+		{CA60A550-13AF-4815-A9A4-73CA45D79958}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA60A550-13AF-4815-A9A4-73CA45D79958}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CA60A550-13AF-4815-A9A4-73CA45D79958}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{CA60A550-13AF-4815-A9A4-73CA45D79958}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{CA60A550-13AF-4815-A9A4-73CA45D79958}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{CA60A550-13AF-4815-A9A4-73CA45D79958}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CA60A550-13AF-4815-A9A4-73CA45D79958}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CA60A550-13AF-4815-A9A4-73CA45D79958}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{CA60A550-13AF-4815-A9A4-73CA45D79958}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{CA60A550-13AF-4815-A9A4-73CA45D79958}.Release|x86.ActiveCfg = Release|Any CPU
+		{08491BB5-BE02-464B-8151-77234135C820}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{08491BB5-BE02-464B-8151-77234135C820}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{08491BB5-BE02-464B-8151-77234135C820}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{08491BB5-BE02-464B-8151-77234135C820}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{08491BB5-BE02-464B-8151-77234135C820}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{08491BB5-BE02-464B-8151-77234135C820}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{08491BB5-BE02-464B-8151-77234135C820}.Release|Any CPU.Build.0 = Release|Any CPU
+		{08491BB5-BE02-464B-8151-77234135C820}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{08491BB5-BE02-464B-8151-77234135C820}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{08491BB5-BE02-464B-8151-77234135C820}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
