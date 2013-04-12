@@ -9,7 +9,7 @@ namespace Libra.Xnb
 {
     public sealed class XnbManager : IDisposable
     {
-        Felis.Xnb.ContentManager entity;
+        Felis.ContentManager entity;
 
         public string RootDirectory
         {
@@ -27,7 +27,7 @@ namespace Libra.Xnb
             if (serviceProvider == null) throw new ArgumentNullException("serviceProvider");
             if (rootDirectory == null) throw new ArgumentNullException("rootDirectory");
 
-            entity = new Felis.Xnb.ContentManager(serviceProvider, rootDirectory);
+            entity = new Felis.ContentManager(serviceProvider, rootDirectory);
             InitializeEntity();
         }
 
@@ -48,7 +48,7 @@ namespace Libra.Xnb
             RegisterTypeBuilder<SpriteFontBuilder>();
         }
 
-        void RegisterTypeBuilder<T>() where T : Felis.Xnb.TypeBuilder, new()
+        void RegisterTypeBuilder<T>() where T : Felis.TypeBuilder, new()
         {
             entity.TypeReaderManager.RegisterTypeBuilder<T>();
         }

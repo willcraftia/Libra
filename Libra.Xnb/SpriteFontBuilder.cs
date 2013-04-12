@@ -2,7 +2,7 @@
 
 using System;
 using System.Collections.Generic;
-using Felis.Xnb;
+using Felis;
 using Libra.Graphics;
 
 #endregion

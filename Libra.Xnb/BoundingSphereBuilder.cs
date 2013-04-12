@@ -1,7 +1,7 @@
 ﻿#region Using
 
 using System;
-using Felis.Xnb;
+using Felis;
 
 #endregion
 
