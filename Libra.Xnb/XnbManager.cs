@@ -46,6 +46,7 @@ namespace Libra.Xnb
             RegisterTypeBuilder<ModelBuilder>();
             RegisterTypeBuilder<Texture2DBuilder>();
             RegisterTypeBuilder<SpriteFontBuilder>();
+            RegisterTypeBuilder<SoundEffectBuilder>();
         }
 
         void RegisterTypeBuilder<T>() where T : Felis.TypeBuilder, new()
