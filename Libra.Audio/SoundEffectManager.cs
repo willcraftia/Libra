@@ -69,7 +69,7 @@ namespace Libra.Audio
             return Activator.CreateInstance(type) as SoundEffectManager;
         }
 
-        protected abstract SoundEffect CreateSoundEffect();
+        public abstract SoundEffect CreateSoundEffect();
 
         protected abstract void OnMasterVolumeChanged();
 

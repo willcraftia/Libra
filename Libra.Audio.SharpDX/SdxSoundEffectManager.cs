@@ -36,7 +36,7 @@ namespace Libra.Audio.SharpDX
             MasteringVoice.SetVolume(MasterVolume);
         }
 
-        protected override SoundEffect CreateSoundEffect()
+        public override SoundEffect CreateSoundEffect()
         {
             return new SdxSoundEffect(this);
         }

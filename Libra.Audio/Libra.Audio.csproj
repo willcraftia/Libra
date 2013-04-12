@@ -41,6 +41,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AdpcmCoefSet.cs" />
+    <Compile Include="AdpcmWaveFormat.cs" />
     <Compile Include="AudioChannels.cs" />
     <Compile Include="AudioEmitter.cs" />
     <Compile Include="AudioListener.cs" />
@@ -49,6 +51,9 @@
     <Compile Include="SoundEffectInstance.cs" />
     <Compile Include="SoundEffectManager.cs" />
     <Compile Include="SoundState.cs" />
+    <Compile Include="WaveFormat.cs" />
+    <Compile Include="WaveFormatExtensible.cs" />
+    <Compile Include="WaveFormatTag.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Libra\Libra.csproj">

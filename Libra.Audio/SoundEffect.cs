@@ -64,25 +64,53 @@ namespace Libra.Audio
             Manager = manager;
         }
 
-        public void Initialize(byte[] buffer, int offset, int count, int sampleRate, AudioChannels channels)
+        public void Initialize(WaveFormat format, byte[] buffer, int offset, int count)
         {
             AssertNotInitialized();
             if (buffer == null) throw new ArgumentNullException("buffer");
-            if (sampleRate < 1) throw new ArgumentOutOfRangeException("sampleRate");
 
-            // averageBytesPerSecond 算出は SharpDX.Multimedia.WaveFormat より。
-            // duration 算出は MonoGame: SoundEffect より。
-            const int bitsPerSample = 32;
-            int blockAlign = (int) channels * (bitsPerSample / 8);
-            float averageBytesPerSecond = sampleRate * blockAlign;
-            duration = TimeSpan.FromSeconds((float) count / averageBytesPerSecond);
+            duration = TimeSpan.FromSeconds((float) count / (float) format.AvgBytesPerSec);
 
             gcHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
             pinned = true;
 
             var bufferPointer = gcHandle.AddrOfPinnedObject() + offset;
 
-            InitializeCore(bufferPointer, count, sampleRate, channels);
+            InitializeCore(format, bufferPointer, count);
+
+            initialized = true;
+        }
+
+        public void Initialize(AdpcmWaveFormat format, byte[] buffer, int offset, int count)
+        {
+            AssertNotInitialized();
+            if (buffer == null) throw new ArgumentNullException("buffer");
+
+            duration = TimeSpan.FromSeconds((float) count / (float) format.WaveFormat.AvgBytesPerSec);
+
+            gcHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+            pinned = true;
+
+            var bufferPointer = gcHandle.AddrOfPinnedObject() + offset;
+
+            InitializeCore(format, bufferPointer, count);
+
+            initialized = true;
+        }
+
+        public void Initialize(WaveFormatExtensible format, byte[] buffer, int offset, int count)
+        {
+            AssertNotInitialized();
+            if (buffer == null) throw new ArgumentNullException("buffer");
+
+            duration = TimeSpan.FromSeconds((float) count / (float) format.WaveFormat.AvgBytesPerSec);
+
+            gcHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+            pinned = true;
+
+            var bufferPointer = gcHandle.AddrOfPinnedObject() + offset;
+
+            InitializeCore(format, bufferPointer, count);
 
             initialized = true;
         }
@@ -143,7 +171,11 @@ namespace Libra.Audio
             return CreateInstanceCore();
         }
 
-        protected abstract void InitializeCore(IntPtr bufferPointer, int bufferSize, int sampleRate, AudioChannels channels);
+        protected abstract void InitializeCore(WaveFormat format, IntPtr bufferPointer, int bufferSize);
+
+        protected abstract void InitializeCore(AdpcmWaveFormat format, IntPtr bufferPointer, int bufferSize);
+
+        protected abstract void InitializeCore(WaveFormatExtensible format, IntPtr bufferPointer, int bufferSize);
 
         protected abstract SoundEffectInstance CreateInstanceCore();
 
