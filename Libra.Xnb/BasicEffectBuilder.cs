@@ -24,7 +24,7 @@ namespace Libra.Xnb
             base.Initialize(contentManager);
         }
 
-        protected override void Begin(object deviceContext)
+        protected override void Begin()
         {
             instance = new BasicEffect(graphicsService.Device);
         }

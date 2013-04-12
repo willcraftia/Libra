@@ -53,9 +53,9 @@ namespace Libra.Xnb
             entity.TypeReaderManager.RegisterTypeBuilder<T>();
         }
 
-        public T Load<T>(string assetName, DeviceContext context = null)
+        public T Load<T>(string assetName)
         {
-            return entity.Load<T>(assetName, context);
+            return entity.Load<T>(assetName);
         }
 
         public void Unload()

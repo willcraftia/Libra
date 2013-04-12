@@ -61,9 +61,7 @@ namespace Libra.Xnb
             base.EndElement();
         }
 
-        protected override void Begin(object deviceContext)
-        {
-        }
+        protected override void Begin() { }
 
         protected override object End()
         {

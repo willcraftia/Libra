@@ -35,7 +35,7 @@ namespace Libra.Xnb
             instance.Initialize(value);
         }
 
-        protected override void Begin(object deviceContext)
+        protected override void Begin()
         {
             instance = graphicsService.Device.CreateIndexBuffer();
         }

@@ -24,7 +24,7 @@ namespace Libra.Xnb
                 m41, m42, m43, m44);
         }
 
-        protected override void Begin(object deviceContext) { }
+        protected override void Begin() { }
 
         protected override object End()
         {

@@ -12,8 +12,6 @@ namespace Libra.Xnb
     {
         IGraphicsService graphicsService;
 
-        DeviceContext currentContext;
-
         Texture2D instance;
 
         int currentMipLevel;
@@ -63,14 +61,16 @@ namespace Libra.Xnb
 
         protected override void SetMipImageData(byte[] value)
         {
-            instance.SetData(currentContext, currentMipLevel, value);
+            // TODO
+            //
+            // 当面は ImmidiateContext 固定。
+            // DeferredContext が必要となるならば、
+            // ContentManager のサブクラスで DeviceContext を管理するなど。
+            instance.SetData(graphicsService.Device.ImmediateContext, currentMipLevel, value);
         }
 
-        protected override void Begin(object deviceContext)
+        protected override void Begin()
         {
-            currentContext = deviceContext as DeviceContext;
-            if (currentContext == null) currentContext = graphicsService.Device.ImmediateContext;
-
             instance = graphicsService.Device.CreateTexture2D();
         }
 

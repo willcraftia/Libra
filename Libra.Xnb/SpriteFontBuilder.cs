@@ -84,9 +84,7 @@ namespace Libra.Xnb
             }
         }
 
-        protected override void Begin(object deviceContext)
-        {
-        }
+        protected override void Begin() { }
 
         protected override object End()
         {

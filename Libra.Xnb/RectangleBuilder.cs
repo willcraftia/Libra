@@ -16,7 +16,7 @@ namespace Libra.Xnb
             instance = new Rectangle(x, y, width, height);
         }
 
-        protected override void Begin(object deviceContext) { }
+        protected override void Begin() { }
 
         protected override object End()
         {

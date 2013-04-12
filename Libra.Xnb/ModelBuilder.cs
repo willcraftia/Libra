@@ -263,7 +263,7 @@ namespace Libra.Xnb
         {
         }
 
-        protected override void Begin(object deviceContext)
+        protected override void Begin()
         {
             instance = new Model();
         }

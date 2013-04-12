@@ -16,7 +16,7 @@ namespace Libra.Xnb
             instance = new Vector3(x, y, z);
         }
 
-        protected override void Begin(object deviceContext) { }
+        protected override void Begin() { }
 
         protected override object End()
         {
