@@ -122,7 +122,7 @@ namespace Libra.Audio.SharpDX
             result.OrientTop.Y = orientTop.Y;
             result.OrientTop.Z = orientTop.Z;
 
-            result.DopplerScaler = emitter.DopplerScale;
+            result.DopplerScaler = emitter.DopplerScale * manager.DopplerScale;
             result.ChannelCount = waveFormat.Channels;
             result.CurveDistanceScaler = manager.DistanceScale;
 

@@ -17,6 +17,8 @@ namespace Libra.Audio
 
         float distanceScale;
 
+        float dopplerScale;
+
         public static SoundEffectManager Default { get; private set; }
 
         public float MasterVolume
@@ -45,6 +47,17 @@ namespace Libra.Audio
             }
         }
 
+        public float DopplerScale
+        {
+            get { return dopplerScale; }
+            set
+            {
+                if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
+
+                dopplerScale = value;
+            }
+        }
+
         static SoundEffectManager()
         {
             Default = CreateSoundEffectManager();
@@ -54,6 +67,7 @@ namespace Libra.Audio
         {
             masterVolume = 1.0f;
             distanceScale = 1.0f;
+            dopplerScale = 1.0f;
         }
 
         public static SoundEffectManager CreateSoundEffectManager()
