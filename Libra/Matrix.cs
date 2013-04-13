@@ -576,7 +576,109 @@ namespace Libra
                             out result);
             return result;
         }
-    
+
+        public static void CreateConstrainedBillboard(
+            ref Vector3 objectPosition,
+            ref Vector3 cameraPosition,
+            ref Vector3 rotateAxis,
+            Vector3? cameraForwardVector,
+            Vector3? objectForwardVector,
+            out Matrix result)
+        {
+            float num;
+
+            Vector3 vector;
+            Vector3 vector2;
+            Vector3 vector3;
+            
+            vector2.X = objectPosition.X - cameraPosition.X;
+            vector2.Y = objectPosition.Y - cameraPosition.Y;
+            vector2.Z = objectPosition.Z - cameraPosition.Z;
+            
+            float num2 = vector2.LengthSquared();
+            
+            if (num2 < 0.0001f)
+            {
+                vector2 = cameraForwardVector.HasValue ? -cameraForwardVector.Value : Vector3.Forward;
+            }
+            else
+            {
+                Vector3.Multiply(ref vector2, (float) (1f / ((float) Math.Sqrt((double) num2))), out vector2);
+            }
+
+            Vector3 vector4 = rotateAxis;
+            Vector3.Dot(ref rotateAxis, ref vector2, out num);
+
+            if (Math.Abs(num) > 0.9982547f)
+            {
+                if (objectForwardVector.HasValue)
+                {
+                    vector = objectForwardVector.Value;
+                    Vector3.Dot(ref rotateAxis, ref vector, out num);
+                    if (Math.Abs(num) > 0.9982547f)
+                    {
+                        num = rotateAxis.X * Vector3.Forward.X
+                            + rotateAxis.Y * Vector3.Forward.Y
+                            + rotateAxis.Z * Vector3.Forward.Z;
+                        vector = (Math.Abs(num) > 0.9982547f) ? Vector3.Right : Vector3.Forward;
+                    }
+                }
+                else
+                {
+                    num = rotateAxis.X * Vector3.Forward.X
+                        + rotateAxis.Y * Vector3.Forward.Y
+                        + rotateAxis.Z * Vector3.Forward.Z;
+                    vector = (Math.Abs(num) > 0.9982547f) ? Vector3.Right : Vector3.Forward;
+                }
+                Vector3.Cross(ref rotateAxis, ref vector, out vector3);
+                vector3.Normalize();
+                Vector3.Cross(ref vector3, ref rotateAxis, out vector);
+                vector.Normalize();
+            }
+            else
+            {
+                Vector3.Cross(ref rotateAxis, ref vector2, out vector3);
+                vector3.Normalize();
+                Vector3.Cross(ref vector3, ref vector4, out vector);
+                vector.Normalize();
+            }
+
+            result.M11 = vector3.X;
+            result.M12 = vector3.Y;
+            result.M13 = vector3.Z;
+            result.M14 = 0f;
+            result.M21 = vector4.X;
+            result.M22 = vector4.Y;
+            result.M23 = vector4.Z;
+            result.M24 = 0f;
+            result.M31 = vector.X;
+            result.M32 = vector.Y;
+            result.M33 = vector.Z;
+            result.M34 = 0f;
+            result.M41 = objectPosition.X;
+            result.M42 = objectPosition.Y;
+            result.M43 = objectPosition.Z;
+            result.M44 = 1f;
+        }
+
+        public static Matrix CreateConstrainedBillboard(
+            Vector3 objectPosition,
+            Vector3 cameraPosition,
+            Vector3 rotateAxis,
+            Vector3? cameraForwardVector,
+            Vector3? objectForwardVector)
+        {
+            Matrix result;
+            CreateConstrainedBillboard(
+                ref objectPosition,
+                ref cameraPosition,
+                ref rotateAxis,
+                cameraForwardVector,
+                objectForwardVector,
+                out result);
+            return result;
+        }
+
         public static void CreateLookAt(ref Vector3 cameraPosition,
                                         ref Vector3 cameraTarget,
                                         ref Vector3 cameraUpVector,
