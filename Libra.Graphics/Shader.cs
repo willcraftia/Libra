@@ -38,6 +38,14 @@ namespace Libra.Graphics
 
         protected abstract void InitializeCore();
 
+        public override string ToString()
+        {
+            if (!string.IsNullOrEmpty(Name))
+                return "{" + Name + "}";
+
+            return base.ToString();
+        }
+        
         #region IDisposable
 
         public bool IsDisposed { get; private set; }
