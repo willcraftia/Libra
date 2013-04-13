@@ -56,6 +56,7 @@ namespace Samples.Audio3D
             context.SetVertexBuffer(0, vertexBuffer);
 
             context.PrimitiveTopology = PrimitiveTopology.TriangleStrip;
+            context.PixelShaderSamplers[0] = SamplerState.LinearWrap;
 
             effect.Apply(context);
 
