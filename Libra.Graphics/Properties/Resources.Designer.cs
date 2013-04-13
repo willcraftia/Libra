@@ -60,6 +60,62 @@ namespace Libra.Graphics.Properties {
             }
         }
         
+        internal static byte[] AlphaTestEffectPSAlphaTestEqNe {
+            get {
+                object obj = ResourceManager.GetObject("AlphaTestEffectPSAlphaTestEqNe", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] AlphaTestEffectPSAlphaTestEqNeNoFog {
+            get {
+                object obj = ResourceManager.GetObject("AlphaTestEffectPSAlphaTestEqNeNoFog", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] AlphaTestEffectPSAlphaTestLtGt {
+            get {
+                object obj = ResourceManager.GetObject("AlphaTestEffectPSAlphaTestLtGt", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] AlphaTestEffectPSAlphaTestLtGtNoFog {
+            get {
+                object obj = ResourceManager.GetObject("AlphaTestEffectPSAlphaTestLtGtNoFog", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] AlphaTestEffectVSAlphaTest {
+            get {
+                object obj = ResourceManager.GetObject("AlphaTestEffectVSAlphaTest", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] AlphaTestEffectVSAlphaTestNoFog {
+            get {
+                object obj = ResourceManager.GetObject("AlphaTestEffectVSAlphaTestNoFog", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] AlphaTestEffectVSAlphaTestVc {
+            get {
+                object obj = ResourceManager.GetObject("AlphaTestEffectVSAlphaTestVc", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] AlphaTestEffectVSAlphaTestVcNoFog {
+            get {
+                object obj = ResourceManager.GetObject("AlphaTestEffectVSAlphaTestVcNoFog", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
         internal static byte[] BasicEffectPSBasic {
             get {
                 object obj = ResourceManager.GetObject("BasicEffectPSBasic", resourceCulture);

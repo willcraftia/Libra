@@ -9,7 +9,7 @@ using Libra.Graphics.Properties;
 
 namespace Libra.Graphics
 {
-    public sealed class BasicEffect : IEffect, IEffectMatrices
+    public sealed class BasicEffect : IEffect, IEffectMatrices, IEffectFog
     {
         #region VertexShaderDefinition
 
@@ -458,11 +458,6 @@ namespace Libra.Graphics
 
         static BasicEffect()
         {
-            //var compiler = new Compiler.ShaderCompiler();
-            //compiler.RootPath = "Shaders";
-            //var vsBasicVertexLighting = compiler.CompileFromFile("BasicEffect.fx", "VSBasicVertexLighting", Compiler.VertexShaderProfile.vs_4_0);
-            //var psBasicVertexLightingNoFog = compiler.CompileFromFile("BasicEffect.fx", "PSBasicVertexLightingNoFog", Compiler.PixelShaderProfile.ps_4_0);
-
             VertexShaderDefinitions = new[]
             {
                 new VertexShaderDefinition(Resources.BasicEffectVSBasic, "BasicEffect_VSBasic"),

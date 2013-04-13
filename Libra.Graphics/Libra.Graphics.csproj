@@ -39,6 +39,7 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AlphaTestEffect.cs" />
     <Compile Include="BasicEffect.cs" />
     <Compile Include="Blend.cs" />
     <Compile Include="BlendFunction.cs" />
@@ -67,6 +68,7 @@
     <Compile Include="Adapter.cs" />
     <Compile Include="Device.cs" />
     <Compile Include="IEffect.cs" />
+    <Compile Include="IEffectFog.cs" />
     <Compile Include="IEffectMatrices.cs" />
     <Compile Include="GraphicsFactory.cs" />
     <Compile Include="IGraphicsService.cs" />
@@ -141,8 +143,17 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Shaders\AlphaTestEffect.fx" />
     <None Include="Shaders\BasicEffect.fx" />
     <None Include="Shaders\Common.fxh" />
+    <None Include="Shaders\Compiled\AlphaTestEffectPSAlphaTestEqNe.bin" />
+    <None Include="Shaders\Compiled\AlphaTestEffectPSAlphaTestEqNeNoFog.bin" />
+    <None Include="Shaders\Compiled\AlphaTestEffectPSAlphaTestLtGt.bin" />
+    <None Include="Shaders\Compiled\AlphaTestEffectPSAlphaTestLtGtNoFog.bin" />
+    <None Include="Shaders\Compiled\AlphaTestEffectVSAlphaTest.bin" />
+    <None Include="Shaders\Compiled\AlphaTestEffectVSAlphaTestNoFog.bin" />
+    <None Include="Shaders\Compiled\AlphaTestEffectVSAlphaTestVc.bin" />
+    <None Include="Shaders\Compiled\AlphaTestEffectVSAlphaTestVcNoFog.bin" />
     <None Include="Shaders\Compiled\BasicEffectPSBasic.bin" />
     <None Include="Shaders\Compiled\BasicEffectPSBasicNoFog.bin" />
     <None Include="Shaders\Compiled\BasicEffectPSBasicPixelLighting.bin" />

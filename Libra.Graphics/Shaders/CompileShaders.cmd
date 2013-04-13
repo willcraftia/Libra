@@ -6,6 +6,22 @@ set vs_profile=vs_5_0
 set ps_profile=ps_5_0
 
 ::
+:: AlphaTestEffect VS
+::
+call :CompileShader AlphaTestEffect VSAlphaTest %vs_profile%
+call :CompileShader AlphaTestEffect VSAlphaTestNoFog %vs_profile%
+call :CompileShader AlphaTestEffect VSAlphaTestVc %vs_profile%
+call :CompileShader AlphaTestEffect VSAlphaTestVcNoFog %vs_profile%
+
+::
+:: AlphaTestEffect PS
+::
+call :CompileShader AlphaTestEffect PSAlphaTestLtGt %ps_profile%
+call :CompileShader AlphaTestEffect PSAlphaTestLtGtNoFog %ps_profile%
+call :CompileShader AlphaTestEffect PSAlphaTestEqNe %ps_profile%
+call :CompileShader AlphaTestEffect PSAlphaTestEqNeNoFog %ps_profile%
+
+::
 :: BasicEffect VS
 ::
 call :CompileShader BasicEffect VSBasic %vs_profile%
