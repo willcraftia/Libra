@@ -305,6 +305,14 @@ namespace Libra.Games
 
                     Update(gameTime);
 
+                    for (int updateableIndex = 0; updateableIndex < updateables.Count; updateableIndex++)
+                    {
+                        if (!isExiting)
+                        {
+                            updateables[updateableIndex].Update(gameTime);
+                        }
+                    }
+
                     updatedOnce = true;
 
                     shouldDraw &= !suppressDraw;
@@ -327,6 +335,14 @@ namespace Libra.Games
                         gameTime.ElapsedGameTime = drawElapsedGameTime;
 
                         Draw(gameTime);
+
+                        for (int drawableIndex = 0; drawableIndex < drawables.Count; drawableIndex++)
+                        {
+                            if (!isExiting)
+                            {
+                                drawables[drawableIndex].Draw(gameTime);
+                            }
+                        }
 
                         EndDraw();
                     }
@@ -389,11 +405,7 @@ namespace Libra.Games
 
         protected virtual void EndRun() { }
 
-        protected virtual void Update(GameTime gameTime)
-        {
-            for (int i = 0; i < updateables.Count; i++)
-                updateables[i].Update(gameTime);
-        }
+        protected virtual void Update(GameTime gameTime) { }
 
         protected virtual bool BeginDraw()
         {
@@ -405,11 +417,7 @@ namespace Libra.Games
             graphicsManager.EndDraw();
         }
 
-        protected virtual void Draw(GameTime gameTime)
-        {
-            for (int i = 0; i < drawables.Count; i++)
-                drawables[i].Draw(gameTime);
-        }
+        protected virtual void Draw(GameTime gameTime) { }
 
         protected virtual void OnActivated(object sender, EventArgs e)
         {
@@ -433,6 +441,8 @@ namespace Libra.Games
 
             if (Exiting != null)
                 Exiting(sender, e);
+
+            UnloadContent();
         }
 
         void OnWindowClientSizeChanged(object sender, EventArgs e)
