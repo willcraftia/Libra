@@ -134,10 +134,11 @@ namespace Libra
             M41 = M42 = M43 = M44 = value;
         }
 
-        public Matrix(float m11, float m12, float m13, float m14,
-                      float m21, float m22, float m23, float m24,
-                      float m31, float m32, float m33, float m34,
-                      float m41, float m42, float m43, float m44)
+        public Matrix(
+            float m11, float m12, float m13, float m14,
+            float m21, float m22, float m23, float m24,
+            float m31, float m32, float m33, float m34,
+            float m41, float m42, float m43, float m44)
         {
             M11 = m11; M12 = m12; M13 = m13; M14 = m14;
             M21 = m21; M22 = m22; M23 = m23; M24 = m24;
@@ -393,22 +394,22 @@ namespace Libra
 
         public static void Lerp(ref Matrix start, ref Matrix end, float amount, out Matrix result)
         {
-            result.M11 = start.M11 + ((end.M11 - start.M11) * amount);
-            result.M12 = start.M12 + ((end.M12 - start.M12) * amount);
-            result.M13 = start.M13 + ((end.M13 - start.M13) * amount);
-            result.M14 = start.M14 + ((end.M14 - start.M14) * amount);
-            result.M21 = start.M21 + ((end.M21 - start.M21) * amount);
-            result.M22 = start.M22 + ((end.M22 - start.M22) * amount);
-            result.M23 = start.M23 + ((end.M23 - start.M23) * amount);
-            result.M24 = start.M24 + ((end.M24 - start.M24) * amount);
-            result.M31 = start.M31 + ((end.M31 - start.M31) * amount);
-            result.M32 = start.M32 + ((end.M32 - start.M32) * amount);
-            result.M33 = start.M33 + ((end.M33 - start.M33) * amount);
-            result.M34 = start.M34 + ((end.M34 - start.M34) * amount);
-            result.M41 = start.M41 + ((end.M41 - start.M41) * amount);
-            result.M42 = start.M42 + ((end.M42 - start.M42) * amount);
-            result.M43 = start.M43 + ((end.M43 - start.M43) * amount);
-            result.M44 = start.M44 + ((end.M44 - start.M44) * amount);
+            result.M11 = start.M11 + (end.M11 - start.M11) * amount;
+            result.M12 = start.M12 + (end.M12 - start.M12) * amount;
+            result.M13 = start.M13 + (end.M13 - start.M13) * amount;
+            result.M14 = start.M14 + (end.M14 - start.M14) * amount;
+            result.M21 = start.M21 + (end.M21 - start.M21) * amount;
+            result.M22 = start.M22 + (end.M22 - start.M22) * amount;
+            result.M23 = start.M23 + (end.M23 - start.M23) * amount;
+            result.M24 = start.M24 + (end.M24 - start.M24) * amount;
+            result.M31 = start.M31 + (end.M31 - start.M31) * amount;
+            result.M32 = start.M32 + (end.M32 - start.M32) * amount;
+            result.M33 = start.M33 + (end.M33 - start.M33) * amount;
+            result.M34 = start.M34 + (end.M34 - start.M34) * amount;
+            result.M41 = start.M41 + (end.M41 - start.M41) * amount;
+            result.M42 = start.M42 + (end.M42 - start.M42) * amount;
+            result.M43 = start.M43 + (end.M43 - start.M43) * amount;
+            result.M44 = start.M44 + (end.M44 - start.M44) * amount;
         }
 
         public static Matrix Lerp(Matrix start, Matrix end, float amount)
@@ -423,22 +424,22 @@ namespace Libra
             amount = (amount > 1.0f) ? 1.0f : ((amount < 0.0f) ? 0.0f : amount);
             amount = (amount * amount) * (3.0f - (2.0f * amount));
 
-            result.M11 = start.M11 + ((end.M11 - start.M11) * amount);
-            result.M12 = start.M12 + ((end.M12 - start.M12) * amount);
-            result.M13 = start.M13 + ((end.M13 - start.M13) * amount);
-            result.M14 = start.M14 + ((end.M14 - start.M14) * amount);
-            result.M21 = start.M21 + ((end.M21 - start.M21) * amount);
-            result.M22 = start.M22 + ((end.M22 - start.M22) * amount);
-            result.M23 = start.M23 + ((end.M23 - start.M23) * amount);
-            result.M24 = start.M24 + ((end.M24 - start.M24) * amount);
-            result.M31 = start.M31 + ((end.M31 - start.M31) * amount);
-            result.M32 = start.M32 + ((end.M32 - start.M32) * amount);
-            result.M33 = start.M33 + ((end.M33 - start.M33) * amount);
-            result.M34 = start.M34 + ((end.M34 - start.M34) * amount);
-            result.M41 = start.M41 + ((end.M41 - start.M41) * amount);
-            result.M42 = start.M42 + ((end.M42 - start.M42) * amount);
-            result.M43 = start.M43 + ((end.M43 - start.M43) * amount);
-            result.M44 = start.M44 + ((end.M44 - start.M44) * amount);
+            result.M11 = start.M11 + (end.M11 - start.M11) * amount;
+            result.M12 = start.M12 + (end.M12 - start.M12) * amount;
+            result.M13 = start.M13 + (end.M13 - start.M13) * amount;
+            result.M14 = start.M14 + (end.M14 - start.M14) * amount;
+            result.M21 = start.M21 + (end.M21 - start.M21) * amount;
+            result.M22 = start.M22 + (end.M22 - start.M22) * amount;
+            result.M23 = start.M23 + (end.M23 - start.M23) * amount;
+            result.M24 = start.M24 + (end.M24 - start.M24) * amount;
+            result.M31 = start.M31 + (end.M31 - start.M31) * amount;
+            result.M32 = start.M32 + (end.M32 - start.M32) * amount;
+            result.M33 = start.M33 + (end.M33 - start.M33) * amount;
+            result.M34 = start.M34 + (end.M34 - start.M34) * amount;
+            result.M41 = start.M41 + (end.M41 - start.M41) * amount;
+            result.M42 = start.M42 + (end.M42 - start.M42) * amount;
+            result.M43 = start.M43 + (end.M43 - start.M43) * amount;
+            result.M44 = start.M44 + (end.M44 - start.M44) * amount;
         }
 
         public static Matrix SmoothStep(Matrix start, Matrix end, float amount)
@@ -525,11 +526,12 @@ namespace Libra
             return result;
         }
 
-        public static void CreateBillboard(ref Vector3 objectPosition,
-                                           ref Vector3 cameraPosition,
-                                           ref Vector3 cameraUpVector,
-                                           ref Vector3 cameraForwardVector,
-                                           out Matrix result)
+        public static void CreateBillboard(
+            ref Vector3 objectPosition,
+            ref Vector3 cameraPosition,
+            ref Vector3 cameraUpVector,
+            ref Vector3 cameraForwardVector,
+            out Matrix result)
         {
             Vector3 crossed;
             Vector3 final;
@@ -563,17 +565,19 @@ namespace Libra
             result.M44 = 1.0f;
         }
 
-        public static Matrix CreateBillboard(Vector3 objectPosition,
-                                             Vector3 cameraPosition,
-                                             Vector3 cameraUpVector,
-                                             Vector3 cameraForwardVector)
+        public static Matrix CreateBillboard(
+            Vector3 objectPosition,
+            Vector3 cameraPosition,
+            Vector3 cameraUpVector,
+            Vector3 cameraForwardVector)
         {
             Matrix result;
-            CreateBillboard(ref objectPosition,
-                            ref cameraPosition,
-                            ref cameraUpVector,
-                            ref cameraForwardVector,
-                            out result);
+            CreateBillboard(
+                ref objectPosition,
+                ref cameraPosition,
+                ref cameraUpVector,
+                ref cameraForwardVector,
+                out result);
             return result;
         }
 
@@ -679,10 +683,11 @@ namespace Libra
             return result;
         }
 
-        public static void CreateLookAt(ref Vector3 cameraPosition,
-                                        ref Vector3 cameraTarget,
-                                        ref Vector3 cameraUpVector,
-                                        out Matrix result)
+        public static void CreateLookAt(
+            ref Vector3 cameraPosition,
+            ref Vector3 cameraTarget,
+            ref Vector3 cameraUpVector,
+            out Matrix result)
         {
             Vector3 xaxis, yaxis, zaxis;
             Vector3.Subtract(ref cameraPosition, ref cameraTarget, out zaxis);
@@ -705,14 +710,26 @@ namespace Libra
             result.M43 = -result.M43;
         }
 
-        public static Matrix CreateLookAt(Vector3 cameraPosition, Vector3 cameraTarget, Vector3 cameraUpVector)
+        public static Matrix CreateLookAt(
+            Vector3 cameraPosition,
+            Vector3 cameraTarget,
+            Vector3 cameraUpVector)
         {
             Matrix result;
-            CreateLookAt(ref cameraPosition, ref cameraTarget, ref cameraUpVector, out result);
+            CreateLookAt(
+                ref cameraPosition,
+                ref cameraTarget,
+                ref cameraUpVector,
+                out result);
             return result;
         }
 
-        public static void CreateOrthographic(float width, float height, float zNearPlane, float zFarPlane, out Matrix result)
+        public static void CreateOrthographic(
+            float width,
+            float height,
+            float zNearPlane,
+            float zFarPlane,
+            out Matrix result)
         {
             float zRange = 1.0f / (zNearPlane - zFarPlane);
             result = new Matrix
@@ -725,15 +742,30 @@ namespace Libra
             };
         }
 
-        public static Matrix CreateOrthographic(float width, float height, float zNearPlane, float zFarPlane)
+        public static Matrix CreateOrthographic(
+            float width,
+            float height,
+            float zNearPlane,
+            float zFarPlane)
         {
             Matrix result;
-            CreateOrthographic(width, height, zNearPlane, zFarPlane, out result);
+            CreateOrthographic(
+                width,
+                height,
+                zNearPlane,
+                zFarPlane,
+                out result);
             return result;
         }
 
-        public static void CreateOrthographicOffCenter(float left, float right, float bottom, float top,
-                                                       float zNearPlane, float zFarPlane, out Matrix result)
+        public static void CreateOrthographicOffCenter(
+            float left,
+            float right,
+            float bottom,
+            float top,
+            float zNearPlane,
+            float zFarPlane,
+            out Matrix result)
         {
             float zRange = 1.0f / (zNearPlane - zFarPlane);
             result = new Matrix
@@ -748,17 +780,32 @@ namespace Libra
             };
         }
 
-        public static Matrix CreateOrthographicOffCenter(float left, float right, float bottom, float top,
-                                                         float zNearPlane, float zFarPlane)
+        public static Matrix CreateOrthographicOffCenter(
+            float left,
+            float right,
+            float bottom,
+            float top,
+            float zNearPlane,
+            float zFarPlane)
         {
             Matrix result;
-            CreateOrthographicOffCenter(left, right, bottom, top, zNearPlane, zFarPlane, out result);
+            CreateOrthographicOffCenter(
+                left,
+                right,
+                bottom,
+                top,
+                zNearPlane,
+                zFarPlane,
+                out result);
             return result;
         }
 
-        public static void CreatePerspective(float width, float height,
-                                             float nearPlaneDistance, float farPlaneDistance,
-                                             out Matrix result)
+        public static void CreatePerspective(
+            float width,
+            float height,
+            float nearPlaneDistance,
+            float farPlaneDistance,
+            out Matrix result)
         {
             float zRange = farPlaneDistance / (nearPlaneDistance - farPlaneDistance);
             result = new Matrix
@@ -771,17 +818,28 @@ namespace Libra
             };
         }
 
-        public static Matrix CreatePerspective(float width, float height,
-                                               float nearPlaneDistance, float farPlaneDistance)
+        public static Matrix CreatePerspective(
+            float width,
+            float height,
+            float nearPlaneDistance,
+            float farPlaneDistance)
         {
             Matrix result;
-            CreatePerspective(width, height, nearPlaneDistance, farPlaneDistance, out result);
+            CreatePerspective(
+                width,
+                height,
+                nearPlaneDistance,
+                farPlaneDistance,
+                out result);
             return result;
         }
 
-        public static void CreatePerspectiveFieldOfView(float fieldOfView, float aspectRatio,
-                                                        float nearPlaneDistance, float farPlaneDistance,
-                                                        out Matrix result)
+        public static void CreatePerspectiveFieldOfView(
+            float fieldOfView,
+            float aspectRatio,
+            float nearPlaneDistance,
+            float farPlaneDistance,
+            out Matrix result)
         {
             float yScale = (float) (1.0f / Math.Tan(fieldOfView * 0.5f));
             float xScale = yScale / aspectRatio;
@@ -796,17 +854,30 @@ namespace Libra
             };
         }
 
-        public static Matrix CreatePerspectiveFieldOfView(float fieldOfView, float aspectRatio,
-                                                          float nearPlaneDistance, float farPlaneDistance)
+        public static Matrix CreatePerspectiveFieldOfView(
+            float fieldOfView,
+            float aspectRatio,
+            float nearPlaneDistance,
+            float farPlaneDistance)
         {
             Matrix result;
-            CreatePerspectiveFieldOfView(fieldOfView, aspectRatio, nearPlaneDistance, farPlaneDistance, out result);
+            CreatePerspectiveFieldOfView(
+                fieldOfView,
+                aspectRatio,
+                nearPlaneDistance,
+                farPlaneDistance,
+                out result);
             return result;
         }
 
-        public static void CreatePerspectiveOffCenter(float left, float right, float bottom, float top,
-                                                      float nearPlaneDistance, float farPlaneDistance,
-                                                      out Matrix result)
+        public static void CreatePerspectiveOffCenter(
+            float left,
+            float right,
+            float bottom,
+            float top,
+            float nearPlaneDistance,
+            float farPlaneDistance,
+            out Matrix result)
         {
             float zRange = farPlaneDistance / (nearPlaneDistance - farPlaneDistance);
             result = new Matrix
@@ -821,11 +892,23 @@ namespace Libra
             };
         }
 
-        public static Matrix CreatePerspectiveOffCenter(float left, float right, float bottom, float top,
-                                                        float nearPlaneDistance, float farPlaneDistance)
+        public static Matrix CreatePerspectiveOffCenter(
+            float left,
+            float right,
+            float bottom,
+            float top,
+            float nearPlaneDistance,
+            float farPlaneDistance)
         {
             Matrix result;
-            CreatePerspectiveOffCenter(left, right, bottom, top, nearPlaneDistance, farPlaneDistance, out result);
+            CreatePerspectiveOffCenter(
+                left,
+                right,
+                bottom,
+                top,
+                nearPlaneDistance,
+                farPlaneDistance,
+                out result);
             return result;
         }
 
@@ -865,28 +948,31 @@ namespace Libra
 
         public static void CreateShadow(ref Vector4 light, ref Plane plane, out Matrix result)
         {
-            float dot = (plane.Normal.X * light.X) + (plane.Normal.Y * light.Y) + (plane.Normal.Z * light.Z) + (plane.D * light.W);
+            float dot = plane.Normal.X * light.X +
+                        plane.Normal.Y * light.Y +
+                        plane.Normal.Z * light.Z +
+                        plane.D * light.W;
             float x = -plane.Normal.X;
             float y = -plane.Normal.Y;
             float z = -plane.Normal.Z;
             float d = -plane.D;
 
-            result.M11 = (x * light.X) + dot;
+            result.M11 = x * light.X + dot;
             result.M21 = y * light.X;
             result.M31 = z * light.X;
             result.M41 = d * light.X;
             result.M12 = x * light.Y;
-            result.M22 = (y * light.Y) + dot;
+            result.M22 = y * light.Y + dot;
             result.M32 = z * light.Y;
             result.M42 = d * light.Y;
             result.M13 = x * light.Z;
             result.M23 = y * light.Z;
-            result.M33 = (z * light.Z) + dot;
+            result.M33 = z * light.Z + dot;
             result.M43 = d * light.Z;
             result.M14 = x * light.W;
             result.M24 = y * light.W;
             result.M34 = z * light.W;
-            result.M44 = (d * light.W) + dot;
+            result.M44 = d * light.W + dot;
         }
 
         public static Matrix CreateShadow(Vector4 light, Plane plane)
