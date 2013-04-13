@@ -340,6 +340,7 @@ namespace Libra.Graphics
             projection = Matrix.Identity;
 
             diffuseColor = Vector3.One;
+            alpha = 1;
 
             fogEnabled = false;
             fogStart = 0;
