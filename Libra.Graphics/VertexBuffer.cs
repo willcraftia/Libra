@@ -49,17 +49,16 @@ namespace Libra.Graphics
             initialized = true;
         }
 
+        public void Initialize<T>(int vertexCount) where T : struct, IVertexType
+        {
+            Initialize(new T().VertexDeclaration, vertexCount);
+        }
+
         public void Initialize<T>(T[] data) where T : struct, IVertexType
         {
-            AssertNotInitialized();
             if (data.Length == 0) throw new ArgumentException("Data must be not empty.", "data");
 
-            VertexDeclaration = data[0].VertexDeclaration;
-            VertexCount = data.Length;
-
-            InitializeCore(data);
-
-            initialized = true;
+            Initialize<T>(data[0].VertexDeclaration, data);
         }
 
         public void GetData<T>(DeviceContext context, T[] data, int startIndex, int elementCount) where T : struct
