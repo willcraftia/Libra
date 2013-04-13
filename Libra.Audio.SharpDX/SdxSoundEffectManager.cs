@@ -50,7 +50,11 @@ namespace Libra.Audio.SharpDX
         {
             if (engineStarted)
             {
-                XAudio2.StopEngine();
+                // プロセス終了に伴う破棄の場合には XAudio2 の破棄が先行している場合もある。
+                if (!XAudio2.IsDisposed)
+                {
+                    XAudio2.StopEngine();
+                }
                 engineStarted = false;
             }
 
