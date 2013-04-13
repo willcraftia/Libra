@@ -119,10 +119,5 @@ namespace Libra.Audio.SharpDX
 
             WaveFormat = waveFormatExtensible;
         }
-
-        protected override SoundEffectInstance CreateInstanceCore()
-        {
-            return new SdxSoundEffectInstance(this);
-        }
     }
 }

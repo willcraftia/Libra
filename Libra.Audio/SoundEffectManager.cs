@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Collections.Generic;
 using System.Configuration;
 
 #endregion
@@ -18,6 +19,8 @@ namespace Libra.Audio
         float distanceScale;
 
         float dopplerScale;
+
+        List<SoundEffectInstance> instancesToDispose;
 
         public static SoundEffectManager Default { get; private set; }
 
@@ -68,6 +71,8 @@ namespace Libra.Audio
             masterVolume = 1.0f;
             distanceScale = 1.0f;
             dopplerScale = 1.0f;
+
+            instancesToDispose = new List<SoundEffectInstance>();
         }
 
         public static SoundEffectManager CreateSoundEffectManager()
@@ -84,6 +89,22 @@ namespace Libra.Audio
         }
 
         public abstract SoundEffect CreateSoundEffect();
+
+        internal SoundEffectInstance CreateSoundEffectInstance()
+        {
+            var instance = CreateSoundEffectInstanceCore();
+
+            instancesToDispose.Add(instance);
+
+            return instance;
+        }
+
+        internal void ReleaseSoundEffectInstance(SoundEffectInstance instance)
+        {
+            instancesToDispose.Remove(instance);
+        }
+
+        protected abstract SoundEffectInstance CreateSoundEffectInstanceCore();
 
         protected abstract void OnMasterVolumeChanged();
 
@@ -107,6 +128,11 @@ namespace Libra.Audio
         void Dispose(bool disposing)
         {
             if (IsDisposed) return;
+
+            foreach (var instance in instancesToDispose)
+            {
+                instance.DisposeByManager();
+            }
 
             DisposeOverride(disposing);
 

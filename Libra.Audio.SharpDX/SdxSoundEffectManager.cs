@@ -41,6 +41,11 @@ namespace Libra.Audio.SharpDX
             return new SdxSoundEffect(this);
         }
 
+        protected override SoundEffectInstance CreateSoundEffectInstanceCore()
+        {
+            return new SdxSoundEffectInstance(this);
+        }
+
         protected override void OnMasterVolumeChanged()
         {
             MasteringVoice.SetVolume(MasterVolume);
@@ -48,14 +53,17 @@ namespace Libra.Audio.SharpDX
 
         protected override void DisposeOverride(bool disposing)
         {
-            if (engineStarted)
+            if (disposing)
             {
-                // プロセス終了に伴う破棄の場合には XAudio2 の破棄が先行している場合もある。
-                if (!XAudio2.IsDisposed)
+                MasteringVoice.DestroyVoice();
+                MasteringVoice.Dispose();
+
+                if (engineStarted)
                 {
                     XAudio2.StopEngine();
+                    engineStarted = false;
                 }
-                engineStarted = false;
+                XAudio2.Dispose();
             }
 
             base.DisposeOverride(disposing);

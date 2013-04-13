@@ -14,7 +14,11 @@ namespace Libra.Audio
 
         float pan;
 
+        public SoundEffectManager Manager { get; private set; }
+
         public SoundState State { get; private set; }
+
+        protected SoundEffect SoundEffect { get; private set; }
 
         public float Volume
         {
@@ -63,11 +67,24 @@ namespace Libra.Audio
 
         public bool IsLooped { get; set; }
 
-        protected SoundEffectInstance()
+        protected SoundEffectInstance(SoundEffectManager manager, SoundEffect soundEffect = null)
         {
+            if (manager == null) throw new ArgumentNullException("manager");
+
+            Manager = manager;
+
             volume = 1.0f;
             pitch = 0.0f;
             pan = 0.0f;
+
+            State = SoundState.Stopped;
+        }
+
+        internal void Initialize(SoundEffect soundEffect)
+        {
+            SoundEffect = soundEffect;
+
+            InitializeCore();
         }
 
         public void Apply3D(AudioListener listener, AudioEmitter emitter)
@@ -125,6 +142,8 @@ namespace Libra.Audio
             State = SoundState.Stopped;
         }
 
+        protected abstract void InitializeCore();
+
         protected abstract void Apply3DCore(AudioListener listener, AudioEmitter emitter);
 
         protected abstract void PlayCore();
@@ -158,9 +177,26 @@ namespace Libra.Audio
 
         protected virtual void DisposeOverride(bool disposing) { }
 
+        internal void DisposeByManager()
+        {
+            if (IsDisposed) return;
+
+            // マネージャからの破棄の呼び出しならば参照解放をスキップ。
+            
+            DisposeOverride(true);
+
+            IsDisposed = true;
+        }
+
         void Dispose(bool disposing)
         {
             if (IsDisposed) return;
+
+            // Dispose による明示的な破棄ならばマネージャからの参照を解放。
+            if (disposing)
+            {
+                Manager.ReleaseSoundEffectInstance(this);
+            }
 
             DisposeOverride(disposing);
 

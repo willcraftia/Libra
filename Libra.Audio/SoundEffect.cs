@@ -168,7 +168,12 @@ namespace Libra.Audio
         public SoundEffectInstance CreateInstance()
         {
             AssertInitialized();
-            return CreateInstanceCore();
+
+            var instance = Manager.CreateSoundEffectInstance();
+
+            instance.Initialize(this);
+
+            return instance;
         }
 
         protected abstract void InitializeCore(WaveFormat format, IntPtr bufferPointer, int bufferSize);
@@ -176,8 +181,6 @@ namespace Libra.Audio
         protected abstract void InitializeCore(AdpcmWaveFormat format, IntPtr bufferPointer, int bufferSize);
 
         protected abstract void InitializeCore(WaveFormatExtensible format, IntPtr bufferPointer, int bufferSize);
-
-        protected abstract SoundEffectInstance CreateInstanceCore();
 
         void AssertNotInitialized()
         {
@@ -210,13 +213,13 @@ namespace Libra.Audio
         {
             if (IsDisposed) return;
 
-            DisposeOverride(disposing);
-
-            if (disposing)
+            if (pinned)
             {
-                if (pinned)
-                    gcHandle.Free();
+                gcHandle.Free();
+                pinned = false;
             }
+
+            DisposeOverride(disposing);
 
             IsDisposed = true;
         }

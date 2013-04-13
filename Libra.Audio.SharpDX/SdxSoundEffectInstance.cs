@@ -18,31 +18,38 @@ namespace Libra.Audio.SharpDX
 {
     public sealed class SdxSoundEffectInstance : SoundEffectInstance
     {
-        SdxSoundEffect soundEffect;
-
-        SdxSoundEffectManager manager;
-
         SDXMWaveFormat waveFormat;
 
         float[] levelMatrices;
 
         public XA2SourceVoice SourceVoice { get; private set; }
 
-        public SdxSoundEffectInstance(SdxSoundEffect soundEffect)
+        public SdxSoundEffectInstance(SdxSoundEffectManager manager)
+            : base(manager)
         {
-            this.soundEffect = soundEffect;
+        }
 
-            manager = soundEffect.Manager as SdxSoundEffectManager;
-            waveFormat = soundEffect.WaveFormat;
+        protected override void InitializeCore()
+        {
+            if (SoundEffect != null)
+            {
+                var sdxSoundEffect = SoundEffect as SdxSoundEffect;
 
-            SourceVoice = new XA2SourceVoice(
-                manager.XAudio2, soundEffect.WaveFormat, XA2VoiceFlags.None, XA2XAudio2.MaximumFrequencyRatio);
-            
-            SourceVoice.SetVolume(Volume);
+                waveFormat = sdxSoundEffect.WaveFormat;
+
+                var manager = Manager as SdxSoundEffectManager;
+
+                SourceVoice = new XA2SourceVoice(
+                    manager.XAudio2, sdxSoundEffect.WaveFormat, XA2VoiceFlags.None, XA2XAudio2.MaximumFrequencyRatio);
+
+                SourceVoice.SetVolume(Volume);
+            }
         }
 
         protected override void Apply3DCore(AudioListener listener, AudioEmitter emitter)
         {
+            var manager = Manager as SdxSoundEffectManager;
+
             var x3daListener = ToX3DAListener(listener);
             var x3daEmitter = ToX3DAEmitter(emitter);
 
@@ -122,6 +129,8 @@ namespace Libra.Audio.SharpDX
             result.OrientTop.Y = orientTop.Y;
             result.OrientTop.Z = orientTop.Z;
 
+            var manager = Manager as SdxSoundEffectManager;
+
             result.DopplerScaler = emitter.DopplerScale * manager.DopplerScale;
             result.ChannelCount = waveFormat.Channels;
             result.CurveDistanceScaler = manager.DistanceScale;
@@ -131,8 +140,11 @@ namespace Libra.Audio.SharpDX
 
         protected override void PlayCore()
         {
-            var audioBuffer = IsLooped ? soundEffect.LoopedAudioBuffer : soundEffect.AudioBuffer;
+            var sdxSoundEffect = SoundEffect as SdxSoundEffect;
+
+            var audioBuffer = IsLooped ? sdxSoundEffect.LoopedAudioBuffer : sdxSoundEffect.AudioBuffer;
             SourceVoice.SubmitSourceBuffer(audioBuffer, null);
+
             SourceVoice.Start();
         }
 
@@ -163,6 +175,8 @@ namespace Libra.Audio.SharpDX
 
         protected override void OnPanChanged()
         {
+            var manager = Manager as SdxSoundEffectManager;
+
             var sourceChannels = waveFormat.Channels;
             var destinationChannels = manager.MasteringVoice.VoiceDetails.InputChannelCount;
 
@@ -203,6 +217,17 @@ namespace Libra.Audio.SharpDX
             }
 
             SourceVoice.SetOutputMatrix(sourceChannels, destinationChannels, levelMatrices);
+        }
+
+        protected override void DisposeOverride(bool disposing)
+        {
+            if (disposing)
+            {
+                SourceVoice.DestroyVoice();
+                SourceVoice.Dispose();
+            }
+
+            base.DisposeOverride(disposing);
         }
     }
 }
