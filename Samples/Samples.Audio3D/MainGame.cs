@@ -96,8 +96,8 @@ namespace Samples.Audio3D
 
             quadDrawer.DrawQuad(context, checkerTexture.GetShaderResourceView(), 32, groundTransform, view, projection);
 
-            cat.Draw(quadDrawer, cameraPosition, view, projection);
-            dog.Draw(quadDrawer, cameraPosition, view, projection);
+            cat.Draw(context, quadDrawer, cameraPosition, view, projection);
+            dog.Draw(context, quadDrawer, cameraPosition, view, projection);
 
             base.Draw(gameTime);
         }
