@@ -33,17 +33,23 @@ namespace Libra.Audio.SharpDX
                 AudioDataPointer = bufferPointer,
                 AudioBytes = bufferSize,
                 Flags = XA2BufferFlags.EndOfStream,
-                PlayBegin = 0,
-                PlayLength = bufferSize
+                PlayBegin = PlayBegin,
+                PlayLength = PlayLength
             };
+
+            int loopLength = PlayLength;
+            if (PlayBegin == 0 && PlayLength == 0)
+            {
+                loopLength = bufferSize / (format.BitsPerSample / 8);
+            }
 
             LoopedAudioBuffer = new XA2AudioBuffer
             {
                 AudioDataPointer = bufferPointer,
                 AudioBytes = bufferSize,
                 Flags = XA2BufferFlags.EndOfStream,
-                LoopBegin = LoopStart,
-                LoopLength = (LoopLength == 0) ? bufferSize : LoopLength,
+                LoopBegin = PlayBegin,
+                LoopLength = loopLength,
                 LoopCount = XA2AudioBuffer.LoopInfinite
             };
 
@@ -57,17 +63,23 @@ namespace Libra.Audio.SharpDX
                 AudioDataPointer = bufferPointer,
                 AudioBytes = bufferSize,
                 Flags = XA2BufferFlags.EndOfStream,
-                PlayBegin = 0,
-                PlayLength = bufferSize
+                PlayBegin = PlayBegin,
+                PlayLength = PlayLength
             };
+
+            int loopLength = PlayLength;
+            if (PlayBegin == 0 && PlayLength == 0)
+            {
+                loopLength = bufferSize / (format.WaveFormat.BitsPerSample / 8);
+            }
 
             LoopedAudioBuffer = new XA2AudioBuffer
             {
                 AudioDataPointer = bufferPointer,
                 AudioBytes = bufferSize,
                 Flags = XA2BufferFlags.EndOfStream,
-                LoopBegin = LoopStart,
-                LoopLength = (LoopLength == 0) ? bufferSize : LoopLength,
+                LoopBegin = PlayBegin,
+                LoopLength = loopLength,
                 LoopCount = XA2AudioBuffer.LoopInfinite
             };
 
@@ -95,17 +107,23 @@ namespace Libra.Audio.SharpDX
                 AudioDataPointer = bufferPointer,
                 AudioBytes = bufferSize,
                 Flags = XA2BufferFlags.EndOfStream,
-                PlayBegin = 0,
-                PlayLength = bufferSize
+                PlayBegin = PlayBegin,
+                PlayLength = PlayLength
             };
+
+            int loopLength = PlayLength;
+            if (PlayBegin == 0 && PlayLength == 0)
+            {
+                loopLength = bufferSize / (format.WaveFormat.BitsPerSample / 8);
+            }
 
             LoopedAudioBuffer = new XA2AudioBuffer
             {
                 AudioDataPointer = bufferPointer,
                 AudioBytes = bufferSize,
                 Flags = XA2BufferFlags.EndOfStream,
-                LoopBegin = LoopStart,
-                LoopLength = (LoopLength == 0) ? bufferSize : LoopLength,
+                LoopBegin = PlayBegin,
+                LoopLength = loopLength,
                 LoopCount = XA2AudioBuffer.LoopInfinite
             };
 

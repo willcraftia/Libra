@@ -12,9 +12,9 @@ namespace Libra.Audio
     {
         bool initialized;
 
-        int loopStart;
+        int playBegin;
 
-        int loopLength;
+        int playLength;
 
         GCHandle gcHandle;
 
@@ -28,27 +28,28 @@ namespace Libra.Audio
 
         public SoundEffectManager Manager { get; private set; }
 
-        public int LoopStart
+        public int PlayBegin
         {
-            get { return loopStart; }
+            get { return playBegin; }
             set
             {
                 AssertNotInitialized();
                 if (value < 0) throw new ArgumentOutOfRangeException("value");
 
-                loopStart = value;
+                playBegin = value;
             }
         }
 
-        public int LoopLength
+        // PlayLength = 0 はバッファ全体の再生を示す。
+        public int PlayLength
         {
-            get { return loopLength; }
+            get { return playLength; }
             set
             {
                 AssertNotInitialized();
                 if (value < 0) throw new ArgumentOutOfRangeException("value");
 
-                loopLength = value;
+                playLength = value;
             }
         }
 

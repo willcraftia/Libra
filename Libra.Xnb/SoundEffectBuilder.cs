@@ -125,14 +125,27 @@ namespace Libra.Xnb
             data = values;
         }
 
+        // XNB における LoopStart/LoopLength は、
+        // XAUDIO2_BUFFER.LoopBegin/LoopLength の指定のみならず、
+        // XAUDIO2_BUFFER.PlayBegin/PlayLength の指定を兼ねていると思われる。
+        // 実際には、XNB ビルド時に再生範囲指定を行えないため、
+        // LoopStart/LoopLength はバッファ全体の再生となるように、
+        // サンプル辺りのバイト数から算出された値が設定されていると推測する。
+        // XAUDIO2_BUFFER.PlayBegin/PlayLength を共に 0 とすることで、
+        // XAudio2 はバッファ全体を再生し、また、
+        // 全体ループならば WAVE フォーマットの BitsPerSample により
+        // XAUDIO2_BUFFER.LoopBegin/LoopLength に対して適切な値を設定する事ができるため、
+        // 明示的に SoundEffect へ設定する必要があると思えないが、
+        // 念のため XNB に含まれる値を SoundEffect へ設定している。
+
         protected override void SetLoopStart(int value)
         {
-            instance.LoopStart = value;
+            instance.PlayBegin = value;
         }
 
         protected override void SetLoopLength(int value)
         {
-            instance.LoopLength = value;
+            instance.PlayLength = value;
         }
 
         // フォーマット情報から算出できるため duration は取り扱わない。
