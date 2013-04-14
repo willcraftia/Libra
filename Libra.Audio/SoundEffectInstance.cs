@@ -14,11 +14,23 @@ namespace Libra.Audio
 
         float pan;
 
+        bool paused;
+
         public SoundEffectManager Manager { get; private set; }
 
-        public SoundState State { get; private set; }
+        public SoundState State
+        {
+            get
+            {
+                if (GetBuffersQueued() == 0)
+                    return SoundState.Stopped;
 
-        protected SoundEffect SoundEffect { get; private set; }
+                if (paused)
+                    return SoundState.Paused;
+
+                return SoundState.Playing;
+            }
+        }
 
         public float Volume
         {
@@ -67,6 +79,8 @@ namespace Libra.Audio
 
         public bool IsLooped { get; set; }
 
+        protected SoundEffect SoundEffect { get; private set; }
+
         protected SoundEffectInstance(SoundEffectManager manager, SoundEffect soundEffect = null)
         {
             if (manager == null) throw new ArgumentNullException("manager");
@@ -76,8 +90,6 @@ namespace Libra.Audio
             volume = 1.0f;
             pitch = 0.0f;
             pan = 0.0f;
-
-            State = SoundState.Stopped;
         }
 
         internal void Initialize(SoundEffect soundEffect)
@@ -105,44 +117,42 @@ namespace Libra.Audio
         {
             if (State == SoundState.Playing) return;
 
-            if (State != SoundState.Stopped)
+            if (0 < GetBuffersQueued())
             {
                 Stop();
             }
 
             PlayCore();
 
-            State = SoundState.Playing;
+            paused = true;
         }
 
         public void Pause()
         {
-            if (State == SoundState.Paused) return;
+            if (paused) return;
 
             PauseCore();
 
-            State = SoundState.Paused;
+            paused = true;
         }
 
         public void Resume()
         {
-            if (State != SoundState.Paused) return;
-
             ResumeCore();
 
-            State = SoundState.Playing;
+            paused = false;
         }
 
         public void Stop(bool immediate = true)
         {
-            if (State == SoundState.Stopped) return;
-
             StopCore(immediate);
 
-            State = SoundState.Stopped;
+            paused = false;
         }
 
         protected abstract void InitializeCore();
+
+        protected abstract int GetBuffersQueued();
 
         protected abstract void Apply3DCore(AudioListener listener, AudioEmitter emitter);
 
@@ -177,22 +187,10 @@ namespace Libra.Audio
 
         protected virtual void DisposeOverride(bool disposing) { }
 
-        internal void DisposeByManager()
-        {
-            if (IsDisposed) return;
-
-            // マネージャからの破棄の呼び出しならば参照解放をスキップ。
-            
-            DisposeOverride(true);
-
-            IsDisposed = true;
-        }
-
         void Dispose(bool disposing)
         {
             if (IsDisposed) return;
 
-            // Dispose による明示的な破棄ならばマネージャからの参照を解放。
             if (disposing)
             {
                 Manager.ReleaseSoundEffectInstance(this);

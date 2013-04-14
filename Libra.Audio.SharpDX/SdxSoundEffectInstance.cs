@@ -46,6 +46,11 @@ namespace Libra.Audio.SharpDX
             }
         }
 
+        protected override int GetBuffersQueued()
+        {
+            return SourceVoice.State.BuffersQueued;
+        }
+
         protected override void Apply3DCore(AudioListener listener, AudioEmitter emitter)
         {
             var manager = Manager as SdxSoundEffectManager;
@@ -161,6 +166,12 @@ namespace Libra.Audio.SharpDX
         protected override void StopCore(bool immediate)
         {
             SourceVoice.Stop(immediate ? (int) XA2PlayFlags.None : (int) XA2PlayFlags.Tails);
+
+            if (immediate)
+            {
+                // 即時停止ならばキューに残存するバッファを削除。
+                SourceVoice.FlushSourceBuffers();
+            }
         }
 
         protected override void OnVolumeChanged()

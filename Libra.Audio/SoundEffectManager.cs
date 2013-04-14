@@ -22,6 +22,8 @@ namespace Libra.Audio
 
         List<SoundEffectInstance> instancesToDispose;
 
+        bool skipReleaseInstance;
+
         public static SoundEffectManager Default { get; private set; }
 
         public float MasterVolume
@@ -101,7 +103,8 @@ namespace Libra.Audio
 
         internal void ReleaseSoundEffectInstance(SoundEffectInstance instance)
         {
-            instancesToDispose.Remove(instance);
+            if (!skipReleaseInstance)
+                instancesToDispose.Remove(instance);
         }
 
         protected abstract SoundEffectInstance CreateSoundEffectInstanceCore();
@@ -129,9 +132,14 @@ namespace Libra.Audio
         {
             if (IsDisposed) return;
 
-            foreach (var instance in instancesToDispose)
+            skipReleaseInstance = true;
+
+            if (disposing)
             {
-                instance.DisposeByManager();
+                foreach (var instance in instancesToDispose)
+                {
+                    instance.Dispose();
+                }
             }
 
             DisposeOverride(disposing);
