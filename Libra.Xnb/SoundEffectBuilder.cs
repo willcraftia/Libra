@@ -11,6 +11,8 @@ namespace Libra.Xnb
 {
     public sealed class SoundEffectBuilder : SoundEffectBuilderBase<SoundEffect>
     {
+        #region FormatType
+
         enum FormatType
         {
             WaveFormat,
@@ -18,7 +20,9 @@ namespace Libra.Xnb
             AdpcmWaveFormat
         }
 
-        SoundEffect instance;
+        #endregion
+
+        AudioBuffer audioBuffer;
 
         FormatType formatType;
 
@@ -140,12 +144,12 @@ namespace Libra.Xnb
 
         protected override void SetLoopStart(int value)
         {
-            instance.PlayBegin = value;
+            audioBuffer.PlayBegin = value;
         }
 
         protected override void SetLoopLength(int value)
         {
-            instance.PlayLength = value;
+            audioBuffer.PlayLength = value;
         }
 
         // フォーマット情報から算出できるため duration は取り扱わない。
@@ -155,7 +159,7 @@ namespace Libra.Xnb
         {
             // TODO
             // 当面、デフォルト マネージャから生成。
-            instance = SoundEffectManager.Default.CreateSoundEffect();
+            audioBuffer = SoundManager.Default.CreateAudioBuffer();
         }
 
         protected override object End()
@@ -163,17 +167,17 @@ namespace Libra.Xnb
             switch (formatType)
             {
                 case FormatType.WaveFormat:
-                    instance.Initialize(waveFormat, data, 0, data.Length);
+                    audioBuffer.Initialize(waveFormat, data, 0, data.Length);
                     break;
                 case FormatType.WaveFormatExtensible:
-                    instance.Initialize(waveFormatExtensible, data, 0, data.Length);
+                    audioBuffer.Initialize(waveFormatExtensible, data, 0, data.Length);
                     break;
                 case FormatType.AdpcmWaveFormat:
-                    instance.Initialize(adpcmWaveFormat, data, 0, data.Length);
+                    audioBuffer.Initialize(adpcmWaveFormat, data, 0, data.Length);
                     break;
             }
 
-            return instance;
+            return new SoundEffect(SoundManager.Default, audioBuffer);
         }
     }
 }

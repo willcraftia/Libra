@@ -8,11 +8,11 @@ using System.Configuration;
 
 namespace Libra.Audio
 {
-    public abstract class SoundEffectManager : IDisposable
+    public abstract class SoundManager : IDisposable
     {
-        public const string AppSettingKey = "Libra.Audio.SoundEffectManager";
+        public const string AppSettingKey = "Libra.Audio.SoundManager";
 
-        const string DefaultImplementation = "Libra.Audio.SharpDX.SdxSoundEffectManager, Libra.Audio.SharpDX, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null";
+        const string DefaultImplementation = "Libra.Audio.SharpDX.SdxSoundManager, Libra.Audio.SharpDX, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null";
 
         float masterVolume;
 
@@ -20,11 +20,11 @@ namespace Libra.Audio
 
         float dopplerScale;
 
-        List<SoundEffectInstance> instancesToDispose;
+        List<Sound> soundsToDispose;
 
         bool skipReleaseInstance;
 
-        public static SoundEffectManager Default { get; private set; }
+        public static SoundManager Default { get; private set; }
 
         public float MasterVolume
         {
@@ -63,21 +63,21 @@ namespace Libra.Audio
             }
         }
 
-        static SoundEffectManager()
+        static SoundManager()
         {
-            Default = CreateSoundEffectManager();
+            Default = CreateSoundManager();
         }
 
-        protected SoundEffectManager()
+        protected SoundManager()
         {
             masterVolume = 1.0f;
             distanceScale = 1.0f;
             dopplerScale = 1.0f;
 
-            instancesToDispose = new List<SoundEffectInstance>();
+            soundsToDispose = new List<Sound>();
         }
 
-        public static SoundEffectManager CreateSoundEffectManager()
+        public static SoundManager CreateSoundManager()
         {
             // app.config 定義を参照。
             var implementation = ConfigurationManager.AppSettings[AppSettingKey];
@@ -87,27 +87,27 @@ namespace Libra.Audio
                 implementation = DefaultImplementation;
 
             var type = Type.GetType(implementation);
-            return Activator.CreateInstance(type) as SoundEffectManager;
+            return Activator.CreateInstance(type) as SoundManager;
         }
 
-        public abstract SoundEffect CreateSoundEffect();
+        public abstract AudioBuffer CreateAudioBuffer();
 
-        internal SoundEffectInstance CreateSoundEffectInstance()
+        public StaticSound CreateStaticSound()
         {
-            var instance = CreateSoundEffectInstanceCore();
+            var instance = CreateStaticSoundCore();
 
-            instancesToDispose.Add(instance);
+            soundsToDispose.Add(instance);
 
             return instance;
         }
 
-        internal void ReleaseSoundEffectInstance(SoundEffectInstance instance)
+        internal void ReleaseSound(Sound sound)
         {
             if (!skipReleaseInstance)
-                instancesToDispose.Remove(instance);
+                soundsToDispose.Remove(sound);
         }
 
-        protected abstract SoundEffectInstance CreateSoundEffectInstanceCore();
+        protected abstract StaticSound CreateStaticSoundCore();
 
         protected abstract void OnMasterVolumeChanged();
 
@@ -115,7 +115,7 @@ namespace Libra.Audio
 
         public bool IsDisposed { get; private set; }
 
-        ~SoundEffectManager()
+        ~SoundManager()
         {
             Dispose(false);
         }
@@ -136,9 +136,9 @@ namespace Libra.Audio
 
             if (disposing)
             {
-                foreach (var instance in instancesToDispose)
+                foreach (var sound in soundsToDispose)
                 {
-                    instance.Dispose();
+                    sound.Dispose();
                 }
             }
 

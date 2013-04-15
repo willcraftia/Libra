@@ -13,7 +13,7 @@ namespace Samples.Audio3D
     {
         TimeSpan timeDelay = TimeSpan.Zero;
 
-        SoundEffectInstance activeSound = null;
+        StaticSound activeSound = null;
 
         public override void Update(GameTime gameTime, AudioManager audioManager)
         {

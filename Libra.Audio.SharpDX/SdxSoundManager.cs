@@ -11,7 +11,7 @@ using SDXMSpeakers = SharpDX.Multimedia.Speakers;
 
 namespace Libra.Audio.SharpDX
 {
-    public sealed class SdxSoundEffectManager : SoundEffectManager
+    public sealed class SdxSoundManager : SoundManager
     {
         bool engineStarted;
 
@@ -23,7 +23,7 @@ namespace Libra.Audio.SharpDX
 
         public XA2MasteringVoice MasteringVoice { get; private set; }
 
-        public SdxSoundEffectManager()
+        public SdxSoundManager()
         {
             XAudio2 = new XA2XAudio2();
             XAudio2.StartEngine();
@@ -36,14 +36,14 @@ namespace Libra.Audio.SharpDX
             MasteringVoice.SetVolume(MasterVolume);
         }
 
-        public override SoundEffect CreateSoundEffect()
+        public override AudioBuffer CreateAudioBuffer()
         {
-            return new SdxSoundEffect(this);
+            return new SdxAudioBuffer();
         }
 
-        protected override SoundEffectInstance CreateSoundEffectInstanceCore()
+        protected override StaticSound CreateStaticSoundCore()
         {
-            return new SdxSoundEffectInstance(this);
+            return new SdxStaticSound(this);
         }
 
         protected override void OnMasterVolumeChanged()

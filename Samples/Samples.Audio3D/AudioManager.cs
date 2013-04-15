@@ -15,7 +15,7 @@ namespace Samples.Audio3D
 
         class ActiveSound
         {
-            public SoundEffectInstance Instance;
+            public StaticSound Instance;
 
             public IAudioEmitter Emitter;
         }
@@ -50,8 +50,8 @@ namespace Samples.Audio3D
 
         public override void Initialize()
         {
-            SoundEffectManager.Default.DistanceScale = 2000;
-            SoundEffectManager.Default.DopplerScale = 0.1f;
+            SoundManager.Default.DistanceScale = 2000;
+            SoundManager.Default.DopplerScale = 0.1f;
 
             foreach (string soundName in soundNames)
             {
@@ -86,11 +86,11 @@ namespace Samples.Audio3D
             base.Update(gameTime);
         }
 
-        public SoundEffectInstance Play3DSound(string soundName, bool isLooped, IAudioEmitter emitter)
+        public StaticSound Play3DSound(string soundName, bool isLooped, IAudioEmitter emitter)
         {
             var activeSound = new ActiveSound();
 
-            activeSound.Instance = soundEffects[soundName].CreateInstance();
+            activeSound.Instance = soundEffects[soundName].CreateSound();
             activeSound.Instance.IsLooped = isLooped;
 
             activeSound.Emitter = emitter;
@@ -120,7 +120,7 @@ namespace Samples.Audio3D
             {
                 if (disposing)
                 {
-                    foreach (SoundEffect soundEffect in soundEffects.Values)
+                    foreach (var soundEffect in soundEffects.Values)
                     {
                         soundEffect.Dispose();
                     }

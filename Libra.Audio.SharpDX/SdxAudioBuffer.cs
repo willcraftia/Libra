@@ -13,18 +13,13 @@ using SDXMWaveFormatExtensible = SharpDX.Multimedia.WaveFormatExtensible;
 
 namespace Libra.Audio.SharpDX
 {
-    public sealed class SdxSoundEffect : SoundEffect
+    public sealed class SdxAudioBuffer : AudioBuffer
     {
         public XA2AudioBuffer AudioBuffer { get; private set; }
 
         public XA2AudioBuffer LoopedAudioBuffer { get; private set; }
 
         public SDXMWaveFormat WaveFormat { get; private set; }
-
-        public SdxSoundEffect(SdxSoundEffectManager manager)
-            : base(manager)
-        {
-        }
 
         protected override void InitializeCore(WaveFormat format, IntPtr bufferPointer, int bufferSize)
         {

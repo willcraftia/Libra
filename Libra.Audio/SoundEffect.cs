@@ -8,194 +8,79 @@ using System.Runtime.InteropServices;
 
 namespace Libra.Audio
 {
-    public abstract class SoundEffect : IDisposable
+    public sealed class SoundEffect : IDisposable
     {
-        bool initialized;
+        Queue<StaticSound> activeSounds;
 
-        int playBegin;
+        Queue<StaticSound> freeSounds;
 
-        int playLength;
+        public SoundManager SoundManager { get; private set; }
 
-        GCHandle gcHandle;
+        public AudioBuffer AudioBuffer { get; private set; }
 
-        bool pinned;
-
-        TimeSpan duration;
-
-        Queue<SoundEffectInstance> activeInstances;
-
-        Queue<SoundEffectInstance> freeInstances;
-
-        public SoundEffectManager Manager { get; private set; }
-
-        public int PlayBegin
+        public SoundEffect(SoundManager soundManager, AudioBuffer audioBuffer)
         {
-            get { return playBegin; }
-            set
-            {
-                AssertNotInitialized();
-                if (value < 0) throw new ArgumentOutOfRangeException("value");
+            if (soundManager == null) throw new ArgumentNullException("soundManager");
+            if (audioBuffer == null) throw new ArgumentNullException("audioBuffer");
 
-                playBegin = value;
-            }
+            SoundManager = soundManager;
+            AudioBuffer = audioBuffer;
+
+            activeSounds = new Queue<StaticSound>();
+            freeSounds = new Queue<StaticSound>();
         }
 
-        // PlayLength = 0 はバッファ全体の再生を示す。
-        public int PlayLength
+        public StaticSound CreateSound()
         {
-            get { return playLength; }
-            set
-            {
-                AssertNotInitialized();
-                if (value < 0) throw new ArgumentOutOfRangeException("value");
-
-                playLength = value;
-            }
-        }
-
-        public TimeSpan Duration
-        {
-            get { return duration; }
-        }
-
-        protected SoundEffect(SoundEffectManager manager)
-        {
-            if (manager == null) throw new ArgumentNullException("manager");
-
-            Manager = manager;
-        }
-
-        public void Initialize(WaveFormat format, byte[] buffer, int offset, int count)
-        {
-            AssertNotInitialized();
-            if (buffer == null) throw new ArgumentNullException("buffer");
-
-            duration = TimeSpan.FromSeconds((float) count / (float) format.AvgBytesPerSec);
-
-            gcHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-            pinned = true;
-
-            var bufferPointer = gcHandle.AddrOfPinnedObject() + offset;
-
-            InitializeCore(format, bufferPointer, count);
-
-            initialized = true;
-        }
-
-        public void Initialize(AdpcmWaveFormat format, byte[] buffer, int offset, int count)
-        {
-            AssertNotInitialized();
-            if (buffer == null) throw new ArgumentNullException("buffer");
-
-            duration = TimeSpan.FromSeconds((float) count / (float) format.WaveFormat.AvgBytesPerSec);
-
-            gcHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-            pinned = true;
-
-            var bufferPointer = gcHandle.AddrOfPinnedObject() + offset;
-
-            InitializeCore(format, bufferPointer, count);
-
-            initialized = true;
-        }
-
-        public void Initialize(WaveFormatExtensible format, byte[] buffer, int offset, int count)
-        {
-            AssertNotInitialized();
-            if (buffer == null) throw new ArgumentNullException("buffer");
-
-            duration = TimeSpan.FromSeconds((float) count / (float) format.WaveFormat.AvgBytesPerSec);
-
-            gcHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-            pinned = true;
-
-            var bufferPointer = gcHandle.AddrOfPinnedObject() + offset;
-
-            InitializeCore(format, bufferPointer, count);
-
-            initialized = true;
+            var sound = SoundManager.CreateStaticSound();
+            sound.Initialize(AudioBuffer);
+            return sound;
         }
 
         public void Play(float volume = 1.0f, float pitch = 0.0f, float pan = 0.0f)
         {
-            AssertInitialized();
             if (volume < 0.0f || 1.0f < volume) throw new ArgumentOutOfRangeException("volume");
             if (pitch < -1.0f || 1.0f < pitch) throw new ArgumentOutOfRangeException("pitch");
             if (pan < -1.0f || 1.0f < pan) throw new ArgumentOutOfRangeException("pan");
 
-            if (activeInstances == null)
+            int activeInstanceCount = activeSounds.Count;
+            for (int i = 0; i < activeInstanceCount; i++)
             {
-                activeInstances = new Queue<SoundEffectInstance>();
-                freeInstances = new Queue<SoundEffectInstance>();
-            }
-            else
-            {
-                int activeInstanceCount = activeInstances.Count;
-                for (int i = 0; i < activeInstanceCount; i++)
+                var activeInstance = activeSounds.Dequeue();
+                if (activeInstance.State == SoundState.Stopped)
                 {
-                    var activeInstance = activeInstances.Dequeue();
-                    if (activeInstance.State == SoundState.Stopped)
-                    {
-                        // 停止しているならばプールへ戻す。
-                        freeInstances.Enqueue(activeInstance);
-                    }
-                    else
-                    {
-                        // 停止していないならばアクティブ。
-                        activeInstances.Enqueue(activeInstance);
-                    }
+                    // 停止しているならばプールへ戻す。
+                    freeSounds.Enqueue(activeInstance);
+                }
+                else
+                {
+                    // 停止していないならばアクティブ。
+                    activeSounds.Enqueue(activeInstance);
                 }
             }
 
-            SoundEffectInstance instance;
-            if (0 < freeInstances.Count)
+            StaticSound sound;
+            if (0 < freeSounds.Count)
             {
-                instance = freeInstances.Dequeue();
+                sound = freeSounds.Dequeue();
             }
             else
             {
-                instance = CreateInstance();
+                sound = CreateSound();
             }
 
-            activeInstances.Enqueue(instance);
+            activeSounds.Enqueue(sound);
 
-            instance.Volume = volume;
-            instance.Pitch = pitch;
-            instance.Pan = pan;
+            sound.Volume = volume;
+            sound.Pitch = pitch;
+            sound.Pan = pan;
 
-            instance.Play();
-        }
-
-        public SoundEffectInstance CreateInstance()
-        {
-            AssertInitialized();
-
-            var instance = Manager.CreateSoundEffectInstance();
-
-            instance.Initialize(this);
-
-            return instance;
-        }
-
-        protected abstract void InitializeCore(WaveFormat format, IntPtr bufferPointer, int bufferSize);
-
-        protected abstract void InitializeCore(AdpcmWaveFormat format, IntPtr bufferPointer, int bufferSize);
-
-        protected abstract void InitializeCore(WaveFormatExtensible format, IntPtr bufferPointer, int bufferSize);
-
-        void AssertNotInitialized()
-        {
-            if (initialized) throw new InvalidOperationException("Already initialized.");
-        }
-
-        void AssertInitialized()
-        {
-            if (!initialized) throw new InvalidOperationException("Not initialized.");
+            sound.Play();
         }
 
         #region IDisposable
 
-        public bool IsDisposed { get; private set; }
+        bool disposed;
 
         ~SoundEffect()
         {
@@ -208,21 +93,30 @@ namespace Libra.Audio
             GC.SuppressFinalize(this);
         }
 
-        protected virtual void DisposeOverride(bool disposing) { }
-
         void Dispose(bool disposing)
         {
-            if (IsDisposed) return;
+            if (disposed) return;
 
-            if (pinned)
+            if (disposing)
             {
-                gcHandle.Free();
-                pinned = false;
+                while (0 < activeSounds.Count)
+                {
+                    var sound = activeSounds.Dequeue();
+
+                    if (sound.State != SoundState.Stopped)
+                        sound.Stop();
+
+                    freeSounds.Enqueue(sound);
+                }
+
+                while (0 < freeSounds.Count)
+                {
+                    var sound = freeSounds.Dequeue();
+                    sound.Dispose();
+                }
             }
 
-            DisposeOverride(disposing);
-
-            IsDisposed = true;
+            disposed = true;
         }
 
         #endregion

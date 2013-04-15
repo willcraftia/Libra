@@ -69,7 +69,7 @@ namespace Samples.Audio3D
             // TODO
             //
             // ちょっとテスト。
-            Libra.Audio.SoundEffectManager.Default.Dispose();
+            Libra.Audio.SoundManager.Default.Dispose();
 
             base.UnloadContent();
         }

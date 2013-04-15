@@ -6,7 +6,7 @@ using System;
 
 namespace Libra.Audio
 {
-    public abstract class SoundEffectInstance : IDisposable
+    public abstract class Sound
     {
         float volume;
 
@@ -16,7 +16,7 @@ namespace Libra.Audio
 
         bool paused;
 
-        public SoundEffectManager Manager { get; private set; }
+        public SoundManager SoundManager { get; private set; }
 
         public SoundState State
         {
@@ -79,24 +79,15 @@ namespace Libra.Audio
 
         public bool IsLooped { get; set; }
 
-        protected SoundEffect SoundEffect { get; private set; }
-
-        protected SoundEffectInstance(SoundEffectManager manager, SoundEffect soundEffect = null)
+        protected Sound(SoundManager soundManager)
         {
-            if (manager == null) throw new ArgumentNullException("manager");
+            if (soundManager == null) throw new ArgumentNullException("soundManager");
 
-            Manager = manager;
+            SoundManager = soundManager;
 
             volume = 1.0f;
             pitch = 0.0f;
             pan = 0.0f;
-        }
-
-        internal void Initialize(SoundEffect soundEffect)
-        {
-            SoundEffect = soundEffect;
-
-            InitializeCore();
         }
 
         public void Apply3D(AudioListener listener, AudioEmitter emitter)
@@ -150,8 +141,6 @@ namespace Libra.Audio
             paused = false;
         }
 
-        protected abstract void InitializeCore();
-
         protected abstract int GetBuffersQueued();
 
         protected abstract void Apply3DCore(AudioListener listener, AudioEmitter emitter);
@@ -174,7 +163,7 @@ namespace Libra.Audio
 
         public bool IsDisposed { get; private set; }
 
-        ~SoundEffectInstance()
+        ~Sound()
         {
             Dispose(false);
         }
@@ -193,7 +182,7 @@ namespace Libra.Audio
 
             if (disposing)
             {
-                Manager.ReleaseSoundEffectInstance(this);
+                SoundManager.ReleaseSound(this);
             }
 
             DisposeOverride(disposing);
