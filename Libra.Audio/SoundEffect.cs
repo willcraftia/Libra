@@ -30,6 +30,8 @@ namespace Libra.Audio
             freeSounds = new Queue<StaticSound>();
         }
 
+        // XNB からの SoundEffect 生成からの利用のための互換メソッド。
+        // 直接 AudioBuffer を作るならば、SoundEffect を経由する必要はない。
         public StaticSound CreateSound()
         {
             var sound = SoundManager.CreateStaticSound();
