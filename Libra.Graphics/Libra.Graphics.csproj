@@ -77,7 +77,6 @@
     <Compile Include="IndexFormat.cs" />
     <Compile Include="InputElement.cs" />
     <Compile Include="Semantics.cs" />
-    <Compile Include="SharedDeviceResourceBase.cs" />
     <Compile Include="VertexFormat.cs" />
     <Compile Include="InputLayout.cs" />
     <Compile Include="IVertexType.cs" />

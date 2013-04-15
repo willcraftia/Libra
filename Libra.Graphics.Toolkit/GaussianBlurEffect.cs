@@ -19,14 +19,13 @@ namespace Libra.Graphics.Toolkit
     {
         #region SharedDeviceResource
 
-        sealed class SharedDeviceResource : SharedDeviceResourceBase
+        sealed class SharedDeviceResource
         {
             public PixelShader PixelShader { get; private set; }
 
             public SharedDeviceResource(Device device)
-                : base(device)
             {
-                PixelShader = Device.CreatePixelShader();
+                PixelShader = device.CreatePixelShader();
                 PixelShader.Initialize(Resources.GaussianBlurPS);
             }
         }

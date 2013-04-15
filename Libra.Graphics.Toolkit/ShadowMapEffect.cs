@@ -11,7 +11,7 @@ namespace Libra.Graphics.Toolkit
     {
         #region SharedDeviceResource
 
-        sealed class SharedDeviceResource : SharedDeviceResourceBase
+        sealed class SharedDeviceResource
         {
             public VertexShader VertexShader { get; private set; }
 
@@ -20,15 +20,14 @@ namespace Libra.Graphics.Toolkit
             public PixelShader VariancePixelShader { get; private set; }
 
             public SharedDeviceResource(Device device)
-                : base(device)
             {
-                VertexShader = Device.CreateVertexShader();
+                VertexShader = device.CreateVertexShader();
                 VertexShader.Initialize(Resources.ShadowMapVS);
 
-                BasicPixelShader = Device.CreatePixelShader();
+                BasicPixelShader = device.CreatePixelShader();
                 BasicPixelShader.Initialize(Resources.ShadowMapBasicPS);
 
-                VariancePixelShader = Device.CreatePixelShader();
+                VariancePixelShader = device.CreatePixelShader();
                 VariancePixelShader.Initialize(Resources.ShadowMapVariancePS);
             }
         }

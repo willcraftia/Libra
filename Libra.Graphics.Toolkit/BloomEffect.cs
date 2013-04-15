@@ -11,19 +11,18 @@ namespace Libra.Graphics.Toolkit
     {
         #region SharedDeviceResource
 
-        sealed class SharedDeviceResource : SharedDeviceResourceBase
+        sealed class SharedDeviceResource
         {
             public PixelShader ExtractPixelShader { get; private set; }
 
             public PixelShader CombinePixelShader { get; private set; }
 
             public SharedDeviceResource(Device device)
-                : base(device)
             {
-                ExtractPixelShader = Device.CreatePixelShader();
+                ExtractPixelShader = device.CreatePixelShader();
                 ExtractPixelShader.Initialize(Resources.BloomExtractPS);
 
-                CombinePixelShader = Device.CreatePixelShader();
+                CombinePixelShader = device.CreatePixelShader();
                 CombinePixelShader.Initialize(Resources.BloomCombinePS);
             }
         }
