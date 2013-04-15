@@ -108,7 +108,6 @@
     <Compile Include="SetDataOptions.cs" />
     <Compile Include="Shader.cs" />
     <Compile Include="ShaderResourceView.cs" />
-    <Compile Include="SharedResourcePool.cs" />
     <Compile Include="SpriteBatch.cs" />
     <Compile Include="SpriteEffects.cs" />
     <Compile Include="SpriteFont.cs" />
