@@ -1,8 +1,6 @@
 ﻿#region Using
 
 using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using Libra.Graphics.Properties;
 
 #endregion
@@ -45,9 +43,9 @@ namespace Libra.Graphics
 
         #endregion
 
-        #region DeviceResources
+        #region SharedDeviceResource
 
-        sealed class DeviceResources
+        sealed class SharedDeviceResource
         {
             Device device;
 
@@ -55,7 +53,7 @@ namespace Libra.Graphics
 
             PixelShader[] pixelShaders;
 
-            public DeviceResources(Device device)
+            public SharedDeviceResource(Device device)
             {
                 this.device = device;
 
@@ -454,7 +452,7 @@ namespace Libra.Graphics
             9,      // pixel lighting + texture + vertex color, no fog
         };
 
-        static readonly Dictionary<Device, DeviceResources> ResourcesByDevice = new Dictionary<Device, DeviceResources>();
+        //static readonly Dictionary<Device, DeviceResources> ResourcesByDevice = new Dictionary<Device, DeviceResources>();
 
         static BasicEffect()
         {
@@ -503,6 +501,8 @@ namespace Libra.Graphics
         }
 
         Device device;
+
+        SharedDeviceResource sharedDeviceResource;
 
         DirtyFlags dirtyFlags;
 
@@ -702,6 +702,8 @@ namespace Libra.Graphics
             if (device == null) throw new ArgumentNullException("device");
 
             this.device = device;
+
+            sharedDeviceResource = device.GetSharedResource<BasicEffect, SharedDeviceResource>();
 
             directionalLights = new DirectionalLightCollection(this);
 
@@ -919,22 +921,11 @@ namespace Libra.Graphics
 
         void ApplyShaders(DeviceContext context, int permutation)
         {
-            DeviceResources resources;
-
-            lock (ResourcesByDevice)
-            {
-                if (!ResourcesByDevice.TryGetValue(device, out resources))
-                {
-                    resources = new DeviceResources(device);
-                    ResourcesByDevice[device] = resources;
-                }
-            }
-
             var vertexShaderIndex = VertexShaderIndices[permutation];
             var pixelShaderIndex = PixelShaderIndices[permutation];
 
-            var vertexShader = resources.GetVertexShader(vertexShaderIndex);
-            var pixelShader = resources.GetPixelShader(pixelShaderIndex);
+            var vertexShader = sharedDeviceResource.GetVertexShader(vertexShaderIndex);
+            var pixelShader = sharedDeviceResource.GetPixelShader(pixelShaderIndex);
 
             context.VertexShader = vertexShader;
             context.PixelShader = pixelShader;
