@@ -325,6 +325,8 @@ namespace Libra.Graphics
 
         static readonly Color DiscardColor = Color.Purple;
 
+        Dictionary<Type, WeakReference> sharedResourceMap;
+
         InputLayout inputLayout;
 
         PrimitiveTopology primitiveTopology;
@@ -502,6 +504,8 @@ namespace Libra.Graphics
 
             Device = device;
 
+            sharedResourceMap = new Dictionary<Type, WeakReference>();
+
             // TODO
             //
             // 描画中にバック バッファのリサイズが発生したらどうするの？
@@ -531,6 +535,58 @@ namespace Libra.Graphics
         //{
         //    throw new NotImplementedException();
         //}
+
+        public TSharedResource GetSharedResource<TKey, TSharedResource>() where TSharedResource : class
+        {
+            return GetSharedResource(typeof(TKey), typeof(TSharedResource)) as TSharedResource;
+        }
+
+        /// <summary>
+        /// デバイス コンテキスト単位で共有するリソースを共有リソース キャッシュより取得します。
+        /// 共有リソース キャッシュに指定のリソースが存在しない場合には、
+        /// 新たに生成するインスタンスをキャッシュに追加してから返却します。
+        /// 
+        /// キャッシュする共有リソースのクラスは、
+        /// DeviceContext を引数とする公開コンストラクタを定義しなければなりません。
+        /// 
+        /// 共有リソースの利用側クラスは、このメソッドにより取得した共有リソースへの参照を
+        /// インスタンス フィールドで保持する必要があります。
+        /// これは、デバイス コンテキストは共有リソースを弱参照でキャッシュしているためです。
+        /// 
+        /// 共有リソースを弱参照で管理しているため、
+        /// どのインスタンスからも参照されなくなった共有リソースはデバイス コンテキストから自動的に削除されます。
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="sharedResourceType"></param>
+        /// <returns></returns>
+        public object GetSharedResource(Type key, Type sharedResourceType)
+        {
+            if (key == null) throw new ArgumentNullException("key");
+            if (sharedResourceType == null) throw new ArgumentNullException("sharedResourceType");
+
+            lock (sharedResourceMap)
+            {
+                object sharedResource = null;
+                WeakReference reference;
+                if (sharedResourceMap.TryGetValue(key, out reference))
+                {
+                    sharedResource = reference.Target;
+                }
+                else
+                {
+                    reference = new WeakReference(null);
+                    sharedResourceMap[key] = reference;
+                }
+
+                if (sharedResource == null)
+                {
+                    sharedResource = Activator.CreateInstance(sharedResourceType, this);
+                    reference.Target = sharedResource;
+                }
+
+                return sharedResource;
+            }
+        }
 
         public VertexBufferBinding GetVertexBuffer(int slot)
         {
