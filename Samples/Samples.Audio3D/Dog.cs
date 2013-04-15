@@ -15,7 +15,7 @@ namespace Samples.Audio3D
 
         StaticSound activeSound = null;
 
-        public override void Update(GameTime gameTime, AudioManager audioManager)
+        public override void Update(GameTime gameTime, AudioComponent audioManager)
         {
             Position = new Vector3(0, 0, -4000);
             Forward = Vector3.Forward;

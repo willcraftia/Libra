@@ -14,7 +14,7 @@ namespace Samples.Audio3D
 
         static Random random = new Random();
 
-        public override void Update(GameTime gameTime, AudioManager audioManager)
+        public override void Update(GameTime gameTime, AudioComponent audioManager)
         {
             var time = gameTime.TotalGameTime.TotalSeconds;
 

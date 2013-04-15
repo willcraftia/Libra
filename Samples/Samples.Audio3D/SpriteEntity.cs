@@ -51,7 +51,7 @@ namespace Samples.Audio3D
             set { texture = value; }
         }
 
-        public abstract void Update(GameTime gameTime, AudioManager audioManager);
+        public abstract void Update(GameTime gameTime, AudioComponent audioManager);
 
         public void Draw(DeviceContext context, QuadDrawer quadDrawer, Vector3 cameraPosition, Matrix view, Matrix projection)
         {

@@ -15,7 +15,7 @@ namespace Samples.Audio3D
     {
         GraphicsManager graphics;
 
-        AudioManager audioManager;
+        AudioComponent audioManager;
 
         SpriteEntity cat;
         
@@ -39,15 +39,19 @@ namespace Samples.Audio3D
 
         public XnbManager Content { get; private set; }
 
+        public AudioManager Audio { get; private set; }
+
         public MainGame()
         {
+            // AudioManager を登録しなければ Audio 関連の機能は有効にならない仕様。
+            Audio = new AudioManager(this);
+
             Content = new XnbManager(Services);
             Content.RootDirectory = "Content";
 
             graphics = new GraphicsManager(this);
 
-            audioManager = new AudioManager(this);
-
+            audioManager = new AudioComponent(this);
             Components.Add(audioManager);
 
             cat = new Cat();

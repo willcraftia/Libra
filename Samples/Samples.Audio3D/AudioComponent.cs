@@ -9,7 +9,11 @@ using Libra.Games;
 
 namespace Samples.Audio3D
 {
-    public sealed class AudioManager : GameComponent
+    // サンプル オリジナルのクラス名 AudioManager は、
+    // Libra.Games.AudioManager と同名であることから混乱を招くため、
+    // クラス名を AudioComponent としている。
+
+    public sealed class AudioComponent : GameComponent
     {
         #region ActiveSound
 
@@ -43,15 +47,15 @@ namespace Samples.Audio3D
             get { return listener; }
         }
 
-        public AudioManager(Game game)
+        public AudioComponent(Game game)
             : base(game)
         {
         }
 
         public override void Initialize()
         {
-            Game.SoundManager.DistanceScale = 2000;
-            Game.SoundManager.DopplerScale = 0.1f;
+            (Game as MainGame).Audio.SoundManager.DistanceScale = 2000;
+            (Game as MainGame).Audio.SoundManager.DopplerScale = 0.1f;
 
             foreach (string soundName in soundNames)
             {

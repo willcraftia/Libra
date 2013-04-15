@@ -108,7 +108,7 @@ namespace Libra.Games
 
         IGraphicsManager graphicsManager;
 
-        AudioManager audioManager;
+        IAudioService audioService;
 
         public GameComponentCollection Components { get; private set; }
 
@@ -165,8 +165,6 @@ namespace Libra.Games
         public Device Device { get; private set; }
 
         public SwapChain SwapChain { get; private set; }
-
-        public SoundManager SoundManager { get; private set; }
 
         public IKeyboard Keyboard { get; private set; }
 
@@ -388,9 +386,9 @@ namespace Libra.Games
             Device = graphicsService.Device;
             SwapChain = graphicsService.SwapChain;
 
-            // オーディオ機能の初期化。
-            audioManager = new AudioManager(this);
-            SoundManager = audioManager.SoundManager;
+            // オーディオの初期化。
+            // オーディオ サービスは任意。
+            audioService = Services.GetService<IAudioService>();
 
             // 入力デバイスの取得。
             Keyboard = gamePlatform.Keyboard;
@@ -609,8 +607,9 @@ namespace Libra.Games
                 if (disposable != null)
                     disposable.Dispose();
 
-                if (audioManager != null)
-                    audioManager.Dispose();
+                disposable = audioService as IDisposable;
+                if (disposable != null)
+                    disposable.Dispose();
             }
 
             disposed = true;
