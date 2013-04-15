@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using Libra.Audio;
 using Libra.Graphics;
 using Libra.Input;
 
@@ -107,6 +108,8 @@ namespace Libra.Games
 
         IGraphicsManager graphicsManager;
 
+        AudioManager audioManager;
+
         public GameComponentCollection Components { get; private set; }
 
         public bool IsActive { get; private set; }
@@ -162,6 +165,8 @@ namespace Libra.Games
         public Device Device { get; private set; }
 
         public SwapChain SwapChain { get; private set; }
+
+        public SoundManager SoundManager { get; private set; }
 
         public IKeyboard Keyboard { get; private set; }
 
@@ -383,6 +388,10 @@ namespace Libra.Games
             Device = graphicsService.Device;
             SwapChain = graphicsService.SwapChain;
 
+            // オーディオ機能の初期化。
+            audioManager = new AudioManager(this);
+            SoundManager = audioManager.SoundManager;
+
             // 入力デバイスの取得。
             Keyboard = gamePlatform.Keyboard;
             Mouse = gamePlatform.Mouse;
@@ -595,6 +604,13 @@ namespace Libra.Games
                 disposable = gamePlatform as IDisposable;
                 if (disposable != null)
                     disposable.Dispose();
+
+                disposable = graphicsManager as IDisposable;
+                if (disposable != null)
+                    disposable.Dispose();
+
+                if (audioManager != null)
+                    audioManager.Dispose();
             }
 
             disposed = true;

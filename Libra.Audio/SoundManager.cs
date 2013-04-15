@@ -22,9 +22,7 @@ namespace Libra.Audio
 
         List<Sound> soundsToDispose;
 
-        bool skipReleaseInstance;
-
-        public static SoundManager Default { get; private set; }
+        bool skipReleaseSound;
 
         public float MasterVolume
         {
@@ -63,11 +61,6 @@ namespace Libra.Audio
             }
         }
 
-        static SoundManager()
-        {
-            Default = CreateSoundManager();
-        }
-
         protected SoundManager()
         {
             masterVolume = 1.0f;
@@ -103,7 +96,7 @@ namespace Libra.Audio
 
         internal void ReleaseSound(Sound sound)
         {
-            if (!skipReleaseInstance)
+            if (!skipReleaseSound)
                 soundsToDispose.Remove(sound);
         }
 
@@ -132,7 +125,7 @@ namespace Libra.Audio
         {
             if (IsDisposed) return;
 
-            skipReleaseInstance = true;
+            skipReleaseSound = true;
 
             if (disposing)
             {

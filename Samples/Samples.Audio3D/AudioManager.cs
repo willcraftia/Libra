@@ -50,8 +50,8 @@ namespace Samples.Audio3D
 
         public override void Initialize()
         {
-            SoundManager.Default.DistanceScale = 2000;
-            SoundManager.Default.DopplerScale = 0.1f;
+            Game.SoundManager.DistanceScale = 2000;
+            Game.SoundManager.DopplerScale = 0.1f;
 
             foreach (string soundName in soundNames)
             {

@@ -37,6 +37,7 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AudioManager.cs" />
     <Compile Include="DrawableGameComponent.cs" />
     <Compile Include="Game.cs" />
     <Compile Include="GameComponent.cs" />
@@ -56,6 +57,10 @@
     <Compile Include="TickCallback.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Libra.Audio\Libra.Audio.csproj">
+      <Project>{CA60A550-13AF-4815-A9A4-73CA45D79958}</Project>
+      <Name>Libra.Audio</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Libra.Graphics\Libra.Graphics.csproj">
       <Project>{CDFAB2B9-00DB-4719-B424-C2A973A7BC4C}</Project>
       <Name>Libra.Graphics</Name>

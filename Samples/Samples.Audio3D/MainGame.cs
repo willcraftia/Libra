@@ -64,16 +64,6 @@ namespace Samples.Audio3D
             quadDrawer = new QuadDrawer(Device);
         }
 
-        protected override void UnloadContent()
-        {
-            // TODO
-            //
-            // ちょっとテスト。
-            Libra.Audio.SoundManager.Default.Dispose();
-
-            base.UnloadContent();
-        }
-
         protected override void Update(GameTime gameTime)
         {
             HandleInput();

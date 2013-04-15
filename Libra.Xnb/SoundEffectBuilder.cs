@@ -22,6 +22,8 @@ namespace Libra.Xnb
 
         #endregion
 
+        SoundManager soundManager;
+
         AudioBuffer audioBuffer;
 
         FormatType formatType;
@@ -33,6 +35,14 @@ namespace Libra.Xnb
         AdpcmWaveFormat adpcmWaveFormat;
 
         byte[] data;
+
+        protected override void Initialize(ContentManager contentManager)
+        {
+            var audioService = contentManager.ServiceProvider.GetRequiredService<IAudioService>();
+            soundManager = audioService.SoundManager;
+
+            base.Initialize(contentManager);
+        }
 
         protected override void SetFormatSize(uint value) { }
 
@@ -157,9 +167,7 @@ namespace Libra.Xnb
 
         protected override void Begin()
         {
-            // TODO
-            // 当面、デフォルト マネージャから生成。
-            audioBuffer = SoundManager.Default.CreateAudioBuffer();
+            audioBuffer = soundManager.CreateAudioBuffer();
         }
 
         protected override object End()
@@ -177,7 +185,7 @@ namespace Libra.Xnb
                     break;
             }
 
-            return new SoundEffect(SoundManager.Default, audioBuffer);
+            return new SoundEffect(soundManager, audioBuffer);
         }
     }
 }
