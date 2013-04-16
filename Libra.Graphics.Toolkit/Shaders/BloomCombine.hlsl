@@ -19,7 +19,6 @@ float4 AdjustSaturation(float4 color, float saturation)
     return lerp(grey, color, saturation);
 }
 
-// SpriteEffect の PS シグネチャに合わせて COLOR0 を指定しないと上手く稼働しない。
 float4 PS(float4 color    : COLOR0,
           float2 texCoord : TEXCOORD0) : SV_Target
 {
