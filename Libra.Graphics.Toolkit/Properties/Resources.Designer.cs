@@ -74,6 +74,13 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
+        internal static byte[] FullScreenQuadVS {
+            get {
+                object obj = ResourceManager.GetObject("FullScreenQuadVS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
         internal static byte[] GaussianBlurPS {
             get {
                 object obj = ResourceManager.GetObject("GaussianBlurPS", resourceCulture);

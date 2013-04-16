@@ -210,10 +210,9 @@ namespace Samples.ShadowMapping
             vsmRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
             vsmRenderTarget.Initialize();
 
-            gaussianBlur = new GaussianBlur(Device.ImmediateContext, vsmRenderTarget.Width, vsmRenderTarget.Height, SurfaceFormat.Vector2);
+            gaussianBlur = new GaussianBlur(Device, vsmRenderTarget.Width, vsmRenderTarget.Height, SurfaceFormat.Vector2);
             gaussianBlur.Radius = 2;
             gaussianBlur.Amount = 8;
-            gaussianBlur.Enabled = true;
         }
 
         protected override void Update(GameTime gameTime)
@@ -298,8 +297,10 @@ namespace Samples.ShadowMapping
 
             if (shadowMapEffectForm == ShadowMapEffectForm.Variance)
             {
-                gaussianBlur.Filter(currentShadowRenderTarget.GetShaderResourceView(),
-                                    currentShadowRenderTarget.GetRenderTargetView());
+                gaussianBlur.Filter(
+                    context,
+                    currentShadowRenderTarget.GetShaderResourceView(),
+                    currentShadowRenderTarget.GetRenderTargetView());
             }
         }
 

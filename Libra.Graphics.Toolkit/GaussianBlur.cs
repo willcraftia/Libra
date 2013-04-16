@@ -8,13 +8,13 @@ namespace Libra.Graphics.Toolkit
 {
     public sealed class GaussianBlur : IDisposable
     {
-        DeviceContext context;
-
         GaussianBlurEffect effect;
 
         RenderTarget backingRenderTarget;
 
-        SpriteBatch spriteBatch;
+        FullScreenQuad fullScreenQuad;
+
+        public Device Device { get; private set; }
 
         public int Width { get; private set; }
 
@@ -34,53 +34,63 @@ namespace Libra.Graphics.Toolkit
             set { effect.Amount = value; }
         }
 
-        public bool Enabled { get; set; }
-
-        public GaussianBlur(DeviceContext context, int width, int height, SurfaceFormat format)
+        public GaussianBlur(Device device, int width, int height, SurfaceFormat format)
         {
-            if (context == null) throw new ArgumentNullException("context");
+            if (device == null) throw new ArgumentNullException("device");
             if (width < 1) throw new ArgumentOutOfRangeException("width");
             if (height < 1) throw new ArgumentOutOfRangeException("height");
 
-            this.context = context;
+            Device = device;
             Width = width;
             Height = height;
 
-            effect = new GaussianBlurEffect(context.Device);
+            effect = new GaussianBlurEffect(Device);
             effect.Width = width;
             effect.Height = height;
-            
-            backingRenderTarget = context.Device.CreateRenderTarget();
+
+            fullScreenQuad = new FullScreenQuad(Device);
+
+            backingRenderTarget = Device.CreateRenderTarget();
             backingRenderTarget.Width = width;
             backingRenderTarget.Height = height;
             backingRenderTarget.Format = format;
             backingRenderTarget.Initialize();
-
-            spriteBatch = new SpriteBatch(context);
-
-            Enabled = true;
         }
 
-        public void Filter(ShaderResourceView source, RenderTargetView destination)
+        public void Filter(DeviceContext context, ShaderResourceView source, RenderTargetView destination)
         {
-            Filter(source, backingRenderTarget.GetRenderTargetView(), GaussianBlurEffectPass.Horizon);
-            Filter(backingRenderTarget.GetShaderResourceView(), destination, GaussianBlurEffectPass.Vertical);
+            var previousBlendState = context.BlendState;
+            var previousDepthStencilState = context.DepthStencilState;
+            var previousRasterizerState = context.RasterizerState;
+            var previousSamplerState = context.PixelShaderSamplers[0];
+
+            context.BlendState = BlendState.Opaque;
+            context.DepthStencilState = DepthStencilState.None;
+            context.RasterizerState = RasterizerState.CullBack;
+            context.PixelShaderSamplers[0] = SamplerState.LinearClamp;
+
+            Filter(context, source, backingRenderTarget.GetRenderTargetView(), GaussianBlurEffectPass.Horizon);
+            Filter(context, backingRenderTarget.GetShaderResourceView(), destination, GaussianBlurEffectPass.Vertical);
 
             context.SetRenderTarget(null);
+
+            // ステートを以前の状態へ戻す。
+            context.BlendState = previousBlendState;
+            context.DepthStencilState = previousDepthStencilState;
+            context.RasterizerState = previousRasterizerState;
+            context.PixelShaderSamplers[0] = previousSamplerState;
         }
 
-        void Filter(ShaderResourceView source, RenderTargetView destination, GaussianBlurEffectPass direction)
+        void Filter(DeviceContext context, ShaderResourceView source, RenderTargetView destination, GaussianBlurEffectPass direction)
         {
-            effect.Pass = direction;
-
             context.SetRenderTarget(destination);
 
-            Action<DeviceContext> applyShader = null;
-            if (Enabled) applyShader = effect.Apply;
+            effect.Pass = direction;
+            effect.Apply(context);
 
-            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Opaque, null, null, null, applyShader);
-            spriteBatch.Draw(source, destination.RenderTarget.Bounds, Color.White);
-            spriteBatch.End();
+            context.PixelShaderResources[0] = source;
+            
+            fullScreenQuad.Draw(context);
         }
 
         #region IDisposable
@@ -106,7 +116,7 @@ namespace Libra.Graphics.Toolkit
             {
                 effect.Dispose();
                 backingRenderTarget.Dispose();
-                spriteBatch.Dispose();
+                fullScreenQuad.Dispose();
             }
 
             disposed = true;

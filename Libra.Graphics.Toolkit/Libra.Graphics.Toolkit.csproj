@@ -42,6 +42,7 @@
   <ItemGroup>
     <Compile Include="BloomEffect.cs" />
     <Compile Include="BlurSettings.cs" />
+    <Compile Include="FullScreenQuad.cs" />
     <Compile Include="GaussianBlurEffectPass.cs" />
     <Compile Include="GaussianBlur.cs" />
     <Compile Include="GaussianBlurEffect.cs" />
@@ -86,11 +87,13 @@
     <None Include="Shaders\BloomExtract.hlsl" />
     <None Include="Shaders\Compiled\BloomCombinePS.bin" />
     <None Include="Shaders\Compiled\BloomExtractPS.bin" />
+    <None Include="Shaders\Compiled\FullScreenQuadVS.bin" />
     <None Include="Shaders\Compiled\GaussianBlurPS.bin" />
     <None Include="Shaders\Compiled\ShadowMapBasicPS.bin" />
     <None Include="Shaders\Compiled\ShadowMapVariancePS.bin" />
     <None Include="Shaders\Compiled\ShadowMapVS.bin" />
     <None Include="Shaders\CompileShaders.cmd" />
+    <None Include="Shaders\FullScreenQuad.hlsl" />
     <None Include="Shaders\GaussianBlur.hlsl" />
     <None Include="Shaders\ShadowMap.hlsl" />
   </ItemGroup>

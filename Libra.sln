@@ -69,7 +69,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Libra.Audio.SharpDX", "Libr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.Audio3D", "Samples\Samples.Audio3D\Samples.Audio3D.csproj", "{BB2333FF-BE4F-42D6-9A62-CD0892DEE498}"
 EndProject
-Project("{96E2B04D-8817-42C6-938A-82C39BA4D311}") = "Samples.Audio3DContent", "Samples\Samples.Audio3DContent\Samples.Audio3DContent.contentproj", "{18D8DF47-20E2-40DA-B2D8-E053FE5CFC8C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.Audio3DContent", "Samples\Samples.Audio3DContent\Samples.Audio3DContent.contentproj", "{18D8DF47-20E2-40DA-B2D8-E053FE5CFC8C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

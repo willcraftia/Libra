@@ -6,6 +6,11 @@ set vs_profile=vs_5_0
 set ps_profile=ps_5_0
 
 ::
+:: FullScreenQuad VS
+::
+call :CompileShader FullScreenQuad VS %vs_profile%
+
+::
 :: Bloom PS
 ::
 call :CompileShader BloomExtract PS %ps_profile%
