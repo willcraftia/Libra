@@ -860,9 +860,6 @@ namespace Libra.Graphics
                 }
             }
 
-            // 状態検査。
-            if (InputLayout == null) throw new InvalidOperationException("InputLayout is null.");
-
             // 定数バッファの反映。
             VertexShaderConstantBuffers.Apply();
             PixelShaderConstantBuffers.Apply();
