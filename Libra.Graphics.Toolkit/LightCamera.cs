@@ -9,14 +9,13 @@ namespace Libra.Graphics.Toolkit
 {
     public sealed class LightCamera
     {
-        public Matrix LightViewProjection = Matrix.Identity;
+        public Matrix LightViewProjection;
 
-        Vector3[] frustumCorners = new Vector3[8];
+        Vector3[] frustumCorners;
 
-        Vector3[] boundingBoxCorners = new Vector3[8];
+        Vector3[] boundingBoxCorners;
 
-        // TODO: 初期容量
-        List<Vector3> lightVolumePoints = new List<Vector3>();
+        List<Vector3> lightVolumePoints;
 
         int shadowMapSize;
 
@@ -29,6 +28,11 @@ namespace Libra.Graphics.Toolkit
             this.shadowMapSize = shadowMapSize;
 
             shadowMapTexelSize = 1 / (float) shadowMapSize;
+
+            LightViewProjection = Matrix.Identity;
+            frustumCorners = new Vector3[BoundingFrustum.CornerCount];
+            boundingBoxCorners = new Vector3[BoundingBox.CornerCount];
+            lightVolumePoints = new List<Vector3>();
         }
 
         public void AddLightVolumePoint(ref Vector3 point)
@@ -44,66 +48,74 @@ namespace Libra.Graphics.Toolkit
                 lightVolumePoints.Add(points[i]);
         }
 
-        //public void Update(ICamera camera, ref Vector3 lightDirection)
-        //{
-        //    var position = Vector3.Zero;
-        //    var target = lightDirection;
-        //    var up = Vector3.Up;
+        public void Update(BoundingFrustum frustum, ref Vector3 lightDirection)
+        {
+            var position = Vector3.Zero;
+            var target = lightDirection;
+            var up = Vector3.Up;
 
-        //    Matrix tempLightView;
-        //    Matrix.CreateLookAt(ref position, ref target, ref up, out tempLightView);
+            Matrix tempLightView;
+            Matrix.CreateLookAt(ref position, ref target, ref up, out tempLightView);
 
-        //    camera.Frustum.GetCorners(frustumCorners);
-        //    AddLightVolumePoints(frustumCorners);
+            // TODO
+            //
+            // 境界錐台全体を含めるか否かはクラス利用側で決めれば良いのでは？
+            frustum.GetCorners(frustumCorners);
+            AddLightVolumePoints(frustumCorners);
 
-        //    var tempLightVolume = BoundingBox.CreateFromPoints(lightVolumePoints);
-        //    tempLightVolume.GetCorners(boundingBoxCorners);
-        //    for (int i = 0; i < boundingBoxCorners.Length; i++)
-        //        Vector3.Transform(ref boundingBoxCorners[i], ref tempLightView, out boundingBoxCorners[i]);
+            BoundingBox tempLightVolume;
+            BoundingBox.CreateFromPoints(lightVolumePoints, out tempLightVolume);
 
-        //    var lightVolume = BoundingBox.CreateFromPoints(boundingBoxCorners);
+            tempLightVolume.GetCorners(boundingBoxCorners);
+            for (int i = 0; i < boundingBoxCorners.Length; i++)
+                Vector3.Transform(ref boundingBoxCorners[i], ref tempLightView, out boundingBoxCorners[i]);
 
-        //    var boxSize = lightVolume.Max - lightVolume.Min;
-        //    var halfBoxSize = boxSize * 0.5f;
+            var lightVolume = BoundingBox.CreateFromPoints(boundingBoxCorners);
 
-        //    // 仮ライト空間での仮光源位置を算出。
-        //    var lightPosition = lightVolume.Min + halfBoxSize;
-        //    lightPosition.Z = lightVolume.Min.Z;
+            Vector3 boxSize;
+            Vector3.Subtract(ref lightVolume.Max, ref lightVolume.Min, out boxSize);
+            Vector3 halfBoxSize;
+            Vector3.Multiply(ref boxSize, 0.5f, out halfBoxSize);
 
-        //    // 仮光源位置を仮ライト空間からワールド空間へ変換。
-        //    Matrix lightViewInv;
-        //    Matrix.Invert(ref tempLightView, out lightViewInv);
-        //    Vector3.Transform(ref lightPosition, ref lightViewInv, out lightPosition);
+            // 仮ライト空間での仮光源位置を算出。
+            Vector3 lightPosition;
+            Vector3.Add(ref lightVolume.Min, ref halfBoxSize, out lightPosition);
+            lightPosition.Z = lightVolume.Min.Z;
 
-        //    target = lightPosition + lightDirection;
+            // 仮光源位置を仮ライト空間からワールド空間へ変換。
+            Matrix lightViewInv;
+            Matrix.Invert(ref tempLightView, out lightViewInv);
+            Vector3.Transform(ref lightPosition, ref lightViewInv, out lightPosition);
 
-        //    Matrix lightView;
-        //    Matrix.CreateLookAt(ref lightPosition, ref target, ref up, out lightView);
+            Vector3.Add(ref lightPosition, ref lightDirection, out target);
 
-        //    // REFERECE: http://msdn.microsoft.com/ja-jp/library/ee416324(VS.85).aspx
+            Matrix lightView;
+            Matrix.CreateLookAt(ref lightPosition, ref target, ref up, out lightView);
 
-        //    //float bound = boxSize.Z;
-        //    //float unitPerTexel = bound / shadowMapSize;
+            // REFERECE: http://msdn.microsoft.com/ja-jp/library/ee416324(VS.85).aspx
 
-        //    //boxSize.X /= unitPerTexel;
-        //    //boxSize.X = MathExtension.Floor(boxSize.X);
-        //    //boxSize.X *= unitPerTexel;
+            //float bound = boxSize.Z;
+            //float unitPerTexel = bound / shadowMapSize;
 
-        //    //boxSize.Y /= unitPerTexel;
-        //    //boxSize.Y = MathExtension.Floor(boxSize.Y);
-        //    //boxSize.Y *= unitPerTexel;
+            //boxSize.X /= unitPerTexel;
+            //boxSize.X = MathExtension.Floor(boxSize.X);
+            //boxSize.X *= unitPerTexel;
 
-        //    //boxSize.Z /= unitPerTexel;
-        //    //boxSize.Z = MathExtension.Floor(boxSize.Z);
-        //    //boxSize.Z *= unitPerTexel;
+            //boxSize.Y /= unitPerTexel;
+            //boxSize.Y = MathExtension.Floor(boxSize.Y);
+            //boxSize.Y *= unitPerTexel;
 
-        //    Matrix lightProjection;
-        //    Matrix.CreateOrthographic(boxSize.X, boxSize.Y, -boxSize.Z, boxSize.Z, out lightProjection);
+            //boxSize.Z /= unitPerTexel;
+            //boxSize.Z = MathExtension.Floor(boxSize.Z);
+            //boxSize.Z *= unitPerTexel;
 
-        //    Matrix.Multiply(ref lightView, ref lightProjection, out LightViewProjection);
+            Matrix lightProjection;
+            Matrix.CreateOrthographic(boxSize.X, boxSize.Y, -boxSize.Z, boxSize.Z, out lightProjection);
 
-        //    // クリア。
-        //    lightVolumePoints.Clear();
-        //}
+            Matrix.Multiply(ref lightView, ref lightProjection, out LightViewProjection);
+
+            // クリア。
+            lightVolumePoints.Clear();
+        }
     }
 }
