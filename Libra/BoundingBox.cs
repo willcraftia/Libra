@@ -268,36 +268,7 @@ namespace Libra
 
         public void Intersects(ref Plane plane, out PlaneIntersectionType result)
         {
-            // SharpDX.Collision.PlaneIntersectsBox より。
-
-            Vector3 min;
-            Vector3 max;
-
-            max.X = (plane.Normal.X >= 0.0f) ? Min.X : Max.X;
-            max.Y = (plane.Normal.Y >= 0.0f) ? Min.Y : Max.Y;
-            max.Z = (plane.Normal.Z >= 0.0f) ? Min.Z : Max.Z;
-            min.X = (plane.Normal.X >= 0.0f) ? Max.X : Min.X;
-            min.Y = (plane.Normal.Y >= 0.0f) ? Max.Y : Min.Y;
-            min.Z = (plane.Normal.Z >= 0.0f) ? Max.Z : Min.Z;
-
-            float distance;
-            Vector3.Dot(ref plane.Normal, ref max, out distance);
-
-            if (0.0f < distance + plane.D)
-            {
-                result = PlaneIntersectionType.Front;
-                return;
-            }
-
-            Vector3.Dot(ref plane.Normal, ref min, out distance);
-
-            if (distance + plane.D < 0.0f)
-            {
-                result = PlaneIntersectionType.Back;
-                return;
-            }
-
-            result = PlaneIntersectionType.Intersecting;
+            plane.Intersects(ref this, out result);
         }
 
         public float? Intersects(Ray ray)
@@ -309,105 +280,7 @@ namespace Libra
 
         public void Intersects(ref Ray ray, out float? result)
         {
-            // SharpDX.Collision.RayIntersectsBox より。
-
-            float distance = 0;
-            float tmax = float.MaxValue;
-
-            if (Math.Abs(ray.Direction.X) < MathHelper.ZeroTolerance)
-            {
-                if (ray.Position.X < Min.X || Max.X < ray.Position.X)
-                {
-                    result = null;
-                    return;
-                }
-            }
-            else
-            {
-                float inverse = 1.0f / ray.Direction.X;
-                float t1 = (Min.X - ray.Position.X) * inverse;
-                float t2 = (Max.X - ray.Position.X) * inverse;
-
-                if (t2 < t1)
-                {
-                    float temp = t1;
-                    t1 = t2;
-                    t2 = temp;
-                }
-
-                distance = Math.Max(t1, distance);
-                tmax = Math.Min(t2, tmax);
-
-                if (tmax < distance)
-                {
-                    result = null;
-                    return;
-                }
-            }
-
-            if (Math.Abs(ray.Direction.Y) < MathHelper.ZeroTolerance)
-            {
-                if (ray.Position.Y < Min.Y || Max.Y < ray.Position.Y)
-                {
-                    result = null;
-                    return;
-                }
-            }
-            else
-            {
-                float inverse = 1.0f / ray.Direction.Y;
-                float t1 = (Min.Y - ray.Position.Y) * inverse;
-                float t2 = (Max.Y - ray.Position.Y) * inverse;
-
-                if (t2 < t1)
-                {
-                    float temp = t1;
-                    t1 = t2;
-                    t2 = temp;
-                }
-
-                distance = Math.Max(t1, distance);
-                tmax = Math.Min(t2, tmax);
-
-                if (tmax < distance)
-                {
-                    result = null;
-                    return;
-                }
-            }
-
-            if (Math.Abs(ray.Direction.Z) < MathHelper.ZeroTolerance)
-            {
-                if (ray.Position.Z < Min.Z || Max.Z < ray.Position.Z)
-                {
-                    result = null;
-                    return;
-                }
-            }
-            else
-            {
-                float inverse = 1.0f / ray.Direction.Z;
-                float t1 = (Min.Z - ray.Position.Z) * inverse;
-                float t2 = (Max.Z - ray.Position.Z) * inverse;
-
-                if (t2 < t1)
-                {
-                    float temp = t1;
-                    t1 = t2;
-                    t2 = temp;
-                }
-
-                distance = Math.Max(t1, distance);
-                tmax = Math.Min(t2, tmax);
-
-                if (tmax < distance)
-                {
-                    result = null;
-                    return;
-                }
-            }
-
-            result = distance;
+            ray.Intersects(ref this, out result);
         }
 
         public Vector3 GetCenter()

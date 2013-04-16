@@ -287,15 +287,7 @@ namespace Libra
 
         public void Intersects(ref BoundingBox box, out bool result)
         {
-            // SharpDX.Collision.BoxIntersectsSphere より。
-
-            Vector3 vector;
-            Vector3.Clamp(ref Center, ref box.Min, ref box.Max, out vector);
-            
-            float distance;
-            Vector3.DistanceSquared(ref Center, ref vector, out distance);
-
-            result = distance <= Radius * Radius;
+            box.Intersects(ref this, out result);
         }
 
         // TODO
@@ -328,25 +320,7 @@ namespace Libra
 
         public void Intersects(ref Plane plane, out PlaneIntersectionType result)
         {
-            // SharpDX.Collision.PlaneIntersectsSphere より。
-
-            float distance;
-            Vector3.Dot(ref plane.Normal, ref Center, out distance);
-            distance += plane.D;
-
-            if (distance > Radius)
-            {
-                result = PlaneIntersectionType.Front;
-                return;
-            }
-
-            if (distance < -Radius)
-            {
-                result = PlaneIntersectionType.Back;
-                return;
-            }
-
-            result = PlaneIntersectionType.Intersecting;
+            plane.Intersects(ref this, out result);
         }
 
         public float? Intersects(Ray ray)
@@ -358,34 +332,8 @@ namespace Libra
 
         public void Intersects(ref Ray ray, out float? result)
         {
-            // SharpDX.Collision.RayIntersectsSphere より。
-
-            Vector3 m;
-            Vector3.Subtract(ref ray.Position, ref Center, out m);
-
-            float b = Vector3.Dot(m, ray.Direction);
-            float c = Vector3.Dot(m, m) - Radius * Radius;
-
-            if (c > 0f && b > 0f)
-            {
-                result = null;
-                return;
-            }
-
-            float discriminant = b * b - c;
-
-            if (discriminant < 0f)
-            {
-                result = null;
-                return;
-            }
-
-            result = -b - (float) Math.Sqrt(discriminant);
-
-            if (result < 0f)
-                result = null;
+            ray.Intersects(ref this, out result);
         }
-
 
         public BoundingSphere Transform(Matrix matrix)
         {

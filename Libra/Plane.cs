@@ -129,7 +129,7 @@ namespace Libra
 
         // TODO
         //
-        // public PlaneIntersectionType Intersects (BoundingFrustum frustum) 未実装。
+        // public PlaneIntersectionType Intersects(BoundingFrustum frustum) 未実装。
 
         public PlaneIntersectionType Intersects(BoundingSphere sphere)
         {

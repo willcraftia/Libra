@@ -23,84 +23,198 @@ namespace Libra
             Direction = direction;
         }
 
-        public bool Intersects(ref Vector3 point)
+        public float? Intersects(BoundingBox box)
         {
-            return Collision.RayIntersectsPoint(ref this, ref point);
+            float? result;
+            Intersects(ref box, out result);
+            return result;
         }
 
-        public bool Intersects(ref Ray ray)
+        public void Intersects(ref BoundingBox box, out float? result)
         {
-            Vector3 point;
-            return Collision.RayIntersectsRay(ref this, ref ray, out point);
+            // SharpDX.Collision.RayIntersectsBox より。
+
+            float distance = 0;
+            float tmax = float.MaxValue;
+
+            if (Math.Abs(Direction.X) < MathHelper.ZeroTolerance)
+            {
+                if (Position.X < box.Min.X || box.Max.X < Position.X)
+                {
+                    result = null;
+                    return;
+                }
+            }
+            else
+            {
+                float inverse = 1.0f / Direction.X;
+                float t1 = (box.Min.X - Position.X) * inverse;
+                float t2 = (box.Max.X - Position.X) * inverse;
+
+                if (t2 < t1)
+                {
+                    float temp = t1;
+                    t1 = t2;
+                    t2 = temp;
+                }
+
+                distance = Math.Max(t1, distance);
+                tmax = Math.Min(t2, tmax);
+
+                if (tmax < distance)
+                {
+                    result = null;
+                    return;
+                }
+            }
+
+            if (Math.Abs(Direction.Y) < MathHelper.ZeroTolerance)
+            {
+                if (Position.Y < box.Min.Y || box.Max.Y < Position.Y)
+                {
+                    result = null;
+                    return;
+                }
+            }
+            else
+            {
+                float inverse = 1.0f / Direction.Y;
+                float t1 = (box.Min.Y - Position.Y) * inverse;
+                float t2 = (box.Max.Y - Position.Y) * inverse;
+
+                if (t2 < t1)
+                {
+                    float temp = t1;
+                    t1 = t2;
+                    t2 = temp;
+                }
+
+                distance = Math.Max(t1, distance);
+                tmax = Math.Min(t2, tmax);
+
+                if (tmax < distance)
+                {
+                    result = null;
+                    return;
+                }
+            }
+
+            if (Math.Abs(Direction.Z) < MathHelper.ZeroTolerance)
+            {
+                if (Position.Z < box.Min.Z || box.Max.Z < Position.Z)
+                {
+                    result = null;
+                    return;
+                }
+            }
+            else
+            {
+                float inverse = 1.0f / Direction.Z;
+                float t1 = (box.Min.Z - Position.Z) * inverse;
+                float t2 = (box.Max.Z - Position.Z) * inverse;
+
+                if (t2 < t1)
+                {
+                    float temp = t1;
+                    t1 = t2;
+                    t2 = temp;
+                }
+
+                distance = Math.Max(t1, distance);
+                tmax = Math.Min(t2, tmax);
+
+                if (tmax < distance)
+                {
+                    result = null;
+                    return;
+                }
+            }
+
+            result = distance;
         }
 
-        public bool Intersects(ref Ray ray, out Vector3 point)
+        public float? Intersects(BoundingFrustum frustum)
         {
-            return Collision.RayIntersectsRay(ref this, ref ray, out point);
+            float? result;
+            frustum.Intersects(ref this, out result);
+            return result;
         }
 
-        public bool Intersects(ref Plane plane)
+        public float? Intersects(BoundingSphere sphere)
         {
-            float distance;
-            return Collision.RayIntersectsPlane(ref this, ref plane, out distance);
+            float? result;
+            Intersects(ref sphere, out result);
+            return result;
         }
 
-        public bool Intersects(ref Plane plane, out float distance)
+        public void Intersects(ref BoundingSphere sphere, out float? result)
         {
-            return Collision.RayIntersectsPlane(ref this, ref plane, out distance);
+            // SharpDX.Collision.RayIntersectsSphere より。
+
+            Vector3 m;
+            Vector3.Subtract(ref Position, ref sphere.Center, out m);
+
+            float b = Vector3.Dot(m, Direction);
+            float c = Vector3.Dot(m, m) - sphere.Radius * sphere.Radius;
+
+            if (c > 0f && b > 0f)
+            {
+                result = null;
+                return;
+            }
+
+            float discriminant = b * b - c;
+
+            if (discriminant < 0f)
+            {
+                result = null;
+                return;
+            }
+
+            result = -b - (float) Math.Sqrt(discriminant);
+
+            if (result < 0f)
+                result = null;
         }
 
-        public bool Intersects(ref Plane plane, out Vector3 point)
+        public float? Intersects(Plane plane)
         {
-            return Collision.RayIntersectsPlane(ref this, ref plane, out point);
+            float? result;
+            Intersects(ref plane, out result);
+            return result;
         }
 
-        public bool Intersects(ref Vector3 vertex1, ref Vector3 vertex2, ref Vector3 vertex3)
+        public void Intersects(ref Plane plane, out float? result)
         {
-            float distance;
-            return Collision.RayIntersectsTriangle(ref this, ref vertex1, ref vertex2, ref vertex3, out distance);
-        }
+            // SharpDX.Collision.RayIntersectsPlane より。
 
-        public bool Intersects(ref Vector3 vertex1, ref Vector3 vertex2, ref Vector3 vertex3, out float distance)
-        {
-            return Collision.RayIntersectsTriangle(ref this, ref vertex1, ref vertex2, ref vertex3, out distance);
-        }
+            float direction;
+            Vector3.Dot(ref plane.Normal, ref Direction, out direction);
 
-        public bool Intersects(ref Vector3 vertex1, ref Vector3 vertex2, ref Vector3 vertex3, out Vector3 point)
-        {
-            return Collision.RayIntersectsTriangle(ref this, ref vertex1, ref vertex2, ref vertex3, out point);
-        }
+            if (Math.Abs(direction) < MathHelper.ZeroTolerance)
+            {
+                result = null;
+                return;
+            }
 
-        public bool Intersects(ref BoundingBox box)
-        {
-            float distance;
-            return Collision.RayIntersectsBox(ref this, ref box, out distance);
-        }
+            float position;
+            Vector3.Dot(ref plane.Normal, ref Position, out position);
+            float distance = (-plane.D - position) / direction;
 
-        public bool Intersects(ref BoundingBox box, out float distance)
-        {
-            return Collision.RayIntersectsBox(ref this, ref box, out distance);
-        }
+            if (distance < 0f)
+            {
+                if (distance < -MathHelper.ZeroTolerance)
+                {
+                    result = null;
+                    return;
+                }
 
-        public bool Intersects(ref BoundingBox box, out Vector3 point)
-        {
-            return Collision.RayIntersectsBox(ref this, ref box, out point);
-        }
-
-        public bool Intersects(ref BoundingSphere sphere)
-        {
-            float distance;
-            return Collision.RayIntersectsSphere(ref this, ref sphere, out distance);
-        }
-
-        public bool Intersects(ref BoundingSphere sphere, out float distance)
-        {
-            return Collision.RayIntersectsSphere(ref this, ref sphere, out distance);
-        }
-
-        public bool Intersects(ref BoundingSphere sphere, out Vector3 point)
-        {
-            return Collision.RayIntersectsSphere(ref this, ref sphere, out point);
+                result = 0;
+            }
+            else
+            {
+                result = distance;
+            }
         }
 
         #region IEquatable

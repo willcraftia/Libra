@@ -39,7 +39,6 @@
     <Compile Include="BoundingBox.cs" />
     <Compile Include="BoundingFrustum.cs" />
     <Compile Include="BoundingSphere.cs" />
-    <Compile Include="Collision.cs" />
     <Compile Include="Color.cs" />
     <Compile Include="ContainmentType.cs" />
     <Compile Include="IPackedVector.cs" />
