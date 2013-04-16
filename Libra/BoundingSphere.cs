@@ -24,103 +24,163 @@ namespace Libra
             this.Radius = radius;
         }
 
-        public bool Intersects(ref Ray ray)
+        public ContainmentType Contains(BoundingBox box)
         {
-            float distance;
-            return Collision.RayIntersectsSphere(ref ray, ref this, out distance);
-        }
-
-        public bool Intersects(ref Ray ray, out float distance)
-        {
-            return Collision.RayIntersectsSphere(ref ray, ref this, out distance);
-        }
-
-        public bool Intersects(ref Ray ray, out Vector3 point)
-        {
-            return Collision.RayIntersectsSphere(ref ray, ref this, out point);
-        }
-
-        public PlaneIntersectionType Intersects(ref Plane plane)
-        {
-            return Collision.PlaneIntersectsSphere(ref plane, ref this);
-        }
-
-        public bool Intersects(ref Vector3 vertex1, ref Vector3 vertex2, ref Vector3 vertex3)
-        {
-            return Collision.SphereIntersectsTriangle(ref this, ref vertex1, ref vertex2, ref vertex3);
-        }
-
-        public bool Intersects(ref BoundingBox box)
-        {
-            return Collision.BoxIntersectsSphere(ref box, ref this);
-        }
-
-        public bool Intersects(ref BoundingSphere sphere)
-        {
-            return Collision.SphereIntersectsSphere(ref this, ref sphere);
-        }
-
-        public ContainmentType Contains(ref Vector3 point)
-        {
-            return Collision.SphereContainsPoint(ref this, ref point);
-        }
-
-        public ContainmentType Contains(ref Vector3 vertex1, ref Vector3 vertex2, ref Vector3 vertex3)
-        {
-            return Collision.SphereContainsTriangle(ref this, ref vertex1, ref vertex2, ref vertex3);
-        }
-
-        public ContainmentType Contains(ref BoundingBox box)
-        {
-            return Collision.SphereContainsBox(ref this, ref box);
-        }
-
-        public ContainmentType Contains(ref BoundingSphere sphere)
-        {
-            return Collision.SphereContainsSphere(ref this, ref sphere);
-        }
-
-        public static void FromPoints(Vector3[] points, out BoundingSphere result)
-        {
-            //Find the center of all points.
-            Vector3 center = Vector3.Zero;
-            for (int i = 0; i < points.Length; ++i)
-            {
-                Vector3.Add(ref points[i], ref center, out center);
-            }
-
-            //This is the center of our sphere.
-            center /= (float) points.Length;
-
-            //Find the radius of the sphere
-            float radius = 0f;
-            for (int i = 0; i < points.Length; ++i)
-            {
-                //We are doing a relative distance comparasin to find the maximum distance
-                //from the center of our sphere.
-                float distance;
-                Vector3.DistanceSquared(ref center, ref points[i], out distance);
-
-                if (distance > radius)
-                    radius = distance;
-            }
-
-            //Find the real distance from the DistanceSquared.
-            radius = (float) Math.Sqrt(radius);
-
-            //Construct the sphere.
-            result.Center = center;
-            result.Radius = radius;
-        }
-
-        public static BoundingSphere FromPoints(Vector3[] points)
-        {
-            BoundingSphere result;
-            FromPoints(points, out result);
+            ContainmentType result;
+            Contains(ref box, out result);
             return result;
         }
 
-        public static void FromBox(ref BoundingBox box, out BoundingSphere result)
+        public void Contains(ref BoundingBox box, out ContainmentType result)
+        {
+            // SharpDX.Collision.SphereContainsBox より。
+
+            bool boxIntersectsSphere;
+            box.Intersects(ref this, out boxIntersectsSphere);
+            if (!boxIntersectsSphere)
+            {
+                result = ContainmentType.Disjoint;
+                return;
+            }
+
+            Vector3 vector;
+            float radiusSquared = Radius * Radius;
+
+            vector.X = Center.X - box.Min.X;
+            vector.Y = Center.Y - box.Max.Y;
+            vector.Z = Center.Z - box.Max.Z;
+            if (radiusSquared < vector.LengthSquared())
+            {
+                result = ContainmentType.Intersects;
+                return;
+            }
+
+            vector.X = Center.X - box.Max.X;
+            vector.Y = Center.Y - box.Max.Y;
+            vector.Z = Center.Z - box.Max.Z;
+            if (radiusSquared < vector.LengthSquared())
+            {
+                result = ContainmentType.Intersects;
+                return;
+            }
+
+            vector.X = Center.X - box.Max.X;
+            vector.Y = Center.Y - box.Min.Y;
+            vector.Z = Center.Z - box.Max.Z;
+            if (radiusSquared < vector.LengthSquared())
+            {
+                result = ContainmentType.Intersects;
+                return;
+            }
+
+            vector.X = Center.X - box.Min.X;
+            vector.Y = Center.Y - box.Min.Y;
+            vector.Z = Center.Z - box.Max.Z;
+            if (radiusSquared < vector.LengthSquared())
+            {
+                result = ContainmentType.Intersects;
+                return;
+            }
+
+            vector.X = Center.X - box.Min.X;
+            vector.Y = Center.Y - box.Max.Y;
+            vector.Z = Center.Z - box.Min.Z;
+            if (radiusSquared < vector.LengthSquared())
+            {
+                result = ContainmentType.Intersects;
+                return;
+            }
+
+            vector.X = Center.X - box.Max.X;
+            vector.Y = Center.Y - box.Max.Y;
+            vector.Z = Center.Z - box.Min.Z;
+            if (radiusSquared < vector.LengthSquared())
+            {
+                result = ContainmentType.Intersects;
+                return;
+            }
+
+            vector.X = Center.X - box.Max.X;
+            vector.Y = Center.Y - box.Min.Y;
+            vector.Z = Center.Z - box.Min.Z;
+            if (radiusSquared < vector.LengthSquared())
+            {
+                result = ContainmentType.Intersects;
+                return;
+            }
+
+            vector.X = Center.X - box.Min.X;
+            vector.Y = Center.Y - box.Min.Y;
+            vector.Z = Center.Z - box.Min.Z;
+            if (radiusSquared < vector.LengthSquared())
+            {
+                result = ContainmentType.Intersects;
+                return;
+            }
+
+            result = ContainmentType.Contains;
+        }
+
+        public ContainmentType Contains(BoundingSphere sphere)
+        {
+            ContainmentType result;
+            Contains(ref sphere, out result);
+            return result;
+        }
+
+        public void Contains(ref BoundingSphere sphere, out ContainmentType result)
+        {
+            // SharpDX.Collision.SphereContainsSphere より。
+
+            float distance;
+            Vector3.Distance(ref Center, ref sphere.Center, out distance);
+
+            if (Radius + sphere.Radius < distance)
+            {
+                result = ContainmentType.Disjoint;
+                return;
+            }
+
+            if (Radius - sphere.Radius < distance)
+            {
+                result = ContainmentType.Intersects;
+                return;
+            }
+
+            result = ContainmentType.Contains;
+        }
+
+        public ContainmentType Contains(Vector3 point)
+        {
+            ContainmentType result;
+            Contains(ref point, out result);
+            return result;
+        }
+
+        public void Contains(ref Vector3 point, out ContainmentType result)
+        {
+            // SharpDX.Collision.SphereContainsPoint より。
+
+            float distanceSquared;
+            Vector3.DistanceSquared(ref point, ref Center, out distanceSquared);
+
+            if (distanceSquared <= Radius * Radius)
+            {
+                result = ContainmentType.Contains;
+                return;
+            }
+
+            result = ContainmentType.Disjoint;
+        }
+
+        public static BoundingSphere CreateFromBoundingBox(BoundingBox box)
+        {
+            BoundingSphere result;
+            CreateFromBoundingBox(ref box, out result);
+            return result;
+        }
+
+        public static void CreateFromBoundingBox(ref BoundingBox box, out BoundingSphere result)
         {
             Vector3.Lerp(ref box.Min, ref box.Max, 0.5f, out result.Center);
 
@@ -128,53 +188,223 @@ namespace Libra
             float y = box.Min.Y - box.Max.Y;
             float z = box.Min.Z - box.Max.Z;
 
-            float distance = (float) (Math.Sqrt((x * x) + (y * y) + (z * z)));
+            float distance = (float) Math.Sqrt(x * x + y * y + z * z);
             result.Radius = distance * 0.5f;
         }
 
-        public static BoundingSphere FromBox(BoundingBox box)
+        public static BoundingSphere CreateFromFrustum(BoundingFrustum frustum)
+        {
+            if (frustum == null) throw new ArgumentNullException("frustum");
+
+            return CreateFromPoints(frustum.GetCorners());
+        }
+
+        public static BoundingSphere CreateFromPoints(Vector3[] points)
         {
             BoundingSphere result;
-            FromBox(ref box, out result);
+            CreateFromPoints(points, out result);
             return result;
         }
 
-        public static void Merge(ref BoundingSphere value1, ref BoundingSphere value2, out BoundingSphere result)
+        public static void CreateFromPoints(Vector3[] points, out BoundingSphere result)
         {
-            Vector3 difference = value2.Center - value1.Center;
+            if (points == null) throw new ArgumentNullException("points");
+
+            Vector3 center = Vector3.Zero;
+            for (int i = 0; i < points.Length; ++i)
+            {
+                Vector3.Add(ref points[i], ref center, out center);
+            }
+
+            center /= (float) points.Length;
+
+            float radius = 0f;
+            for (int i = 0; i < points.Length; ++i)
+            {
+                float distance;
+                Vector3.DistanceSquared(ref center, ref points[i], out distance);
+
+                if (distance > radius)
+                    radius = distance;
+            }
+
+            radius = (float) Math.Sqrt(radius);
+
+            result.Center = center;
+            result.Radius = radius;
+        }
+
+        public static void CreateMerged(ref BoundingSphere original, ref BoundingSphere additional, out BoundingSphere result)
+        {
+            Vector3 difference;
+            Vector3.Subtract(ref additional.Center, ref original.Center, out difference);
 
             float length = difference.Length();
-            float radius = value1.Radius;
-            float radius2 = value2.Radius;
+            float radius = original.Radius;
+            float radius2 = additional.Radius;
 
             if (radius + radius2 >= length)
             {
                 if (radius - radius2 >= length)
                 {
-                    result = value1;
+                    result = original;
                     return;
                 }
 
                 if (radius2 - radius >= length)
                 {
-                    result = value2;
+                    result = additional;
                     return;
                 }
             }
 
-            Vector3 vector = difference * (1.0f / length);
+            Vector3 vector;
+            Vector3.Divide(ref difference, length, out vector);
+
             float min = Math.Min(-radius, length - radius2);
             float max = (Math.Max(radius, length + radius2) - min) * 0.5f;
 
-            result.Center = value1.Center + vector * (max + min);
+            float minPlusMax = max + min;
+            Vector3.Multiply(ref vector, minPlusMax, out vector);
+
+            Vector3.Add(ref original.Center, ref vector, out result.Center);
             result.Radius = max;
         }
 
-        public static BoundingSphere Merge(BoundingSphere value1, BoundingSphere value2)
+        public static BoundingSphere CreateMerged(BoundingSphere original, BoundingSphere additional)
         {
             BoundingSphere result;
-            Merge(ref value1, ref value2, out result);
+            CreateMerged(ref original, ref additional, out result);
             return result;
+        }
+
+        public bool Intersects(BoundingBox box)
+        {
+            bool result;
+            Intersects(ref box, out result);
+            return result;
+        }
+
+        public void Intersects(ref BoundingBox box, out bool result)
+        {
+            // SharpDX.Collision.BoxIntersectsSphere より。
+
+            Vector3 vector;
+            Vector3.Clamp(ref Center, ref box.Min, ref box.Max, out vector);
+            
+            float distance;
+            Vector3.DistanceSquared(ref Center, ref vector, out distance);
+
+            result = distance <= Radius * Radius;
+        }
+
+        // TODO
+        //
+        // public bool Intersects(BoundingFrustum frustum) 未実装。
+
+        public bool Intersects(BoundingSphere sphere)
+        {
+            bool result;
+            Intersects(ref sphere, out result);
+            return result;
+        }
+
+        public void Intersects(ref BoundingSphere sphere, out bool result)
+        {
+            // SharpDX.Collision.SphereIntersectsSphere より。
+
+            float radiusSum = Radius + sphere.Radius;
+            float distanceSquared;
+            Vector3.DistanceSquared(ref Center, ref sphere.Center, out distanceSquared);
+            result = distanceSquared <= radiusSum * radiusSum;
+        }
+
+        public PlaneIntersectionType Intersects(Plane plane)
+        {
+            PlaneIntersectionType result;
+            Intersects(ref plane, out result);
+            return result;
+        }
+
+        public void Intersects(ref Plane plane, out PlaneIntersectionType result)
+        {
+            // SharpDX.Collision.PlaneIntersectsSphere より。
+
+            float distance;
+            Vector3.Dot(ref plane.Normal, ref Center, out distance);
+            distance += plane.D;
+
+            if (distance > Radius)
+            {
+                result = PlaneIntersectionType.Front;
+                return;
+            }
+
+            if (distance < -Radius)
+            {
+                result = PlaneIntersectionType.Back;
+                return;
+            }
+
+            result = PlaneIntersectionType.Intersecting;
+        }
+
+        public float? Intersects(Ray ray)
+        {
+            float? result;
+            Intersects(ref ray, out result);
+            return result;
+        }
+
+        public void Intersects(ref Ray ray, out float? result)
+        {
+            // SharpDX.Collision.RayIntersectsSphere より。
+
+            Vector3 m;
+            Vector3.Subtract(ref ray.Position, ref Center, out m);
+
+            float b = Vector3.Dot(m, ray.Direction);
+            float c = Vector3.Dot(m, m) - Radius * Radius;
+
+            if (c > 0f && b > 0f)
+            {
+                result = null;
+                return;
+            }
+
+            float discriminant = b * b - c;
+
+            if (discriminant < 0f)
+            {
+                result = null;
+                return;
+            }
+
+            result = -b - (float) Math.Sqrt(discriminant);
+
+            if (result < 0f)
+                result = null;
+        }
+
+
+        public BoundingSphere Transform(Matrix matrix)
+        {
+            BoundingSphere result;
+            Transform(ref matrix, out result);
+            return result;
+        }
+
+        public void Transform(ref Matrix matrix, out BoundingSphere result)
+        {
+            // MonoGame より。
+
+            var m1 = matrix.M11 * matrix.M11 + matrix.M12 * matrix.M12 + matrix.M13 * matrix.M13;
+            var m2 = matrix.M21 * matrix.M21 + matrix.M22 * matrix.M22 + matrix.M23 * matrix.M23;
+            var m3 = matrix.M31 * matrix.M31 + matrix.M32 * matrix.M32 + matrix.M33 * matrix.M33;
+            var max = Math.Max(m1, Math.Max(m2, m3));
+
+            Vector3.Transform(ref Center, ref matrix, out result.Center);
+            result.Radius = Radius * (float) Math.Sqrt(max);
         }
 
         #region IEquatable
