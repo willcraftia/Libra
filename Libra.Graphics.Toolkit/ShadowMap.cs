@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Collections.Generic;
 
 #endregion
 
@@ -248,7 +249,7 @@ namespace Libra.Graphics.Toolkit
 
     //    Matrix[] safeSplitLightViewProjections;
 
-    //    RenderTarget2D[] splitRenderTargets;
+    //    RenderTarget[] splitRenderTargets;
 
     //    Texture2D[] safeSplitShadowMaps;
 
@@ -264,7 +265,7 @@ namespace Libra.Graphics.Toolkit
 
     //    Settings settings;
 
-    //    public GraphicsDevice GraphicsDevice { get; private set; }
+    //    public Device Device { get; private set; }
 
     //    public Techniques Technique { get; private set; }
 
@@ -305,19 +306,18 @@ namespace Libra.Graphics.Toolkit
 
     //    public ShadowMapMonitor Monitor;
 
-    //    public ShadowMap(GraphicsDevice graphicsDevice, Settings settings,
-    //        SpriteBatch spriteBatch, Effect shadowMapEffect, Effect blurEffect)
+    //    public ShadowMap(Device device, Settings settings, SpriteBatch spriteBatch, Effect blurEffect)
     //    {
-    //        if (graphicsDevice == null) throw new ArgumentNullException("graphicsDevice");
+    //        if (device == null) throw new ArgumentNullException("device");
     //        if (settings == null) throw new ArgumentNullException("settings");
     //        if (spriteBatch == null) throw new ArgumentNullException("spriteBatch");
     //        if (shadowMapEffect == null) throw new ArgumentNullException("shadowMapEffect");
     //        if (blurEffect == null) throw new ArgumentNullException("blurEffect");
 
-    //        GraphicsDevice = graphicsDevice;
+    //        Device = device;
     //        this.settings = settings;
     //        this.spriteBatch = spriteBatch;
-    //        this.shadowMapEffect = new ShadowMapEffect(shadowMapEffect);
+    //        shadowMapEffect = new ShadowMapEffect(device);
     //        this.shadowMapEffect.ShadowMapTechnique = settings.Technique;
 
     //        Technique = settings.Technique;
@@ -340,12 +340,12 @@ namespace Libra.Graphics.Toolkit
     //            splitLightCameras[i] = new LightCamera(settings.Size);
 
     //        // TODO: パラメータ見直し or 外部設定化。
-    //        var pp = GraphicsDevice.PresentationParameters;
+    //        var pp = Device.PresentationParameters;
     //        // メモ: ブラーをかける場合があるので RenderTargetUsage.PreserveContents で作成。
     //        splitRenderTargets = new RenderTarget2D[SplitCount];
     //        for (int i = 0; i < splitRenderTargets.Length; i++)
     //        {
-    //            splitRenderTargets[i] = new RenderTarget2D(GraphicsDevice, settings.Size, settings.Size,
+    //            splitRenderTargets[i] = new RenderTarget2D(Device, settings.Size, settings.Size,
     //                false, settings.Format, DepthFormat.Depth24, 0, RenderTargetUsage.PreserveContents);
     //            splitRenderTargets[i].Name = "ShadowMap" + i;
     //        }
@@ -475,8 +475,8 @@ namespace Libra.Graphics.Toolkit
     //    // シャドウ マップを描画。
     //    public void Draw(ref Vector3 lightDirection)
     //    {
-    //        GraphicsDevice.DepthStencilState = DepthStencilState.Default;
-    //        GraphicsDevice.BlendState = BlendState.Opaque;
+    //        Device.DepthStencilState = DepthStencilState.Default;
+    //        Device.BlendState = BlendState.Opaque;
 
     //        // 各ライト カメラで描画。
     //        for (int i = 0; i < splitCameras.Length; i++)
@@ -498,8 +498,8 @@ namespace Libra.Graphics.Toolkit
     //            //------------------------------------------------------------
     //            // 描画
 
-    //            GraphicsDevice.SetRenderTarget(renderTarget);
-    //            GraphicsDevice.Clear(ClearOptions.Target | ClearOptions.DepthBuffer, Color.White, 1.0f, 0);
+    //            Device.SetRenderTarget(renderTarget);
+    //            Device.Clear(ClearOptions.Target | ClearOptions.DepthBuffer, Color.White, 1.0f, 0);
 
     //            while (0 < shadowCasters.Count)
     //            {
@@ -510,7 +510,7 @@ namespace Libra.Graphics.Toolkit
     //            if (shadowMapEffect.ShadowMapTechnique == Techniques.Vsm && blur != null)
     //                blur.Filter(renderTarget);
 
-    //            GraphicsDevice.SetRenderTarget(null);
+    //            Device.SetRenderTarget(null);
 
     //            TextureDisplay.Add(renderTarget);
     //        }
