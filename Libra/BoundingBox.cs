@@ -14,6 +14,8 @@ namespace Libra
     [Serializable]
     public struct BoundingBox : IEquatable<BoundingBox>
     {
+        public const int CornerCount = 8;
+
         public static readonly BoundingBox Empty = new BoundingBox(new Vector3(float.MaxValue), new Vector3(float.MinValue));
 
         public Vector3 Min;
@@ -26,64 +28,108 @@ namespace Libra
             Max = max;
         }
 
-        public Vector3[] GetCorners()
+        public ContainmentType Contains(BoundingBox box)
         {
-            Vector3[] results = new Vector3[8];
-            results[0] = new Vector3(Min.X, Max.Y, Max.Z);
-            results[1] = new Vector3(Max.X, Max.Y, Max.Z);
-            results[2] = new Vector3(Max.X, Min.Y, Max.Z);
-            results[3] = new Vector3(Min.X, Min.Y, Max.Z);
-            results[4] = new Vector3(Min.X, Max.Y, Min.Z);
-            results[5] = new Vector3(Max.X, Max.Y, Min.Z);
-            results[6] = new Vector3(Max.X, Min.Y, Min.Z);
-            results[7] = new Vector3(Min.X, Min.Y, Min.Z);
-            return results;
+            ContainmentType result;
+            Contains(ref box, out result);
+            return result;
         }
 
-        public bool Intersects(ref Ray ray)
+        public void Contains(ref BoundingBox box, out ContainmentType result)
         {
+            if (box.Max.X < Min.X || Max.X < box.Min.X ||
+                box.Max.Y < Min.Y || Max.Y < box.Min.Y ||
+                box.Max.Z < Min.Z || Max.Z < box.Min.Z)
+            {
+                result = ContainmentType.Disjoint;
+            }
+            else if (
+                Min.X <= box.Min.X && box.Max.X <= Max.X &&
+                Min.Y <= box.Min.Y && box.Max.Y <= Max.Y &&
+                Min.Z <= box.Min.Z && box.Max.Z <= Max.Z)
+            {
+                result = ContainmentType.Contains;
+            }
+            else
+            {
+                result = ContainmentType.Intersects;
+            }
+        }
+
+        // TODO
+        //
+        // public ContainmentType Contains(BoundingFrustum frustum) 未実装
+        // しかし、境界ボックスが境界錐台を含むかどうかを検査する状況が思い浮かばないため
+        // (その逆は境界錐台カリングで必要とするが)、
+        // 実装の必要が無いとも考えている。
+
+        public ContainmentType Contains(BoundingSphere sphere)
+        {
+            ContainmentType result;
+            Contains(ref sphere, out result);
+            return result;
+        }
+
+        public void Contains(ref BoundingSphere sphere, out ContainmentType result)
+        {
+            // ShaprdDX.Collision.BoxContainsSphere より。
+
+            Vector3 vector;
+            Vector3.Clamp(ref sphere.Center, ref Min, ref Max, out vector);
+
             float distance;
-            return Collision.RayIntersectsBox(ref ray, ref this, out distance);
+            Vector3.DistanceSquared(ref sphere.Center, ref vector, out distance);
+
+            if (sphere.Radius * sphere.Radius < distance)
+            {
+                result = ContainmentType.Disjoint;
+                return;
+            }
+
+            if ((Min.X + sphere.Radius <= sphere.Center.X) && (sphere.Center.X <= Max.X - sphere.Radius) && (Max.X - Min.X > sphere.Radius) &&
+                (Min.Y + sphere.Radius <= sphere.Center.Y) && (sphere.Center.Y <= Max.Y - sphere.Radius) && (Max.Y - Min.Y > sphere.Radius) &&
+                (Min.Z + sphere.Radius <= sphere.Center.Z) && (sphere.Center.Z <= Max.Z - sphere.Radius) && (Max.X - Min.X > sphere.Radius))
+            {
+                result = ContainmentType.Contains;
+                return;
+            }
+
+            result = ContainmentType.Intersects;
         }
 
-        public bool Intersects(ref Ray ray, out float distance)
+        public ContainmentType Contains(Vector3 point)
         {
-            return Collision.RayIntersectsBox(ref ray, ref this, out distance);
+            ContainmentType result;
+            Contains(ref point, out result);
+            return result;
         }
 
-        public bool Intersects(ref Ray ray, out Vector3 point)
+        public void Contains(ref Vector3 point, out ContainmentType result)
         {
-            return Collision.RayIntersectsBox(ref ray, ref this, out point);
+            if (point.X < Min.X || Max.X < point.X ||
+                point.Y < Min.Y || Max.Y < point.Y ||
+                point.Z < Min.Z || Max.Z < point.Z)
+            {
+                result = ContainmentType.Disjoint;
+            }
+            else if (
+                point.X == Min.X || point.X == Max.X ||
+                point.Y == Min.Y || point.Y == Max.Y ||
+                point.Z == Min.Z || point.Z == Max.Z)
+            {
+                result = ContainmentType.Intersects;
+            }
+            else
+            {
+                result = ContainmentType.Contains;
+            }
         }
 
-        public PlaneIntersectionType Intersects(ref Plane plane)
+        public static BoundingBox CreateFromPoints(IEnumerable<Vector3> points)
         {
-            return Collision.PlaneIntersectsBox(ref plane, ref this);
-        }
-
-        public bool Intersects(ref BoundingBox box)
-        {
-            return Collision.BoxIntersectsBox(ref this, ref box);
-        }
-
-        public bool Intersects(ref BoundingSphere sphere)
-        {
-            return Collision.BoxIntersectsSphere(ref this, ref sphere);
-        }
-
-        public ContainmentType Contains(ref Vector3 point)
-        {
-            return Collision.BoxContainsPoint(ref this, ref point);
-        }
-
-        public ContainmentType Contains(ref BoundingBox box)
-        {
-            return Collision.BoxContainsBox(ref this, ref box);
-        }
-
-        public ContainmentType Contains(ref BoundingSphere sphere)
-        {
-            return Collision.BoxContainsSphere(ref this, ref sphere);
+            BoundingBox result;
+            CreateFromPoints(points, out result);
+            return result;
         }
 
         public static void CreateFromPoints(IEnumerable<Vector3> points, out BoundingBox result)
@@ -102,19 +148,6 @@ namespace Libra
             result = new BoundingBox(min, max);
         }
 
-        public static BoundingBox CreateFromPoints(IEnumerable<Vector3> points)
-        {
-            BoundingBox result;
-            CreateFromPoints(points, out result);
-            return result;
-        }
-
-        public static void CreateFromSphere(ref BoundingSphere sphere, out BoundingBox result)
-        {
-            result.Min = new Vector3(sphere.Center.X - sphere.Radius, sphere.Center.Y - sphere.Radius, sphere.Center.Z - sphere.Radius);
-            result.Max = new Vector3(sphere.Center.X + sphere.Radius, sphere.Center.Y + sphere.Radius, sphere.Center.Z + sphere.Radius);
-        }
-
         public static BoundingBox CreateFromSphere(BoundingSphere sphere)
         {
             BoundingBox result;
@@ -122,17 +155,259 @@ namespace Libra
             return result;
         }
 
-        public static void Merge(ref BoundingBox value1, ref BoundingBox value2, out BoundingBox result)
+        public static void CreateFromSphere(ref BoundingSphere sphere, out BoundingBox result)
         {
-            Vector3.Min(ref value1.Min, ref value2.Min, out result.Min);
-            Vector3.Max(ref value1.Max, ref value2.Max, out result.Max);
+            result.Min = new Vector3(
+                sphere.Center.X - sphere.Radius,
+                sphere.Center.Y - sphere.Radius,
+                sphere.Center.Z - sphere.Radius);
+            
+            result.Max = new Vector3(
+                sphere.Center.X + sphere.Radius,
+                sphere.Center.Y + sphere.Radius,
+                sphere.Center.Z + sphere.Radius);
         }
 
-        public static BoundingBox Merge(BoundingBox value1, BoundingBox value2)
+        public static BoundingBox CreateMerged(BoundingBox original, BoundingBox additional)
         {
             BoundingBox result;
-            Merge(ref value1, ref value2, out result);
+            CreateMerged(ref original, ref additional, out result);
             return result;
+        }
+
+        public static void CreateMerged(ref BoundingBox original, ref BoundingBox additional, out BoundingBox result)
+        {
+            Vector3.Min(ref original.Min, ref additional.Min, out result.Min);
+            Vector3.Max(ref original.Max, ref additional.Max, out result.Max);
+        }
+
+        public Vector3[] GetCorners()
+        {
+            var results = new Vector3[CornerCount];
+            GetCorners(results);
+            return results;
+        }
+
+        public void GetCorners(Vector3[] results)
+        {
+            if (results == null) throw new ArgumentNullException("result");
+            if (results.Length < CornerCount) throw new ArgumentOutOfRangeException("result");
+
+            results[0] = new Vector3(Min.X, Max.Y, Max.Z);
+            results[1] = new Vector3(Max.X, Max.Y, Max.Z);
+            results[2] = new Vector3(Max.X, Min.Y, Max.Z);
+            results[3] = new Vector3(Min.X, Min.Y, Max.Z);
+            results[4] = new Vector3(Min.X, Max.Y, Min.Z);
+            results[5] = new Vector3(Max.X, Max.Y, Min.Z);
+            results[6] = new Vector3(Max.X, Min.Y, Min.Z);
+            results[7] = new Vector3(Min.X, Min.Y, Min.Z);
+        }
+
+        public bool Intersects(BoundingBox box)
+        {
+            bool result;
+            Intersects(ref box, out result);
+            return result;
+        }
+
+        public void Intersects(ref BoundingBox box, out bool result)
+        {
+            // SharpDX.Collision.BoxIntersectsBox より。
+
+            if (Min.X > box.Max.X || box.Min.X > Max.X)
+            {
+                result = false;
+                return;
+            }
+
+            if (Min.Y > box.Max.Y || box.Min.Y > Max.Y)
+            {
+                result = false;
+                return;
+            }
+
+            if (Min.Z > box.Max.Z || box.Min.Z > Max.Z)
+            {
+                result = false;
+                return;
+            }
+
+            result = true;
+        }
+
+        // TODO
+        //
+        // public bool Intersects(BoundingFrustum frustum) 未実装。
+
+        public bool Intersects(BoundingSphere sphere)
+        {
+            bool result;
+            Intersects(ref sphere, out result);
+            return result;
+        }
+
+        public void Intersects(ref BoundingSphere sphere, out bool result)
+        {
+            // SharpDX.Collision.BoxIntersectsSphere より。
+
+            Vector3 vector;
+            Vector3.Clamp(ref sphere.Center, ref Min, ref Max, out vector);
+
+            float distance;
+            Vector3.DistanceSquared(ref sphere.Center, ref vector, out distance);
+
+            result = distance <= sphere.Radius * sphere.Radius;
+        }
+
+        public PlaneIntersectionType Intersects(Plane plane)
+        {
+            PlaneIntersectionType result;
+            Intersects(ref plane, out result);
+            return result;
+        }
+
+        public void Intersects(ref Plane plane, out PlaneIntersectionType result)
+        {
+            // SharpDX.Collision.PlaneIntersectsBox より。
+
+            Vector3 min;
+            Vector3 max;
+
+            max.X = (plane.Normal.X >= 0.0f) ? Min.X : Max.X;
+            max.Y = (plane.Normal.Y >= 0.0f) ? Min.Y : Max.Y;
+            max.Z = (plane.Normal.Z >= 0.0f) ? Min.Z : Max.Z;
+            min.X = (plane.Normal.X >= 0.0f) ? Max.X : Min.X;
+            min.Y = (plane.Normal.Y >= 0.0f) ? Max.Y : Min.Y;
+            min.Z = (plane.Normal.Z >= 0.0f) ? Max.Z : Min.Z;
+
+            float distance;
+            Vector3.Dot(ref plane.Normal, ref max, out distance);
+
+            if (0.0f < distance + plane.D)
+            {
+                result = PlaneIntersectionType.Front;
+                return;
+            }
+
+            Vector3.Dot(ref plane.Normal, ref min, out distance);
+
+            if (distance + plane.D < 0.0f)
+            {
+                result = PlaneIntersectionType.Back;
+                return;
+            }
+
+            result = PlaneIntersectionType.Intersecting;
+        }
+
+        public float? Intersects(Ray ray)
+        {
+            float? result;
+            Intersects(ref ray, out result);
+            return result;
+        }
+
+        public void Intersects(ref Ray ray, out float? result)
+        {
+            // SharpDX.Collision.RayIntersectsBox より。
+
+            float distance = 0;
+            float tmax = float.MaxValue;
+
+            if (Math.Abs(ray.Direction.X) < MathHelper.ZeroTolerance)
+            {
+                if (ray.Position.X < Min.X || Max.X < ray.Position.X)
+                {
+                    result = null;
+                    return;
+                }
+            }
+            else
+            {
+                float inverse = 1.0f / ray.Direction.X;
+                float t1 = (Min.X - ray.Position.X) * inverse;
+                float t2 = (Max.X - ray.Position.X) * inverse;
+
+                if (t2 < t1)
+                {
+                    float temp = t1;
+                    t1 = t2;
+                    t2 = temp;
+                }
+
+                distance = Math.Max(t1, distance);
+                tmax = Math.Min(t2, tmax);
+
+                if (tmax < distance)
+                {
+                    result = null;
+                    return;
+                }
+            }
+
+            if (Math.Abs(ray.Direction.Y) < MathHelper.ZeroTolerance)
+            {
+                if (ray.Position.Y < Min.Y || Max.Y < ray.Position.Y)
+                {
+                    result = null;
+                    return;
+                }
+            }
+            else
+            {
+                float inverse = 1.0f / ray.Direction.Y;
+                float t1 = (Min.Y - ray.Position.Y) * inverse;
+                float t2 = (Max.Y - ray.Position.Y) * inverse;
+
+                if (t2 < t1)
+                {
+                    float temp = t1;
+                    t1 = t2;
+                    t2 = temp;
+                }
+
+                distance = Math.Max(t1, distance);
+                tmax = Math.Min(t2, tmax);
+
+                if (tmax < distance)
+                {
+                    result = null;
+                    return;
+                }
+            }
+
+            if (Math.Abs(ray.Direction.Z) < MathHelper.ZeroTolerance)
+            {
+                if (ray.Position.Z < Min.Z || Max.Z < ray.Position.Z)
+                {
+                    result = null;
+                    return;
+                }
+            }
+            else
+            {
+                float inverse = 1.0f / ray.Direction.Z;
+                float t1 = (Min.Z - ray.Position.Z) * inverse;
+                float t2 = (Max.Z - ray.Position.Z) * inverse;
+
+                if (t2 < t1)
+                {
+                    float temp = t1;
+                    t1 = t2;
+                    t2 = temp;
+                }
+
+                distance = Math.Max(t1, distance);
+                tmax = Math.Min(t2, tmax);
+
+                if (tmax < distance)
+                {
+                    result = null;
+                    return;
+                }
+            }
+
+            result = distance;
         }
 
         public Vector3 GetCenter()

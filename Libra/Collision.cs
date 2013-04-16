@@ -4,7 +4,7 @@ using System;
 
 #endregion
 
-// SharpDX.Collision をそのまま移植。
+// SharpDX.Collision を移植。
 
 namespace Libra
 {
@@ -781,20 +781,6 @@ namespace Libra
             return PlaneIntersectionType.Intersecting;
         }
 
-        public static bool BoxIntersectsBox(ref BoundingBox box1, ref BoundingBox box2)
-        {
-            if (box1.Min.X > box2.Max.X || box2.Min.X > box1.Max.X)
-                return false;
-
-            if (box1.Min.Y > box2.Max.Y || box2.Min.Y > box1.Max.Y)
-                return false;
-
-            if (box1.Min.Z > box2.Max.Z || box2.Min.Z > box1.Max.Z)
-                return false;
-
-            return true;
-        }
-
         public static bool BoxIntersectsSphere(ref BoundingBox box, ref BoundingSphere sphere)
         {
             //Source: Real-Time Collision Detection by Christer Ericson
@@ -826,58 +812,6 @@ namespace Libra
         {
             float radiisum = sphere1.Radius + sphere2.Radius;
             return Vector3.DistanceSquared(sphere1.Center, sphere2.Center) <= radiisum * radiisum;
-        }
-
-        public static ContainmentType BoxContainsPoint(ref BoundingBox box, ref Vector3 point)
-        {
-            if (box.Min.X <= point.X && box.Max.X >= point.X &&
-                box.Min.Y <= point.Y && box.Max.Y >= point.Y &&
-                box.Min.Z <= point.Z && box.Max.Z >= point.Z)
-            {
-                return ContainmentType.Contains;
-            }
-
-            return ContainmentType.Disjoint;
-        }
-
-        public static ContainmentType BoxContainsBox(ref BoundingBox box1, ref BoundingBox box2)
-        {
-            if (box1.Max.X < box2.Min.X || box1.Min.X > box2.Max.X)
-                return ContainmentType.Disjoint;
-
-            if (box1.Max.Y < box2.Min.Y || box1.Min.Y > box2.Max.Y)
-                return ContainmentType.Disjoint;
-
-            if (box1.Max.Z < box2.Min.Z || box1.Min.Z > box2.Max.Z)
-                return ContainmentType.Disjoint;
-
-            if (box1.Min.X <= box2.Min.X && (box2.Max.X <= box1.Max.X &&
-                box1.Min.Y <= box2.Min.Y && box2.Max.Y <= box1.Max.Y) &&
-                box1.Min.Z <= box2.Min.Z && box2.Max.Z <= box1.Max.Z)
-            {
-                return ContainmentType.Contains;
-            }
-
-            return ContainmentType.Intersects;
-        }
-
-        public static ContainmentType BoxContainsSphere(ref BoundingBox box, ref BoundingSphere sphere)
-        {
-            Vector3 vector;
-            Vector3.Clamp(ref sphere.Center, ref box.Min, ref box.Max, out vector);
-            float distance = Vector3.DistanceSquared(sphere.Center, vector);
-
-            if (distance > sphere.Radius * sphere.Radius)
-                return ContainmentType.Disjoint;
-
-            if ((((box.Min.X + sphere.Radius <= sphere.Center.X) && (sphere.Center.X <= box.Max.X - sphere.Radius)) && ((box.Max.X - box.Min.X > sphere.Radius) &&
-                (box.Min.Y + sphere.Radius <= sphere.Center.Y))) && (((sphere.Center.Y <= box.Max.Y - sphere.Radius) && (box.Max.Y - box.Min.Y > sphere.Radius)) &&
-                (((box.Min.Z + sphere.Radius <= sphere.Center.Z) && (sphere.Center.Z <= box.Max.Z - sphere.Radius)) && (box.Max.X - box.Min.X > sphere.Radius))))
-            {
-                return ContainmentType.Contains;
-            }
-
-            return ContainmentType.Intersects;
         }
 
         public static ContainmentType SphereContainsPoint(ref BoundingSphere sphere, ref Vector3 point)
