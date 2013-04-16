@@ -82,18 +82,34 @@ namespace Libra.Graphics.SharpDX
         protected override void OnIndexBufferChanged()
         {
             D3D11Buffer d3d11Buffer = null;
-            if (IndexBuffer != null) d3d11Buffer = (IndexBuffer as SdxIndexBuffer).D3D11Buffer;
+            DXGIFormat dxgiFormat = DXGIFormat.Unknown;
 
-            D3D11DeviceContext.InputAssembler.SetIndexBuffer(d3d11Buffer, (DXGIFormat) IndexBuffer.Format, 0);
+            if (IndexBuffer != null)
+            {
+                d3d11Buffer = (IndexBuffer as SdxIndexBuffer).D3D11Buffer;
+                dxgiFormat = (DXGIFormat) IndexBuffer.Format;
+            }
+
+            D3D11DeviceContext.InputAssembler.SetIndexBuffer(d3d11Buffer, dxgiFormat, 0);
         }
 
         protected override void SetVertexBufferCore(int slot, ref VertexBufferBinding binding)
         {
+            D3D11Buffer d3d11Buffer = null;
+            int stride = 0;
+
+            // 頂点バッファに null が指定される場合もある。
+            if (binding.VertexBuffer != null)
+            {
+                d3d11Buffer = (binding.VertexBuffer as SdxVertexBuffer).D3D11Buffer;
+                stride = binding.VertexBuffer.VertexDeclaration.Stride;
+            }
+
             var d3d11VertexBufferBinding = new D3D11VertexBufferBinding
             {
-                Buffer = (binding.VertexBuffer as SdxVertexBuffer).D3D11Buffer,
+                Buffer = d3d11Buffer,
                 Offset = binding.Offset,
-                Stride = binding.VertexBuffer.VertexDeclaration.Stride
+                Stride = stride
             };
 
             D3D11DeviceContext.InputAssembler.SetVertexBuffers(slot, d3d11VertexBufferBinding);
@@ -103,11 +119,21 @@ namespace Libra.Graphics.SharpDX
         {
             for (int i = 0; i < bindings.Length; i++)
             {
+                D3D11Buffer d3d11Buffer = null;
+                int stride = 0;
+
+                // 頂点バッファに null が指定される場合もある。
+                if (bindings[i].VertexBuffer != null)
+                {
+                    d3d11Buffer = (bindings[i].VertexBuffer as SdxVertexBuffer).D3D11Buffer;
+                    stride = bindings[i].VertexBuffer.VertexDeclaration.Stride;
+                }
+
                 d3d11VertexBufferBindings[i] = new D3D11VertexBufferBinding
                 {
-                    Buffer = (bindings[i].VertexBuffer as SdxVertexBuffer).D3D11Buffer,
+                    Buffer = d3d11Buffer,
                     Offset = bindings[i].Offset,
-                    Stride = bindings[i].VertexBuffer.VertexDeclaration.Stride
+                    Stride = stride
                 };
             }
 
