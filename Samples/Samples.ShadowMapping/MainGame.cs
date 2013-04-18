@@ -164,6 +164,8 @@ namespace Samples.ShadowMapping
         
         Matrix projection;
 
+        LightCamera lightCamera;
+
         Matrix lightViewProjection;
 
         GaussianBlur gaussianBlur;
@@ -181,6 +183,8 @@ namespace Samples.ShadowMapping
 
             var aspectRatio = (float) windowWidth / (float) windowHeight;
             projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspectRatio,  1.0f, 1000.0f);
+
+            lightCamera = new LightCamera();
 
             shadowMapEffectForm = ShadowMapEffectForm.Variance;
         }
@@ -256,30 +260,14 @@ namespace Samples.ShadowMapping
 
         Matrix CreateLightViewProjectionMatrix()
         {
-            var lightRotation = Matrix.CreateLookAt(Vector3.Zero, -lightDir, Vector3.Up);
+            lightCamera.LightDirection = -lightDir;
 
             var frustumCorners = cameraFrustum.GetCorners();
+            lightCamera.AddLightVolumePoints(frustumCorners);
 
-            for (int i = 0; i < frustumCorners.Length; i++)
-            {
-                frustumCorners[i] = Vector3.Transform(frustumCorners[i], lightRotation);
-            }
+            lightCamera.Update();
 
-            var lightBox = BoundingBox.CreateFromPoints(frustumCorners);
-
-            var boxSize = lightBox.Max - lightBox.Min;
-            var halfBoxSize = boxSize * 0.5f;
-
-            var lightPosition = lightBox.Min + halfBoxSize;
-            lightPosition.Z = lightBox.Min.Z;
-
-            lightPosition = Vector3.Transform(lightPosition, Matrix.Invert(lightRotation));
-
-            var lightView = Matrix.CreateLookAt(lightPosition, lightPosition - lightDir, Vector3.Up);
-            
-            var lightProjection = Matrix.CreateOrthographic(boxSize.X, boxSize.Y, -boxSize.Z, boxSize.Z);
-
-            return lightView * lightProjection;
+            return lightCamera.LightViewProjection;
         }
 
         void CreateShadowMap()
