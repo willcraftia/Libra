@@ -11,27 +11,14 @@ namespace Libra.Graphics.Toolkit
     {
         public Matrix LightViewProjection;
 
-        Vector3[] frustumCorners;
-
-        Vector3[] boundingBoxCorners;
+        Vector3[] corners;
 
         List<Vector3> lightVolumePoints;
 
-        int shadowMapSize;
-
-        float shadowMapTexelSize;
-
-        public LightCamera(int shadowMapSize)
+        public LightCamera()
         {
-            if (shadowMapSize < 1) throw new ArgumentOutOfRangeException("shadowMapSize");
-
-            this.shadowMapSize = shadowMapSize;
-
-            shadowMapTexelSize = 1 / (float) shadowMapSize;
-
             LightViewProjection = Matrix.Identity;
-            frustumCorners = new Vector3[BoundingFrustum.CornerCount];
-            boundingBoxCorners = new Vector3[BoundingBox.CornerCount];
+            corners = new Vector3[BoundingBox.CornerCount];
             lightVolumePoints = new List<Vector3>();
         }
 
@@ -48,7 +35,7 @@ namespace Libra.Graphics.Toolkit
                 lightVolumePoints.Add(points[i]);
         }
 
-        public void Update(BoundingFrustum frustum, ref Vector3 lightDirection)
+        public void Update(Vector3 lightDirection)
         {
             var position = Vector3.Zero;
             var target = lightDirection;
@@ -57,20 +44,15 @@ namespace Libra.Graphics.Toolkit
             Matrix tempLightView;
             Matrix.CreateLookAt(ref position, ref target, ref up, out tempLightView);
 
-            // TODO
-            //
-            // 境界錐台全体を含めるか否かはクラス利用側で決めれば良いのでは？
-            frustum.GetCorners(frustumCorners);
-            AddLightVolumePoints(frustumCorners);
-
             BoundingBox tempLightVolume;
             BoundingBox.CreateFromPoints(lightVolumePoints, out tempLightVolume);
 
-            tempLightVolume.GetCorners(boundingBoxCorners);
-            for (int i = 0; i < boundingBoxCorners.Length; i++)
-                Vector3.Transform(ref boundingBoxCorners[i], ref tempLightView, out boundingBoxCorners[i]);
+            tempLightVolume.GetCorners(corners);
+            for (int i = 0; i < corners.Length; i++)
+                Vector3.Transform(ref corners[i], ref tempLightView, out corners[i]);
 
-            var lightVolume = BoundingBox.CreateFromPoints(boundingBoxCorners);
+            BoundingBox lightVolume;
+            BoundingBox.CreateFromPoints(corners, out lightVolume);
 
             Vector3 boxSize;
             Vector3.Subtract(ref lightVolume.Max, ref lightVolume.Min, out boxSize);
