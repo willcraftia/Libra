@@ -13,6 +13,8 @@ namespace Libra
 {
     public struct Vector4 : IEquatable<Vector4>
     {
+        /// <summary>
+        /// </summary>
         public static readonly Vector4 Zero = new Vector4();
 
         public static readonly Vector4 One = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
