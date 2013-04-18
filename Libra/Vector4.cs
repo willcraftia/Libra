@@ -400,6 +400,20 @@ namespace Libra
             }
         }
 
+        public static Vector4 Transform(Vector2 position, Matrix matrix)
+        {
+            Vector4 result;
+            Transform(ref position, ref matrix, out result);
+            return result;
+        }
+
+        public static Vector4 Transform(Vector3 position, Matrix matrix)
+        {
+            Vector4 result;
+            Transform(ref position, ref matrix, out result);
+            return result;
+        }
+
         public static Vector4 Transform(Vector4 vector, Matrix transform)
         {
             Vector4 result;
@@ -407,16 +421,34 @@ namespace Libra
             return result;
         }
 
-        public static void Transform(ref Vector4 vector, ref Matrix transform, out Vector4 result)
+        public static void Transform(ref Vector2 position, ref Matrix matrix, out Vector4 result)
         {
             result = new Vector4(
-                (vector.X * transform.M11) + (vector.Y * transform.M21) + (vector.Z * transform.M31) + (vector.W * transform.M41),
-                (vector.X * transform.M12) + (vector.Y * transform.M22) + (vector.Z * transform.M32) + (vector.W * transform.M42),
-                (vector.X * transform.M13) + (vector.Y * transform.M23) + (vector.Z * transform.M33) + (vector.W * transform.M43),
-                (vector.X * transform.M14) + (vector.Y * transform.M24) + (vector.Z * transform.M34) + (vector.W * transform.M44));
+                (position.X * matrix.M11) + (position.Y * matrix.M21) + matrix.M41,
+                (position.X * matrix.M12) + (position.Y * matrix.M22) + matrix.M42,
+                (position.X * matrix.M13) + (position.Y * matrix.M23) + matrix.M43,
+                (position.X * matrix.M14) + (position.Y * matrix.M24) + matrix.M44);
         }
 
-        public static void Transform(Vector4[] source, ref Matrix transform, Vector4[] destination)
+        public static void Transform(ref Vector3 position, ref Matrix matrix, out Vector4 result)
+        {
+            result = new Vector4(
+                (position.X * matrix.M11) + (position.Y * matrix.M21) + (position.Z * matrix.M31) + matrix.M41,
+                (position.X * matrix.M12) + (position.Y * matrix.M22) + (position.Z * matrix.M32) + matrix.M42,
+                (position.X * matrix.M13) + (position.Y * matrix.M23) + (position.Z * matrix.M33) + matrix.M43,
+                (position.X * matrix.M14) + (position.Y * matrix.M24) + (position.Z * matrix.M34) + matrix.M44);
+        }
+
+        public static void Transform(ref Vector4 vector, ref Matrix matrix, out Vector4 result)
+        {
+            result = new Vector4(
+                (vector.X * matrix.M11) + (vector.Y * matrix.M21) + (vector.Z * matrix.M31) + (vector.W * matrix.M41),
+                (vector.X * matrix.M12) + (vector.Y * matrix.M22) + (vector.Z * matrix.M32) + (vector.W * matrix.M42),
+                (vector.X * matrix.M13) + (vector.Y * matrix.M23) + (vector.Z * matrix.M33) + (vector.W * matrix.M43),
+                (vector.X * matrix.M14) + (vector.Y * matrix.M24) + (vector.Z * matrix.M34) + (vector.W * matrix.M44));
+        }
+
+        public static void Transform(Vector4[] source, ref Matrix matrix, Vector4[] destination)
         {
             if (source == null) throw new ArgumentNullException("source");
             if (destination == null) throw new ArgumentNullException("destination");
@@ -424,7 +456,7 @@ namespace Libra
 
             for (int i = 0; i < source.Length; ++i)
             {
-                Transform(ref source[i], ref transform, out destination[i]);
+                Transform(ref source[i], ref matrix, out destination[i]);
             }
         }
 

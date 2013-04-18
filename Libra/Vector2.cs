@@ -381,7 +381,7 @@ namespace Libra
                 (position.X * matrix.M12) + (position.Y * matrix.M22) + matrix.M42);
         }
 
-        public static void Transform(Vector2[] source, ref Matrix transform, Vector2[] destination)
+        public static void Transform(Vector2[] source, ref Matrix matrix, Vector2[] destination)
         {
             if (source == null) throw new ArgumentNullException("source");
             if (destination == null) throw new ArgumentNullException("destination");
@@ -389,25 +389,25 @@ namespace Libra
 
             for (int i = 0; i < source.Length; ++i)
             {
-                Transform(ref source[i], ref transform, out destination[i]);
+                Transform(ref source[i], ref matrix, out destination[i]);
             }
         }
 
-        public static Vector2 TransformNormal(Vector2 normal, Matrix transform)
+        public static Vector2 TransformNormal(Vector2 normal, Matrix matrix)
         {
             Vector2 result;
-            TransformNormal(ref normal, ref transform, out result);
+            TransformNormal(ref normal, ref matrix, out result);
             return result;
         }
 
-        public static void TransformNormal(ref Vector2 normal, ref Matrix transform, out Vector2 result)
+        public static void TransformNormal(ref Vector2 normal, ref Matrix matrix, out Vector2 result)
         {
             result = new Vector2(
-                (normal.X * transform.M11) + (normal.Y * transform.M21),
-                (normal.X * transform.M12) + (normal.Y * transform.M22));
+                (normal.X * matrix.M11) + (normal.Y * matrix.M21),
+                (normal.X * matrix.M12) + (normal.Y * matrix.M22));
         }
 
-        public static void TransformNormal(Vector2[] source, ref Matrix transform, Vector2[] destination)
+        public static void TransformNormal(Vector2[] source, ref Matrix matrix, Vector2[] destination)
         {
             if (source == null) throw new ArgumentNullException("source");
             if (destination == null) throw new ArgumentNullException("destination");
@@ -415,7 +415,7 @@ namespace Libra
 
             for (int i = 0; i < source.Length; ++i)
             {
-                TransformNormal(ref source[i], ref transform, out destination[i]);
+                TransformNormal(ref source[i], ref matrix, out destination[i]);
             }
         }
 

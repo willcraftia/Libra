@@ -433,22 +433,22 @@ namespace Libra
             }
         }
 
-        public static Vector3 Transform(Vector3 vector, Matrix transform)
+        public static Vector3 Transform(Vector3 vector, Matrix matrix)
         {
             Vector3 result;
-            Transform(ref vector, ref transform, out result);
+            Transform(ref vector, ref matrix, out result);
             return result;
         }
 
-        public static void Transform(ref Vector3 vector, ref Matrix transform, out Vector3 result)
+        public static void Transform(ref Vector3 vector, ref Matrix matrix, out Vector3 result)
         {
             result = new Vector3(
-                (vector.X * transform.M11) + (vector.Y * transform.M21) + (vector.Z * transform.M31) + transform.M41,
-                (vector.X * transform.M12) + (vector.Y * transform.M22) + (vector.Z * transform.M32) + transform.M42,
-                (vector.X * transform.M13) + (vector.Y * transform.M23) + (vector.Z * transform.M33) + transform.M43);
+                (vector.X * matrix.M11) + (vector.Y * matrix.M21) + (vector.Z * matrix.M31) + matrix.M41,
+                (vector.X * matrix.M12) + (vector.Y * matrix.M22) + (vector.Z * matrix.M32) + matrix.M42,
+                (vector.X * matrix.M13) + (vector.Y * matrix.M23) + (vector.Z * matrix.M33) + matrix.M43);
         }
 
-        public static void Transform(Vector3[] source, ref Matrix transform, Vector3[] destination)
+        public static void Transform(Vector3[] source, ref Matrix matrix, Vector3[] destination)
         {
             if (source == null) throw new ArgumentNullException("source");
             if (destination == null) throw new ArgumentNullException("destination");
@@ -456,7 +456,7 @@ namespace Libra
 
             for (int i = 0; i < source.Length; ++i)
             {
-                Transform(ref source[i], ref transform, out destination[i]);
+                Transform(ref source[i], ref matrix, out destination[i]);
             }
         }
 
@@ -467,15 +467,15 @@ namespace Libra
             return result;
         }
 
-        public static void TransformNormal(ref Vector3 normal, ref Matrix transform, out Vector3 result)
+        public static void TransformNormal(ref Vector3 normal, ref Matrix matrix, out Vector3 result)
         {
             result = new Vector3(
-                (normal.X * transform.M11) + (normal.Y * transform.M21) + (normal.Z * transform.M31),
-                (normal.X * transform.M12) + (normal.Y * transform.M22) + (normal.Z * transform.M32),
-                (normal.X * transform.M13) + (normal.Y * transform.M23) + (normal.Z * transform.M33));
+                (normal.X * matrix.M11) + (normal.Y * matrix.M21) + (normal.Z * matrix.M31),
+                (normal.X * matrix.M12) + (normal.Y * matrix.M22) + (normal.Z * matrix.M32),
+                (normal.X * matrix.M13) + (normal.Y * matrix.M23) + (normal.Z * matrix.M33));
         }
 
-        public static void TransformNormal(Vector3[] source, ref Matrix transform, Vector3[] destination)
+        public static void TransformNormal(Vector3[] source, ref Matrix matrix, Vector3[] destination)
         {
             if (source == null) throw new ArgumentNullException("source");
             if (destination == null) throw new ArgumentNullException("destination");
@@ -483,7 +483,55 @@ namespace Libra
 
             for (int i = 0; i < source.Length; ++i)
             {
-                TransformNormal(ref source[i], ref transform, out destination[i]);
+                TransformNormal(ref source[i], ref matrix, out destination[i]);
+            }
+        }
+
+        /// <summary>
+        /// ベクトルを同次変換します。
+        /// </summary>
+        /// <param name="vector">ベクトル。</param>
+        /// <param name="matrix">変換行列。</param>
+        /// <returns>同次変換されたベクトル。</returns>
+        public static Vector3 TransformCoordinate(Vector3 vector, ref Matrix matrix)
+        {
+            Vector3 result;
+            TransformCoordinate(ref vector, ref matrix, out result);
+            return result;
+        }
+
+        /// <summary>
+        /// ベクトルを同次変換します。
+        /// </summary>
+        /// <param name="vector">ベクトル。</param>
+        /// <param name="matrix">変換行列。</param>
+        /// <param name="result">同次変換されたベクトル。</param>
+        public static void TransformCoordinate(ref Vector3 vector, ref Matrix matrix, out Vector3 result)
+        {
+            Vector4 transformed;
+            Vector4.Transform(ref vector, ref matrix, out transformed);
+
+            Vector4 homogeneous;
+            Vector4.Divide(ref transformed, transformed.W, out homogeneous);
+
+            result = new Vector3(homogeneous.X, homogeneous.Y, homogeneous.Z);
+        }
+
+        /// <summary>
+        /// ベクトルを同次変換します。
+        /// </summary>
+        /// <param name="source">ベクトルの配列。</param>
+        /// <param name="matrix">変換行列。</param>
+        /// <param name="destination">同次変換されたベクトルの配列。</param>
+        public static void TransformCoordinate(Vector3[] source, ref Matrix matrix, Vector3[] destination)
+        {
+            if (source == null) throw new ArgumentNullException("source");
+            if (destination == null) throw new ArgumentNullException("destination");
+            if (destination.Length < source.Length) throw new ArgumentOutOfRangeException("destination");
+
+            for (int i = 0; i < source.Length; ++i)
+            {
+                TransformCoordinate(ref source[i], ref matrix, out destination[i]);
             }
         }
 
