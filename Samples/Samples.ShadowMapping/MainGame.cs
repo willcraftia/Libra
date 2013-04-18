@@ -150,6 +150,12 @@ namespace Samples.ShadowMapping
 
         Model dudeModel;
 
+        BoundingBox dudeBox;
+
+        Vector3[] frustumCorners;
+
+        Vector3[] casterCorners;
+
         float rotateDude = 0.0f;
 
         RenderTarget bsmRenderTarget;
@@ -165,6 +171,8 @@ namespace Samples.ShadowMapping
         Matrix projection;
 
         LightCamera lightCamera;
+
+        LiSPSMCamera lispsmCamera;
 
         Matrix lightViewProjection;
 
@@ -185,6 +193,8 @@ namespace Samples.ShadowMapping
             projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspectRatio,  1.0f, 1000.0f);
 
             lightCamera = new LightCamera();
+            lispsmCamera = new LiSPSMCamera();
+            lispsmCamera.EyeNearPlaneDistance = 1.0f;
 
             shadowMapEffectForm = ShadowMapEffectForm.Variance;
         }
@@ -199,6 +209,17 @@ namespace Samples.ShadowMapping
 
             gridModel = content.Load<Model>("grid");
             dudeModel = content.Load<Model>("dude");
+
+            foreach (var mesh in dudeModel.Meshes)
+            {
+                var sphere = mesh.BoundingSphere;
+                BoundingBox box;
+                BoundingBox.CreateFromSphere(ref sphere, out box);
+                BoundingBox.CreateMerged(ref dudeBox, ref box, out dudeBox);
+            }
+
+            frustumCorners = new Vector3[BoundingFrustum.CornerCount];
+            casterCorners = new Vector3[BoundingBox.CornerCount];
 
             bsmRenderTarget = Device.CreateRenderTarget();
             bsmRenderTarget.Width = shadowMapWidthHeight;
@@ -261,13 +282,29 @@ namespace Samples.ShadowMapping
         Matrix CreateLightViewProjectionMatrix()
         {
             lightCamera.LightDirection = -lightDir;
+            lispsmCamera.LightDirection = -lightDir;
 
-            var frustumCorners = cameraFrustum.GetCorners();
+            lispsmCamera.EyePosition = cameraPosition;
+            lispsmCamera.EyeDirection = cameraForward;
+
+            bool dudeIntersect;
+            cameraFrustum.Intersects(ref dudeBox, out dudeIntersect);
+            if (dudeIntersect)
+            {
+                dudeBox.GetCorners(casterCorners);
+                lightCamera.AddLightVolumePoints(casterCorners);
+                lispsmCamera.AddLightVolumePoints(casterCorners);
+            }
+
+            cameraFrustum.GetCorners(frustumCorners);
             lightCamera.AddLightVolumePoints(frustumCorners);
+            lispsmCamera.AddLightVolumePoints(frustumCorners);
 
             lightCamera.Update();
+            lispsmCamera.Update();
 
-            return lightCamera.LightViewProjection;
+            //return lightCamera.LightViewProjection;
+            return lispsmCamera.LightViewProjection;
         }
 
         void CreateShadowMap()

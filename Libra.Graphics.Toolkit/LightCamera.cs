@@ -21,9 +21,9 @@ namespace Libra.Graphics.Toolkit
         // 光源カメラのビュー×射影行列
         public Matrix LightViewProjection;
 
-        Vector3[] corners;
+        protected List<Vector3> lightVolumePoints;
 
-        List<Vector3> lightVolumePoints;
+        Vector3[] corners;
 
         public LightCamera()
         {
