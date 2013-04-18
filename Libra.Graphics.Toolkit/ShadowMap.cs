@@ -26,12 +26,12 @@ namespace Libra.Graphics.Toolkit
     //        /// <summary>
     //        /// PCF (Percentage Closer Filtering) 2x2 カーネル。
     //        /// </summary>
-    //        Pcf2x2,
+    //        //Pcf2x2,
 
     //        /// <summary>
     //        /// PCF (Percentage Closer Filtering) 3x3 カーネル。
     //        /// </summary>
-    //        Pcf3x3
+    //        //Pcf3x3
     //    }
 
     //    #endregion
@@ -190,56 +190,9 @@ namespace Libra.Graphics.Toolkit
 
     //    #endregion
 
-    //    #region ShadowMapMonitor
-
-    //    public sealed class ShadowMapMonitor
-    //    {
-    //        #region Split
-
-    //        public sealed class Split
-    //        {
-    //            public int ShadowCasterCount { get; set; }
-
-    //            internal Split() { }
-    //        }
-
-    //        #endregion
-
-    //        Split[] split;
-
-    //        public int SplitCount { get; private set; }
-
-    //        public Split this[int index]
-    //        {
-    //            get
-    //            {
-    //                if (index < 0 || split.Length <= index) throw new ArgumentOutOfRangeException("index");
-    //                return split[index];
-    //            }
-    //        }
-
-    //        public int TotalShadowCasterCount { get; internal set; }
-
-    //        internal ShadowMapMonitor(int splitCount)
-    //        {
-    //            SplitCount = splitCount;
-
-    //            split = new Split[SplitCount];
-    //            for (int i = 0; i < split.Length; i++) split[i] = new Split();
-    //        }
-    //    }
-
-    //    #endregion
-
     //    public const Techniques DefaultShadowMapTechnique = Techniques.Basic;
 
-    //    BasicCamera internalCamera = new BasicCamera("ShadowMapInternal");
-
     //    Vector3[] corners = new Vector3[8];
-
-    //    float inverseSplitCount;
-
-    //    BasicCamera[] splitCameras;
 
     //    float[] splitDistances;
 
@@ -257,31 +210,142 @@ namespace Libra.Graphics.Toolkit
 
     //    ShadowMapEffect shadowMapEffect;
 
-    //    SpriteBatch spriteBatch;
-
     //    GaussianBlur blur;
 
     //    BoundingBox frustumBoundingBox;
 
     //    Settings settings;
 
+    //    [Flags]
+    //    enum DirtyFlags
+    //    {
+    //        RenderTargets   = (1 << 0),
+    //        GaussianBlur    = (1 << 1),
+    //        Projection      = (1 << 3),
+    //    }
+
+    //    DirtyFlags dirtyFlags;
+
+    //    Techniques technique;
+
+    //    int size;
+
+    //    Matrix view;
+
+    //    Matrix projection;
+
+    //    float fov;
+
+    //    float aspectRatio;
+
+    //    float nearPlaneDistance;
+
+    //    float farPlaneDistance;
+
+    //    BoundingFrustum frustum;
+
+    //    BoundingBox frustumBox;
+
+    //    BoundingFrustum[] splitFrustums;
+
+    //    public Techniques Technique
+    //    {
+    //        get { return technique; }
+    //        set
+    //        {
+    //            if (technique == value) return;
+
+    //            var lastTechnique = technique;
+
+    //            technique = value;
+
+    //            if (lastTechnique == Techniques.Vsm || technique == Techniques.Vsm)
+    //                dirtyFlags |= DirtyFlags.RenderTargets;
+    //        }
+    //    }
+
+    //    public int Size
+    //    {
+    //        get { return size; }
+    //        set
+    //        {
+    //            if (size == value) return;
+
+    //            size = value;
+
+    //            dirtyFlags |= DirtyFlags.RenderTargets | DirtyFlags.GaussianBlur;
+    //        }
+    //    }
+
+    //    public int BlurRadius { get; set; }
+
+    //    public int BlurAmount { get; set; }
+
+    //    public Matrix View
+    //    {
+    //        get { return view; }
+    //        set { view = value; }
+    //    }
+
+    //    public float Fov
+    //    {
+    //        get { return fov; }
+    //        set
+    //        {
+    //            if (fov == value) return;
+
+    //            fov = value;
+                
+    //            dirtyFlags |= DirtyFlags.Projection;
+    //        }
+    //    }
+
+    //    public float AspectRatio
+    //    {
+    //        get { return aspectRatio; }
+    //        set
+    //        {
+    //            if (aspectRatio == value) return;
+
+    //            aspectRatio = value;
+
+    //            dirtyFlags |= DirtyFlags.Projection;
+    //        }
+    //    }
+
+    //    public float NearPlaneDistance
+    //    {
+    //        get { return nearPlaneDistance; }
+    //        set
+    //        {
+    //            if (nearPlaneDistance == value) return;
+
+    //            nearPlaneDistance = value;
+
+    //            dirtyFlags |= DirtyFlags.Projection;
+    //        }
+    //    }
+
+    //    public float FarPlaneDistance
+    //    {
+    //        get { return farPlaneDistance; }
+    //        set
+    //        {
+    //            if (farPlaneDistance == value) return;
+
+    //            farPlaneDistance = value;
+                
+    //            dirtyFlags |= DirtyFlags.Projection;
+    //        }
+    //    }
+
     //    public Device Device { get; private set; }
-
-    //    public Techniques Technique { get; private set; }
-
-    //    public int Size { get; private set; }
-
-    //    public float DepthBias { get; private set; }
 
     //    public int SplitCount { get; private set; }
 
     //    public float[] SplitDistances
     //    {
-    //        get
-    //        {
-    //            Array.Copy(splitDistances, safeSplitDistances, splitDistances.Length);
-    //            return safeSplitDistances;
-    //        }
+    //        get { return (float[]) splitDistances.Clone(); }
     //    }
 
     //    public Matrix[] SplitLightViewProjections
@@ -296,142 +360,166 @@ namespace Libra.Graphics.Toolkit
 
     //    public Texture2D[] SplitShadowMaps
     //    {
-    //        get
-    //        {
-    //            for (int i = 0; i < safeSplitShadowMaps.Length; i++)
-    //                safeSplitShadowMaps[i] = splitRenderTargets[i];
-    //            return safeSplitShadowMaps;
-    //        }
+    //        get { return (Texture2D[]) splitRenderTargets.Clone(); }
     //    }
 
-    //    public ShadowMapMonitor Monitor;
-
-    //    public ShadowMap(Device device, Settings settings, SpriteBatch spriteBatch, Effect blurEffect)
+    //    public ShadowMap(Device device, Settings settings)
     //    {
     //        if (device == null) throw new ArgumentNullException("device");
     //        if (settings == null) throw new ArgumentNullException("settings");
-    //        if (spriteBatch == null) throw new ArgumentNullException("spriteBatch");
-    //        if (shadowMapEffect == null) throw new ArgumentNullException("shadowMapEffect");
-    //        if (blurEffect == null) throw new ArgumentNullException("blurEffect");
 
     //        Device = device;
     //        this.settings = settings;
-    //        this.spriteBatch = spriteBatch;
+            
     //        shadowMapEffect = new ShadowMapEffect(device);
-    //        this.shadowMapEffect.ShadowMapTechnique = settings.Technique;
+    //        switch (settings.Technique)
+    //        {
+    //            case Techniques.Vsm:
+    //                shadowMapEffect.Form = ShadowMapEffectForm.Variance;
+    //                break;
+    //            default:
+    //                shadowMapEffect.Form = ShadowMapEffectForm.Basic;
+    //                break;
+    //        }
 
-    //        Technique = settings.Technique;
-    //        Size = settings.Size;
-    //        DepthBias = settings.DepthBias;
     //        SplitCount = settings.SplitCount;
-    //        inverseSplitCount = 1 / (float) SplitCount;
 
     //        splitDistances = new float[SplitCount + 1];
     //        safeSplitDistances = new float[SplitCount + 1];
     //        safeSplitLightViewProjections = new Matrix[SplitCount];
     //        safeSplitShadowMaps = new Texture2D[SplitCount];
 
-    //        splitCameras = new BasicCamera[SplitCount];
-    //        for (int i = 0; i < splitCameras.Length; i++)
-    //            splitCameras[i] = new BasicCamera("PssmLight" + i);
-
     //        splitLightCameras = new LightCamera[SplitCount];
     //        for (int i = 0; i < splitLightCameras.Length; i++)
-    //            splitLightCameras[i] = new LightCamera(settings.Size);
-
-    //        // TODO: パラメータ見直し or 外部設定化。
-    //        var pp = Device.PresentationParameters;
-    //        // メモ: ブラーをかける場合があるので RenderTargetUsage.PreserveContents で作成。
-    //        splitRenderTargets = new RenderTarget2D[SplitCount];
-    //        for (int i = 0; i < splitRenderTargets.Length; i++)
-    //        {
-    //            splitRenderTargets[i] = new RenderTarget2D(Device, settings.Size, settings.Size,
-    //                false, settings.Format, DepthFormat.Depth24, 0, RenderTargetUsage.PreserveContents);
-    //            splitRenderTargets[i].Name = "ShadowMap" + i;
-    //        }
+    //            splitLightCameras[i] = new LightCamera();
 
     //        // TODO: 初期容量。
     //        splitShadowCasters = new Queue<ShadowCaster>[SplitCount];
     //        for (int i = 0; i < splitShadowCasters.Length; i++)
     //            splitShadowCasters[i] = new Queue<ShadowCaster>();
 
-    //        if (settings.Technique == Techniques.Vsm)
+    //        view = Matrix.Identity;
+    //        projection = Matrix.Identity;
+    //        frustum = new BoundingFrustum(Matrix.Identity);
+            
+    //        splitFrustums = new BoundingFrustum[SplitCount];
+    //        for (int i = 0; i < splitFrustums.Length; i++)
+    //            splitFrustums[i] = new BoundingFrustum(Matrix.Identity);
+
+    //        dirtyFlags |= DirtyFlags.RenderTargets | DirtyFlags.GaussianBlur;
+    //    }
+
+    //    public void Prepare()
+    //    {
+    //        UpdateRenderTargets();
+    //        UpdateGaussianBlur();
+    //        UpdateFrustum();
+
+    //        // 視錐台を含む AABB をシーン領域のデフォルトとする。
+    //        PrepareSplitFrustums(ref frustumBox);
+    //    }
+
+    //    public void Prepare(ref BoundingBox sceneBox)
+    //    {
+    //        UpdateRenderTargets();
+    //        UpdateGaussianBlur();
+    //        UpdateFrustum();
+
+    //        PrepareSplitFrustums(ref sceneBox);
+    //    }
+
+    //    void UpdateRenderTargets()
+    //    {
+    //        if ((dirtyFlags & DirtyFlags.RenderTargets) != 0)
     //        {
-    //            blur = new GaussianBlur(blurEffect, spriteBatch, settings.Size, settings.Size, SurfaceFormat.Vector2,
-    //                settings.VsmBlur.Radius, settings.VsmBlur.Amount);
+    //            if (splitRenderTargets != null)
+    //            {
+    //                for (int i = 0; i < splitRenderTargets.Length; i++)
+    //                    splitRenderTargets[i].Dispose();
+    //            }
+    //            else
+    //            {
+    //                splitRenderTargets = new RenderTarget[SplitCount];
+    //            }
+
+    //            var format = SurfaceFormat.Single;
+    //            if (technique == Techniques.Vsm)
+    //                format = SurfaceFormat.Vector2;
+
+    //            // ブラーをかける場合があるので RenderTargetUsage.Preserve。
+    //            for (int i = 0; i < splitRenderTargets.Length; i++)
+    //            {
+    //                splitRenderTargets[i] = Device.CreateRenderTarget();
+    //                splitRenderTargets[i].Width = size;
+    //                splitRenderTargets[i].Height = size;
+    //                splitRenderTargets[i].Format = format;
+    //                splitRenderTargets[i].RenderTargetUsage = RenderTargetUsage.Preserve;
+    //                splitRenderTargets[i].Name = "ShadowMap" + i;
+    //                splitRenderTargets[i].Initialize();
+    //            }
+
+    //            dirtyFlags &= ~DirtyFlags.RenderTargets;
+    //        }
+    //    }
+
+    //    void UpdateGaussianBlur()
+    //    {
+    //        if (technique != Techniques.Vsm)
+    //            return;
+
+    //        if ((dirtyFlags & DirtyFlags.GaussianBlur) != 0)
+    //        {
+    //            if (blur != null)
+    //            {
+    //                blur.Dispose();
+    //            }
+
+    //            blur = new GaussianBlur(Device, size, size, SurfaceFormat.Vector2);
+
+    //            dirtyFlags &= ~DirtyFlags.GaussianBlur;
     //        }
 
-    //        Monitor = new ShadowMapMonitor(SplitCount);
+    //        blur.Radius = BlurRadius;
+    //        blur.Amount = BlurAmount;
     //    }
 
-    //    public void Prepare(ICamera viewerCamera)
+    //    void UpdateFrustum()
     //    {
-    //        if (viewerCamera == null) throw new ArgumentNullException("viewerCamera");
+    //        if ((dirtyFlags & DirtyFlags.Projection) != 0)
+    //        {
+    //            Matrix.CreatePerspectiveFieldOfView(fov, aspectRatio, nearPlaneDistance, farPlaneDistance, out projection);
 
-    //        internalCamera.View.Position = viewerCamera.View.Position;
-    //        internalCamera.View.Direction = viewerCamera.View.Direction;
-    //        internalCamera.View.Up = viewerCamera.View.Up;
-    //        //internalCamera.Projection.Fov = viewerCamera.Projection.Fov;
-    //        // TODO
-    //        internalCamera.Projection.Fov = MathHelper.PiOver4 / 2;
-    //        internalCamera.Projection.AspectRatio = viewerCamera.Projection.AspectRatio;
-    //        internalCamera.Projection.NearPlaneDistance = viewerCamera.Projection.NearPlaneDistance;
-    //        internalCamera.Projection.FarPlaneDistance = settings.FarPlaneDistance;
-    //        internalCamera.Update();
+    //            dirtyFlags &= ~DirtyFlags.Projection;
+    //        }
 
-    //        PrepareSplitCameras();
+    //        Matrix viewProjection;
+    //        Matrix.Multiply(ref view, ref projection, out viewProjection);
+
+    //        frustum.Matrix = viewProjection;
+
+    //        frustum.GetCorners(corners);
+    //        BoundingBox.CreateFromPoints(corners, out frustumBox);
     //    }
 
-    //    public void Prepare(ICamera viewerCamera, ref BoundingBox sceneBoundingBox)
+    //    void PrepareSplitFrustums(ref BoundingBox sceneBox)
     //    {
-    //        if (viewerCamera == null) throw new ArgumentNullException("viewerCamera");
+    //        var far = CalculateFarPlaneDistance(ref sceneBox);
 
-    //        internalCamera.View.Position = viewerCamera.View.Position;
-    //        internalCamera.View.Direction = viewerCamera.View.Direction;
-    //        internalCamera.View.Up = viewerCamera.View.Up;
-    //        //internalCamera.Projection.Fov = viewerCamera.Projection.Fov;
-    //        // TODO
-    //        internalCamera.Projection.Fov = MathHelper.PiOver4 / 2;
-    //        internalCamera.Projection.AspectRatio = viewerCamera.Projection.AspectRatio;
-    //        internalCamera.Projection.NearPlaneDistance = viewerCamera.Projection.NearPlaneDistance;
-    //        internalCamera.Projection.FarPlaneDistance = settings.FarPlaneDistance;
-    //        internalCamera.Update();
-
-    //        PrepareSplitCameras(ref sceneBoundingBox);
-    //    }
-
-    //    void PrepareSplitCameras()
-    //    {
-    //        // 視錐台を含む AABB をシーン領域のデフォルトとしておく。
-    //        internalCamera.Frustum.GetCorners(corners);
-    //        var sceneBoundingBox = BoundingBox.CreateFromPoints(corners);
-
-    //        PrepareSplitCameras(ref sceneBoundingBox);
-    //    }
-
-    //    void PrepareSplitCameras(ref BoundingBox sceneBoundingBox)
-    //    {
-    //        internalCamera.Frustum.GetCorners(corners);
-    //        frustumBoundingBox = BoundingBox.CreateFromPoints(corners);
-
-    //        var far = CalculateFarPlaneDistance(internalCamera, ref sceneBoundingBox);
-    //        CalculateSplitDistances(internalCamera, far);
+    //        CalculateSplitDistances(far);
 
     //        for (int i = 0; i < SplitCount; i++)
     //        {
-    //            splitCameras[i].View.Position = internalCamera.View.Position;
-    //            splitCameras[i].View.Direction = internalCamera.View.Direction;
-    //            splitCameras[i].View.Up = internalCamera.View.Up;
-    //            splitCameras[i].Projection.Fov = internalCamera.Projection.Fov;
-    //            splitCameras[i].Projection.AspectRatio = internalCamera.Projection.AspectRatio;
-    //            splitCameras[i].Projection.NearPlaneDistance = splitDistances[i];
-    //            splitCameras[i].Projection.FarPlaneDistance = splitDistances[i + 1];
-    //            splitCameras[i].Update();
+    //            var splitNear = splitDistances[i];
+    //            var splitFar = splitDistances[i + 1];
 
-    //            Monitor[i].ShadowCasterCount = 0;
+    //            Matrix projection;
+    //            Matrix.CreatePerspectiveFieldOfView(fov, aspectRatio, splitNear, splitFar, out projection);
+
+    //            Matrix viewProjection;
+    //            Matrix.Multiply(ref view, ref projection, out viewProjection);
+
+    //            splitFrustums[i].Matrix = viewProjection;
     //        }
-
-    //        Monitor.TotalShadowCasterCount = 0;
     //    }
 
     //    public void TryAddShadowCaster(ShadowCaster shadowCaster)
@@ -439,16 +527,16 @@ namespace Libra.Graphics.Toolkit
     //        if (!shadowCaster.SphereWorld.Intersects(frustumBoundingBox)) return;
     //        if (!shadowCaster.BoxWorld.Intersects(frustumBoundingBox)) return;
 
-    //        for (int i = 0; i < splitCameras.Length; i++)
+    //        for (int i = 0; i < splitFrustums.Length; i++)
     //        {
-    //            var lightCamera = splitCameras[i];
+    //            var splitFrustum = splitFrustums[i];
 
     //            bool shouldAdd = false;
-    //            if (shadowCaster.SphereWorld.Intersects(lightCamera.Frustum))
+    //            if (shadowCaster.SphereWorld.Intersects(splitFrustum))
     //            {
     //                shouldAdd = true;
     //            }
-    //            else if (shadowCaster.BoxWorld.Intersects(lightCamera.Frustum))
+    //            else if (shadowCaster.BoxWorld.Intersects(splitFrustum))
     //            {
     //                shouldAdd = true;
     //            }
@@ -464,31 +552,30 @@ namespace Libra.Graphics.Toolkit
     //                // PSSM の恩恵が得られなくなる。
     //                //splitLightCameras[i].AddLightVolumePoints(corners);
 
-    //                Monitor[i].ShadowCasterCount++;
-    //                Monitor.TotalShadowCasterCount++;
-
     //                //break;
     //            }
     //        }
     //    }
 
     //    // シャドウ マップを描画。
-    //    public void Draw(ref Vector3 lightDirection)
+    //    public void Draw(DeviceContext context, ref Vector3 lightDirection)
     //    {
-    //        Device.DepthStencilState = DepthStencilState.Default;
-    //        Device.BlendState = BlendState.Opaque;
+    //        context.DepthStencilState = DepthStencilState.Default;
+    //        context.BlendState = BlendState.Opaque;
 
     //        // 各ライト カメラで描画。
-    //        for (int i = 0; i < splitCameras.Length; i++)
+    //        for (int i = 0; i < splitFrustums.Length; i++)
     //        {
-    //            var camera = splitCameras[i];
+    //            var splitFrustum = splitFrustums[i];
     //            var renderTarget = splitRenderTargets[i];
     //            var shadowCasters = splitShadowCasters[i];
 
     //            //------------------------------------------------------------
     //            // ライトのビュー×射影行列の更新
 
-    //            splitLightCameras[i].Update(camera, ref lightDirection);
+    //            splitFrustum.GetCorners(corners);
+    //            splitLightCameras[i].AddLightVolumePoints(corners);
+    //            splitLightCameras[i].Update(lightDirection);
 
     //            //------------------------------------------------------------
     //            // エフェクト
@@ -498,8 +585,8 @@ namespace Libra.Graphics.Toolkit
     //            //------------------------------------------------------------
     //            // 描画
 
-    //            Device.SetRenderTarget(renderTarget);
-    //            Device.Clear(ClearOptions.Target | ClearOptions.DepthBuffer, Color.White, 1.0f, 0);
+    //            context.SetRenderTarget(renderTarget.GetRenderTargetView());
+    //            context.Clear(Color.White);
 
     //            while (0 < shadowCasters.Count)
     //            {
@@ -510,7 +597,7 @@ namespace Libra.Graphics.Toolkit
     //            if (shadowMapEffect.ShadowMapTechnique == Techniques.Vsm && blur != null)
     //                blur.Filter(renderTarget);
 
-    //            Device.SetRenderTarget(null);
+    //            context.SetRenderTarget(null);
 
     //            TextureDisplay.Add(renderTarget);
     //        }
@@ -523,37 +610,38 @@ namespace Libra.Graphics.Toolkit
     //        return splitRenderTargets[index];
     //    }
 
-    //    float CalculateFarPlaneDistance(ICamera camera, ref BoundingBox sceneBoundingBox)
+    //    float CalculateFarPlaneDistance(ref BoundingBox sceneBox)
     //    {
-    //        var viewMatrix = camera.View.Matrix;
-
     //        // 領域の最も遠い点を探す。
     //        // z = 0 は視点。
     //        // より小さな z がより遠い点。
     //        var maxFar = 0.0f;
-    //        sceneBoundingBox.GetCorners(corners);
+
+    //        sceneBox.GetCorners(corners);
+            
     //        for (int i = 0; i < 8; i++)
     //        {
     //            // ビュー座標へ変換。
     //            var z =
-    //                corners[i].X * viewMatrix.M13 +
-    //                corners[i].Y * viewMatrix.M23 +
-    //                corners[i].Z * viewMatrix.M33 +
-    //                viewMatrix.M43;
+    //                corners[i].X * view.M13 +
+    //                corners[i].Y * view.M23 +
+    //                corners[i].Z * view.M33 +
+    //                view.M43;
 
     //            if (z < maxFar) maxFar = z;
     //        }
 
     //        // 見つかった最も遠い点の z で farPlaneDistance を決定。
-    //        return camera.Projection.NearPlaneDistance - maxFar;
+    //        return nearPlaneDistance - maxFar;
     //    }
 
-    //    void CalculateSplitDistances(ICamera camera, float farPlaneDistance)
+    //    void CalculateSplitDistances(float far)
     //    {
-    //        var near = camera.Projection.NearPlaneDistance;
-    //        var far = farPlaneDistance;
+    //        var near = nearPlaneDistance;
     //        var farNearRatio = far / near;
     //        var splitLambda = settings.SplitLambda;
+
+    //        float inverseSplitCount = 1.0f / (float) SplitCount;
 
     //        for (int i = 0; i < splitDistances.Length; i++)
     //        {
@@ -572,7 +660,7 @@ namespace Libra.Graphics.Toolkit
     //        }
 
     //        splitDistances[0] = near;
-    //        splitDistances[splitDistances.Length - 1] = farPlaneDistance;
+    //        splitDistances[splitDistances.Length - 1] = far;
     //    }
 
     //    #region IDisposable
