@@ -67,11 +67,11 @@ namespace Libra.Graphics.Toolkit
             CalculateLightUp(ref L, ref E, out up);
 
             // 仮光源ビュー行列。
-            var tempLightPosition = E;
-            var tempLightTarget = tempLightPosition + L;
-            // E に拘る必要が無いのでは？
-            //var tempLightPosition = Vector3.Zero;
-            //var tempLightTarget = L;
+            // オリジナルでは光位置を E、方向を E + L としているが、
+            // 仮光源ビュー行列は n と f の算出のための AABB を作るためだけの変換であるため、
+            // 原点位置は重要ではないと思われる。
+            var tempLightPosition = Vector3.Zero;
+            var tempLightTarget = L;
             Matrix tempLightView;
             Matrix.CreateLookAt(ref tempLightPosition, ref tempLightTarget, ref up, out tempLightView);
 
@@ -109,17 +109,20 @@ namespace Libra.Graphics.Toolkit
             TransformLightVolumePoints(ref tempLightViewProjection);
             BoundingBox.CreateFromPoints(transformedLightVolumePoints, out lightBox);
 
-            // スケール変換行列。
-            Matrix scaleTransform;
+            // 正射影。
+            //
+            // オリジナル コードは GL であるため [-1, 1] の範囲へスケール変換および移動となるが、
+            // DirectX であるため Z についてのみ [-1, 0] の範囲で考える事になる。
+            Matrix orthoProjection;
             Matrix.CreateOrthographicOffCenter(
                 lightBox.Min.X, lightBox.Max.X,
                 lightBox.Min.Y, lightBox.Max.Y,
                 -lightBox.Max.Z, -lightBox.Min.Z,
-                out scaleTransform);
+                out orthoProjection);
 
             // 最終的な射影行列。
             Matrix LightProjection;
-            Matrix.Multiply(ref lispProjection, ref scaleTransform, out LightProjection);
+            Matrix.Multiply(ref lispProjection, ref orthoProjection, out LightProjection);
 
             // ビュー×射影行列。
             Matrix.Multiply(ref LightView, ref LightProjection, out LightViewProjection);
