@@ -96,32 +96,32 @@ namespace Libra.Graphics.Toolkit
             var pTarget = pPosition + L;
             Matrix.CreateLookAt(ref pPosition, ref pTarget, ref up, out LightView);
 
-            // Y 方向での n と f による簡易透視変換。
+            // Y 方向での n と f による透視変換。
             Matrix lispProjection;
-            CreateYProjection(n, f, out lispProjection);
+            CreateYPerspective(n, f, out lispProjection);
 
             // P ビュー×Y 射影行列。
             Matrix tempLightViewProjection;
             Matrix.Multiply(ref LightView, ref lispProjection, out tempLightViewProjection);
 
-            // P ビュー×Y 射影空間へ元の点を変換。
+            // P ビュー×Y 射影空間における境界ボックス。
             transformedLightVolumePoints.Clear();
             TransformLightVolumePoints(ref tempLightViewProjection);
-
-            // 得られた点を含む境界ボックス。
             BoundingBox.CreateFromPoints(transformedLightVolumePoints, out lightBox);
 
             // スケール変換行列。
             Matrix scaleTransform;
-
-            Vector3 boxSize;
-            Vector3.Subtract(ref lightBox.Max, ref lightBox.Min, out boxSize);
-            Matrix.CreateOrthographic(boxSize.X, boxSize.Y, -boxSize.Z, boxSize.Z, out scaleTransform);
+            Matrix.CreateOrthographicOffCenter(
+                lightBox.Min.X, lightBox.Max.X,
+                lightBox.Min.Y, lightBox.Max.Y,
+                -lightBox.Max.Z, -lightBox.Min.Z,
+                out scaleTransform);
 
             // 最終的な射影行列。
             Matrix LightProjection;
             Matrix.Multiply(ref lispProjection, ref scaleTransform, out LightProjection);
 
+            // ビュー×射影行列。
             Matrix.Multiply(ref LightView, ref LightProjection, out LightViewProjection);
 
             lightVolumePoints.Clear();
@@ -166,22 +166,41 @@ namespace Libra.Graphics.Toolkit
             return n;
         }
 
-        void CreateYProjection(float n, float f, out Matrix result)
+        void CreateYPerspective(float n, float f, out Matrix result)
         {
-
-            // Y 方向での n と f による簡易透視変換。
+            // Y 方向での n と f による透視変換。
             //
             // a = (f + n) / (f - n)
             // b = -2 * f * n / (f - n)
+            //
+            // 論文における行列 (GL):
+            //
+            // [ 1 0 0 0]
+            // [ 0 a 0 b]
+            // [ 0 0 1 0]
+            // [ 0 1 0 0]
+            //
+            // ここでの行列 (DirectX & XNA):
             //
             // [ 1 0 0 0]
             // [ 0 a 0 1]
             // [ 0 0 1 0]
             // [ 0 b 0 0]
             //
-            // オリジナルは GL、ベクトルと行列の演算順が異なる点に注意。
-            result = Matrix.Identity;
+            // a と b の位置の差異は、ベクトルと行列の演算順の差異による。
+            // この透視射影は、X と Z についてスケールおよび移動が無い状態。
+            //
+            // なお、a と b を下式とする人もいる。
+            //
+            // a = f / (f - n)
+            // b = -1 * f * n / (f - n)
+            //
+            // 恐らく、DirectX (XNA) の透視射影行列を意識した式と思われる
+            // ([-1, 1] ではなく [0, 1] への射影)。
+            // しかし、最終的な正射影行列によりスケールと位置が変換されるため、
+            // どちらでも良いと思われる。
 
+            result = Matrix.Identity;
             result.M22 = (f + n) / (f - n);
             result.M24 = 1;
             result.M42 = -2.0f * f * n / (f - n);
