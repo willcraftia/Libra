@@ -168,7 +168,7 @@ namespace Samples.ShadowMapping
         
         Matrix projection;
 
-        LightCamera lightCamera;
+        BasicLightCamera basicLightCamera;
 
         LiSPSMCamera lispsmCamera;
 
@@ -190,7 +190,7 @@ namespace Samples.ShadowMapping
             var aspectRatio = (float) windowWidth / (float) windowHeight;
             projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspectRatio,  1.0f, 1000.0f);
 
-            lightCamera = new LightCamera();
+            basicLightCamera = new BasicLightCamera();
             lispsmCamera = new LiSPSMCamera();
             lispsmCamera.EyeNearPlaneDistance = 1.0f;
 
@@ -278,9 +278,11 @@ namespace Samples.ShadowMapping
 
         Matrix CreateLightViewProjectionMatrix()
         {
-            lightCamera.LightDirection = -lightDir;
-            lispsmCamera.LightDirection = -lightDir;
+            basicLightCamera.LightDirection = -lightDir;
+            basicLightCamera.EyeView = view;
+            basicLightCamera.EyeProjection = projection;
 
+            lispsmCamera.LightDirection = -lightDir;
             lispsmCamera.EyePosition = cameraPosition;
             lispsmCamera.EyeDirection = cameraForward;
 
@@ -288,18 +290,16 @@ namespace Samples.ShadowMapping
             cameraFrustum.Intersects(ref dudeBox, out dudeIntersect);
             if (dudeIntersect)
             {
-                lightCamera.AddLightVolumePoints(dudeBox);
                 lispsmCamera.AddLightVolumePoints(dudeBox);
             }
 
-            lightCamera.AddLightVolumePoints(cameraFrustum);
             lispsmCamera.AddLightVolumePoints(cameraFrustum);
 
-            lightCamera.Update();
+            basicLightCamera.Update();
             lispsmCamera.Update();
 
-            //return lightCamera.LightViewProjection;
-            return lispsmCamera.LightViewProjection;
+            //return lispsmCamera.LightViewProjection;
+            return basicLightCamera.LightViewProjection;
         }
 
         void CreateShadowMap()

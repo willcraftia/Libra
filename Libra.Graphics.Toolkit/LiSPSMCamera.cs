@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace Libra.Graphics.Toolkit
 {
-    public class LiSPSMCamera : LightCamera
+    public class LiSPSMCamera : FocusedLightCamera
     {
         /// <summary>
         /// LSPSM の新しい式が有効かどうかを示します。
