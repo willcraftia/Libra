@@ -51,6 +51,23 @@ namespace Libra.Graphics.Toolkit
                 lightVolumePoints.Add(point);
         }
 
+        public void AddLightVolumePoints(BoundingBox box)
+        {
+            AddLightVolumePoints(ref box);
+        }
+
+        public void AddLightVolumePoints(ref BoundingBox box)
+        {
+            box.GetCorners(corners);
+            AddLightVolumePoints(corners);
+        }
+
+        public void AddLightVolumePoints(BoundingFrustum frustum)
+        {
+            frustum.GetCorners(corners);
+            AddLightVolumePoints(corners);
+        }
+
         public virtual void Update()
         {
             // USM (Uniform Shadow Mapping) による行列算出。

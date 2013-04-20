@@ -154,8 +154,6 @@ namespace Samples.ShadowMapping
 
         Vector3[] frustumCorners;
 
-        Vector3[] casterCorners;
-
         float rotateDude = 0.0f;
 
         RenderTarget bsmRenderTarget;
@@ -219,7 +217,6 @@ namespace Samples.ShadowMapping
             }
 
             frustumCorners = new Vector3[BoundingFrustum.CornerCount];
-            casterCorners = new Vector3[BoundingBox.CornerCount];
 
             bsmRenderTarget = Device.CreateRenderTarget();
             bsmRenderTarget.Width = shadowMapWidthHeight;
@@ -291,14 +288,12 @@ namespace Samples.ShadowMapping
             cameraFrustum.Intersects(ref dudeBox, out dudeIntersect);
             if (dudeIntersect)
             {
-                dudeBox.GetCorners(casterCorners);
-                lightCamera.AddLightVolumePoints(casterCorners);
-                lispsmCamera.AddLightVolumePoints(casterCorners);
+                lightCamera.AddLightVolumePoints(dudeBox);
+                lispsmCamera.AddLightVolumePoints(dudeBox);
             }
 
-            cameraFrustum.GetCorners(frustumCorners);
-            lightCamera.AddLightVolumePoints(frustumCorners);
-            lispsmCamera.AddLightVolumePoints(frustumCorners);
+            lightCamera.AddLightVolumePoints(cameraFrustum);
+            lispsmCamera.AddLightVolumePoints(cameraFrustum);
 
             lightCamera.Update();
             lispsmCamera.Update();
