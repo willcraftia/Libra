@@ -583,12 +583,12 @@ namespace Libra
 
         public bool Equals(Vector4 other)
         {
-            return Equals(ref other, MathHelper.ZeroTolerance);
+            return Equals(ref other);
         }
 
         public bool Equals(ref Vector4 other)
         {
-            return Equals(ref other, MathHelper.ZeroTolerance);
+            return X == other.X && Y == other.Y && Z == other.Z && W == other.W;
         }
 
         public override bool Equals(object obj)

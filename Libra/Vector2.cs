@@ -514,12 +514,12 @@ namespace Libra
 
         public bool Equals(Vector2 other)
         {
-            return Equals(ref other, MathHelper.ZeroTolerance);
+            return Equals(ref other);
         }
 
         public bool Equals(ref Vector2 other)
         {
-            return Equals(ref other, MathHelper.ZeroTolerance);
+            return X == other.X && Y == other.Y;
         }
 
         public override bool Equals(object obj)
