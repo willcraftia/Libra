@@ -22,7 +22,7 @@ namespace Libra
 
         public const float TwoPi = (float) (Math.PI * 2.0);
 
-        internal const float ZeroTolerance = 1e-6f;
+        public const float ZeroTolerance = 1e-6f;
 
         public static float Barycentric(float value1, float value2, float value3, float amount1, float amount2)
         {
@@ -159,6 +159,21 @@ namespace Libra
         /// <param name="value"></param>
         /// <returns></returns>
         public static int FastAbs(int value)
+        {
+            return 0 <= value ? value : -value;
+        }
+
+        /// <summary>
+        /// 絶対値を計算します。
+        /// </summary>
+        /// <remarks>
+        /// Math.Abs よりわずかに高速ですが、
+        /// float.MaxValue を指定した場合に例外を発生させずに不正な値を返します。
+        /// また、NaN を指定した場合に不正な値を返します。
+        /// </remarks>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static float FastAbs(float value)
         {
             return 0 <= value ? value : -value;
         }
