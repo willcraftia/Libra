@@ -168,7 +168,7 @@ namespace Libra
         /// </summary>
         /// <remarks>
         /// Math.Abs よりわずかに高速ですが、
-        /// float.MaxValue を指定した場合に例外を発生させずに不正な値を返します。
+        /// float.MaxValue を指定した場合に例外を発生させずに不正な値を返し、
         /// また、NaN を指定した場合に不正な値を返します。
         /// </remarks>
         /// <param name="value"></param>
