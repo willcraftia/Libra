@@ -630,19 +630,34 @@ namespace Libra
 
         public static bool operator ==(Vector3 left, Vector3 right)
         {
-            return left.Equals(right);
+            return left.Equals(ref right);
         }
 
         public static bool operator !=(Vector3 left, Vector3 right)
         {
-            return !left.Equals(right);
+            return !left.Equals(ref right);
+        }
+
+        public bool Equals(Vector3 other, float tolerance)
+        {
+            return Equals(ref other, tolerance);
+        }
+
+        public bool Equals(ref Vector3 other, float tolerance)
+        {
+            return ((float) Math.Abs(other.X - X) < tolerance &&
+                (float) Math.Abs(other.Y - Y) < tolerance &&
+                (float) Math.Abs(other.Z - Z) < tolerance);
         }
 
         public bool Equals(Vector3 other)
         {
-            return ((float) Math.Abs(other.X - X) < MathHelper.ZeroTolerance &&
-                (float) Math.Abs(other.Y - Y) < MathHelper.ZeroTolerance &&
-                (float) Math.Abs(other.Z - Z) < MathHelper.ZeroTolerance);
+            return Equals(ref other, MathHelper.ZeroTolerance);
+        }
+
+        public bool Equals(ref Vector3 other)
+        {
+            return Equals(ref other, MathHelper.ZeroTolerance);
         }
 
         public override bool Equals(object obj)

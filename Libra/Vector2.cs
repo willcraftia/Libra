@@ -478,22 +478,48 @@ namespace Libra
             return new Vector4(X, Y, 0, 0);
         }
 
+        /// <summary>
+        /// ゼロ ベクトルであるか否かを検査します。
+        /// </summary>
+        /// <returns>
+        /// true (ゼロ ベクトルである場合)、false (それ以外の場合)。
+        /// </returns>
+        public bool IsZero()
+        {
+            return X == 0 && Y == 0;
+        }
+
         #region IEquatable
 
         public static bool operator ==(Vector2 left, Vector2 right)
         {
-            return left.Equals(right);
+            return left.Equals(ref right);
         }
 
         public static bool operator !=(Vector2 left, Vector2 right)
         {
-            return !left.Equals(right);
+            return !left.Equals(ref right);
+        }
+
+        public bool Equals(Vector2 other, float tolerance)
+        {
+            return Equals(ref other, tolerance);
+        }
+
+        public bool Equals(ref Vector2 other, float tolerance)
+        {
+            return ((float) Math.Abs(other.X - X) < tolerance &&
+                (float) Math.Abs(other.Y - Y) < tolerance);
         }
 
         public bool Equals(Vector2 other)
         {
-            return ((float) Math.Abs(other.X - X) < MathHelper.ZeroTolerance &&
-                (float) Math.Abs(other.Y - Y) < MathHelper.ZeroTolerance);
+            return Equals(ref other, MathHelper.ZeroTolerance);
+        }
+
+        public bool Equals(ref Vector2 other)
+        {
+            return Equals(ref other, MathHelper.ZeroTolerance);
         }
 
         public override bool Equals(object obj)

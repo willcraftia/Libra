@@ -545,24 +545,50 @@ namespace Libra
             return new Vector3(X, Y, Z);
         }
 
+        /// <summary>
+        /// ゼロ ベクトルであるか否かを検査します。
+        /// </summary>
+        /// <returns>
+        /// true (ゼロ ベクトルである場合)、false (それ以外の場合)。
+        /// </returns>
+        public bool IsZero()
+        {
+            return X == 0 && Y == 0 && Z == 0 && W == 0;
+        }
+
         #region IEquatable
 
         public static bool operator ==(Vector4 left, Vector4 right)
         {
-            return left.Equals(right);
+            return left.Equals(ref right);
         }
 
         public static bool operator !=(Vector4 left, Vector4 right)
         {
-            return !left.Equals(right);
+            return !left.Equals(ref right);
+        }
+
+        public bool Equals(Vector4 other, float tolerance)
+        {
+            return Equals(ref other, tolerance);
+        }
+
+        public bool Equals(ref Vector4 other, float tolerance)
+        {
+            return ((float) Math.Abs(other.X - X) < tolerance &&
+                (float) Math.Abs(other.Y - Y) < tolerance &&
+                (float) Math.Abs(other.Z - Z) < tolerance &&
+                (float) Math.Abs(other.W - W) < tolerance);
         }
 
         public bool Equals(Vector4 other)
         {
-            return ((float) Math.Abs(other.X - X) < MathHelper.ZeroTolerance &&
-                (float) Math.Abs(other.Y - Y) < MathHelper.ZeroTolerance &&
-                (float) Math.Abs(other.Z - Z) < MathHelper.ZeroTolerance &&
-                (float) Math.Abs(other.W - W) < MathHelper.ZeroTolerance);
+            return Equals(ref other, MathHelper.ZeroTolerance);
+        }
+
+        public bool Equals(ref Vector4 other)
+        {
+            return Equals(ref other, MathHelper.ZeroTolerance);
         }
 
         public override bool Equals(object obj)
