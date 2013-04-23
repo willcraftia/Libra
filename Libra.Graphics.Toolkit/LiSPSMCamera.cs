@@ -32,7 +32,7 @@ namespace Libra.Graphics.Toolkit
 
         public float EyeNearPlaneDistance;
 
-        List<Vector3> transformedLightVolumePoints;
+        List<Vector3> transformedConvexBodyBPoints;
 
         public LiSPSMCamera()
         {
@@ -40,12 +40,12 @@ namespace Libra.Graphics.Toolkit
             UseExplicitN = false;
             ExplicitN = 10.0f;
 
-            transformedLightVolumePoints = new List<Vector3>();
+            transformedConvexBodyBPoints = new List<Vector3>();
         }
 
         public override void Update()
         {
-            // カメラと光のなす角の算出。
+            // カメラとライトのなす角の算出。
             var L = LightDirection;
             L.Normalize();
 
@@ -56,34 +56,34 @@ namespace Libra.Graphics.Toolkit
             Vector3.Dot(ref E, ref L, out eDotL);
             if (1.0f - 0.01f <= Math.Abs(eDotL))
             {
-                // カメラと光がほぼ平行ならば外積が縮退するため、
+                // カメラとライトがほぼ平行ならば外積が縮退するため、
                 // USM で行列を算出。
                 base.Update();
                 return;
             }
 
-            // 光の UP ベクトル。
+            // ライトの UP ベクトル。
             Vector3 up;
             CalculateLightUp(ref L, ref E, out up);
 
-            // 仮光源ビュー行列。
-            // オリジナルでは光位置を E、方向を E + L としているが、
-            // 仮光源ビュー行列は n と f の算出のための AABB を作るためだけの変換であるため、
-            // 原点位置は重要ではないと思われる。
+            // 仮ライト ビュー行列。
+            // オリジナルではライト位置を E、ライト方向を E + L としているが、
+            // 仮ライト ビュー行列は n と f の算出のための AABB を作るためだけの変換であるため、
+            // 位置は重要ではないと思われる。
             var tempLightPosition = Vector3.Zero;
             var tempLightTarget = L;
             Matrix tempLightView;
             Matrix.CreateLookAt(ref tempLightPosition, ref tempLightTarget, ref up, out tempLightView);
 
-            // 指定されている点を仮光源空間へ変換。
-            TransformLightVolumePoints(ref tempLightView);
+            // 凸体 B の頂点を仮ライト空間へ変換。
+            TransformConvexBodyBPoints(ref tempLightView);
 
-            // 仮光源空間での指定された点を含む境界ボックス。
-            BoundingBox lightBox;
-            BoundingBox.CreateFromPoints(transformedLightVolumePoints, out lightBox);
+            // 仮ライト空間における凸体 B の AABB。
+            BoundingBox lightConvexBodyBBox;
+            BoundingBox.CreateFromPoints(transformedConvexBodyBPoints, out lightConvexBodyBBox);
 
             // 錐台 P の d (n から f の距離)。
-            float d = lightBox.Max.Y - lightBox.Min.Y;
+            float d = lightConvexBodyBBox.Max.Y - lightConvexBodyBBox.Min.Y;
 
             // 錐台 P の n (近平面)。
             float n = CalculateN(d, eDotL);
@@ -91,7 +91,7 @@ namespace Libra.Graphics.Toolkit
             // 錐台 P の f (遠平面)。
             float f = n + d;
 
-            // 錐台 P の視点位置とビュー行列。
+            // 錐台 P のビュー行列。
             var pPosition = EyePosition - up * (n - EyeNearPlaneDistance);
             var pTarget = pPosition + L;
             Matrix.CreateLookAt(ref pPosition, ref pTarget, ref up, out LightView);
@@ -100,14 +100,14 @@ namespace Libra.Graphics.Toolkit
             Matrix lispProjection;
             CreateYPerspective(n, f, out lispProjection);
 
-            // P ビュー×Y 射影行列。
-            Matrix tempLightViewProjection;
-            Matrix.Multiply(ref LightView, ref lispProjection, out tempLightViewProjection);
+            // 錐台 P の Y 射影変換。
+            Matrix pViewLispProjection;
+            Matrix.Multiply(ref LightView, ref lispProjection, out pViewLispProjection);
 
-            // P ビュー×Y 射影空間における境界ボックス。
-            transformedLightVolumePoints.Clear();
-            TransformLightVolumePoints(ref tempLightViewProjection);
-            BoundingBox.CreateFromPoints(transformedLightVolumePoints, out lightBox);
+            // 錐台 P の Y 射影空間における AABB。
+            transformedConvexBodyBPoints.Clear();
+            TransformConvexBodyBPoints(ref pViewLispProjection);
+            BoundingBox.CreateFromPoints(transformedConvexBodyBPoints, out lightConvexBodyBBox);
 
             // 正射影。
             //
@@ -115,20 +115,16 @@ namespace Libra.Graphics.Toolkit
             // DirectX であるため Z についてのみ [-1, 0] の範囲で考える事になる。
             Matrix orthoProjection;
             Matrix.CreateOrthographicOffCenter(
-                lightBox.Min.X, lightBox.Max.X,
-                lightBox.Min.Y, lightBox.Max.Y,
-                -lightBox.Max.Z, -lightBox.Min.Z,
+                lightConvexBodyBBox.Min.X, lightConvexBodyBBox.Max.X,
+                lightConvexBodyBBox.Min.Y, lightConvexBodyBBox.Max.Y,
+                -lightConvexBodyBBox.Max.Z, -lightConvexBodyBBox.Min.Z,
                 out orthoProjection);
 
             // 最終的な射影行列。
-            Matrix LightProjection;
             Matrix.Multiply(ref lispProjection, ref orthoProjection, out LightProjection);
 
-            // ビュー×射影行列。
-            Matrix.Multiply(ref LightView, ref LightProjection, out LightViewProjection);
-
             convexBodyBPoints.Clear();
-            transformedLightVolumePoints.Clear();
+            transformedConvexBodyBPoints.Clear();
         }
 
         void CalculateLightUp(ref Vector3 L, ref Vector3 E, out Vector3 result)
@@ -210,7 +206,7 @@ namespace Libra.Graphics.Toolkit
             result.M44 = 0;
         }
 
-        void TransformLightVolumePoints(ref Matrix matrix)
+        void TransformConvexBodyBPoints(ref Matrix matrix)
         {
             int count = convexBodyBPoints.Count;
 
@@ -221,7 +217,7 @@ namespace Libra.Graphics.Toolkit
                 Vector3 destination;
                 Vector3.TransformCoordinate(ref source, ref matrix, out destination);
 
-                transformedLightVolumePoints.Add(destination);
+                transformedConvexBodyBPoints.Add(destination);
             }
         }
     }

@@ -283,8 +283,11 @@ namespace Samples.ShadowMapping
             basicLightCamera.Update();
             lispsmCamera.Update();
 
-            return lispsmCamera.LightViewProjection;
-            //return basicLightCamera.LightViewProjection;
+            Matrix lightViewProjection;
+            //Matrix.Multiply(ref basicLightCamera.LightView, ref basicLightCamera.LightProjection, out lightViewProjection);
+            Matrix.Multiply(ref lispsmCamera.LightView, ref lispsmCamera.LightProjection, out lightViewProjection);
+
+            return lightViewProjection;
         }
 
         void CreateShadowMap()

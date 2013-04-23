@@ -21,7 +21,6 @@ namespace Libra.Graphics.Toolkit
         public FocusedLightCamera()
         {
             LightDirection = Vector3.Down;
-            LightViewProjection = Matrix.Identity;
             corners = new Vector3[BoundingBox.CornerCount];
             convexBodyBPoints = new List<Vector3>();
         }
@@ -107,8 +106,6 @@ namespace Libra.Graphics.Toolkit
 
             // 仮ライト空間の境界ボックスのサイズで正射影として光源射影行列を算出。
             Matrix.CreateOrthographic(boxSize.X, boxSize.Y, -boxSize.Z, boxSize.Z, out LightProjection);
-
-            Matrix.Multiply(ref LightView, ref LightProjection, out LightViewProjection);
 
             // クリア。
             convexBodyBPoints.Clear();

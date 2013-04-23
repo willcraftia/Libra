@@ -66,8 +66,6 @@ namespace Libra.Graphics.Toolkit
                 lightBox.Min.Y, lightBox.Max.Y,
                 -lightBox.Max.Z, -lightBox.Min.Z,
                 out LightProjection);
-
-            Matrix.Multiply(ref LightView, ref LightProjection, out LightViewProjection);
         }
     }
 }
