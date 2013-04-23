@@ -76,7 +76,7 @@ namespace Libra.Graphics.Toolkit
 
             // ライト ビュー行列。
             Matrix tempLightView;
-            Matrix.CreateLookAt(ref position, ref target, ref up, out LightView);
+            Matrix.CreateLookAt(ref position, ref target, ref up, out tempLightView);
 
             // 仮ライト空間における凸体 B の AABB。
             BoundingBox lightConvexBodyBBox;
