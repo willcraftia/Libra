@@ -10,21 +10,23 @@ namespace Libra.Graphics.Toolkit
     public class LiSPSMCamera : FocusedLightCamera
     {
         /// <summary>
-        /// LSPSM の新しい式が有効かどうかを示します。
-        /// true (新しい式が有効な場合)、false (それ以外の場合)。
+        /// 新しい N 算出式を使用するか否かを示す値を取得または設定します。
+        /// true (新しい N 算出式を使用する場合)、false (それ以外の場合)。
         /// </summary>
         public bool UseNewNFormula { get; set; }
 
         /// <summary>
-        /// 明示した N 値を使用するかどうかを示します。
+        /// 明示した N 値を使用するか否かを示す値を取得または設定します。
         /// true (明示した N 値を使用する場合)、false (それ以外の場合)。
         /// </summary>
         public bool UseExplicitN { get; set; }
 
         /// <summary>
-        /// 明示する N 値です。
+        /// 明示する N 値を取得または設定します。
         /// </summary>
         public float ExplicitN { get; set; }
+
+        public bool UseLiSPSM { get; set; }
 
         public Vector3 EyePosition;
 
@@ -32,19 +34,22 @@ namespace Libra.Graphics.Toolkit
 
         public float EyeNearPlaneDistance;
 
-        List<Vector3> transformedConvexBodyBPoints;
-
         public LiSPSMCamera()
         {
             UseNewNFormula = true;
             UseExplicitN = false;
             ExplicitN = 10.0f;
-
-            transformedConvexBodyBPoints = new List<Vector3>();
+            UseLiSPSM = true;
         }
 
         public override void Update()
         {
+            if (!UseLiSPSM)
+            {
+                base.Update();
+                return;
+            }
+
             // カメラとライトのなす角の算出。
             var L = LightDirection;
             L.Normalize();
@@ -75,12 +80,9 @@ namespace Libra.Graphics.Toolkit
             Matrix tempLightView;
             Matrix.CreateLookAt(ref tempLightPosition, ref tempLightTarget, ref up, out tempLightView);
 
-            // 凸体 B の頂点を仮ライト空間へ変換。
-            TransformConvexBodyBPoints(ref tempLightView);
-
             // 仮ライト空間における凸体 B の AABB。
             BoundingBox lightConvexBodyBBox;
-            BoundingBox.CreateFromPoints(transformedConvexBodyBPoints, out lightConvexBodyBBox);
+            CreateTransformedConvexBodyBBox(ref tempLightView, out lightConvexBodyBBox);
 
             // 錐台 P の d (n から f の距離)。
             float d = lightConvexBodyBBox.Max.Y - lightConvexBodyBBox.Min.Y;
@@ -104,10 +106,8 @@ namespace Libra.Graphics.Toolkit
             Matrix pViewLispProjection;
             Matrix.Multiply(ref LightView, ref lispProjection, out pViewLispProjection);
 
-            // 錐台 P の Y 射影空間における AABB。
-            transformedConvexBodyBPoints.Clear();
-            TransformConvexBodyBPoints(ref pViewLispProjection);
-            BoundingBox.CreateFromPoints(transformedConvexBodyBPoints, out lightConvexBodyBBox);
+            // 錐台 P の Y 射影空間における凸体 B の AABB。
+            CreateTransformedConvexBodyBBox(ref pViewLispProjection, out lightConvexBodyBBox);
 
             // 正射影。
             //
@@ -127,9 +127,6 @@ namespace Libra.Graphics.Toolkit
 
             // 最終的な射影行列。
             Matrix.Multiply(ref lispProjection, ref orthoProjection, out LightProjection);
-
-            convexBodyBPoints.Clear();
-            transformedConvexBodyBPoints.Clear();
         }
 
         void CalculateLightUp(ref Vector3 L, ref Vector3 E, out Vector3 result)
@@ -200,7 +197,7 @@ namespace Libra.Graphics.Toolkit
             // b = -1 * f * n / (f - n)
             //
             // 恐らく、DirectX (XNA) の透視射影行列を意識した式と思われる
-            // ([-1, 1] ではなく [0, 1] への射影)。
+            // ([-1, 1] ではなく [-1, 0] への射影)。
             // しかし、最終的な正射影行列によりスケールと位置が変換されるため、
             // どちらでも良いと思われる。
 
@@ -209,21 +206,6 @@ namespace Libra.Graphics.Toolkit
             result.M24 = 1;
             result.M42 = -2.0f * f * n / (f - n);
             result.M44 = 0;
-        }
-
-        void TransformConvexBodyBPoints(ref Matrix matrix)
-        {
-            int count = convexBodyBPoints.Count;
-
-            for (int i = 0; i < count; i++)
-            {
-                var source = convexBodyBPoints[i];
-
-                Vector3 destination;
-                Vector3.TransformCoordinate(ref source, ref matrix, out destination);
-
-                transformedConvexBodyBPoints.Add(destination);
-            }
         }
     }
 }
