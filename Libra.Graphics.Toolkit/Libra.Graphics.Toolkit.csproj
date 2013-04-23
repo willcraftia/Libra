@@ -43,6 +43,7 @@
     <Compile Include="BloomEffect.cs" />
     <Compile Include="BlurSettings.cs" />
     <Compile Include="BasicLightCamera.cs" />
+    <Compile Include="ConvexBody.cs" />
     <Compile Include="FocusedLightCamera.cs" />
     <Compile Include="FullScreenQuad.cs" />
     <Compile Include="GaussianBlurEffectPass.cs" />

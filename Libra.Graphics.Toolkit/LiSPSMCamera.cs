@@ -127,7 +127,7 @@ namespace Libra.Graphics.Toolkit
             // ビュー×射影行列。
             Matrix.Multiply(ref LightView, ref LightProjection, out LightViewProjection);
 
-            lightVolumePoints.Clear();
+            convexBodyBPoints.Clear();
             transformedLightVolumePoints.Clear();
         }
 
@@ -212,11 +212,11 @@ namespace Libra.Graphics.Toolkit
 
         void TransformLightVolumePoints(ref Matrix matrix)
         {
-            int count = lightVolumePoints.Count;
+            int count = convexBodyBPoints.Count;
 
             for (int i = 0; i < count; i++)
             {
-                var source = lightVolumePoints[i];
+                var source = convexBodyBPoints[i];
 
                 Vector3 destination;
                 Vector3.TransformCoordinate(ref source, ref matrix, out destination);

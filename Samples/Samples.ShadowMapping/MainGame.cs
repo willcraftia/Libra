@@ -150,8 +150,6 @@ namespace Samples.ShadowMapping
 
         Model dudeModel;
 
-        BoundingBox dudeBox;
-
         Vector3[] frustumCorners;
 
         float rotateDude = 0.0f;
@@ -207,14 +205,6 @@ namespace Samples.ShadowMapping
 
             gridModel = content.Load<Model>("grid");
             dudeModel = content.Load<Model>("dude");
-
-            foreach (var mesh in dudeModel.Meshes)
-            {
-                var sphere = mesh.BoundingSphere;
-                BoundingBox box;
-                BoundingBox.CreateFromSphere(ref sphere, out box);
-                BoundingBox.CreateMerged(ref dudeBox, ref box, out dudeBox);
-            }
 
             frustumCorners = new Vector3[BoundingFrustum.CornerCount];
 
@@ -286,20 +276,15 @@ namespace Samples.ShadowMapping
             lispsmCamera.EyePosition = cameraPosition;
             lispsmCamera.EyeDirection = cameraForward;
 
-            bool dudeIntersect;
-            cameraFrustum.Intersects(ref dudeBox, out dudeIntersect);
-            if (dudeIntersect)
-            {
-                lispsmCamera.AddLightVolumePoints(dudeBox);
-            }
-
-            lispsmCamera.AddLightVolumePoints(cameraFrustum);
+            // シンプルさのために視錐台を凸体 B として設定。
+            cameraFrustum.GetCorners(frustumCorners);
+            lispsmCamera.SetConvexBodyBPoints(frustumCorners);
 
             basicLightCamera.Update();
             lispsmCamera.Update();
 
-            //return lispsmCamera.LightViewProjection;
-            return basicLightCamera.LightViewProjection;
+            return lispsmCamera.LightViewProjection;
+            //return basicLightCamera.LightViewProjection;
         }
 
         void CreateShadowMap()
