@@ -14,7 +14,9 @@ namespace Libra.Graphics.Toolkit
 
         public BoundingBox SceneBox;
 
-        protected List<Vector3> convexBodyBPoints;
+        List<Vector3> convexBodyBPoints;
+
+        List<Vector3> transformedConvexBodyBPoints;
 
         Vector3[] corners;
 
@@ -23,11 +25,14 @@ namespace Libra.Graphics.Toolkit
             LightDirection = Vector3.Down;
             corners = new Vector3[BoundingBox.CornerCount];
             convexBodyBPoints = new List<Vector3>();
+            transformedConvexBodyBPoints = new List<Vector3>();
         }
 
         public void SetConvexBodyBPoints(IEnumerable<Vector3> points)
         {
             if (points == null) throw new ArgumentNullException("points");
+
+            convexBodyBPoints.Clear();
 
             foreach (var point in points)
                 convexBodyBPoints.Add(point);
@@ -35,6 +40,8 @@ namespace Libra.Graphics.Toolkit
 
         public void SetConvexBodyB(ConvexBody convexBodyB)
         {
+            convexBodyBPoints.Clear();
+
             for (int ip = 0; ip < convexBodyB.Polygons.Count; ip++)
             {
                 var polygon = convexBodyB.Polygons[ip];
@@ -67,32 +74,24 @@ namespace Libra.Graphics.Toolkit
             var target = LightDirection;
             var up = Vector3.Up;
 
-            // 仮ライト ビュー行列。
+            // ライト ビュー行列。
             Matrix tempLightView;
-            Matrix.CreateLookAt(ref position, ref target, ref up, out tempLightView);
+            Matrix.CreateLookAt(ref position, ref target, ref up, out LightView);
 
-            // 凸体 B の AABB。
-            BoundingBox bodyBBox;
-            BoundingBox.CreateFromPoints(convexBodyBPoints, out bodyBBox);
-
-            // 凸体 B の AABB を仮光源空間へ変換。
-            bodyBBox.GetCorners(corners);
-            for (int i = 0; i < corners.Length; i++)
-                Vector3.Transform(ref corners[i], ref tempLightView, out corners[i]);
-
-            BoundingBox lightBodyBBox;
-            BoundingBox.CreateFromPoints(corners, out lightBodyBBox);
+            // 仮ライト空間における凸体 B の AABB。
+            BoundingBox lightConvexBodyBBox;
+            CreateTransformedConvexBodyBBox(ref tempLightView, out lightConvexBodyBBox);
 
             Vector3 boxSize;
-            Vector3.Subtract(ref lightBodyBBox.Max, ref lightBodyBBox.Min, out boxSize);
+            Vector3.Subtract(ref lightConvexBodyBBox.Max, ref lightConvexBodyBBox.Min, out boxSize);
 
             Vector3 halfBoxSize;
             Vector3.Multiply(ref boxSize, 0.5f, out halfBoxSize);
 
             // 光源から見て最も近い面 (Min.Z) の中心 (XY について半分の位置) を光源位置に決定。
             Vector3 lightPosition;
-            Vector3.Add(ref lightBodyBBox.Min, ref halfBoxSize, out lightPosition);
-            lightPosition.Z = lightBodyBBox.Min.Z;
+            Vector3.Add(ref lightConvexBodyBBox.Min, ref halfBoxSize, out lightPosition);
+            lightPosition.Z = lightConvexBodyBBox.Min.Z;
 
             // 算出した光源位置は仮ライト空間にあるため、これをワールド空間へ変換。
             Matrix lightViewInv;
@@ -109,6 +108,29 @@ namespace Libra.Graphics.Toolkit
 
             // クリア。
             convexBodyBPoints.Clear();
+        }
+
+        protected void CreateTransformedConvexBodyBBox(ref Matrix transform, out BoundingBox result)
+        {
+            TransformConvexBodyBPoints(ref transform);
+            BoundingBox.CreateFromPoints(transformedConvexBodyBPoints, out result);
+        }
+
+        void TransformConvexBodyBPoints(ref Matrix matrix)
+        {
+            transformedConvexBodyBPoints.Clear();
+
+            int count = convexBodyBPoints.Count;
+
+            for (int i = 0; i < count; i++)
+            {
+                var source = convexBodyBPoints[i];
+
+                Vector3 destination;
+                Vector3.TransformCoordinate(ref source, ref matrix, out destination);
+
+                transformedConvexBodyBPoints.Add(destination);
+            }
         }
     }
 }
