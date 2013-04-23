@@ -111,8 +111,13 @@ namespace Libra.Graphics.Toolkit
 
             // 正射影。
             //
-            // オリジナル コードは GL であるため [-1, 1] の範囲へスケール変換および移動となるが、
-            // DirectX であるため Z についてのみ [-1, 0] の範囲で考える事になる。
+            // オリジナル コードは (-1,-1,-1) から (1,1,1) の範囲へスケール変更した後、
+            // 右手系座標から左手系座標へ変換 (クリッピング空間は左手系) しているが、
+            // ここでは CreateOrthographicOffCenter の呼び出しでそれらを纏めている。
+            // もし、オリジナル コードの手順をそのまま残しつつ DirectX に適合させたいなら、
+            // オリジナル同様のスケール変更と座標系変換の後、
+            // CreateOrthographicOffCenter(-1,1,-1,1,-1,1) により
+            // z を (-1, 0) へスケール変更すれば良いと思われる。
             Matrix orthoProjection;
             Matrix.CreateOrthographicOffCenter(
                 lightConvexBodyBBox.Min.X, lightConvexBodyBBox.Max.X,
