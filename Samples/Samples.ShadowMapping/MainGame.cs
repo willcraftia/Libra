@@ -280,7 +280,7 @@ namespace Samples.ShadowMapping
             cameraFrustum.GetCorners(frustumCorners);
             lispsmCamera.SetConvexBodyBPoints(frustumCorners);
 
-            lispsmCamera.UseLiSPSM = false;
+            //lispsmCamera.UseLiSPSM = false;
 
             basicLightCamera.Update();
             lispsmCamera.Update();
