@@ -12,8 +12,6 @@ namespace Libra.Graphics.Toolkit
         // 光の方向 (光源からの光の進行方向)
         public Vector3 LightDirection;
 
-        public BoundingBox SceneBox;
-
         List<Vector3> convexBodyBPoints;
 
         List<Vector3> transformedConvexBodyBPoints;
@@ -38,7 +36,7 @@ namespace Libra.Graphics.Toolkit
                 convexBodyBPoints.Add(point);
         }
 
-        public void SetConvexBodyB(ConvexBody convexBodyB)
+        public void SetConvexBodyB(ConvexBody convexBodyB, BoundingBox sceneBox)
         {
             convexBodyBPoints.Clear();
 
@@ -57,7 +55,7 @@ namespace Libra.Graphics.Toolkit
             {
                 var ray = new Ray(convexBodyBPoints[i], LightDirection);
                 float? intersect;
-                ray.Intersects(ref SceneBox, out intersect);
+                ray.Intersects(ref sceneBox, out intersect);
                 if (intersect != null)
                 {
                     var newPoint = ray.Position + ray.Direction * intersect.Value;
