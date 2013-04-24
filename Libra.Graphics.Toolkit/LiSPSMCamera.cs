@@ -72,7 +72,7 @@ namespace Libra.Graphics.Toolkit
             CalculateUp(ref lightDir, ref eyeDir, out up);
 
             // 仮ビュー行列。
-            CreateLook(ref EyePosition, ref LightDirection, ref up, out LightView);
+            Matrix.CreateLook(ref EyePosition, ref lightDir, ref up, out LightView);
 
             // 仮ビュー空間における凸体 B の AABB。
             BoundingBox lightConvexBodyBBox;
@@ -94,7 +94,7 @@ namespace Libra.Graphics.Toolkit
 
             // ビュー行列。
             var pPosition = EyePosition - up * (n - EyeNearPlaneDistance);
-            CreateLook(ref pPosition, ref LightDirection, ref up, out LightView);
+            Matrix.CreateLook(ref pPosition, ref lightDir, ref up, out LightView);
 
             // Y 方向での n と f による透視変換。
             Matrix lispProjection;
@@ -125,33 +125,6 @@ namespace Libra.Graphics.Toolkit
 
             // 最終的な射影行列。
             Matrix.Multiply(ref lispProjection, ref orthoProjection, out LightProjection);
-        }
-
-        static void CreateLook(
-            ref Vector3 position,
-            ref Vector3 direction,
-            ref Vector3 up,
-            out Matrix result)
-        {
-            Vector3 xaxis, yaxis, zaxis;
-            zaxis = -direction;
-            zaxis.Normalize();
-            Vector3.Cross(ref up, ref zaxis, out xaxis);
-            xaxis.Normalize();
-            Vector3.Cross(ref zaxis, ref xaxis, out yaxis);
-
-            result = Matrix.Identity;
-            result.M11 = xaxis.X; result.M21 = xaxis.Y; result.M31 = xaxis.Z;
-            result.M12 = yaxis.X; result.M22 = yaxis.Y; result.M32 = yaxis.Z;
-            result.M13 = zaxis.X; result.M23 = zaxis.Y; result.M33 = zaxis.Z;
-
-            Vector3.Dot(ref xaxis, ref position, out result.M41);
-            Vector3.Dot(ref yaxis, ref position, out result.M42);
-            Vector3.Dot(ref zaxis, ref position, out result.M43);
-
-            result.M41 = -result.M41;
-            result.M42 = -result.M42;
-            result.M43 = -result.M43;
         }
 
         void CalculateUp(ref Vector3 L, ref Vector3 E, out Vector3 result)
