@@ -122,29 +122,17 @@ namespace Libra.Graphics.Toolkit
         public void Clip(BoundingBox box)
         {
             // near
-            Clip(CreatePlane(new Vector3(0, 0, 1), box.Max));
+            Clip(new Plane(new Vector3(0, 0, 1), box.Max));
             // far
-            Clip(CreatePlane(new Vector3(0, 0, -1), box.Min));
+            Clip(new Plane(new Vector3(0, 0, -1), box.Min));
             // left
-            Clip(CreatePlane(new Vector3(-1, 0, 0), box.Min));
+            Clip(new Plane(new Vector3(-1, 0, 0), box.Min));
             // right
-            Clip(CreatePlane(new Vector3(1, 0, 0), box.Max));
+            Clip(new Plane(new Vector3(1, 0, 0), box.Max));
             // bottom
-            Clip(CreatePlane(new Vector3(0, -1, 0), box.Min));
+            Clip(new Plane(new Vector3(0, -1, 0), box.Min));
             // top
-            Clip(CreatePlane(new Vector3(0, 1, 0), box.Max));
-        }
-
-        Plane CreatePlane(Vector3 normal, Vector3 point)
-        {
-            Plane plane;
-            plane.Normal = normal;
-
-            float dot;
-            Vector3.Dot(ref normal, ref point, out dot);
-            plane.D = -dot;
-
-            return plane;
+            Clip(new Plane(new Vector3(0, 1, 0), box.Max));
         }
 
         public void Clip(Plane plane)
@@ -266,9 +254,6 @@ namespace Libra.Graphics.Toolkit
 
         void DirectionEquals(ref Vector3 v0, ref Vector3 v1, out bool result)
         {
-            // TODO
-            float tolerance = MathHelper.ToRadians(1);
-
             float dot;
             Vector3.Dot(ref v0, ref v1, out dot);
 
@@ -339,12 +324,10 @@ namespace Libra.Graphics.Toolkit
 
                 // 面 plane から頂点 v の距離。
                 float distance;
-                //plane.DotNormal(ref v, out distance);
-                //distance -= plane.D;
                 plane.DotCoordinate(ref v, out distance);
 
                 // 頂点 v が面 plane の外側 (表側) にあるならば true、
-                // さもなくば  false。
+                // さもなくば false。
                 outsides.Add(0.0f < distance);
             }
 
@@ -418,13 +401,13 @@ namespace Libra.Graphics.Toolkit
             // 辺と面 p との交差を判定。
             var ray = new Ray(v1, direction);
 
-            float? distance;
-            ray.Intersects(ref p, out distance);
+            float? intersect;
+            ray.Intersects(ref p, out intersect);
 
-            if (distance != null)
+            if (intersect != null)
             {
                 // 交点。
-                result = ray.Position + direction * distance.Value;
+                result = ray.GetPoint(intersect.Value);
             }
             else
             {
