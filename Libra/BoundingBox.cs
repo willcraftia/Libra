@@ -181,6 +181,39 @@ namespace Libra
             Vector3.Max(ref original.Max, ref additional.Max, out result.Max);
         }
 
+        public static BoundingBox CreateMerged(BoundingBox original, Vector3 additional)
+        {
+            BoundingBox result;
+            CreateMerged(ref original, ref additional, out result);
+            return result;
+        }
+
+        public static void CreateMerged(ref BoundingBox original, ref Vector3 additional, out BoundingBox result)
+        {
+            Vector3.Min(ref original.Min, ref additional, out result.Min);
+            Vector3.Max(ref original.Max, ref additional, out result.Max);
+        }
+
+        public void Merge(BoundingBox additional)
+        {
+            Merge(ref additional);
+        }
+
+        public void Merge(ref BoundingBox additional)
+        {
+            CreateMerged(ref this, ref additional, out this);
+        }
+
+        public void Merge(Vector3 additional)
+        {
+            Merge(ref additional);
+        }
+
+        public void Merge(ref Vector3 additional)
+        {
+            CreateMerged(ref this, ref additional, out this);
+        }
+
         public Vector3[] GetCorners()
         {
             var results = new Vector3[CornerCount];
