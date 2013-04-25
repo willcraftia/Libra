@@ -493,7 +493,7 @@ namespace Libra
         /// <param name="vector">ベクトル。</param>
         /// <param name="matrix">変換行列。</param>
         /// <returns>同次変換されたベクトル。</returns>
-        public static Vector3 TransformCoordinate(Vector3 vector, ref Matrix matrix)
+        public static Vector3 TransformCoordinate(Vector3 vector, Matrix matrix)
         {
             Vector3 result;
             TransformCoordinate(ref vector, ref matrix, out result);
