@@ -416,10 +416,10 @@ namespace Libra
             return result;
         }
 
-        public static Vector4 Transform(Vector4 vector, Matrix transform)
+        public static Vector4 Transform(Vector4 vector, Matrix matrix)
         {
             Vector4 result;
-            Transform(ref vector, ref transform, out result);
+            Transform(ref vector, ref matrix, out result);
             return result;
         }
 
