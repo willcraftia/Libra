@@ -172,6 +172,8 @@ namespace Samples.ShadowMapping
 
         BasicLightCamera basicLightCamera;
 
+        FocusedLightCamera focusedLightCamera;
+
         LiSPSMCamera lispsmCamera;
 
         OldLiSPSMCamera oldLispsmCamera;
@@ -195,6 +197,7 @@ namespace Samples.ShadowMapping
             projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspectRatio,  1.0f, 1000.0f);
 
             basicLightCamera = new BasicLightCamera();
+            focusedLightCamera = new FocusedLightCamera();
             lispsmCamera = new LiSPSMCamera();
             lispsmCamera.EyeNearPlaneDistance = 1.0f;
             oldLispsmCamera = new OldLiSPSMCamera();
@@ -282,17 +285,19 @@ namespace Samples.ShadowMapping
             basicLightCamera.EyeView = view;
             basicLightCamera.EyeProjection = projection;
 
+            focusedLightCamera.LightDirection = -lightDir;
+
             lispsmCamera.LightDirection = -lightDir;
             lispsmCamera.EyeView = view;
 
             oldLispsmCamera.LightDirection = -lightDir;
-            oldLispsmCamera.EyePosition = cameraPosition;
-            oldLispsmCamera.EyeDirection = cameraForward;
+            oldLispsmCamera.EyeView = view;
 
             // シンプルさのために視錐台を凸体 B として設定。
             cameraFrustum.GetCorners(corners);
             //BoundingBox.CreateFromPoints(corners, out sceneBox);
             //sceneBox.GetCorners(corners);
+            focusedLightCamera.SetConvexBodyBPoints(corners);
             lispsmCamera.SetConvexBodyBPoints(corners);
             oldLispsmCamera.SetConvexBodyBPoints(corners);
 
@@ -300,18 +305,21 @@ namespace Samples.ShadowMapping
             // 視錐台そのままでは、カメラとライトが平行に近づく場合に大きく劣化する。
             //bodyB.Define(cameraFrustum);
             //bodyB.Clip(sceneBox);
+            //focusedLightCamera.SetConvexBodyB(bodyB, sceneBox);
             //lispsmCamera.SetConvexBodyB(bodyB, sceneBox);
             //oldLispsmCamera.SetConvexBodyB(bodyB, sceneBox);
 
             //lispsmCamera.UseLiSPSM = false;
 
             basicLightCamera.Update();
+            focusedLightCamera.Update();
             lispsmCamera.Update();
             oldLispsmCamera.Update();
 
             Matrix lightViewProjection;
             //Matrix.Multiply(ref basicLightCamera.LightView, ref basicLightCamera.LightProjection, out lightViewProjection);
-            Matrix.Multiply(ref lispsmCamera.LightView, ref lispsmCamera.LightProjection, out lightViewProjection);
+            Matrix.Multiply(ref focusedLightCamera.LightView, ref focusedLightCamera.LightProjection, out lightViewProjection);
+            //Matrix.Multiply(ref lispsmCamera.LightView, ref lispsmCamera.LightProjection, out lightViewProjection);
             //Matrix.Multiply(ref oldLispsmCamera.LightView, ref oldLispsmCamera.LightProjection, out lightViewProjection);
 
             return lightViewProjection;

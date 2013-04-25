@@ -28,10 +28,6 @@ namespace Libra.Graphics.Toolkit
 
         public bool UseLiSPSM { get; set; }
 
-        public Vector3 EyePosition;
-
-        public Vector3 EyeDirection;
-
         public float EyeNearPlaneDistance;
 
         public OldLiSPSMCamera()
@@ -50,8 +46,8 @@ namespace Libra.Graphics.Toolkit
                 return;
             }
 
-            var lightDir = LightDirection;
-            var eyeDir = EyeDirection;
+            var lightDir = lightDirection;
+            var eyeDir = eyeDirection;
 
             lightDir.Normalize();
             eyeDir.Normalize();
@@ -72,7 +68,7 @@ namespace Libra.Graphics.Toolkit
             CalculateUp(ref lightDir, ref eyeDir, out up);
 
             // 仮ビュー行列。
-            Matrix.CreateLook(ref EyePosition, ref lightDir, ref up, out LightView);
+            Matrix.CreateLook(ref eyePosition, ref lightDir, ref up, out LightView);
 
             // 仮ビュー空間における凸体 B の AABB。
             BoundingBox lightConvexBodyBBox;
@@ -93,7 +89,7 @@ namespace Libra.Graphics.Toolkit
             float f = n + d;
 
             // ビュー行列。
-            var pPosition = EyePosition - up * (n - EyeNearPlaneDistance);
+            var pPosition = eyePosition - up * (n - EyeNearPlaneDistance);
             Matrix.CreateLook(ref pPosition, ref lightDir, ref up, out LightView);
 
             // Y 方向での n と f による透視変換。

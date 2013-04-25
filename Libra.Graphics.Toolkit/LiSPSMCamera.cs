@@ -8,27 +8,7 @@ namespace Libra.Graphics.Toolkit
 {
     public sealed class LiSPSMCamera : FocusedLightCamera
     {
-        static readonly Matrix NormalToLightSpace = new Matrix(
-            1, 0, 0, 0,
-            0, 0, 1, 0,
-            0, -1, 0, 0,
-            0, 0, 0, 1);
-
-        static readonly Matrix LightSpaceToNormal = new Matrix(
-            1, 0, 0, 0,
-            0, 0, -1, 0,
-            0, 1, 0, 0,
-            0, 0, 0, 1);
-
-        public Matrix EyeView;
-
         public float EyeNearPlaneDistance;
-
-        Vector3 eyePosition;
-
-        Vector3 eyeDirection;
-
-        Vector3 eyeUp;
 
         float adjustFactorTweak;
 
@@ -49,7 +29,6 @@ namespace Libra.Graphics.Toolkit
 
         public LiSPSMCamera()
         {
-            EyeView = Matrix.Identity;
             adjustFactorTweak = 1.0f;
             EyeLightDirectionThreshold = 0.9f;
             AdjustFactor = 0.1f;
@@ -57,13 +36,6 @@ namespace Libra.Graphics.Toolkit
 
         public override void Update()
         {
-            Matrix inverseEyeView;
-            Matrix.Invert(ref EyeView, out inverseEyeView);
-
-            eyePosition = inverseEyeView.Translation;
-            eyeDirection = inverseEyeView.Forward;
-            eyeUp = inverseEyeView.Up;
-
             // 標準的なライト空間行列の算出。
             CalculateLightSpace();
 
@@ -75,7 +47,7 @@ namespace Libra.Graphics.Toolkit
             }
 
             float eDotL;
-            Vector3.Dot(ref eyeDirection, ref LightDirection, out eDotL);
+            Vector3.Dot(ref eyeDirection, ref lightDirection, out eDotL);
             if (EyeLightDirectionThreshold <= eDotL)
             {
                 adjustFactorTweak = 1.0f + 20.0f * (eDotL - EyeLightDirectionThreshold) / (1.0f - EyeLightDirectionThreshold);
@@ -95,62 +67,17 @@ namespace Libra.Graphics.Toolkit
             // そのカメラ方向が示すビュー空間へライト空間を変換。
             LightProjection = LightProjection * Matrix.CreateLook(Vector3.Zero, projViewDir, Vector3.UnitY);
 
+            // LiSPSM 射影。
             LightProjection = LightProjection * CalculateLiSPSM(LightView * LightProjection);
 
+            // 単位立方体へ射影。
             LightProjection = LightProjection * TransformToUnitCube(LightView * LightProjection);
 
+            // 軸の変換 (元へ戻す)。
             LightProjection = LightProjection * LightSpaceToNormal;
 
-            // for DirectX clipping space
+            // DirectX クリッピング空間へ変換。
             LightProjection = LightProjection * Matrix.CreateOrthographicOffCenter(-1, 1, -1, 1, -1, 1);
-        }
-
-        void CalculateLightSpace()
-        {
-            // 方向性光源のための行列。
-            Matrix.CreateLook(ref eyePosition, ref LightDirection, ref eyeDirection, out LightView);
-            LightProjection = Matrix.Identity;
-
-            // TODO: 点光源
-        }
-
-        Vector3 getProjViewDir_ls(Matrix lightSpace)
-        {
-            // 
-            var e = getNearCameraPoint_ws();
-            var b = e + eyeDirection;
-
-            // ライト空間へ変換。
-            var e_ls = Vector3.TransformCoordinate(e, lightSpace);
-            var b_ls = Vector3.TransformCoordinate(b, lightSpace);
-
-            var projDir = b_ls - e_ls;
-            projDir.Y = 0.0f;
-
-            return projDir;
-        }
-
-        Vector3 getNearCameraPoint_ws()
-        {
-            if (ConvexBodyBPoints.Count == 0)
-                return Vector3.Zero;
-
-            var nearWorld = ConvexBodyBPoints[0];
-            var nearEye = Vector3.TransformCoordinate(nearWorld, EyeView);
-
-            for (int i = 1; i < ConvexBodyBPoints.Count; i++)
-            {
-                var world = ConvexBodyBPoints[i];
-                var eye = Vector3.TransformCoordinate(world, EyeView);
-
-                if (nearEye.Z < eye.Z)
-                {
-                    nearEye = eye;
-                    nearWorld = world;
-                }
-            }
-
-            return nearWorld;
         }
 
         Matrix CalculateLiSPSM(Matrix lightSpace)
@@ -164,7 +91,7 @@ namespace Libra.Graphics.Toolkit
                 return Matrix.Identity;
             }
 
-            var e_ls = Vector3.TransformCoordinate(getNearCameraPoint_ws(), lightSpace);
+            var e_ls = Vector3.TransformCoordinate(getNearEyePositionWorld(), lightSpace);
 
             var C_start_ls = new Vector3(e_ls.X, e_ls.Y, bodyBBox_ls.Max.Z);
 
@@ -194,7 +121,7 @@ namespace Libra.Graphics.Toolkit
             Matrix inverseLightSpace;
             Matrix.Invert(ref lightSpace, out inverseLightSpace);
 
-            var e_ws = getNearCameraPoint_ws();
+            var e_ws = getNearEyePositionWorld();
             
             var z0_ls = CalculateZ0_ls(lightSpace, e_ws, bodyBBox_ls.Max.Z);
             var z1_ls = new Vector3(z0_ls.X, z0_ls.Y, bodyBBox_ls.Min.Z);
@@ -202,8 +129,8 @@ namespace Libra.Graphics.Toolkit
             var z0_ws = Vector3.TransformCoordinate(z0_ls, inverseLightSpace);
             var z1_ws = Vector3.TransformCoordinate(z1_ls, inverseLightSpace);
 
-            var z0_es = Vector3.TransformCoordinate(z0_ws, EyeView);
-            var z1_es = Vector3.TransformCoordinate(z1_ws, EyeView);
+            var z0_es = Vector3.TransformCoordinate(z0_ws, eyeView);
+            var z1_es = Vector3.TransformCoordinate(z1_ws, eyeView);
 
             var z0 = z0_es.Z;
             var z1 = z1_es.Z;
@@ -271,34 +198,6 @@ namespace Libra.Graphics.Toolkit
             result.M43 = -2.0f * far * near / (far - near);
 
             return result;
-        }
-
-        Matrix TransformToUnitCube(Matrix lightSpace)
-        {
-            var bodyBBox = new BoundingBox();
-            CreateTransformedConvexBodyBBox(ref lightSpace, out bodyBBox);
-
-            Matrix result;
-            CreateTransformToUnitCube(ref bodyBBox.Min, ref bodyBBox.Max, out result);
-
-            return result;
-        }
-
-        void CreateTransformToUnitCube(ref Vector3 min, ref Vector3 max, out Matrix result)
-        {
-            // 即ち glOrtho と等価。
-            // http://msdn.microsoft.com/en-us/library/windows/desktop/dd373965(v=vs.85).aspx
-            // ただし、右手系から左手系への変換を省くために z スケールの符号を反転。
-
-            result = new Matrix();
-
-            result.M11 = 2.0f / (max.X - min.X);
-            result.M22 = 2.0f / (max.Y - min.Y);
-            result.M33 = 2.0f / (max.Z - min.Z);
-            result.M41 = -(max.X + min.X) / (max.X - min.X);
-            result.M42 = -(max.Y + min.Y) / (max.Y - min.Y);
-            result.M43 = -(max.Z + min.Z) / (max.Z - min.Z);
-            result.M44 = 1.0f;
         }
     }
 }
