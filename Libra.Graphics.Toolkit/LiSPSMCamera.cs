@@ -37,7 +37,7 @@ namespace Libra.Graphics.Toolkit
         public override void Update()
         {
             // 標準的なライト空間行列の算出。
-            CalculateLightSpace();
+            CalculateStandardLightSpaceMatrices();
 
             // 凸体 B が空の場合は生成する影が無いため、
             // 算出された行列をそのまま利用。
@@ -57,27 +57,42 @@ namespace Libra.Graphics.Toolkit
                 adjustFactorTweak = 1.0f;
             }
 
+            Matrix currentLS;
+
             // 軸の変換。
             // y -> -z
             // z -> y
             LightProjection = LightProjection * NormalToLightSpace;
 
-            // ライト空間におけるカメラ方向を算出。
-            var projViewDir = getProjViewDir_ls(LightView * LightProjection);
-            // そのカメラ方向が示すビュー空間へライト空間を変換。
-            LightProjection = LightProjection * Matrix.CreateLook(Vector3.Zero, projViewDir, Vector3.UnitY);
+            // ライト空間におけるカメラ方向へ変換。
+            Matrix look;
+            Vector3 lookPosition = Vector3.Zero;
+            Vector3 lookUp = Vector3.Up;
+            Vector3 lookDirection;
+
+            Matrix.Multiply(ref LightView, ref LightProjection, out currentLS);
+            GetCameraDirectionLS(ref currentLS, out lookDirection);
+            Matrix.CreateLook(ref lookPosition, ref lookDirection, ref lookUp, out look);
+
+            LightProjection = LightProjection * look;
 
             // LiSPSM 射影。
-            LightProjection = LightProjection * CalculateLiSPSM(LightView * LightProjection);
+            Matrix.Multiply(ref LightView, ref LightProjection, out currentLS);
+            LightProjection = LightProjection * CalculateLiSPSM(currentLS);
 
             // 単位立方体へ射影。
-            LightProjection = LightProjection * TransformToUnitCube(LightView * LightProjection);
+            Matrix.Multiply(ref LightView, ref LightProjection, out currentLS);
+            Matrix toUnitCube;
+            CreateTransformToUnitCube(ref currentLS, out toUnitCube);
+            LightProjection = LightProjection * toUnitCube;
 
             // 軸の変換 (元へ戻す)。
             LightProjection = LightProjection * LightSpaceToNormal;
 
             // DirectX クリッピング空間へ変換。
-            LightProjection = LightProjection * Matrix.CreateOrthographicOffCenter(-1, 1, -1, 1, -1, 1);
+            Matrix clipping;
+            Matrix.CreateOrthographicOffCenter(-1, 1, -1, 1, -1, 1, out clipping);
+            LightProjection = LightProjection * clipping;
         }
 
         Matrix CalculateLiSPSM(Matrix lightSpace)
@@ -91,9 +106,12 @@ namespace Libra.Graphics.Toolkit
                 return Matrix.Identity;
             }
 
-            var e_ls = Vector3.TransformCoordinate(getNearEyePositionWorld(), lightSpace);
+            Vector3 cameraPointWS;
+            GetNearCameraPointWS(out cameraPointWS);
 
-            var C_start_ls = new Vector3(e_ls.X, e_ls.Y, bodyBBox_ls.Max.Z);
+            var cameraPointLS = Vector3.TransformCoordinate(cameraPointWS, lightSpace);
+
+            var C_start_ls = new Vector3(cameraPointLS.X, cameraPointLS.Y, bodyBBox_ls.Max.Z);
 
             var C = C_start_ls + n * Vector3.UnitZ;
 
@@ -121,7 +139,8 @@ namespace Libra.Graphics.Toolkit
             Matrix inverseLightSpace;
             Matrix.Invert(ref lightSpace, out inverseLightSpace);
 
-            var e_ws = getNearEyePositionWorld();
+            Vector3 e_ws;
+            GetNearCameraPointWS(out e_ws);
             
             var z0_ls = CalculateZ0_ls(lightSpace, e_ws, bodyBBox_ls.Max.Z);
             var z1_ls = new Vector3(z0_ls.X, z0_ls.Y, bodyBBox_ls.Min.Z);

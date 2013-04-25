@@ -137,7 +137,7 @@ namespace Libra.Graphics.Toolkit
         public override void Update()
         {
             // 標準的なライト空間行列の算出。
-            CalculateLightSpace();
+            CalculateStandardLightSpaceMatrices();
 
             // 凸体 B が空の場合は生成する影が無いため、
             // 算出された行列をそのまま利用。
@@ -146,25 +146,33 @@ namespace Libra.Graphics.Toolkit
                 return;
             }
 
-            // 軸の変換。
-            LightProjection = LightProjection * NormalToLightSpace;
+            Matrix lightSpace;
+            Matrix transform;
 
-            // ライト空間におけるカメラ方向を算出。
-            var projViewDir = getProjViewDir_ls(LightView * LightProjection);
-            // そのカメラ方向が示すビュー空間へライト空間を変換。
-            LightProjection = LightProjection * Matrix.CreateLook(Vector3.Zero, projViewDir, Vector3.Up);
+            // 軸の変換。
+            transform = NormalToLightSpace;
+            TransformLightProjection(ref transform);
+
+            // ライト空間におけるカメラ方向へ変換。
+            CreateCurrentLightSpace(out lightSpace);
+            CreateLightLook(ref lightSpace, out transform);
+            TransformLightProjection(ref transform);
 
             // 単位立方体へ射影。
-            LightProjection = LightProjection * TransformToUnitCube(LightView * LightProjection);
+            CreateCurrentLightSpace(out lightSpace);
+            CreateTransformToUnitCube(ref lightSpace, out transform);
+            TransformLightProjection(ref transform);
 
             // 軸の変換 (元へ戻す)。
-            LightProjection = LightProjection * LightSpaceToNormal;
+            transform = LightSpaceToNormal;
+            TransformLightProjection(ref transform);
 
             // DirectX クリッピング空間へ変換。
-            LightProjection = LightProjection * Matrix.CreateOrthographicOffCenter(-1, 1, -1, 1, -1, 1);
+            Matrix.CreateOrthographicOffCenter(-1, 1, -1, 1, -1, 1, out transform);
+            TransformLightProjection(ref transform);
         }
 
-        protected void CalculateLightSpace()
+        protected void CalculateStandardLightSpaceMatrices()
         {
             // 方向性光源のための行列。
             Matrix.CreateLook(ref eyePosition, ref lightDirection, ref eyeDirection, out LightView);
@@ -173,53 +181,76 @@ namespace Libra.Graphics.Toolkit
             // TODO: 点光源
         }
 
-        protected Vector3 getNearEyePositionWorld()
+        protected void CreateCurrentLightSpace(out Matrix result)
+        {
+            Matrix.Multiply(ref LightView, ref LightProjection, out result);
+        }
+
+        protected void CreateLightLook(ref Matrix lightSpace, out Matrix result)
+        {
+            Vector3 lookPosition = Vector3.Zero;
+            Vector3 lookUp = Vector3.Up;
+            Vector3 lookDirection;
+
+            GetCameraDirectionLS(ref lightSpace, out lookDirection);
+            Matrix.CreateLook(ref lookPosition, ref lookDirection, ref lookUp, out result);
+        }
+
+        protected void GetNearCameraPointWS(out Vector3 result)
         {
             if (ConvexBodyBPoints.Count == 0)
-                return Vector3.Zero;
+            {
+                result = Vector3.Zero;
+                return;
+            }
 
-            var nearWorld = ConvexBodyBPoints[0];
-            var nearEye = Vector3.TransformCoordinate(nearWorld, eyeView);
+            Vector3 nearWS = ConvexBodyBPoints[0];
+            Vector3 nearES;
+            Vector3.TransformCoordinate(ref nearWS, ref eyeView, out nearES);
 
             for (int i = 1; i < ConvexBodyBPoints.Count; i++)
             {
-                var world = ConvexBodyBPoints[i];
-                var eye = Vector3.TransformCoordinate(world, eyeView);
+                Vector3 pointWS = ConvexBodyBPoints[i];
+                Vector3 pointES;
+                Vector3.TransformCoordinate(ref pointWS, ref eyeView, out pointES);
 
-                if (nearEye.Z < eye.Z)
+                if (nearES.Z < pointES.Z)
                 {
-                    nearEye = eye;
-                    nearWorld = world;
+                    nearES = pointES;
+                    nearWS = pointWS;
                 }
             }
 
-            return nearWorld;
+            result = nearWS;
         }
 
-        protected Vector3 getProjViewDir_ls(Matrix lightSpace)
+        protected void GetCameraDirectionLS(ref Matrix lightSpace, out Vector3 result)
         {
-            var e = getNearEyePositionWorld();
-            var b = e + eyeDirection;
+            Vector3 a;
+            Vector3 b;
+
+            GetNearCameraPointWS(out a);
+            b = a + eyeDirection;
 
             // ライト空間へ変換。
-            var e_ls = Vector3.TransformCoordinate(e, lightSpace);
-            var b_ls = Vector3.TransformCoordinate(b, lightSpace);
+            Vector3 aLS;
+            Vector3 bLS;
+            Vector3.TransformCoordinate(ref a, ref lightSpace, out aLS);
+            Vector3.TransformCoordinate(ref b, ref lightSpace, out bLS);
 
-            var projDir = b_ls - e_ls;
-            projDir.Y = 0.0f;
-
-            return projDir;
+            // 方向。
+            result = bLS - aLS;
+            
+            // xz 平面 (シャドウ マップ) と平行に。
+            result.Y = 0.0f;
         }
 
-        protected Matrix TransformToUnitCube(Matrix lightSpace)
+        protected void CreateTransformToUnitCube(ref Matrix lightSpace, out Matrix result)
         {
-            var bodyBBox = new BoundingBox();
+            BoundingBox bodyBBox;
             CreateTransformedConvexBodyBBox(ref lightSpace, out bodyBBox);
 
-            Matrix result;
             CreateTransformToUnitCube(ref bodyBBox.Min, ref bodyBBox.Max, out result);
-
-            return result;
         }
 
         void CreateTransformToUnitCube(ref Vector3 min, ref Vector3 max, out Matrix result)
@@ -239,7 +270,7 @@ namespace Libra.Graphics.Toolkit
             result.M44 = 1.0f;
         }
 
-        protected void CreateTransformedConvexBodyBBox(ref Matrix transform, out BoundingBox result)
+        protected void CreateTransformedConvexBodyBBox(ref Matrix matrix, out BoundingBox result)
         {
             result = new BoundingBox();
             for (int i = 0; i < ConvexBodyBPoints.Count; i++)
@@ -247,10 +278,18 @@ namespace Libra.Graphics.Toolkit
                 var point = ConvexBodyBPoints[i];
 
                 Vector3 transformed;
-                Vector3.TransformCoordinate(ref point, ref transform, out transformed);
+                Vector3.TransformCoordinate(ref point, ref matrix, out transformed);
 
                 result.Merge(ref transformed);
             }
+        }
+
+        protected void TransformLightProjection(ref Matrix matrix)
+        {
+            Matrix result;
+            Matrix.Multiply(ref LightProjection, ref matrix, out result);
+
+            LightProjection = result;
         }
     }
 }
