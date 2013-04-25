@@ -25,10 +25,17 @@ namespace Libra
             D = d;
         }
 
-        public Plane(Vector3 value, float d)
+        public Plane(Vector3 normal, float d)
         {
-            Normal = value;
+            Normal = normal;
             D = d;
+        }
+
+        // 法線が normal、点 point を含む平面。
+        public Plane(Vector3 normal, Vector3 point)
+        {
+            Normal = normal;
+            Vector3.Dot(ref normal, ref point, out D);
         }
 
         public Plane(Vector3 point1, Vector3 point2, Vector3 point3)
@@ -184,7 +191,14 @@ namespace Libra
             result.D = plane.D * factor;
         }
 
-        public static void Transform(ref Plane plane, ref Matrix transformation, out Plane result)
+        public static Plane Transform(Plane plane, Matrix matrix)
+        {
+            Plane result;
+            Transform(ref plane, ref matrix, out result);
+            return result;
+        }
+
+        public static void Transform(ref Plane plane, ref Matrix matrix, out Plane result)
         {
             float x = plane.Normal.X;
             float y = plane.Normal.Y;
@@ -192,19 +206,12 @@ namespace Libra
             float d = plane.D;
 
             Matrix inverse;
-            Matrix.Invert(ref transformation, out inverse);
+            Matrix.Invert(ref matrix, out inverse);
 
             result.Normal.X = x * inverse.M11 + y * inverse.M12 + z * inverse.M13 + d * inverse.M14;
             result.Normal.Y = x * inverse.M21 + y * inverse.M22 + z * inverse.M23 + d * inverse.M24;
             result.Normal.Z = x * inverse.M31 + y * inverse.M32 + z * inverse.M33 + d * inverse.M34;
             result.D = x * inverse.M41 + y * inverse.M42 + z * inverse.M43 + d * inverse.M44;
-        }
-
-        public static Plane Transform(Plane plane, Matrix transformation)
-        {
-            Plane result;
-            Transform(ref plane, ref transformation, out result);
-            return result;
         }
 
         public static Plane Transform(Plane plane, Quaternion rotation)
