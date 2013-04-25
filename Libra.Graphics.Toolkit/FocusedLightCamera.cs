@@ -120,15 +120,22 @@ namespace Libra.Graphics.Toolkit
                 }
             }
 
+            var ray = new Ray();
+            ray.Direction = lightDirection;
+
             int count = ConvexBodyBPoints.Count;
             for (int i = 0; i < count; i++)
             {
-                var ray = new Ray(ConvexBodyBPoints[i], lightDirection);
+                ray.Position = ConvexBodyBPoints[i];
+
                 float? intersect;
                 ray.Intersects(ref sceneBox, out intersect);
+                
                 if (intersect != null)
                 {
-                    var newPoint = ray.Position + ray.Direction * intersect.Value;
+                    Vector3 newPoint;
+                    ray.GetPoint(intersect.Value, out newPoint);
+
                     ConvexBodyBPoints.Add(newPoint);
                 }
             }
