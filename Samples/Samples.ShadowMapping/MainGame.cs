@@ -150,7 +150,11 @@ namespace Samples.ShadowMapping
 
         Model dudeModel;
 
-        Vector3[] frustumCorners;
+        ConvexBody bodyB;
+
+        BoundingBox sceneBox;
+
+        Vector3[] corners;
 
         float rotateDude = 0.0f;
 
@@ -169,6 +173,8 @@ namespace Samples.ShadowMapping
         BasicLightCamera basicLightCamera;
 
         LiSPSMCamera lispsmCamera;
+
+        OldLiSPSMCamera oldLispsmCamera;
 
         Matrix lightViewProjection;
 
@@ -191,6 +197,8 @@ namespace Samples.ShadowMapping
             basicLightCamera = new BasicLightCamera();
             lispsmCamera = new LiSPSMCamera();
             lispsmCamera.EyeNearPlaneDistance = 1.0f;
+            oldLispsmCamera = new OldLiSPSMCamera();
+            oldLispsmCamera.EyeNearPlaneDistance = 1.0f;
 
             shadowMapEffectForm = ShadowMapEffectForm.Variance;
         }
@@ -206,7 +214,9 @@ namespace Samples.ShadowMapping
             gridModel = content.Load<Model>("grid");
             dudeModel = content.Load<Model>("dude");
 
-            frustumCorners = new Vector3[BoundingFrustum.CornerCount];
+            corners = new Vector3[8];
+            bodyB = new ConvexBody();
+            sceneBox = new BoundingBox(new Vector3(-200), new Vector3(200));
 
             bsmRenderTarget = Device.CreateRenderTarget();
             bsmRenderTarget.Width = shadowMapWidthHeight;
@@ -273,21 +283,36 @@ namespace Samples.ShadowMapping
             basicLightCamera.EyeProjection = projection;
 
             lispsmCamera.LightDirection = -lightDir;
-            lispsmCamera.EyePosition = cameraPosition;
-            lispsmCamera.EyeDirection = cameraForward;
+            lispsmCamera.EyeView = view;
+
+            oldLispsmCamera.LightDirection = -lightDir;
+            oldLispsmCamera.EyePosition = cameraPosition;
+            oldLispsmCamera.EyeDirection = cameraForward;
 
             // シンプルさのために視錐台を凸体 B として設定。
-            cameraFrustum.GetCorners(frustumCorners);
-            lispsmCamera.SetConvexBodyBPoints(frustumCorners);
+            cameraFrustum.GetCorners(corners);
+            //BoundingBox.CreateFromPoints(corners, out sceneBox);
+            //sceneBox.GetCorners(corners);
+            lispsmCamera.SetConvexBodyBPoints(corners);
+            oldLispsmCamera.SetConvexBodyBPoints(corners);
+
+            // 実際にはシーン AABB を明示した方が綺麗になる。
+            // 視錐台そのままでは、カメラとライトが平行に近づく場合に大きく劣化する。
+            //bodyB.Define(cameraFrustum);
+            //bodyB.Clip(sceneBox);
+            //lispsmCamera.SetConvexBodyB(bodyB, sceneBox);
+            //oldLispsmCamera.SetConvexBodyB(bodyB, sceneBox);
 
             //lispsmCamera.UseLiSPSM = false;
 
             basicLightCamera.Update();
             lispsmCamera.Update();
+            oldLispsmCamera.Update();
 
             Matrix lightViewProjection;
             //Matrix.Multiply(ref basicLightCamera.LightView, ref basicLightCamera.LightProjection, out lightViewProjection);
             Matrix.Multiply(ref lispsmCamera.LightView, ref lispsmCamera.LightProjection, out lightViewProjection);
+            //Matrix.Multiply(ref oldLispsmCamera.LightView, ref oldLispsmCamera.LightProjection, out lightViewProjection);
 
             return lightViewProjection;
         }

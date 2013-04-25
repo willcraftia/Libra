@@ -12,9 +12,7 @@ namespace Libra.Graphics.Toolkit
         // 光の方向 (光源からの光の進行方向)
         public Vector3 LightDirection;
 
-        List<Vector3> convexBodyBPoints;
-
-        List<Vector3> transformedConvexBodyBPoints;
+        protected List<Vector3> ConvexBodyBPoints { get; private set; }
 
         Vector3[] corners;
 
@@ -22,23 +20,22 @@ namespace Libra.Graphics.Toolkit
         {
             LightDirection = Vector3.Down;
             corners = new Vector3[BoundingBox.CornerCount];
-            convexBodyBPoints = new List<Vector3>();
-            transformedConvexBodyBPoints = new List<Vector3>();
+            ConvexBodyBPoints = new List<Vector3>();
         }
 
         public void SetConvexBodyBPoints(IEnumerable<Vector3> points)
         {
             if (points == null) throw new ArgumentNullException("points");
 
-            convexBodyBPoints.Clear();
+            ConvexBodyBPoints.Clear();
 
             foreach (var point in points)
-                convexBodyBPoints.Add(point);
+                ConvexBodyBPoints.Add(point);
         }
 
         public void SetConvexBodyB(ConvexBody convexBodyB, BoundingBox sceneBox)
         {
-            convexBodyBPoints.Clear();
+            ConvexBodyBPoints.Clear();
 
             for (int ip = 0; ip < convexBodyB.Polygons.Count; ip++)
             {
@@ -46,20 +43,20 @@ namespace Libra.Graphics.Toolkit
 
                 for (int iv = 0; iv < polygon.Vertices.Count; iv++)
                 {
-                    convexBodyBPoints.Add(polygon.Vertices[iv]);
+                    ConvexBodyBPoints.Add(polygon.Vertices[iv]);
                 }
             }
 
-            int count = convexBodyBPoints.Count;
+            int count = ConvexBodyBPoints.Count;
             for (int i = 0; i < count; i++)
             {
-                var ray = new Ray(convexBodyBPoints[i], LightDirection);
+                var ray = new Ray(ConvexBodyBPoints[i], LightDirection);
                 float? intersect;
                 ray.Intersects(ref sceneBox, out intersect);
                 if (intersect != null)
                 {
                     var newPoint = ray.Position + ray.Direction * intersect.Value;
-                    convexBodyBPoints.Add(newPoint);
+                    ConvexBodyBPoints.Add(newPoint);
                 }
             }
         }
@@ -105,29 +102,15 @@ namespace Libra.Graphics.Toolkit
             Matrix.CreateOrthographic(boxSize.X, boxSize.Y, -boxSize.Z, boxSize.Z, out LightProjection);
 
             // クリア。
-            convexBodyBPoints.Clear();
+            ConvexBodyBPoints.Clear();
         }
 
         protected void CreateTransformedConvexBodyBBox(ref Matrix transform, out BoundingBox result)
         {
-            TransformConvexBodyBPoints(ref transform);
-            BoundingBox.CreateFromPoints(transformedConvexBodyBPoints, out result);
-        }
-
-        void TransformConvexBodyBPoints(ref Matrix matrix)
-        {
-            transformedConvexBodyBPoints.Clear();
-
-            int count = convexBodyBPoints.Count;
-
-            for (int i = 0; i < count; i++)
+            result = new BoundingBox();
+            for (int i = 0; i < ConvexBodyBPoints.Count; i++)
             {
-                var source = convexBodyBPoints[i];
-
-                Vector3 destination;
-                Vector3.TransformCoordinate(ref source, ref matrix, out destination);
-
-                transformedConvexBodyBPoints.Add(destination);
+                result.Merge(Vector3.TransformCoordinate(ConvexBodyBPoints[i], transform));
             }
         }
     }
