@@ -8,13 +8,13 @@ namespace Libra.Graphics.Toolkit
 {
     public sealed class LiSPSMCamera : FocusedLightCamera
     {
-        public float EyeNearPlaneDistance;
+        float adjustNFactorTweak;
 
-        float adjustFactorTweak;
+        public float EyeNearPlaneDistance { get; set; }
 
         public float EyeLightDirectionThreshold { get; set; }
 
-        public float AdjustFactor { get; set; }
+        public float AdjustNFactor { get; set; }
 
         /// <summary>
         /// 明示した N 値を使用するか否かを示す値を取得または設定します。
@@ -29,9 +29,9 @@ namespace Libra.Graphics.Toolkit
 
         public LiSPSMCamera()
         {
-            adjustFactorTweak = 1.0f;
+            adjustNFactorTweak = 1.0f;
             EyeLightDirectionThreshold = 0.9f;
-            AdjustFactor = 0.1f;
+            AdjustNFactor = 0.1f;
         }
 
         public override void Update()
@@ -46,155 +46,170 @@ namespace Libra.Graphics.Toolkit
                 return;
             }
 
+            CalculateAdjustNFactorTweak();
+
+            Matrix lightSpace;
+            Matrix transform;
+
+            // 軸の変換。
+            transform = NormalToLightSpace;
+            TransformLightProjection(ref transform);
+
+            // ライト空間におけるカメラ方向へ変換。
+            CreateCurrentLightSpace(out lightSpace);
+            CreateLightLook(ref lightSpace, out transform);
+            TransformLightProjection(ref transform);
+
+            // LiSPSM 射影。
+            CreateCurrentLightSpace(out lightSpace);
+            CreateLiSPSMProjection(ref lightSpace, out transform);
+            TransformLightProjection(ref transform);
+
+            // 単位立方体へ射影。
+            CreateCurrentLightSpace(out lightSpace);
+            CreateTransformToUnitCube(ref lightSpace, out transform);
+            TransformLightProjection(ref transform);
+
+            // 軸の変換 (元へ戻す)。
+            transform = LightSpaceToNormal;
+            TransformLightProjection(ref transform);
+
+            // DirectX クリッピング空間へ変換。
+            Matrix.CreateOrthographicOffCenter(-1, 1, -1, 1, -1, 1, out transform);
+            TransformLightProjection(ref transform);
+        }
+
+        void CalculateAdjustNFactorTweak()
+        {
             float eDotL;
             Vector3.Dot(ref eyeDirection, ref lightDirection, out eDotL);
+
             if (EyeLightDirectionThreshold <= eDotL)
             {
-                adjustFactorTweak = 1.0f + 20.0f * (eDotL - EyeLightDirectionThreshold) / (1.0f - EyeLightDirectionThreshold);
+                adjustNFactorTweak = 1.0f + 20.0f * (eDotL - EyeLightDirectionThreshold) / (1.0f - EyeLightDirectionThreshold);
             }
             else
             {
-                adjustFactorTweak = 1.0f;
+                adjustNFactorTweak = 1.0f;
             }
-
-            Matrix currentLS;
-
-            // 軸の変換。
-            // y -> -z
-            // z -> y
-            LightProjection = LightProjection * NormalToLightSpace;
-
-            // ライト空間におけるカメラ方向へ変換。
-            Matrix look;
-            Vector3 lookPosition = Vector3.Zero;
-            Vector3 lookUp = Vector3.Up;
-            Vector3 lookDirection;
-
-            Matrix.Multiply(ref LightView, ref LightProjection, out currentLS);
-            GetCameraDirectionLS(ref currentLS, out lookDirection);
-            Matrix.CreateLook(ref lookPosition, ref lookDirection, ref lookUp, out look);
-
-            LightProjection = LightProjection * look;
-
-            // LiSPSM 射影。
-            Matrix.Multiply(ref LightView, ref LightProjection, out currentLS);
-            LightProjection = LightProjection * CalculateLiSPSM(currentLS);
-
-            // 単位立方体へ射影。
-            Matrix.Multiply(ref LightView, ref LightProjection, out currentLS);
-            Matrix toUnitCube;
-            CreateTransformToUnitCube(ref currentLS, out toUnitCube);
-            LightProjection = LightProjection * toUnitCube;
-
-            // 軸の変換 (元へ戻す)。
-            LightProjection = LightProjection * LightSpaceToNormal;
-
-            // DirectX クリッピング空間へ変換。
-            Matrix clipping;
-            Matrix.CreateOrthographicOffCenter(-1, 1, -1, 1, -1, 1, out clipping);
-            LightProjection = LightProjection * clipping;
         }
 
-        Matrix CalculateLiSPSM(Matrix lightSpace)
+        void CreateLiSPSMProjection(ref Matrix lightSpace, out Matrix result)
         {
-            BoundingBox bodyBBox_ls;
-            CreateTransformedConvexBodyBBox(ref lightSpace, out bodyBBox_ls);
+            BoundingBox bodyBBoxLS;
+            CreateTransformedConvexBodyBBox(ref lightSpace, out bodyBBoxLS);
 
-            var n = CalculateN(lightSpace, bodyBBox_ls);
+            // 錐台 P の n (近平面)。
+            var n = CalculateN(ref lightSpace, ref bodyBBoxLS);
             if (n <= 0.0f)
             {
-                return Matrix.Identity;
+                result = Matrix.Identity;
+                return;
             }
+
+            // 錐台 P の d (近平面から遠平面までの距離)。
+            var d = Math.Abs(bodyBBoxLS.Max.Z - bodyBBoxLS.Min.Z);
 
             Vector3 cameraPointWS;
             GetNearCameraPointWS(out cameraPointWS);
 
-            var cameraPointLS = Vector3.TransformCoordinate(cameraPointWS, lightSpace);
+            Vector3 cameraPointLS;
+            Vector3.TransformCoordinate(ref cameraPointWS, ref lightSpace, out cameraPointLS);
 
-            var C_start_ls = new Vector3(cameraPointLS.X, cameraPointLS.Y, bodyBBox_ls.Max.Z);
+            // 錐台 P の視点位置。
+            var pPositionBase = new Vector3(cameraPointLS.X, cameraPointLS.Y, bodyBBoxLS.Max.Z);
+            var pPosition = pPositionBase + n * Vector3.UnitZ;
 
-            var C = C_start_ls + n * Vector3.UnitZ;
+            // 錐台 P の視点位置への移動行列。
+            var pTranslation = Matrix.CreateTranslation(-pPosition);
 
-            var lightSpaceTranslation = Matrix.CreateTranslation(-C);
+            // 錐台 P の透視射影。
+            Matrix pPerspective;
+            CreatePerspective(-1, 1, -1, 1, n + d, n, out pPerspective);
 
-            var d = Math.Abs(bodyBBox_ls.Max.Z - bodyBBox_ls.Min.Z);
-
-            Matrix P = BuildFrustumProjection(-1, 1, -1, 1, n + d, n);
-
-            return lightSpaceTranslation * P;
+            // 最終的な LiSPSM 射影行列。
+            Matrix.Multiply(ref pTranslation, ref pPerspective, out result);
         }
 
-        float CalculateN(Matrix lightSpace, BoundingBox bodyBBox_ls)
+        float CalculateN(ref Matrix lightSpace, ref BoundingBox bodyBBoxLS)
         {
             if (UseExplicitN)
             {
                 return ExplicitN;
             }
 
-            return CalculateNGeneral(lightSpace, bodyBBox_ls);
+            return CalculateNGeneral(ref lightSpace, ref bodyBBoxLS);
         }
 
-        float CalculateNGeneral(Matrix lightSpace, BoundingBox bodyBBox_ls)
+        float CalculateNGeneral(ref Matrix lightSpace, ref BoundingBox bodyBBoxLS)
         {
             Matrix inverseLightSpace;
             Matrix.Invert(ref lightSpace, out inverseLightSpace);
 
-            Vector3 e_ws;
-            GetNearCameraPointWS(out e_ws);
-            
-            var z0_ls = CalculateZ0_ls(lightSpace, e_ws, bodyBBox_ls.Max.Z);
-            var z1_ls = new Vector3(z0_ls.X, z0_ls.Y, bodyBBox_ls.Min.Z);
+            Vector3 cameraWS;
+            GetNearCameraPointWS(out cameraWS);
 
-            var z0_ws = Vector3.TransformCoordinate(z0_ls, inverseLightSpace);
-            var z1_ws = Vector3.TransformCoordinate(z1_ls, inverseLightSpace);
+            // z0 と z1 の算出。
 
-            var z0_es = Vector3.TransformCoordinate(z0_ws, eyeView);
-            var z1_es = Vector3.TransformCoordinate(z1_ws, eyeView);
+            // ライト空間。
+            Vector3 z0LS;
+            Vector3 z1LS;
+            CalculateZ0LS(ref lightSpace, ref cameraWS, ref bodyBBoxLS, out z0LS);
+            z1LS = new Vector3(z0LS.X, z0LS.Y, bodyBBoxLS.Min.Z);
 
-            var z0 = z0_es.Z;
-            var z1 = z1_es.Z;
-            var d = Math.Abs(bodyBBox_ls.Max.Z - bodyBBox_ls.Min.Z);
+            // ワールド空間。
+            Vector3 z0WS;
+            Vector3 z1WS;
+            Vector3.TransformCoordinate(ref z0LS, ref inverseLightSpace, out z0WS);
+            Vector3.TransformCoordinate(ref z1LS, ref inverseLightSpace, out z1WS);
 
-            // TODO
-            // 一応、ゼロ除算の回避が必要なのでは？
-            //return d / ((float) Math.Sqrt(z1 / z0) - 1.0f);
+            // 表示カメラ空間。
+            Vector3 z0ES;
+            Vector3 z1ES;
+            Vector3.TransformCoordinate(ref z0WS, ref eyeView, out z0ES);
+            Vector3.TransformCoordinate(ref z1WS, ref eyeView, out z1ES);
+
+            var z0 = z0ES.Z;
+            var z1 = z1ES.Z;
 
             if ((z0 < 0 && 0 < z1) || (z1 < 0 && 0 < z0))
                 return 0.0f;
 
-            return EyeNearPlaneDistance + (float) Math.Sqrt(z0 * z1) * AdjustFactor * adjustFactorTweak;
+            return EyeNearPlaneDistance + (float) Math.Sqrt(z0 * z1) * AdjustNFactor * adjustNFactorTweak;
         }
 
-        Vector3 CalculateZ0_ls(Matrix lightSpace, Vector3 e, float bodyB_zMax_ls)
+        void CalculateZ0LS(ref Matrix lightSpace, ref Vector3 cameraWS, ref BoundingBox bodyBBoxLS, out Vector3 result)
         {
-            var plane = new Plane(eyeDirection, e);
-            plane = Plane.Transform(plane, lightSpace);
+            var plane = new Plane(eyeDirection, cameraWS);
+            Plane.Transform(ref plane, ref lightSpace, out plane);
 
-            var e_ls = Vector3.TransformCoordinate(e, lightSpace);
-            var ray = new Ray(new Vector3(e_ls.X, 0.0f, bodyB_zMax_ls), Vector3.UnitY);
+            Vector3 cameraLS;
+            Vector3.TransformCoordinate(ref cameraWS, ref lightSpace, out cameraLS);
+
+            var ray = new Ray(new Vector3(cameraLS.X, 0.0f, bodyBBoxLS.Max.Z), Vector3.UnitY);
             var intersect = ray.Intersects(plane);
 
             if (intersect != null)
             {
-                return ray.GetPoint(intersect.Value);
+                ray.GetPoint(intersect.Value, out result);
             }
             else
             {
-                ray = new Ray(new Vector3(e_ls.X, 0.0f, bodyB_zMax_ls), -Vector3.UnitY);
+                ray.Direction = -Vector3.UnitY;
                 intersect = ray.Intersects(plane);
 
                 if (intersect != null)
                 {
-                    return ray.GetPoint(intersect.Value);
+                    ray.GetPoint(intersect.Value, out result);
                 }
                 else
                 {
-                    return Vector3.Zero;
+                    result = Vector3.Zero;
                 }
             }
         }
 
-        Matrix BuildFrustumProjection(float left, float right, float bottom, float top, float near, float far)
+        void CreatePerspective(float left, float right, float bottom, float top, float near, float far, out Matrix result)
         {
             // 即ち、glFrustum。XNA CreatePerspectiveOffCenter に相当。
             // http://msdn.microsoft.com/ja-jp/library/windows/desktop/dd373537(v=vs.85).aspx
@@ -202,11 +217,7 @@ namespace Libra.Graphics.Toolkit
             // ただし、右手系から左手系への変換を省くために z の符号を反転。
             // このため、呼び出し側での near と far の指定に注意 (これも逆転が必要)。
 
-            var result = new Matrix();
-
-            // TODO
-            // 行列の演算順を逆転させているので、
-            // オリジナルや Ogre の転置としているが、あっているか？
+            result = new Matrix();
 
             result.M11 = 2.0f * near / (right - left);
             result.M22 = 2.0f * near / (top - bottom);
@@ -215,8 +226,6 @@ namespace Libra.Graphics.Toolkit
             result.M33 = -(far + near) / (far - near);
             result.M34 = -1.0f;
             result.M43 = -2.0f * far * near / (far - near);
-
-            return result;
         }
     }
 }
