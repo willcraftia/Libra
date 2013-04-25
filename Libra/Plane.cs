@@ -35,7 +35,9 @@ namespace Libra
         public Plane(Vector3 normal, Vector3 point)
         {
             Normal = normal;
+
             Vector3.Dot(ref normal, ref point, out D);
+            D = -D;
         }
 
         public Plane(Vector3 point1, Vector3 point2, Vector3 point3)
