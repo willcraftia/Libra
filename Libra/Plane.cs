@@ -214,6 +214,8 @@ namespace Libra
             result.Normal.Y = x * inverse.M21 + y * inverse.M22 + z * inverse.M23 + d * inverse.M24;
             result.Normal.Z = x * inverse.M31 + y * inverse.M32 + z * inverse.M33 + d * inverse.M34;
             result.D = x * inverse.M41 + y * inverse.M42 + z * inverse.M43 + d * inverse.M44;
+
+            result.Normalize();
         }
 
         public static Plane Transform(Plane plane, Quaternion rotation)
