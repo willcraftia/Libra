@@ -202,19 +202,24 @@ namespace Libra
 
         public static void Transform(ref Plane plane, ref Matrix matrix, out Plane result)
         {
+            // 通常、平面の変換では、与えられた変換行列の逆行列の転置行列を用いる。
+
             float x = plane.Normal.X;
             float y = plane.Normal.Y;
             float z = plane.Normal.Z;
             float d = plane.D;
 
+            // 逆行列。
             Matrix inverse;
             Matrix.Invert(ref matrix, out inverse);
 
+            // 転置行列は演算順で対応。
             result.Normal.X = x * inverse.M11 + y * inverse.M12 + z * inverse.M13 + d * inverse.M14;
             result.Normal.Y = x * inverse.M21 + y * inverse.M22 + z * inverse.M23 + d * inverse.M24;
             result.Normal.Z = x * inverse.M31 + y * inverse.M32 + z * inverse.M33 + d * inverse.M34;
             result.D = x * inverse.M41 + y * inverse.M42 + z * inverse.M43 + d * inverse.M44;
 
+            // 正規化。
             result.Normalize();
         }
 
