@@ -26,22 +26,22 @@ namespace Libra.Graphics.Toolkit
             0,  0,  0,  1);
 
         /// <summary>
-        /// 視点カメラの位置。
+        /// 表示カメラの位置。
         /// </summary>
         protected Vector3 eyePosition;
 
         /// <summary>
-        /// 視点カメラの方向。
+        /// 表示カメラの方向。
         /// </summary>
         protected Vector3 eyeDirection;
 
         /// <summary>
-        /// 視点カメラの UP ベクトル。
+        /// 表示カメラの UP ベクトル。
         /// </summary>
         protected Vector3 eyeUp;
 
         /// <summary>
-        /// 視点カメラのビュー行列。
+        /// 表示カメラのビュー行列。
         /// </summary>
         protected Matrix eyeView;
 
@@ -49,10 +49,10 @@ namespace Libra.Graphics.Toolkit
         protected Vector3 lightDirection;
 
         /// <summary>
-        /// 視点カメラのビュー行列を取得または設定します。
+        /// 表示カメラのビュー行列を取得または設定します。
         /// </summary>
         /// <remarks>
-        /// ビュー行列の設定では、その逆行列から視点カメラ位置、方向、UP ベクトルが抽出されます。
+        /// ビュー行列の設定では、その逆行列から表示カメラ位置、方向、UP ベクトルが抽出されます。
         /// </remarks>
         public Matrix EyeView
         {
