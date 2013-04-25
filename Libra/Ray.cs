@@ -23,6 +23,21 @@ namespace Libra
             Direction = direction;
         }
 
+        public Vector3 GetPoint(float size)
+        {
+            Vector3 result;
+            GetPoint(size, out result);
+            return result;
+        }
+
+        public void GetPoint(float size, out Vector3 result)
+        {
+            Vector3 vector;
+            Vector3.Multiply(ref Direction, size, out vector);
+
+            Vector3.Add(ref Position, ref vector, out result);
+        }
+
         public float? Intersects(BoundingBox box)
         {
             float? result;
