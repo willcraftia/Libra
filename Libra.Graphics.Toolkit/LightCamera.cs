@@ -16,6 +16,21 @@ namespace Libra.Graphics.Toolkit
         public Matrix LightProjection;
 
         /// <summary>
+        /// 表示カメラのビュー行列。
+        /// </summary>
+        protected Matrix eyeView;
+
+        /// <summary>
+        /// 表示カメラの射影行列。
+        /// </summary>
+        protected Matrix eyeProjection;
+
+        /// <summary>
+        /// 表示シーン領域。
+        /// </summary>
+        protected BoundingBox sceneBox;
+
+        /// <summary>
         /// 表示カメラの位置。
         /// </summary>
         protected Vector3 eyePosition;
@@ -31,19 +46,9 @@ namespace Libra.Graphics.Toolkit
         protected Vector3 eyeUp;
 
         /// <summary>
-        /// 表示カメラのビュー行列。
-        /// </summary>
-        protected Matrix eyeView;
-
-        /// <summary>
         /// 表示カメラのビュー行列の逆行列。
         /// </summary>
         protected Matrix inverseEyeView;
-
-        /// <summary>
-        /// 表示カメラの射影行列。
-        /// </summary>
-        protected Matrix eyeProjection;
 
         // ライトの方向 (進行方向)
         protected Vector3 lightDirection;
@@ -68,10 +73,11 @@ namespace Libra.Graphics.Toolkit
             lightDirection = Vector3.Down;
         }
 
-        public void Update(Matrix eyeView, Matrix eyeProjection)
+        public void Update(Matrix eyeView, Matrix eyeProjection, BoundingBox sceneBox)
         {
             this.eyeView = eyeView;
             this.eyeProjection = eyeProjection;
+            this.sceneBox = sceneBox;
 
             Matrix.Invert(ref eyeView, out inverseEyeView);
 

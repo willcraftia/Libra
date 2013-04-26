@@ -313,10 +313,10 @@ namespace Samples.ShadowMapping
             //lispsmCamera.SetConvexBodyBPoints(corners);
             //oldLispsmCamera.SetConvexBodyBPoints(corners);
 
-            basicLightCamera.Update(view, projection);
-            focusedLightCamera.Update(view, projection);
-            lispsmCamera.Update(view, projection);
-            oldLispsmCamera.Update(view, projection);
+            basicLightCamera.Update(view, projection, sceneBox);
+            focusedLightCamera.Update(view, projection, sceneBox);
+            lispsmCamera.Update(view, projection, sceneBox);
+            oldLispsmCamera.Update(view, projection, sceneBox);
 
             Matrix lightViewProjection;
             //Matrix.Multiply(ref basicLightCamera.LightView, ref basicLightCamera.LightProjection, out lightViewProjection);
