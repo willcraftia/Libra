@@ -233,22 +233,22 @@ namespace Libra.Graphics.Toolkit
 
         protected void GetCameraDirectionLS(ref Matrix lightSpace, out Vector3 result)
         {
-            Vector3 a;
+            Vector3 e;
             Vector3 b;
 
-            GetNearCameraPointWS(out a);
-            b = a + eyeDirection;
+            GetNearCameraPointWS(out e);
+            b = e + eyeDirection;
 
             // ライト空間へ変換。
-            Vector3 aLS;
+            Vector3 eLS;
             Vector3 bLS;
-            Vector3.TransformCoordinate(ref a, ref lightSpace, out aLS);
+            Vector3.TransformCoordinate(ref e, ref lightSpace, out eLS);
             Vector3.TransformCoordinate(ref b, ref lightSpace, out bLS);
 
             // 方向。
-            result = bLS - aLS;
+            result = bLS - eLS;
             
-            // xz 平面 (シャドウ マップ) と平行に。
+            // xz 平面 (シャドウ マップ) に平行 (射影)。
             result.Y = 0.0f;
         }
 
