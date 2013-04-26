@@ -186,27 +186,39 @@ namespace Libra.Graphics.Toolkit
             Vector3 cameraLS;
             Vector3.TransformCoordinate(ref cameraWS, ref lightSpace, out cameraLS);
 
-            var ray = new Ray(new Vector3(cameraLS.X, 0.0f, bodyBBoxLS.Max.Z), Vector3.UnitY);
-            var intersect = ray.Intersects(plane);
+            // TODO
+            //
+            // 凸体 B のライト方向への押し出し方によって大きく挙動が変化してしまう。
+            // Ogre は Ogre 版の押し出しでなければ Z0LS がおかしくなる。
+            // オリジナルは Ogre 版でもそれなりだが、オリジナルとの相性が良い。
 
-            if (intersect != null)
-            {
-                ray.GetPoint(intersect.Value, out result);
-            }
-            else
-            {
-                ray.Direction = -Vector3.UnitY;
-                intersect = ray.Intersects(plane);
+            // オリジナルの場合。
+            result.X = cameraLS.X;
+            result.Y = plane.D - (plane.Normal.Z * bodyBBoxLS.Max.Z - plane.Normal.X * cameraLS.X) / plane.Normal.Y;
+            result.Z = bodyBBoxLS.Max.Z;
 
-                if (intersect != null)
-                {
-                    ray.GetPoint(intersect.Value, out result);
-                }
-                else
-                {
-                    result = Vector3.Zero;
-                }
-            }
+            // Ogre の場合。
+            //var ray = new Ray(new Vector3(cameraLS.X, 0.0f, bodyBBoxLS.Max.Z), Vector3.UnitY);
+            //var intersect = ray.Intersects(plane);
+
+            //if (intersect != null)
+            //{
+            //    ray.GetPoint(intersect.Value, out result);
+            //}
+            //else
+            //{
+            //    ray.Direction = -Vector3.UnitY;
+            //    intersect = ray.Intersects(plane);
+
+            //    if (intersect != null)
+            //    {
+            //        ray.GetPoint(intersect.Value, out result);
+            //    }
+            //    else
+            //    {
+            //        result = Vector3.Zero;
+            //    }
+            //}
         }
 
         void CreatePerspective(float left, float right, float bottom, float top, float near, float far, out Matrix result)

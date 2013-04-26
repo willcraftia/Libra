@@ -219,6 +219,9 @@ namespace Samples.ShadowMapping
 
             corners = new Vector3[8];
             bodyB = new ConvexBody();
+
+            // gridModel が半径約 183 であるため、
+            // これを含むように簡易シーン AABB を決定。
             sceneBox = new BoundingBox(new Vector3(-200), new Vector3(200));
 
             bsmRenderTarget = Device.CreateRenderTarget();
@@ -286,6 +289,7 @@ namespace Samples.ShadowMapping
             basicLightCamera.EyeProjection = projection;
 
             focusedLightCamera.LightDirection = -lightDir;
+            focusedLightCamera.EyeView = view;
 
             lispsmCamera.LightDirection = -lightDir;
             lispsmCamera.EyeView = view;
@@ -297,19 +301,25 @@ namespace Samples.ShadowMapping
             cameraFrustum.GetCorners(corners);
             //BoundingBox.CreateFromPoints(corners, out sceneBox);
             //sceneBox.GetCorners(corners);
-            focusedLightCamera.SetConvexBodyBPoints(corners);
-            lispsmCamera.SetConvexBodyBPoints(corners);
-            oldLispsmCamera.SetConvexBodyBPoints(corners);
+            //focusedLightCamera.SetConvexBodyBPoints(corners);
+            //lispsmCamera.SetConvexBodyBPoints(corners);
+            //oldLispsmCamera.SetConvexBodyBPoints(corners);
 
             // 実際にはシーン AABB を明示した方が綺麗になる。
             // 視錐台そのままでは、カメラとライトが平行に近づく場合に大きく劣化する。
-            //bodyB.Define(cameraFrustum);
-            //bodyB.Clip(sceneBox);
-            //focusedLightCamera.SetConvexBodyB(bodyB, sceneBox);
-            //lispsmCamera.SetConvexBodyB(bodyB, sceneBox);
-            //oldLispsmCamera.SetConvexBodyB(bodyB, sceneBox);
+            BoundingBox tempSceneBox = sceneBox;
+            tempSceneBox.Merge(cameraPosition);
+            bodyB.Define(cameraFrustum);
+            bodyB.Clip(tempSceneBox);
+            focusedLightCamera.SetConvexBodyB(bodyB, tempSceneBox);
+            lispsmCamera.SetConvexBodyB(bodyB, tempSceneBox);
+            oldLispsmCamera.SetConvexBodyB(bodyB, tempSceneBox);
 
-            //lispsmCamera.UseLiSPSM = false;
+            // シーン AABB を凸体 B とした場合。
+            //sceneBox.GetCorners(corners);
+            //focusedLightCamera.SetConvexBodyBPoints(corners);
+            //lispsmCamera.SetConvexBodyBPoints(corners);
+            //oldLispsmCamera.SetConvexBodyBPoints(corners);
 
             basicLightCamera.Update();
             focusedLightCamera.Update();
@@ -318,8 +328,8 @@ namespace Samples.ShadowMapping
 
             Matrix lightViewProjection;
             //Matrix.Multiply(ref basicLightCamera.LightView, ref basicLightCamera.LightProjection, out lightViewProjection);
-            Matrix.Multiply(ref focusedLightCamera.LightView, ref focusedLightCamera.LightProjection, out lightViewProjection);
-            //Matrix.Multiply(ref lispsmCamera.LightView, ref lispsmCamera.LightProjection, out lightViewProjection);
+            //Matrix.Multiply(ref focusedLightCamera.LightView, ref focusedLightCamera.LightProjection, out lightViewProjection);
+            Matrix.Multiply(ref lispsmCamera.LightView, ref lispsmCamera.LightProjection, out lightViewProjection);
             //Matrix.Multiply(ref oldLispsmCamera.LightView, ref oldLispsmCamera.LightProjection, out lightViewProjection);
 
             return lightViewProjection;
@@ -417,6 +427,8 @@ namespace Samples.ShadowMapping
         void DrawOverlayText()
         {
             var text = "X = Shadow map form (" + shadowMapEffectForm + ")";
+
+            text += "\r\nCamera position: " + cameraPosition;
 
             spriteBatch.Begin();
 
