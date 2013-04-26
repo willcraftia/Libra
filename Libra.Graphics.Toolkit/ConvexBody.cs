@@ -371,7 +371,7 @@ namespace Libra.Graphics.Toolkit
 
                 if (outsides[iv0])
                 {
-                    // 面 plane の内側から外側へ向かう辺の場合。
+                    // 面 plane の外側から内側へ向かう辺の場合。
 
                     var v0 = originalPolygon.Vertices[iv0];
                     var v1 = originalPolygon.Vertices[iv1];
@@ -389,7 +389,7 @@ namespace Libra.Graphics.Toolkit
                 }
                 else if (outsides[iv1])
                 {
-                    // 面 plane の外側から内側へ向かう辺の場合。
+                    // 面 plane の内側から外側へ向かう辺の場合。
 
                     var v0 = originalPolygon.Vertices[iv0];
                     var v1 = originalPolygon.Vertices[iv1];
