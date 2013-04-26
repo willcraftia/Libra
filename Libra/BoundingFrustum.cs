@@ -20,6 +20,14 @@ namespace Libra
 
         Matrix matrix;
 
+        // 0: near-top-left
+        // 1: near-top-right
+        // 2: near-bottom-right
+        // 3: near-bottom-left
+        // 4: far-top-left
+        // 5: far-top-right
+        // 6: far-bottom-right
+        // 7: far-bottom-left
         Vector3[] corners;
 
         Plane[] planes;
