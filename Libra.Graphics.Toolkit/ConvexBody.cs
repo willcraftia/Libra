@@ -65,8 +65,20 @@ namespace Libra.Graphics.Toolkit
             Polygons.Clear();
             frustum.GetCorners(corners);
 
-            // LiSPSM の C コードに合わせる。
-            // 即ち、CCW での並び (BoundingFrustum は CW)。
+            // LiSPSM/Ogre3d (CCW) に合わせる。
+            // 各々、配列インデックスと頂点の対応が異なる点に注意。
+
+            // BoundingFrustum
+            // 0: near-top-left
+            // 1: near-top-right
+            // 2: near-bottom-right
+            // 3: near-bottom-left
+            // 4: far-top-left
+            // 5: far-top-right
+            // 6: far-bottom-right
+            // 7: far-bottom-left
+
+            // LiSPSM : BoundingFrustum
             // 0: 3: near-bottom-left
             // 1: 2: near-bottom-right
             // 2: 1: near-top-right
@@ -76,11 +88,21 @@ namespace Libra.Graphics.Toolkit
             // 6: 5: far-top-right
             // 7: 4: far-top-left
 
+            // Ogre : BoundingFrustum
+            // 0: 1: near-top-right
+            // 1: 0: near-top-left
+            // 2: 3: near-bottom-left
+            // 3: 2: near-bottom-right
+            // 4: 5: far-top-right
+            // 5: 4: far-top-left
+            // 6: 7: far-bottom-left
+            // 7: 6: far-bottom-right
+
             var near = new Polygon();
-            near.Vertices.Add(corners[3]);
-            near.Vertices.Add(corners[2]);
             near.Vertices.Add(corners[1]);
             near.Vertices.Add(corners[0]);
+            near.Vertices.Add(corners[3]);
+            near.Vertices.Add(corners[2]);
             Polygons.Add(near);
 
             var far = new Polygon();
@@ -91,17 +113,17 @@ namespace Libra.Graphics.Toolkit
             Polygons.Add(far);
 
             var left = new Polygon();
-            left.Vertices.Add(corners[3]);
-            left.Vertices.Add(corners[0]);
             left.Vertices.Add(corners[4]);
             left.Vertices.Add(corners[7]);
+            left.Vertices.Add(corners[3]);
+            left.Vertices.Add(corners[0]);
             Polygons.Add(left);
 
             var right = new Polygon();
-            right.Vertices.Add(corners[2]);
-            right.Vertices.Add(corners[6]);
             right.Vertices.Add(corners[5]);
             right.Vertices.Add(corners[1]);
+            right.Vertices.Add(corners[2]);
+            right.Vertices.Add(corners[6]);
             Polygons.Add(left);
 
             var bottom = new Polygon();
