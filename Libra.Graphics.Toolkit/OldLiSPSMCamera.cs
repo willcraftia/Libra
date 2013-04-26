@@ -38,7 +38,7 @@ namespace Libra.Graphics.Toolkit
             UseLiSPSM = true;
         }
 
-        public override void Update()
+        protected override void Update()
         {
             if (!UseLiSPSM)
             {

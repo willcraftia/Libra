@@ -9,41 +9,24 @@ namespace Libra.Graphics.Toolkit
 {
     public sealed class BasicLightCamera : LightCamera
     {
-        // 光の方向 (光源からの光の進行方向)
-        public Vector3 LightDirection;
-
-        public Matrix EyeView;
-
-        public Matrix EyeProjection;
-
         BoundingFrustum eyeFrustum;
 
         Vector3[] corners;
 
         public BasicLightCamera()
         {
-            EyeView = Matrix.Identity;
-            EyeProjection = Matrix.Identity;
             eyeFrustum = new BoundingFrustum(Matrix.Identity);
             corners = new Vector3[8];
         }
 
-        public override void Update()
+        protected override void Update()
         {
-            // 表示カメラのビュー行列の逆行列 (表示カメラのワールド変換)。
-            Matrix eyeTransform;
-            Matrix.Invert(ref EyeView, out eyeTransform);
-
-            // 表示カメラの位置と方向の抽出。
-            var eyePosition = eyeTransform.Translation;
-            var eyeDirection = eyeTransform.Forward;
-
             var target = eyePosition + LightDirection;
             Matrix.CreateLookAt(ref eyePosition, ref target, ref eyeDirection, out LightView);
 
             // 表示カメラ境界錐台の更新。
             Matrix eyeViewProjection;
-            Matrix.Multiply(ref EyeView, ref EyeProjection, out eyeViewProjection);
+            Matrix.Multiply(ref eyeView, ref eyeProjection, out eyeViewProjection);
             eyeFrustum.Matrix = eyeViewProjection;
 
             // 表示カメラ境界錐台の AABB をシーン領域として算出。

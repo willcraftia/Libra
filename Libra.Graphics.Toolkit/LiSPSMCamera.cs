@@ -34,7 +34,7 @@ namespace Libra.Graphics.Toolkit
             AdjustNFactor = 0.1f;
         }
 
-        public override void Update()
+        protected override void Update()
         {
             // 標準的なライト空間行列の算出。
             CalculateStandardLightSpaceMatrices();

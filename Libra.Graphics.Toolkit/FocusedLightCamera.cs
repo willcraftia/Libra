@@ -25,71 +25,12 @@ namespace Libra.Graphics.Toolkit
             0,  1,  0,  0,
             0,  0,  0,  1);
 
-        /// <summary>
-        /// 表示カメラの位置。
-        /// </summary>
-        protected Vector3 eyePosition;
-
-        /// <summary>
-        /// 表示カメラの方向。
-        /// </summary>
-        protected Vector3 eyeDirection;
-
-        /// <summary>
-        /// 表示カメラの UP ベクトル。
-        /// </summary>
-        protected Vector3 eyeUp;
-
-        /// <summary>
-        /// 表示カメラのビュー行列。
-        /// </summary>
-        protected Matrix eyeView;
-
-        // ライトの方向 (進行方向)
-        protected Vector3 lightDirection;
-
-        /// <summary>
-        /// 表示カメラのビュー行列を取得または設定します。
-        /// </summary>
-        /// <remarks>
-        /// ビュー行列の設定では、その逆行列から表示カメラ位置、方向、UP ベクトルが抽出されます。
-        /// </remarks>
-        public Matrix EyeView
-        {
-            get { return eyeView; }
-            set
-            {
-                eyeView = value;
-
-                Matrix inverseEyeView;
-                Matrix.Invert(ref eyeView, out inverseEyeView);
-
-                eyePosition = inverseEyeView.Translation;
-                eyeDirection = inverseEyeView.Forward;
-                eyeUp = inverseEyeView.Up;
-            }
-        }
-
-        /// <summary>
-        /// ライトの進行方向を取得または設定します。
-        /// </summary>
-        public Vector3 LightDirection
-        {
-            get { return lightDirection; }
-            set { lightDirection = value; }
-        }
-
         protected List<Vector3> ConvexBodyBPoints { get; private set; }
 
         Vector3[] corners;
 
         public FocusedLightCamera()
         {
-            eyeView = Matrix.Identity;
-            eyePosition = Vector3.Zero;
-            eyeDirection = Vector3.Forward;
-            eyeUp = Vector3.Up;
-            lightDirection = Vector3.Down;
             corners = new Vector3[BoundingBox.CornerCount];
             ConvexBodyBPoints = new List<Vector3>();
         }
@@ -148,7 +89,7 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        public override void Update()
+        protected override void Update()
         {
             // 標準的なライト空間行列の算出。
             CalculateStandardLightSpaceMatrices();

@@ -285,17 +285,9 @@ namespace Samples.ShadowMapping
         Matrix CreateLightViewProjectionMatrix()
         {
             basicLightCamera.LightDirection = -lightDir;
-            basicLightCamera.EyeView = view;
-            basicLightCamera.EyeProjection = projection;
-
             focusedLightCamera.LightDirection = -lightDir;
-            focusedLightCamera.EyeView = view;
-
             lispsmCamera.LightDirection = -lightDir;
-            lispsmCamera.EyeView = view;
-
             oldLispsmCamera.LightDirection = -lightDir;
-            oldLispsmCamera.EyeView = view;
 
             // シンプルさのために視錐台を凸体 B として設定。
             cameraFrustum.GetCorners(corners);
@@ -321,10 +313,10 @@ namespace Samples.ShadowMapping
             //lispsmCamera.SetConvexBodyBPoints(corners);
             //oldLispsmCamera.SetConvexBodyBPoints(corners);
 
-            basicLightCamera.Update();
-            focusedLightCamera.Update();
-            lispsmCamera.Update();
-            oldLispsmCamera.Update();
+            basicLightCamera.Update(view, projection);
+            focusedLightCamera.Update(view, projection);
+            lispsmCamera.Update(view, projection);
+            oldLispsmCamera.Update(view, projection);
 
             Matrix lightViewProjection;
             //Matrix.Multiply(ref basicLightCamera.LightView, ref basicLightCamera.LightProjection, out lightViewProjection);
