@@ -110,33 +110,40 @@ namespace Libra.Graphics.Toolkit
 
             ConvexBodyBPoints.Clear();
 
+            var ray = new Ray();
+            ray.Direction = -lightDirection;
+
             for (int ip = 0; ip < convexBodyB.Polygons.Count; ip++)
             {
                 var polygon = convexBodyB.Polygons[ip];
 
                 for (int iv = 0; iv < polygon.Vertices.Count; iv++)
                 {
-                    ConvexBodyBPoints.Add(polygon.Vertices[iv]);
-                }
-            }
+                    var v = polygon.Vertices[iv];
 
-            var ray = new Ray();
-            ray.Direction = lightDirection;
+                    ConvexBodyBPoints.Add(v);
 
-            int count = ConvexBodyBPoints.Count;
-            for (int i = 0; i < count; i++)
-            {
-                ray.Position = ConvexBodyBPoints[i];
-
-                float? intersect;
-                ray.Intersects(ref sceneBox, out intersect);
-                
-                if (intersect != null)
-                {
                     Vector3 newPoint;
-                    ray.GetPoint(intersect.Value, out newPoint);
 
-                    ConvexBodyBPoints.Add(newPoint);
+                    // TODO
+
+                    // オリジナルの場合。
+                    // ライトが存在する方向へレイを伸ばし、シーン AABB との交点を追加。
+                    float? intersect;
+                    ray.Intersects(ref sceneBox, out intersect);
+
+                    if (intersect != null)
+                    {
+                        ray.GetPoint(intersect.Value, out newPoint);
+
+                        ConvexBodyBPoints.Add(newPoint);
+                    }
+
+                    // Ogre の場合。
+                    // ライトが存在する方向へレイを伸ばし、ライトの遠クリップ距離までの点を追加。
+                    //ray.Position = v;
+                    //ray.GetPoint(3000, out newPoint);
+                    //ConvexBodyBPoints.Add(newPoint);
                 }
             }
         }
