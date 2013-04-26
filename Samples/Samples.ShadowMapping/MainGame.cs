@@ -289,30 +289,6 @@ namespace Samples.ShadowMapping
             lispsmCamera.LightDirection = -lightDir;
             oldLispsmCamera.LightDirection = -lightDir;
 
-            // シンプルさのために視錐台を凸体 B として設定。
-            cameraFrustum.GetCorners(corners);
-            //BoundingBox.CreateFromPoints(corners, out sceneBox);
-            //sceneBox.GetCorners(corners);
-            //focusedLightCamera.SetConvexBodyBPoints(corners);
-            //lispsmCamera.SetConvexBodyBPoints(corners);
-            //oldLispsmCamera.SetConvexBodyBPoints(corners);
-
-            // 実際にはシーン AABB を明示した方が綺麗になる。
-            // 視錐台そのままでは、カメラとライトが平行に近づく場合に大きく劣化する。
-            BoundingBox tempSceneBox = sceneBox;
-            tempSceneBox.Merge(cameraPosition);
-            bodyB.Define(cameraFrustum);
-            bodyB.Clip(tempSceneBox);
-            focusedLightCamera.SetConvexBodyB(bodyB, tempSceneBox);
-            lispsmCamera.SetConvexBodyB(bodyB, tempSceneBox);
-            oldLispsmCamera.SetConvexBodyB(bodyB, tempSceneBox);
-
-            // シーン AABB を凸体 B とした場合。
-            //sceneBox.GetCorners(corners);
-            //focusedLightCamera.SetConvexBodyBPoints(corners);
-            //lispsmCamera.SetConvexBodyBPoints(corners);
-            //oldLispsmCamera.SetConvexBodyBPoints(corners);
-
             basicLightCamera.Update(view, projection, sceneBox);
             focusedLightCamera.Update(view, projection, sceneBox);
             lispsmCamera.Update(view, projection, sceneBox);

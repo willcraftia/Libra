@@ -72,7 +72,7 @@ namespace Libra.Graphics.Toolkit
 
             // 仮ビュー空間における凸体 B の AABB。
             BoundingBox lightConvexBodyBBox;
-            CreateTransformedConvexBodyBBox(ref LightView, out lightConvexBodyBBox);
+            CreateTransformedBodyBBox(ref LightView, out lightConvexBodyBBox);
 
             // n から f の距離。
             float d = lightConvexBodyBBox.Max.Y - lightConvexBodyBBox.Min.Y;
@@ -101,7 +101,7 @@ namespace Libra.Graphics.Toolkit
             Matrix.Multiply(ref LightView, ref lispProjection, out pViewLispProjection);
 
             // Y 射影空間における凸体 B の AABB。
-            CreateTransformedConvexBodyBBox(ref pViewLispProjection, out lightConvexBodyBBox);
+            CreateTransformedBodyBBox(ref pViewLispProjection, out lightConvexBodyBBox);
 
             // 正射影。
             //

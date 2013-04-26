@@ -9,13 +9,10 @@ namespace Libra.Graphics.Toolkit
 {
     public sealed class BasicLightCamera : LightCamera
     {
-        BoundingFrustum eyeFrustum;
-
         Vector3[] corners;
 
         public BasicLightCamera()
         {
-            eyeFrustum = new BoundingFrustum(Matrix.Identity);
             corners = new Vector3[8];
         }
 
@@ -23,11 +20,6 @@ namespace Libra.Graphics.Toolkit
         {
             var target = eyePosition + LightDirection;
             Matrix.CreateLookAt(ref eyePosition, ref target, ref eyeDirection, out LightView);
-
-            // 表示カメラ境界錐台の更新。
-            Matrix eyeViewProjection;
-            Matrix.Multiply(ref eyeView, ref eyeProjection, out eyeViewProjection);
-            eyeFrustum.Matrix = eyeViewProjection;
 
             // 表示カメラ境界錐台の AABB をシーン領域として算出。
             BoundingBox tempLightBox;

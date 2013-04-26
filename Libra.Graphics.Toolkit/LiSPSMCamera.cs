@@ -39,12 +39,18 @@ namespace Libra.Graphics.Toolkit
             // 標準的なライト空間行列の算出。
             CalculateStandardLightSpaceMatrices();
 
+            // 凸体 B の算出。
+            CalculateBodyB();
+
             // 凸体 B が空の場合は生成する影が無いため、
             // 算出された行列をそのまま利用。
-            if (ConvexBodyBPoints.Count == 0)
+            if (bodyBPoints.Count == 0)
             {
                 return;
             }
+
+            // 凸体 LVS の算出。
+            CalculateBodyLVS();
 
             CalculateAdjustNFactorTweak();
 
@@ -96,8 +102,9 @@ namespace Libra.Graphics.Toolkit
 
         void CreateLiSPSMProjection(ref Matrix lightSpace, out Matrix result)
         {
+            // 凸体 B のライト空間における AABB。
             BoundingBox bodyBBoxLS;
-            CreateTransformedConvexBodyBBox(ref lightSpace, out bodyBBoxLS);
+            CreateTransformedBodyBBox(ref lightSpace, out bodyBBoxLS);
 
             // 錐台 P の n (近平面)。
             var n = CalculateN(ref lightSpace, ref bodyBBoxLS);
@@ -172,10 +179,17 @@ namespace Libra.Graphics.Toolkit
             var z0 = z0ES.Z;
             var z1 = z1ES.Z;
 
-            if ((z0 < 0 && 0 < z1) || (z1 < 0 && 0 < z0))
-                return 0.0f;
+            // TODO
 
-            return EyeNearPlaneDistance + (float) Math.Sqrt(z0 * z1) * AdjustNFactor * adjustNFactorTweak;
+            // オリジナルの場合。
+            float d = Math.Abs(bodyBBoxLS.Max.Z - bodyBBoxLS.Min.Z);
+            return d / ((float) Math.Sqrt(z1 / z0) - 1.0f);
+
+            // Ogre の場合。
+            //if ((z0 < 0 && 0 < z1) || (z1 < 0 && 0 < z0))
+            //    return 0.0f;
+
+            //return EyeNearPlaneDistance + (float) Math.Sqrt(z0 * z1) * AdjustNFactor * adjustNFactorTweak;
         }
 
         void CalculateZ0LS(ref Matrix lightSpace, ref Vector3 cameraWS, ref BoundingBox bodyBBoxLS, out Vector3 result)
@@ -187,18 +201,11 @@ namespace Libra.Graphics.Toolkit
             Vector3.TransformCoordinate(ref cameraWS, ref lightSpace, out cameraLS);
 
             // TODO
-            //
-            // 以下、誤り。
-            // そもそも、ここは LVS 凸体 B を算出して用いる場面であるため、
-            // クラス外部で押し出した 凸体 B を参照していることが誤り。
-            //
-            // 凸体 B のライト方向への押し出し方によって大きく挙動が変化してしまう。
-            // Ogre は Ogre 版の押し出しでなければ Z0LS がおかしくなる。
-            // オリジナルは Ogre 版でもそれなりだが、オリジナルとの相性が良い。
 
             // オリジナルの場合。
+            // オリジナルの Plane は D の符号が逆。
             result.X = cameraLS.X;
-            result.Y = plane.D - (plane.Normal.Z * bodyBBoxLS.Max.Z - plane.Normal.X * cameraLS.X) / plane.Normal.Y;
+            result.Y = -plane.D - (plane.Normal.Z * bodyBBoxLS.Max.Z - plane.Normal.X * cameraLS.X) / plane.Normal.Y;
             result.Z = bodyBBoxLS.Max.Z;
 
             // Ogre の場合。

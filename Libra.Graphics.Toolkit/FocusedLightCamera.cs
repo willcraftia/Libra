@@ -25,68 +25,23 @@ namespace Libra.Graphics.Toolkit
             0,  1,  0,  0,
             0,  0,  0,  1);
 
-        protected List<Vector3> ConvexBodyBPoints { get; private set; }
+        protected ConvexBody bodyB;
+
+        protected ConvexBody bodyLVS;
+
+        protected List<Vector3> bodyBPoints;
+
+        protected List<Vector3> bodyLVSPoints;
 
         Vector3[] corners;
 
         public FocusedLightCamera()
         {
+            bodyB = new ConvexBody();
+            bodyLVS = new ConvexBody();
+            bodyBPoints = new List<Vector3>();
+            bodyLVSPoints = new List<Vector3>();
             corners = new Vector3[BoundingBox.CornerCount];
-            ConvexBodyBPoints = new List<Vector3>();
-        }
-
-        public void SetConvexBodyBPoints(IEnumerable<Vector3> points)
-        {
-            if (points == null) throw new ArgumentNullException("points");
-
-            ConvexBodyBPoints.Clear();
-
-            foreach (var point in points)
-                ConvexBodyBPoints.Add(point);
-        }
-
-        public void SetConvexBodyB(ConvexBody convexBodyB, BoundingBox sceneBox)
-        {
-            if (convexBodyB == null) throw new ArgumentNullException("convexBodyB");
-
-            ConvexBodyBPoints.Clear();
-
-            var ray = new Ray();
-            ray.Direction = -lightDirection;
-
-            for (int ip = 0; ip < convexBodyB.Polygons.Count; ip++)
-            {
-                var polygon = convexBodyB.Polygons[ip];
-
-                for (int iv = 0; iv < polygon.Vertices.Count; iv++)
-                {
-                    var v = polygon.Vertices[iv];
-
-                    ConvexBodyBPoints.Add(v);
-
-                    Vector3 newPoint;
-
-                    // TODO
-
-                    // オリジナルの場合。
-                    // ライトが存在する方向へレイを伸ばし、シーン AABB との交点を追加。
-                    float? intersect;
-                    ray.Intersects(ref sceneBox, out intersect);
-
-                    if (intersect != null)
-                    {
-                        ray.GetPoint(intersect.Value, out newPoint);
-
-                        ConvexBodyBPoints.Add(newPoint);
-                    }
-
-                    // Ogre の場合。
-                    // ライトが存在する方向へレイを伸ばし、ライトの遠クリップ距離までの点を追加。
-                    //ray.Position = v;
-                    //ray.GetPoint(3000, out newPoint);
-                    //ConvexBodyBPoints.Add(newPoint);
-                }
-            }
         }
 
         protected override void Update()
@@ -94,12 +49,18 @@ namespace Libra.Graphics.Toolkit
             // 標準的なライト空間行列の算出。
             CalculateStandardLightSpaceMatrices();
 
+            // 凸体 B の算出。
+            CalculateBodyB();
+
             // 凸体 B が空の場合は生成する影が無いため、
-            // 算出された行列をそのまま利用。
-            if (ConvexBodyBPoints.Count == 0)
+            // 先に算出した行列をそのまま利用。
+            if (bodyBPoints.Count == 0)
             {
                 return;
             }
+
+            // 凸体 LVS の算出。
+            CalculateBodyLVS();
 
             Matrix lightSpace;
             Matrix transform;
@@ -136,6 +97,84 @@ namespace Libra.Graphics.Toolkit
             // TODO: 点光源
         }
 
+        protected void CalculateBodyB()
+        {
+            bodyBPoints.Clear();
+
+            // TODO: 点光源
+
+            // TODO
+            // 表示カメラ位置を Ogre みたいにシーン AABB へマージする？しない？
+
+            bodyB.Define(eyeFrustum);
+            bodyB.Clip(sceneBox);
+
+            var ray = new Ray();
+            ray.Direction = -lightDirection;
+
+            for (int ip = 0; ip < bodyB.Polygons.Count; ip++)
+            {
+                var polygon = bodyB.Polygons[ip];
+
+                for (int iv = 0; iv < polygon.Vertices.Count; iv++)
+                {
+                    var v = polygon.Vertices[iv];
+
+                    // TODO
+                    // 重複頂点を削除するか否か (接する多角形同士の頂点は重複する)。
+
+                    bodyBPoints.Add(v);
+
+                    Vector3 newPoint;
+
+                    // TODO
+
+                    // オリジナルの場合。
+                    // ライトが存在する方向へレイを伸ばし、シーン AABB との交点を追加。
+                    float? intersect;
+                    ray.Intersects(ref sceneBox, out intersect);
+
+                    if (intersect != null)
+                    {
+                        ray.GetPoint(intersect.Value, out newPoint);
+
+                        bodyBPoints.Add(newPoint);
+                    }
+
+                    // Ogre の場合。
+                    // ライトが存在する方向へレイを伸ばし、ライトの遠クリップ距離までの点を追加。
+                    //ray.Position = v;
+                    //ray.GetPoint(3000, out newPoint);
+                    //bodyBPoints.Add(newPoint);
+                }
+            }
+        }
+
+        protected void CalculateBodyLVS()
+        {
+            bodyLVSPoints.Clear();
+
+            // TODO: 点光源
+
+            bodyLVS.Define(eyeFrustum);
+            bodyLVS.Clip(sceneBox);
+
+            for (int ip = 0; ip < bodyB.Polygons.Count; ip++)
+            {
+                var polygon = bodyLVS.Polygons[ip];
+
+                for (int iv = 0; iv < polygon.Vertices.Count; iv++)
+                {
+                    var v = polygon.Vertices[iv];
+
+                    // TODO
+                    // 重複頂点を削除するか否か (接する多角形同士の頂点は重複する)。
+
+                    bodyLVSPoints.Add(v);
+                }
+            }
+        }
+
         protected void CreateCurrentLightSpace(out Matrix result)
         {
             Matrix.Multiply(ref LightView, ref LightProjection, out result);
@@ -153,19 +192,21 @@ namespace Libra.Graphics.Toolkit
 
         protected void GetNearCameraPointWS(out Vector3 result)
         {
-            if (ConvexBodyBPoints.Count == 0)
+            // 凸体 LVS から算出。
+
+            if (bodyLVSPoints.Count == 0)
             {
                 result = Vector3.Zero;
                 return;
             }
 
-            Vector3 nearWS = ConvexBodyBPoints[0];
+            Vector3 nearWS = bodyLVSPoints[0];
             Vector3 nearES;
             Vector3.TransformCoordinate(ref nearWS, ref eyeView, out nearES);
 
-            for (int i = 1; i < ConvexBodyBPoints.Count; i++)
+            for (int i = 1; i < bodyLVSPoints.Count; i++)
             {
-                Vector3 pointWS = ConvexBodyBPoints[i];
+                Vector3 pointWS = bodyLVSPoints[i];
                 Vector3 pointES;
                 Vector3.TransformCoordinate(ref pointWS, ref eyeView, out pointES);
 
@@ -202,8 +243,10 @@ namespace Libra.Graphics.Toolkit
 
         protected void CreateTransformToUnitCube(ref Matrix lightSpace, out Matrix result)
         {
+            // 凸体 B を収める単位立方体。
+
             BoundingBox bodyBBox;
-            CreateTransformedConvexBodyBBox(ref lightSpace, out bodyBBox);
+            CreateTransformedBodyBBox(ref lightSpace, out bodyBBox);
 
             CreateTransformToUnitCube(ref bodyBBox.Min, ref bodyBBox.Max, out result);
         }
@@ -225,12 +268,12 @@ namespace Libra.Graphics.Toolkit
             result.M44 = 1.0f;
         }
 
-        protected void CreateTransformedConvexBodyBBox(ref Matrix matrix, out BoundingBox result)
+        protected void CreateTransformedBodyBBox(ref Matrix matrix, out BoundingBox result)
         {
             result = new BoundingBox();
-            for (int i = 0; i < ConvexBodyBPoints.Count; i++)
+            for (int i = 0; i < bodyBPoints.Count; i++)
             {
-                var point = ConvexBodyBPoints[i];
+                var point = bodyBPoints[i];
 
                 Vector3 transformed;
                 Vector3.TransformCoordinate(ref point, ref matrix, out transformed);

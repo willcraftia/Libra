@@ -50,6 +50,8 @@ namespace Libra.Graphics.Toolkit
         /// </summary>
         protected Matrix inverseEyeView;
 
+        protected BoundingFrustum eyeFrustum;
+
         // ライトの方向 (進行方向)
         protected Vector3 lightDirection;
 
@@ -70,6 +72,7 @@ namespace Libra.Graphics.Toolkit
             eyePosition = Vector3.Zero;
             eyeDirection = Vector3.Forward;
             eyeUp = Vector3.Up;
+            eyeFrustum = new BoundingFrustum(Matrix.Identity);
             lightDirection = Vector3.Down;
         }
 
@@ -84,6 +87,11 @@ namespace Libra.Graphics.Toolkit
             eyePosition = inverseEyeView.Translation;
             eyeDirection = inverseEyeView.Forward;
             eyeUp = inverseEyeView.Up;
+
+            Matrix eyeViewProjection;
+            Matrix.Multiply(ref eyeView, ref eyeProjection, out eyeViewProjection);
+
+            eyeFrustum.Matrix = eyeViewProjection;
 
             Update();
         }
