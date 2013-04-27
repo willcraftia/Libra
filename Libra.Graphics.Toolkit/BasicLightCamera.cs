@@ -21,17 +21,17 @@ namespace Libra.Graphics.Toolkit
             var target = eyePosition + LightDirection;
             Matrix.CreateLookAt(ref eyePosition, ref target, ref eyeDirection, out LightView);
 
-            // 表示カメラ境界錐台の AABB をシーン領域として算出。
-            BoundingBox tempLightBox;
-            eyeFrustum.GetCorners(corners);
-            BoundingBox.CreateFromPoints(corners, out tempLightBox);
+            //BoundingBox tempLightBox;
+            //eyeFrustum.GetCorners(corners);
+            //BoundingBox.CreateFromPoints(corners, out tempLightBox);
 
-            // シーン領域を表示カメラ空間へ変換。
-            tempLightBox.GetCorners(corners);
+            // シーン領域をライト空間へ変換。
+            sceneBox.GetCorners(corners);
+            //tempLightBox.GetCorners(corners);
             for (int i = 0; i < corners.Length; i++)
                 Vector3.Transform(ref corners[i], ref LightView, out corners[i]);
 
-            // 表示カメラ空間におけるシーン領域の AABB。
+            // ライト空間におけるシーン領域の AABB。
             BoundingBox lightBox;
             BoundingBox.CreateFromPoints(corners, out lightBox);
 
