@@ -56,8 +56,11 @@ namespace Libra.Graphics.Toolkit
         protected Vector3 lightDirection;
 
         /// <summary>
-        /// ライトの進行方向を取得または設定します。
+        /// ライトの方向 (進行方向) を取得または設定します。
         /// </summary>
+        /// <remarks>
+        /// ライト方向は単位ベクトルで指定します。
+        /// </remarks>
         public Vector3 LightDirection
         {
             get { return lightDirection; }
@@ -86,7 +89,9 @@ namespace Libra.Graphics.Toolkit
 
             eyePosition = inverseEyeView.Translation;
             eyeDirection = inverseEyeView.Forward;
+            eyeDirection.Normalize();
             eyeUp = inverseEyeView.Up;
+            eyeUp.Normalize();
 
             Matrix eyeViewProjection;
             Matrix.Multiply(ref eyeView, ref eyeProjection, out eyeViewProjection);
