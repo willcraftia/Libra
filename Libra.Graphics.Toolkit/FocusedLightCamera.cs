@@ -57,6 +57,16 @@ namespace Libra.Graphics.Toolkit
         /// </summary>
         public float EyeFarDistance { get; set; }
 
+        /// <summary>
+        /// ライトの遠平面までの距離を取得または設定します。
+        /// </summary>
+        /// <remarks>
+        /// この値を 0 より大きくした場合、その距離で凸体 B がクリップされます。
+        /// そのようにして影を有効とする範囲を狭めることにより、
+        /// シャドウ マップの精度を向上させることができます。
+        /// </remarks>
+        public float LightFarDistance { get; set; }
+
         public FocusedLightCamera()
         {
             bodyB = new ConvexBody();
@@ -67,6 +77,7 @@ namespace Libra.Graphics.Toolkit
 
             EyeNearDistance = 1.0f;
             EyeFarDistance = 1000.0f;
+            LightFarDistance = 0.0f;
         }
 
         protected override void Update()
@@ -130,6 +141,14 @@ namespace Libra.Graphics.Toolkit
 
             bodyB.Define(eyeFrustum);
             bodyB.Clip(sceneBox);
+
+            var farDistance = LightFarDistance;
+            if (0.0f < farDistance)
+            {
+                var point = eyePosition + eyeDirection * farDistance;
+                var plane = new Plane(eyeDirection, point);
+                bodyB.Clip(plane);
+            }
 
             var ray = new Ray();
             ray.Direction = -lightDirection;
