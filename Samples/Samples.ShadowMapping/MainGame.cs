@@ -199,9 +199,9 @@ namespace Samples.ShadowMapping
             basicLightCamera = new BasicLightCamera();
             focusedLightCamera = new FocusedLightCamera();
             lispsmCamera = new LiSPSMCamera();
-            lispsmCamera.EyeNearPlaneDistance = 1.0f;
+            lispsmCamera.EyeNearDistance = 1.0f;
             oldLispsmCamera = new OldLiSPSMCamera();
-            oldLispsmCamera.EyeNearPlaneDistance = 1.0f;
+            oldLispsmCamera.EyeNearDistance = 1.0f;
 
             shadowMapEffectForm = ShadowMapEffectForm.Variance;
         }
@@ -284,15 +284,37 @@ namespace Samples.ShadowMapping
 
         Matrix CreateLightViewProjectionMatrix()
         {
-            basicLightCamera.LightDirection = -lightDir;
-            focusedLightCamera.LightDirection = -lightDir;
-            lispsmCamera.LightDirection = -lightDir;
-            oldLispsmCamera.LightDirection = -lightDir;
+            BoundingBox actualSceneBox;
 
-            basicLightCamera.Update(view, projection, sceneBox);
-            focusedLightCamera.Update(view, projection, sceneBox);
-            lispsmCamera.Update(view, projection, sceneBox);
-            oldLispsmCamera.Update(view, projection, sceneBox);
+            // 明示する場合。
+            actualSceneBox = sceneBox;
+            actualSceneBox.Merge(cameraPosition);
+
+            // 視錐台全体とする場合。
+            //cameraFrustum.GetCorners(corners);
+            //actualSceneBox = BoundingBox.CreateFromPoints(corners);
+
+            // lightDir はライトの進行方向ではなく、原点からのライトの位置方向。
+            var L = -lightDir;
+            L.Normalize();
+
+            basicLightCamera.LightDirection = L;
+            focusedLightCamera.LightDirection = L;
+            lispsmCamera.LightDirection = L;
+            oldLispsmCamera.LightDirection = L;
+
+            focusedLightCamera.LightFarDistance = 500.0f;
+            lispsmCamera.LightFarDistance = 500.0f;
+            oldLispsmCamera.LightFarDistance = 500.0f;
+
+            lispsmCamera.AdjustNFactor = 0.6f;
+
+            oldLispsmCamera.UseNewNFormula = true;
+
+            basicLightCamera.Update(view, projection, actualSceneBox);
+            focusedLightCamera.Update(view, projection, actualSceneBox);
+            lispsmCamera.Update(view, projection, actualSceneBox);
+            oldLispsmCamera.Update(view, projection, actualSceneBox);
 
             Matrix lightViewProjection;
             //Matrix.Multiply(ref basicLightCamera.LightView, ref basicLightCamera.LightProjection, out lightViewProjection);

@@ -35,6 +35,12 @@ namespace Libra.Graphics.Toolkit
 
         Vector3[] corners;
 
+        public float EyeNearDistance { get; set; }
+
+        public float EyeFarDistance { get; set; }
+
+        public float LightFarDistance { get; set; }
+
         public FocusedLightCamera()
         {
             bodyB = new ConvexBody();
@@ -42,6 +48,10 @@ namespace Libra.Graphics.Toolkit
             bodyBPoints = new List<Vector3>();
             bodyLVSPoints = new List<Vector3>();
             corners = new Vector3[BoundingBox.CornerCount];
+
+            EyeNearDistance = 1.0f;
+            EyeFarDistance = 1000.0f;
+            LightFarDistance = 0.0f;
         }
 
         protected override void Update()
@@ -90,6 +100,9 @@ namespace Libra.Graphics.Toolkit
 
         protected void CalculateStandardLightSpaceMatrices()
         {
+            // Ogre では UP を eyeUp にしている。
+            // また、LightProjection を (1, 1, -1) の z 軸反転変換にしている (なぜ？)。
+
             // 方向性光源のための行列。
             Matrix.CreateLook(ref eyePosition, ref lightDirection, ref eyeDirection, out LightView);
             LightProjection = Matrix.Identity;
@@ -109,8 +122,18 @@ namespace Libra.Graphics.Toolkit
             bodyB.Define(eyeFrustum);
             bodyB.Clip(sceneBox);
 
+            var farDistance = LightFarDistance;
+            if (0.0f < farDistance)
+            {
+                var point = eyePosition + eyeDirection * farDistance;
+                var plane = new Plane(eyeDirection, point);
+                bodyB.Clip(plane);
+            }
+
             var ray = new Ray();
             ray.Direction = -lightDirection;
+
+            float extrudeDistance = (0.0f < farDistance) ? farDistance : EyeNearDistance * 3000.0f;
 
             for (int ip = 0; ip < bodyB.Polygons.Count; ip++)
             {
@@ -142,9 +165,14 @@ namespace Libra.Graphics.Toolkit
                     }
 
                     // Ogre の場合。
-                    // ライトが存在する方向へレイを伸ばし、ライトの遠クリップ距離までの点を追加。
+                    // ライトが存在する方向へレイを伸ばし、
+                    // ライトの遠クリップ距離に等しい点を追加。
+
+                    // TODO
+                    // でもこれは、B を大きくし過ぎる気がするのだが。
+
                     //ray.Position = v;
-                    //ray.GetPoint(3000, out newPoint);
+                    //ray.GetPoint(extrudeDistance, out newPoint);
                     //bodyBPoints.Add(newPoint);
                 }
             }
@@ -159,7 +187,7 @@ namespace Libra.Graphics.Toolkit
             bodyLVS.Define(eyeFrustum);
             bodyLVS.Clip(sceneBox);
 
-            for (int ip = 0; ip < bodyB.Polygons.Count; ip++)
+            for (int ip = 0; ip < bodyLVS.Polygons.Count; ip++)
             {
                 var polygon = bodyLVS.Polygons[ip];
 
@@ -182,12 +210,12 @@ namespace Libra.Graphics.Toolkit
 
         protected void CreateLightLook(ref Matrix lightSpace, out Matrix result)
         {
-            Vector3 lookPosition = Vector3.Zero;
-            Vector3 lookUp = Vector3.Up;
-            Vector3 lookDirection;
+            Vector3 position = Vector3.Zero;
+            Vector3 up = Vector3.Up;
+            Vector3 direction;
 
-            GetCameraDirectionLS(ref lightSpace, out lookDirection);
-            Matrix.CreateLook(ref lookPosition, ref lookDirection, ref lookUp, out result);
+            GetCameraDirectionLS(ref lightSpace, out direction);
+            Matrix.CreateLook(ref position, ref direction, ref up, out result);
         }
 
         protected void GetNearCameraPointWS(out Vector3 result)
@@ -239,6 +267,17 @@ namespace Libra.Graphics.Toolkit
             
             // xz 平面 (シャドウ マップ) に平行 (射影)。
             result.Y = 0.0f;
+
+            // 正規化。
+            if (result.Length() < MathHelper.ZeroTolerance)
+            {
+                // 概ねゼロ ベクトルである場合はデフォルトの前方方向 (0, 0, -1)。
+                result = Vector3.Forward;
+            }
+            else
+            {
+                result.Normalize();
+            }
         }
 
         protected void CreateTransformToUnitCube(ref Matrix lightSpace, out Matrix result)

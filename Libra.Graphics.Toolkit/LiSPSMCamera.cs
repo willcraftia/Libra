@@ -10,9 +10,7 @@ namespace Libra.Graphics.Toolkit
     {
         float adjustNFactorTweak;
 
-        public float EyeNearPlaneDistance { get; set; }
-
-        public float EyeLightDirectionThreshold { get; set; }
+        public float EyeDotLightThreshold { get; set; }
 
         public float AdjustNFactor { get; set; }
 
@@ -30,7 +28,7 @@ namespace Libra.Graphics.Toolkit
         public LiSPSMCamera()
         {
             adjustNFactorTweak = 1.0f;
-            EyeLightDirectionThreshold = 0.9f;
+            EyeDotLightThreshold = 0.9f;
             AdjustNFactor = 0.1f;
         }
 
@@ -87,12 +85,12 @@ namespace Libra.Graphics.Toolkit
 
         void CalculateAdjustNFactorTweak()
         {
-            float eDotL;
-            Vector3.Dot(ref eyeDirection, ref lightDirection, out eDotL);
+            float dot;
+            Vector3.Dot(ref eyeDirection, ref lightDirection, out dot);
 
-            if (EyeLightDirectionThreshold <= eDotL)
+            if (EyeDotLightThreshold <= dot)
             {
-                adjustNFactorTweak = 1.0f + 20.0f * (eDotL - EyeLightDirectionThreshold) / (1.0f - EyeLightDirectionThreshold);
+                adjustNFactorTweak = 1.0f + 20.0f * (dot - EyeDotLightThreshold) / (1.0f - EyeDotLightThreshold);
             }
             else
             {
@@ -117,6 +115,8 @@ namespace Libra.Graphics.Toolkit
             // 錐台 P の d (近平面から遠平面までの距離)。
             var d = Math.Abs(bodyBBoxLS.Max.Z - bodyBBoxLS.Min.Z);
 
+            // TODO
+            // CalculateNGeneral を呼び出すルートの場合、二度同じ計算をしている。
             Vector3 cameraPointWS;
             GetNearCameraPointWS(out cameraPointWS);
 
@@ -125,7 +125,7 @@ namespace Libra.Graphics.Toolkit
 
             // 錐台 P の視点位置。
             var pPositionBase = new Vector3(cameraPointLS.X, cameraPointLS.Y, bodyBBoxLS.Max.Z);
-            var pPosition = pPositionBase + n * Vector3.UnitZ;
+            var pPosition = pPositionBase + n * Vector3.Backward;
 
             // 錐台 P の視点位置への移動行列。
             var pTranslation = Matrix.CreateTranslation(-pPosition);
@@ -146,6 +146,7 @@ namespace Libra.Graphics.Toolkit
             }
 
             return CalculateNGeneral(ref lightSpace, ref bodyBBoxLS);
+            //return CalculateNSimple(ref lightSpace, ref bodyBBoxLS);
         }
 
         float CalculateNGeneral(ref Matrix lightSpace, ref BoundingBox bodyBBoxLS)
@@ -153,15 +154,15 @@ namespace Libra.Graphics.Toolkit
             Matrix inverseLightSpace;
             Matrix.Invert(ref lightSpace, out inverseLightSpace);
 
-            Vector3 cameraWS;
-            GetNearCameraPointWS(out cameraWS);
+            Vector3 cameraPointWS;
+            GetNearCameraPointWS(out cameraPointWS);
 
             // z0 と z1 の算出。
 
             // ライト空間。
             Vector3 z0LS;
             Vector3 z1LS;
-            CalculateZ0LS(ref lightSpace, ref cameraWS, ref bodyBBoxLS, out z0LS);
+            CalculateZ0LS(ref lightSpace, ref cameraPointWS, ref bodyBBoxLS, out z0LS);
             z1LS = new Vector3(z0LS.X, z0LS.Y, bodyBBoxLS.Min.Z);
 
             // ワールド空間。
@@ -180,16 +181,36 @@ namespace Libra.Graphics.Toolkit
             var z1 = z1ES.Z;
 
             // TODO
+            //
+            // Ogre の式では精度が異常に劣化する。
+            // Ogre の式は、古い式の factor をパラメータ化した物、
+            // オリジナルは新しい式で factor 無し、であると思われる。
+            // 精度の劣化は、恐らく、デフォルトの AdjustNFactor が不適切であり、
+            // 適切な値を明示する必要があると考えられる。
 
             // オリジナルの場合。
-            float d = Math.Abs(bodyBBoxLS.Max.Z - bodyBBoxLS.Min.Z);
-            return d / ((float) Math.Sqrt(z1 / z0) - 1.0f);
+            //float d = Math.Abs(bodyBBoxLS.Max.Z - bodyBBoxLS.Min.Z);
+            //return d / ((float) Math.Sqrt(z1 / z0) - 1.0f);
 
             // Ogre の場合。
-            //if ((z0 < 0 && 0 < z1) || (z1 < 0 && 0 < z0))
-            //    return 0.0f;
+            if ((z0 < 0 && 0 < z1) || (z1 < 0 && 0 < z0))
+                return 0.0f;
 
-            //return EyeNearPlaneDistance + (float) Math.Sqrt(z0 * z1) * AdjustNFactor * adjustNFactorTweak;
+            return EyeNearDistance + (float) Math.Sqrt(z0 * z1) * AdjustNFactor * adjustNFactorTweak;
+        }
+
+        float CalculateNSimple(ref Matrix lightSpace, ref BoundingBox bodyBBoxLS)
+        {
+            // TODO
+            // Ogre の calculateNOptSimple。
+            // 古い式の、ライト空間での演算を行わないバージョンか？
+            Vector3 cameraPointWS;
+            GetNearCameraPointWS(out cameraPointWS);
+
+            Vector3 cameraPointES;
+            Vector3.TransformCoordinate(ref cameraPointWS, ref eyeView, out cameraPointES);
+
+            return (Math.Abs(cameraPointES.Z) + (float) Math.Sqrt(EyeNearDistance * EyeFarDistance)) * AdjustNFactor * adjustNFactorTweak;
         }
 
         void CalculateZ0LS(ref Matrix lightSpace, ref Vector3 cameraWS, ref BoundingBox bodyBBoxLS, out Vector3 result)
@@ -201,35 +222,38 @@ namespace Libra.Graphics.Toolkit
             Vector3.TransformCoordinate(ref cameraWS, ref lightSpace, out cameraLS);
 
             // TODO
+            //
+            // オリジナルのままでは、ライトのある方向へカメラを向けた場合に、
+            // 正常に描画されなくなる。
 
             // オリジナルの場合。
             // オリジナルの Plane は D の符号が逆。
-            result.X = cameraLS.X;
-            result.Y = -plane.D - (plane.Normal.Z * bodyBBoxLS.Max.Z - plane.Normal.X * cameraLS.X) / plane.Normal.Y;
-            result.Z = bodyBBoxLS.Max.Z;
+            //result.X = cameraLS.X;
+            //result.Y = -plane.D - (plane.Normal.Z * bodyBBoxLS.Max.Z - plane.Normal.X * cameraLS.X) / plane.Normal.Y;
+            //result.Z = bodyBBoxLS.Max.Z;
 
             // Ogre の場合。
-            //var ray = new Ray(new Vector3(cameraLS.X, 0.0f, bodyBBoxLS.Max.Z), Vector3.UnitY);
-            //var intersect = ray.Intersects(plane);
+            var ray = new Ray(new Vector3(cameraLS.X, 0.0f, bodyBBoxLS.Max.Z), Vector3.UnitY);
+            var intersect = ray.Intersects(plane);
 
-            //if (intersect != null)
-            //{
-            //    ray.GetPoint(intersect.Value, out result);
-            //}
-            //else
-            //{
-            //    ray.Direction = -Vector3.UnitY;
-            //    intersect = ray.Intersects(plane);
+            if (intersect != null)
+            {
+                ray.GetPoint(intersect.Value, out result);
+            }
+            else
+            {
+                ray.Direction = Vector3.NegativeUnitY;
+                intersect = ray.Intersects(plane);
 
-            //    if (intersect != null)
-            //    {
-            //        ray.GetPoint(intersect.Value, out result);
-            //    }
-            //    else
-            //    {
-            //        result = Vector3.Zero;
-            //    }
-            //}
+                if (intersect != null)
+                {
+                    ray.GetPoint(intersect.Value, out result);
+                }
+                else
+                {
+                    result = Vector3.Zero;
+                }
+            }
         }
 
         void CreatePerspective(float left, float right, float bottom, float top, float near, float far, out Matrix result)
@@ -237,8 +261,6 @@ namespace Libra.Graphics.Toolkit
             // 即ち、glFrustum。XNA CreatePerspectiveOffCenter に相当。
             // http://msdn.microsoft.com/ja-jp/library/windows/desktop/dd373537(v=vs.85).aspx
             // z 軸の範囲が OpenGL では (-1, 1)、XNA/DirectX では (-1, 0)。
-            // ただし、右手系から左手系への変換を省くために z の符号を反転。
-            // このため、呼び出し側での near と far の指定に注意 (これも逆転が必要)。
 
             result = new Matrix();
 
