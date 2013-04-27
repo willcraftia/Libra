@@ -50,6 +50,9 @@ namespace Libra.Graphics.Toolkit
         /// </summary>
         protected Matrix inverseEyeView;
 
+        /// <summary>
+        /// 表示カメラの視錐台。
+        /// </summary>
         protected BoundingFrustum eyeFrustum;
 
         // ライトの方向 (進行方向)

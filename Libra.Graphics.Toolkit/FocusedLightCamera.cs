@@ -25,21 +25,37 @@ namespace Libra.Graphics.Toolkit
             0,  1,  0,  0,
             0,  0,  0,  1);
 
+        /// <summary>
+        /// 凸体 B。
+        /// </summary>
         protected ConvexBody bodyB;
 
+        /// <summary>
+        /// 凸体 LVS。
+        /// </summary>
         protected ConvexBody bodyLVS;
 
+        /// <summary>
+        /// 凸体 B の頂点のリスト。
+        /// </summary>
         protected List<Vector3> bodyBPoints;
 
+        /// <summary>
+        /// 凸体 LVS の頂点のリスト。
+        /// </summary>
         protected List<Vector3> bodyLVSPoints;
 
         Vector3[] corners;
 
+        /// <summary>
+        /// 表示カメラの近平面までの距離を取得または設定します。
+        /// </summary>
         public float EyeNearDistance { get; set; }
 
+        /// <summary>
+        /// 表示カメラの遠平面までの距離を取得または設定します。
+        /// </summary>
         public float EyeFarDistance { get; set; }
-
-        public float LightFarDistance { get; set; }
 
         public FocusedLightCamera()
         {
@@ -51,7 +67,6 @@ namespace Libra.Graphics.Toolkit
 
             EyeNearDistance = 1.0f;
             EyeFarDistance = 1000.0f;
-            LightFarDistance = 0.0f;
         }
 
         protected override void Update()
@@ -100,9 +115,6 @@ namespace Libra.Graphics.Toolkit
 
         protected void CalculateStandardLightSpaceMatrices()
         {
-            // Ogre では UP を eyeUp にしている。
-            // また、LightProjection を (1, 1, -1) の z 軸反転変換にしている (なぜ？)。
-
             // 方向性光源のための行列。
             Matrix.CreateLook(ref eyePosition, ref lightDirection, ref eyeDirection, out LightView);
             LightProjection = Matrix.Identity;
@@ -116,24 +128,11 @@ namespace Libra.Graphics.Toolkit
 
             // TODO: 点光源
 
-            // TODO
-            // 表示カメラ位置を Ogre みたいにシーン AABB へマージする？しない？
-
             bodyB.Define(eyeFrustum);
             bodyB.Clip(sceneBox);
 
-            var farDistance = LightFarDistance;
-            if (0.0f < farDistance)
-            {
-                var point = eyePosition + eyeDirection * farDistance;
-                var plane = new Plane(eyeDirection, point);
-                bodyB.Clip(plane);
-            }
-
             var ray = new Ray();
             ray.Direction = -lightDirection;
-
-            float extrudeDistance = (0.0f < farDistance) ? farDistance : EyeNearDistance * 3000.0f;
 
             for (int ip = 0; ip < bodyB.Polygons.Count; ip++)
             {
@@ -150,9 +149,6 @@ namespace Libra.Graphics.Toolkit
 
                     Vector3 newPoint;
 
-                    // TODO
-
-                    // オリジナルの場合。
                     // ライトが存在する方向へレイを伸ばし、シーン AABB との交点を追加。
                     float? intersect;
                     ray.Intersects(ref sceneBox, out intersect);
@@ -163,17 +159,6 @@ namespace Libra.Graphics.Toolkit
 
                         bodyBPoints.Add(newPoint);
                     }
-
-                    // Ogre の場合。
-                    // ライトが存在する方向へレイを伸ばし、
-                    // ライトの遠クリップ距離に等しい点を追加。
-
-                    // TODO
-                    // でもこれは、B を大きくし過ぎる気がするのだが。
-
-                    //ray.Position = v;
-                    //ray.GetPoint(extrudeDistance, out newPoint);
-                    //bodyBPoints.Add(newPoint);
                 }
             }
         }

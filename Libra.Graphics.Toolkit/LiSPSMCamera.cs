@@ -8,16 +8,35 @@ namespace Libra.Graphics.Toolkit
 {
     public sealed class LiSPSMCamera : FocusedLightCamera
     {
-        float adjustNFactorTweak;
+        /// <summary>
+        /// 算出した最適 N 値の調整係数。
+        /// </summary>
+        float adjustOptimalNFactor;
 
+        /// <summary>
+        /// 視線とライトが平行であると見做す内積の値 (絶対値) を取得または設定します。
+        /// </summary>
+        /// <remarks>
+        /// AdjustOptimalN = true の場合、
+        /// このプロパティ値に基いて視線とライトが並行であるか否かを判定し、
+        /// 並行である場合には最適 N 値を調整します。
+        /// </remarks>
         public float EyeDotLightThreshold { get; set; }
 
-        public float AdjustNFactor { get; set; }
+        /// <summary>
+        /// 視線とライトが平行である場合に、最適 N 値を調整するか否かを取得または設定します。
+        /// </summary>
+        /// <value>
+        /// true (最適 N を調整する場合)、false (それ以外の場合)。
+        /// </value>
+        public bool AdjustOptimalN { get; set; }
 
         /// <summary>
         /// 明示した N 値を使用するか否かを示す値を取得または設定します。
-        /// true (明示した N 値を使用する場合)、false (それ以外の場合)。
         /// </summary>
+        /// <value>
+        /// true (明示した N 値を使用する場合)、false (それ以外の場合)。
+        /// </value>
         public bool UseExplicitN { get; set; }
 
         /// <summary>
@@ -25,11 +44,22 @@ namespace Libra.Graphics.Toolkit
         /// </summary>
         public float ExplicitN { get; set; }
 
+        /// <summary>
+        /// 古い最適 N 値算出式を使用するか否かを示す値を取得または設定します。
+        /// </summary>
+        /// <value>
+        /// true (古い最適 N 値算出式を使用する場合)、false (それ以外の場合)。
+        /// </value>
+        public bool UseOldOptimalNFormula { get; set; }
+
         public LiSPSMCamera()
         {
-            adjustNFactorTweak = 1.0f;
             EyeDotLightThreshold = 0.9f;
-            AdjustNFactor = 0.1f;
+            AdjustOptimalN = true;
+            adjustOptimalNFactor = 1.0f;
+            UseExplicitN = false;
+            ExplicitN = 0.0f;
+            UseOldOptimalNFormula = false;
         }
 
         protected override void Update()
@@ -50,7 +80,7 @@ namespace Libra.Graphics.Toolkit
             // 凸体 LVS の算出。
             CalculateBodyLVS();
 
-            CalculateAdjustNFactorTweak();
+            ResolveAdjustOptimalNFactor();
 
             Matrix lightSpace;
             Matrix transform;
@@ -83,18 +113,21 @@ namespace Libra.Graphics.Toolkit
             TransformLightProjection(ref transform);
         }
 
-        void CalculateAdjustNFactorTweak()
+        void ResolveAdjustOptimalNFactor()
         {
-            float dot;
-            Vector3.Dot(ref eyeDirection, ref lightDirection, out dot);
+            adjustOptimalNFactor = 1.0f;
 
-            if (EyeDotLightThreshold <= dot)
+            if (AdjustOptimalN)
             {
-                adjustNFactorTweak = 1.0f + 20.0f * (dot - EyeDotLightThreshold) / (1.0f - EyeDotLightThreshold);
-            }
-            else
-            {
-                adjustNFactorTweak = 1.0f;
+                float dot;
+                Vector3.Dot(ref eyeDirection, ref lightDirection, out dot);
+                dot = Math.Abs(dot);
+
+                // 視線とライトが並行であると見なせる場合。
+                if (EyeDotLightThreshold <= dot)
+                {
+                    adjustOptimalNFactor += 20.0f * (dot - EyeDotLightThreshold) / (1.0f - EyeDotLightThreshold);
+                }
             }
         }
 
@@ -105,9 +138,10 @@ namespace Libra.Graphics.Toolkit
             CreateTransformedBodyBBox(ref lightSpace, out bodyBBoxLS);
 
             // 錐台 P の n (近平面)。
-            var n = CalculateN(ref lightSpace, ref bodyBBoxLS);
+            var n = ResolveN(ref lightSpace, ref bodyBBoxLS);
             if (n <= 0.0f)
             {
+                // n が 0 以下になる場合、歪み無しとして処理。
                 result = Matrix.Identity;
                 return;
             }
@@ -138,19 +172,32 @@ namespace Libra.Graphics.Toolkit
             Matrix.Multiply(ref pTranslation, ref pPerspective, out result);
         }
 
-        float CalculateN(ref Matrix lightSpace, ref BoundingBox bodyBBoxLS)
+        float ResolveN(ref Matrix lightSpace, ref BoundingBox bodyBBoxLS)
         {
             if (UseExplicitN)
             {
                 return ExplicitN;
             }
 
-            return CalculateNGeneral(ref lightSpace, ref bodyBBoxLS);
-            //return CalculateNSimple(ref lightSpace, ref bodyBBoxLS);
-            //return CalculateNOld();
+            float optimalN;
+
+            if (UseOldOptimalNFormula)
+            {
+                optimalN = CalculateOldOptimalN();
+            }
+            else
+            {
+                optimalN = CalculateOptimalN(ref lightSpace, ref bodyBBoxLS);
+            }
+
+            // Ogre3d の LiSPSMShadowCameraSetup に倣い、ほぼ平行と見做す場合に調整。
+            // これにより、若干、綺麗になる。
+            optimalN *= adjustOptimalNFactor;
+
+            return optimalN;
         }
 
-        float CalculateNGeneral(ref Matrix lightSpace, ref BoundingBox bodyBBoxLS)
+        float CalculateOptimalN(ref Matrix lightSpace, ref BoundingBox bodyBBoxLS)
         {
             Matrix inverseLightSpace;
             Matrix.Invert(ref lightSpace, out inverseLightSpace);
@@ -181,32 +228,12 @@ namespace Libra.Graphics.Toolkit
             var z0 = z0ES.Z;
             var z1 = z1ES.Z;
 
-            // TODO
-            //
-            // Ogre の式では精度が異常に劣化する。
-            // Ogre の式は、古い式の factor をパラメータ化した物、
-            // オリジナルは新しい式で factor 無し、であると思われる。
-            // 精度の劣化は、恐らく、デフォルトの AdjustNFactor が不適切であり、
-            // 適切な値を明示する必要があると考えられる。
-
-            // オリジナルの場合。
             float d = Math.Abs(bodyBBoxLS.Max.Z - bodyBBoxLS.Min.Z);
-            float result = d / ((float) Math.Sqrt(z1 / z0) - 1.0f);
 
-            // オリジナルへ Ogre の調整方式の一部を追加。
-            // ほぼ平行と見做す場合に調整すると綺麗になる。
-            result *= adjustNFactorTweak;
-
-            return result;
-
-            // Ogre の場合。
-            //if ((z0 < 0 && 0 < z1) || (z1 < 0 && 0 < z0))
-            //    return 0.0f;
-
-            //return EyeNearDistance + (float) Math.Sqrt(z0 * z1) * AdjustNFactor * adjustNFactorTweak;
+            return d / ((float) Math.Sqrt(z1 / z0) - 1.0f);
         }
 
-        float CalculateNOld()
+        float CalculateOldOptimalN()
         {
             var n = EyeNearDistance;
             var f = EyeFarDistance;
@@ -216,21 +243,7 @@ namespace Libra.Graphics.Toolkit
             Vector3.Dot(ref eyeDirection, ref lightDirection, out dot);
             float sinGamma = (float) Math.Sin(Math.Abs(Math.Acos(dot)));
 
-            return (n + (float) Math.Sqrt(n * (n + d * sinGamma))) / sinGamma * adjustNFactorTweak;
-        }
-
-        float CalculateNSimple(ref Matrix lightSpace, ref BoundingBox bodyBBoxLS)
-        {
-            // TODO
-            // Ogre の calculateNOptSimple。
-            // 古い式の、ライト空間での演算を行わないバージョンか？
-            Vector3 cameraPointWS;
-            GetNearCameraPointWS(out cameraPointWS);
-
-            Vector3 cameraPointES;
-            Vector3.TransformCoordinate(ref cameraPointWS, ref eyeView, out cameraPointES);
-
-            return (Math.Abs(cameraPointES.Z) + (float) Math.Sqrt(EyeNearDistance * EyeFarDistance)) * AdjustNFactor * adjustNFactorTweak;
+            return (n + (float) Math.Sqrt(n * (n + d * sinGamma))) / sinGamma;
         }
 
         void CalculateZ0LS(ref Matrix lightSpace, ref Vector3 cameraWS, ref BoundingBox bodyBBoxLS, out Vector3 result)
@@ -241,18 +254,16 @@ namespace Libra.Graphics.Toolkit
             Vector3 cameraLS;
             Vector3.TransformCoordinate(ref cameraWS, ref lightSpace, out cameraLS);
 
-            // TODO
-            //
             // オリジナルのままでは、ライトのある方向へカメラを向けた場合に、
             // 正常に描画されなくなる。
-
-            // オリジナルの場合。
-            // オリジナルの Plane は D の符号が逆。
+            // ここでは Ogre3d の LiSPSMShadowCameraSetup に倣い、
+            // 平面との交差を異なる符号に対しても実施。
+            //
+            // 以下、オリジナル コードの場合 (オリジナルの Plane は D の符号が逆である点に注意)。
             //result.X = cameraLS.X;
             //result.Y = -plane.D - (plane.Normal.Z * bodyBBoxLS.Max.Z - plane.Normal.X * cameraLS.X) / plane.Normal.Y;
             //result.Z = bodyBBoxLS.Max.Z;
 
-            // Ogre の場合。
             var ray = new Ray(new Vector3(cameraLS.X, 0.0f, bodyBBoxLS.Max.Z), Vector3.UnitY);
             var intersect = ray.Intersects(plane);
 

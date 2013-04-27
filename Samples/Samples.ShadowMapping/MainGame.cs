@@ -301,26 +301,15 @@ namespace Samples.ShadowMapping
             basicLightCamera.LightDirection = L;
             focusedLightCamera.LightDirection = L;
             lispsmCamera.LightDirection = L;
-            oldLispsmCamera.LightDirection = L;
-
-            focusedLightCamera.LightFarDistance = 500.0f;
-            lispsmCamera.LightFarDistance = 500.0f;
-            oldLispsmCamera.LightFarDistance = 500.0f;
-
-            lispsmCamera.AdjustNFactor = 0.6f;
-
-            oldLispsmCamera.UseNewNFormula = true;
 
             basicLightCamera.Update(view, projection, actualSceneBox);
             focusedLightCamera.Update(view, projection, actualSceneBox);
             lispsmCamera.Update(view, projection, actualSceneBox);
-            oldLispsmCamera.Update(view, projection, actualSceneBox);
 
             Matrix lightViewProjection;
             //Matrix.Multiply(ref basicLightCamera.LightView, ref basicLightCamera.LightProjection, out lightViewProjection);
             //Matrix.Multiply(ref focusedLightCamera.LightView, ref focusedLightCamera.LightProjection, out lightViewProjection);
             Matrix.Multiply(ref lispsmCamera.LightView, ref lispsmCamera.LightProjection, out lightViewProjection);
-            //Matrix.Multiply(ref oldLispsmCamera.LightView, ref oldLispsmCamera.LightProjection, out lightViewProjection);
 
             return lightViewProjection;
         }
