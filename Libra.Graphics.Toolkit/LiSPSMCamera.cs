@@ -147,6 +147,7 @@ namespace Libra.Graphics.Toolkit
 
             return CalculateNGeneral(ref lightSpace, ref bodyBBoxLS);
             //return CalculateNSimple(ref lightSpace, ref bodyBBoxLS);
+            //return CalculateNOld();
         }
 
         float CalculateNGeneral(ref Matrix lightSpace, ref BoundingBox bodyBBoxLS)
@@ -189,14 +190,33 @@ namespace Libra.Graphics.Toolkit
             // 適切な値を明示する必要があると考えられる。
 
             // オリジナルの場合。
-            //float d = Math.Abs(bodyBBoxLS.Max.Z - bodyBBoxLS.Min.Z);
-            //return d / ((float) Math.Sqrt(z1 / z0) - 1.0f);
+            float d = Math.Abs(bodyBBoxLS.Max.Z - bodyBBoxLS.Min.Z);
+            float result = d / ((float) Math.Sqrt(z1 / z0) - 1.0f);
+
+            // オリジナルへ Ogre の調整方式の一部を追加。
+            // ほぼ平行と見做す場合に調整すると綺麗になる。
+            result *= adjustNFactorTweak;
+
+            return result;
 
             // Ogre の場合。
-            if ((z0 < 0 && 0 < z1) || (z1 < 0 && 0 < z0))
-                return 0.0f;
+            //if ((z0 < 0 && 0 < z1) || (z1 < 0 && 0 < z0))
+            //    return 0.0f;
 
-            return EyeNearDistance + (float) Math.Sqrt(z0 * z1) * AdjustNFactor * adjustNFactorTweak;
+            //return EyeNearDistance + (float) Math.Sqrt(z0 * z1) * AdjustNFactor * adjustNFactorTweak;
+        }
+
+        float CalculateNOld()
+        {
+            var n = EyeNearDistance;
+            var f = EyeFarDistance;
+            var d = Math.Abs(f - n);
+
+            float dot;
+            Vector3.Dot(ref eyeDirection, ref lightDirection, out dot);
+            float sinGamma = (float) Math.Sin(Math.Abs(Math.Acos(dot)));
+
+            return (n + (float) Math.Sqrt(n * (n + d * sinGamma))) / sinGamma * adjustNFactorTweak;
         }
 
         float CalculateNSimple(ref Matrix lightSpace, ref BoundingBox bodyBBoxLS)
