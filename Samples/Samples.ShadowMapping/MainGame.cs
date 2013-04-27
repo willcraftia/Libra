@@ -112,6 +112,17 @@ namespace Samples.ShadowMapping
 
         #endregion
 
+        #region LightCameraType
+
+        enum LightCameraType
+        {
+            LiSPSM  = 0,
+            Focused = 1,
+            Basic   = 2,
+        }
+
+        #endregion
+
         const int shadowMapWidthHeight = 2048;
 
         const int windowWidth = 800;
@@ -131,8 +142,14 @@ namespace Samples.ShadowMapping
         Vector3 cameraForward = new Vector3(0, -0.4472136f, -0.8944272f);
         
         BoundingFrustum cameraFrustum = new BoundingFrustum(Matrix.Identity);
+
+        float cameraNear = 1.0f;
+
+        float cameraFar = 1000.0f;
  
         Vector3 lightDir = new Vector3(-0.3333333f, 0.6666667f, 0.6666667f);
+
+        float lightFar = 500.0f;
 
         KeyboardState lastKeyboardState = new KeyboardState();
 
@@ -150,9 +167,9 @@ namespace Samples.ShadowMapping
 
         Model dudeModel;
 
-        ConvexBody bodyB;
-
         BoundingBox sceneBox;
+
+        bool useCameraFrustumSceneBox;
 
         Vector3[] corners;
 
@@ -176,7 +193,7 @@ namespace Samples.ShadowMapping
 
         LiSPSMCamera lispsmCamera;
 
-        OldLiSPSMCamera oldLispsmCamera;
+        LightCameraType currentLightCameraType;
 
         Matrix lightViewProjection;
 
@@ -194,14 +211,36 @@ namespace Samples.ShadowMapping
             graphicsManager.PreferredBackBufferHeight = windowHeight;
 
             var aspectRatio = (float) windowWidth / (float) windowHeight;
-            projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspectRatio,  1.0f, 1000.0f);
+            projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspectRatio, cameraNear, cameraFar);
+
+            corners = new Vector3[8];
+
+            // gridModel が半径約 183 であるため、
+            // これを含むように簡易シーン AABB を決定。
+            sceneBox = new BoundingBox(new Vector3(-200), new Vector3(200));
+
+            useCameraFrustumSceneBox = true;
+
+            // lightDir はライトの進行方向ではなく、原点からのライトの位置方向。
+            var L = -lightDir;
+            L.Normalize();
 
             basicLightCamera = new BasicLightCamera();
+            basicLightCamera.LightDirection = L;
+
             focusedLightCamera = new FocusedLightCamera();
+            focusedLightCamera.EyeNearDistance = cameraNear;
+            focusedLightCamera.EyeFarDistance = cameraFar;
+            focusedLightCamera.LightDirection = L;
+            focusedLightCamera.LightFarDistance = lightFar;
+            
             lispsmCamera = new LiSPSMCamera();
-            lispsmCamera.EyeNearDistance = 1.0f;
-            oldLispsmCamera = new OldLiSPSMCamera();
-            oldLispsmCamera.EyeNearDistance = 1.0f;
+            lispsmCamera.EyeNearDistance = cameraNear;
+            lispsmCamera.EyeFarDistance = cameraFar;
+            lispsmCamera.LightDirection = L;
+            lispsmCamera.LightFarDistance = lightFar;
+
+            currentLightCameraType = LightCameraType.LiSPSM;
 
             shadowMapEffectForm = ShadowMapEffectForm.Variance;
         }
@@ -216,13 +255,6 @@ namespace Samples.ShadowMapping
 
             gridModel = content.Load<Model>("grid");
             dudeModel = content.Load<Model>("dude");
-
-            corners = new Vector3[8];
-            bodyB = new ConvexBody();
-
-            // gridModel が半径約 183 であるため、
-            // これを含むように簡易シーン AABB を決定。
-            sceneBox = new BoundingBox(new Vector3(-200), new Vector3(200));
 
             bsmRenderTarget = Device.CreateRenderTarget();
             bsmRenderTarget.Width = shadowMapWidthHeight;
@@ -239,8 +271,8 @@ namespace Samples.ShadowMapping
             vsmRenderTarget.Initialize();
 
             gaussianBlur = new GaussianBlur(Device, vsmRenderTarget.Width, vsmRenderTarget.Height, SurfaceFormat.Vector2);
-            gaussianBlur.Radius = 2;
-            gaussianBlur.Amount = 8;
+            gaussianBlur.Radius = 4;
+            gaussianBlur.Amount = 16;
         }
 
         protected override void Update(GameTime gameTime)
@@ -286,30 +318,41 @@ namespace Samples.ShadowMapping
         {
             BoundingBox actualSceneBox;
 
-            // 明示する場合。
-            actualSceneBox = sceneBox;
-            actualSceneBox.Merge(cameraPosition);
+            if (useCameraFrustumSceneBox)
+            {
+                // 視錐台全体とする場合。
+                cameraFrustum.GetCorners(corners);
+                actualSceneBox = BoundingBox.CreateFromPoints(corners);
 
-            // 視錐台全体とする場合。
-            //cameraFrustum.GetCorners(corners);
-            //actualSceneBox = BoundingBox.CreateFromPoints(corners);
+            }
+            else
+            {
+                // 明示する場合。
+                actualSceneBox = sceneBox;
+                actualSceneBox.Merge(cameraPosition);
+            }
 
-            // lightDir はライトの進行方向ではなく、原点からのライトの位置方向。
-            var L = -lightDir;
-            L.Normalize();
+            // 利用するライト カメラの選択。
+            LightCamera lightCamera;
+            switch (currentLightCameraType)
+            {
+                case LightCameraType.LiSPSM:
+                    lightCamera = lispsmCamera;
+                    break;
+                case LightCameraType.Focused:
+                    lightCamera = focusedLightCamera;
+                    break;
+                default:
+                    lightCamera = basicLightCamera;
+                    break;
+            }
 
-            basicLightCamera.LightDirection = L;
-            focusedLightCamera.LightDirection = L;
-            lispsmCamera.LightDirection = L;
+            // カメラの行列を更新。
+            lightCamera.Update(view, projection, actualSceneBox);
 
-            basicLightCamera.Update(view, projection, actualSceneBox);
-            focusedLightCamera.Update(view, projection, actualSceneBox);
-            lispsmCamera.Update(view, projection, actualSceneBox);
-
+            // ライトのビュー×射影行列。
             Matrix lightViewProjection;
-            //Matrix.Multiply(ref basicLightCamera.LightView, ref basicLightCamera.LightProjection, out lightViewProjection);
-            //Matrix.Multiply(ref focusedLightCamera.LightView, ref focusedLightCamera.LightProjection, out lightViewProjection);
-            Matrix.Multiply(ref lispsmCamera.LightView, ref lispsmCamera.LightProjection, out lightViewProjection);
+            Matrix.Multiply(ref lightCamera.LightView, ref lightCamera.LightProjection, out lightViewProjection);
 
             return lightViewProjection;
         }
@@ -405,9 +448,9 @@ namespace Samples.ShadowMapping
 
         void DrawOverlayText()
         {
-            var text = "X = Shadow map form (" + shadowMapEffectForm + ")";
-
-            text += "\r\nCamera position: " + cameraPosition;
+            var text = "B = Light camera type (" + currentLightCameraType + ")\n" +
+                "X = Shadow map form (" + shadowMapEffectForm + ")\n" +
+                "Y = Use camera frustum as scene box (" + useCameraFrustumSceneBox + ")";
 
             spriteBatch.Begin();
 
@@ -434,6 +477,21 @@ namespace Samples.ShadowMapping
                 rotateDude -= time * 0.2f;
             if (currentKeyboardState.IsKeyDown(Keys.E))
                 rotateDude += time * 0.2f;
+
+            if (currentKeyboardState.IsKeyUp(Keys.B) && lastKeyboardState.IsKeyDown(Keys.B) ||
+                currentJoystickState.IsButtonUp(Buttons.B) && lastJoystickState.IsButtonDown(Buttons.B))
+            {
+                currentLightCameraType++;
+
+                if (LightCameraType.Basic < currentLightCameraType)
+                    currentLightCameraType = LightCameraType.LiSPSM;
+            }
+
+            if (currentKeyboardState.IsKeyUp(Keys.Y) && lastKeyboardState.IsKeyDown(Keys.Y) ||
+                currentJoystickState.IsButtonUp(Buttons.Y) && lastJoystickState.IsButtonDown(Buttons.Y))
+            {
+                useCameraFrustumSceneBox = !useCameraFrustumSceneBox;
+            }
 
             if (currentKeyboardState.IsKeyUp(Keys.X) && lastKeyboardState.IsKeyDown(Keys.X) ||
                 currentJoystickState.IsButtonUp(Buttons.X) && lastJoystickState.IsButtonDown(Buttons.X))
