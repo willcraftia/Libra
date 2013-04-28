@@ -157,14 +157,19 @@ namespace Libra.Graphics.Toolkit
             {
                 var polygon = bodyB.Polygons[ip];
 
-                for (int iv = 0; iv < polygon.Vertices.Count; iv++)
+                for (int iv = 0; iv < polygon.VertexCount; iv++)
                 {
-                    var v = polygon.Vertices[iv];
+                    Vector3 v;
+                    polygon.GetVertex(iv, out v);
 
                     // TODO
-                    // 重複頂点を削除するか否か (接する多角形同士の頂点は重複する)。
+                    // 完全等価ではなく見做し等価とすべき。
 
-                    bodyBPoints.Add(v);
+                    // 重複頂点を削除するか否か (接する多角形同士の頂点は重複する)。
+                    if (!bodyBPoints.Contains(v))
+                    {
+                        bodyBPoints.Add(v);
+                    }
 
                     Vector3 newPoint;
 
@@ -195,14 +200,17 @@ namespace Libra.Graphics.Toolkit
             {
                 var polygon = bodyLVS.Polygons[ip];
 
-                for (int iv = 0; iv < polygon.Vertices.Count; iv++)
+                for (int iv = 0; iv < polygon.VertexCount; iv++)
                 {
-                    var v = polygon.Vertices[iv];
+                    Vector3 v;
+                    polygon.GetVertex(iv, out v);
 
                     // TODO
-                    // 重複頂点を削除するか否か (接する多角形同士の頂点は重複する)。
+                    // 完全等価ではなく見做し等価とすべき。
 
-                    bodyLVSPoints.Add(v);
+                    // 重複頂点を削除するか否か (接する多角形同士の頂点は重複する)。
+                    if (!bodyLVSPoints.Contains(v))
+                        bodyLVSPoints.Add(v);
                 }
             }
         }

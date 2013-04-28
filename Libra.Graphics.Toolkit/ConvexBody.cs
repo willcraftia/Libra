@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using Libra.Collections;
 
 #endregion
 
@@ -13,11 +14,26 @@ namespace Libra.Graphics.Toolkit
 
         public sealed class Polygon
         {
-            public List<Vector3> Vertices { get; private set; }
+            StructList<Vector3> vertices;
+
+            public int VertexCount
+            {
+                get { return vertices.Count; }
+            }
 
             public Polygon()
             {
-                Vertices = new List<Vector3>(4);
+                vertices = new StructList<Vector3>(4);
+            }
+
+            public void GetVertex(int index, out Vector3 result)
+            {
+                vertices.GetItem(index, out result);
+            }
+
+            public void AddVertex(ref Vector3 vertex)
+            {
+                vertices.Add(ref vertex);
             }
         }
 
@@ -36,6 +52,11 @@ namespace Libra.Graphics.Toolkit
                 Point0 = point0;
                 Point1 = point1;
             }
+
+            public override string ToString()
+            {
+                return "{Point0: " + Point0 + " Point1:" + Point1 + "}";
+            }
         }
 
         #endregion
@@ -47,17 +68,20 @@ namespace Libra.Graphics.Toolkit
         // 即ち、Degree 1 の角度差ならば等しいベクトル方向であるとする。
         static readonly float DirectionEqualsTolerance = MathHelper.ToRadians(1);
 
-        public List<Polygon> Polygons { get; private set; }
-
         Vector3[] corners;
 
         List<bool> outsides;
+
+        StructList<Edge> intersectEdges;
+
+        public List<Polygon> Polygons { get; private set; }
 
         public ConvexBody()
         {
             Polygons = new List<Polygon>(6);
             corners = new Vector3[8];
             outsides = new List<bool>(6);
+            intersectEdges = new StructList<Edge>();
         }
 
         public void Define(BoundingFrustum frustum)
@@ -99,45 +123,45 @@ namespace Libra.Graphics.Toolkit
             // 7: 6: far-bottom-right
 
             var near = new Polygon();
-            near.Vertices.Add(corners[1]);
-            near.Vertices.Add(corners[0]);
-            near.Vertices.Add(corners[3]);
-            near.Vertices.Add(corners[2]);
+            near.AddVertex(ref corners[1]);
+            near.AddVertex(ref corners[0]);
+            near.AddVertex(ref corners[3]);
+            near.AddVertex(ref corners[2]);
             Polygons.Add(near);
 
             var far = new Polygon();
-            far.Vertices.Add(corners[4]);
-            far.Vertices.Add(corners[5]);
-            far.Vertices.Add(corners[6]);
-            far.Vertices.Add(corners[7]);
+            far.AddVertex(ref corners[4]);
+            far.AddVertex(ref corners[5]);
+            far.AddVertex(ref corners[6]);
+            far.AddVertex(ref corners[7]);
             Polygons.Add(far);
 
             var left = new Polygon();
-            left.Vertices.Add(corners[4]);
-            left.Vertices.Add(corners[7]);
-            left.Vertices.Add(corners[3]);
-            left.Vertices.Add(corners[0]);
+            left.AddVertex(ref corners[4]);
+            left.AddVertex(ref corners[7]);
+            left.AddVertex(ref corners[3]);
+            left.AddVertex(ref corners[0]);
             Polygons.Add(left);
 
             var right = new Polygon();
-            right.Vertices.Add(corners[5]);
-            right.Vertices.Add(corners[1]);
-            right.Vertices.Add(corners[2]);
-            right.Vertices.Add(corners[6]);
+            right.AddVertex(ref corners[5]);
+            right.AddVertex(ref corners[1]);
+            right.AddVertex(ref corners[2]);
+            right.AddVertex(ref corners[6]);
             Polygons.Add(left);
 
             var bottom = new Polygon();
-            bottom.Vertices.Add(corners[7]);
-            bottom.Vertices.Add(corners[6]);
-            bottom.Vertices.Add(corners[2]);
-            bottom.Vertices.Add(corners[3]);
+            bottom.AddVertex(ref corners[7]);
+            bottom.AddVertex(ref corners[6]);
+            bottom.AddVertex(ref corners[2]);
+            bottom.AddVertex(ref corners[3]);
             Polygons.Add(bottom);
 
             var top = new Polygon();
-            top.Vertices.Add(corners[5]);
-            top.Vertices.Add(corners[4]);
-            top.Vertices.Add(corners[0]);
-            top.Vertices.Add(corners[1]);
+            top.AddVertex(ref corners[5]);
+            top.AddVertex(ref corners[4]);
+            top.AddVertex(ref corners[0]);
+            top.AddVertex(ref corners[1]);
             Polygons.Add(top);
         }
 
@@ -165,26 +189,22 @@ namespace Libra.Graphics.Toolkit
             Polygons.Clear();
 
             // オリジナル コードでは辺をポリゴンとして扱っているが、
-            // 見通しを良くするために Ogre3d 同様に Edge 構造体で管理。
+            // 見通しを良くするため Edge 構造体で管理。
             // ただし、途中のクリップ判定では、複数の交点を検出する可能性があるため、
             // 一度 Polygon クラスで頂点を集めた後、Edge へ変換している。
-            // TODO
-            // インスタンス生成を抑えたい。
-            List<Edge> intersectEdges = new List<Edge>();
+            intersectEdges.Clear();
 
             for (int ip = 0; ip < sourcePolygons.Count; ip++)
             {
                 var originalPolygon = sourcePolygons[ip];
-                if (originalPolygon.Vertices.Count < 3)
+                if (originalPolygon.VertexCount < 3)
                     continue;
 
-                // TODO
-                // インスタンス生成を抑えたい。
                 Polygon newPolygon;
                 Polygon intersectPolygon;
                 Clip(ref plane, originalPolygon, out newPolygon, out intersectPolygon);
 
-                if (3 <= newPolygon.Vertices.Count)
+                if (3 <= newPolygon.VertexCount)
                 {
                     // 面がある場合。
 
@@ -192,13 +212,16 @@ namespace Libra.Graphics.Toolkit
                 }
 
                 // 交差した辺を記憶。
-                if (intersectPolygon.Vertices.Count == 2)
+                if (intersectPolygon.VertexCount == 2)
                 {
-                    var edge = new Edge(
-                        intersectPolygon.Vertices[0],
-                        intersectPolygon.Vertices[1]);
+                    Vector3 v0;
+                    Vector3 v1;
+                    intersectPolygon.GetVertex(0, out v0);
+                    intersectPolygon.GetVertex(1, out v1);
 
-                    intersectEdges.Add(edge);
+                    var edge = new Edge(v0, v1);
+
+                    intersectEdges.Add(ref edge);
                 }
 
                 outsides.Clear();
@@ -212,17 +235,18 @@ namespace Libra.Graphics.Toolkit
                 var closingPolygon = new Polygon();
                 Polygons.Add(closingPolygon);
 
-                // TODO
-                // intersectEdges は任意の位置の要素削除が発生するため、
-                // 効率化が必要。
-                var first = intersectEdges[0].Point0;
-                var second = intersectEdges[0].Point1;
-                intersectEdges.RemoveAt(0);
+                Edge lastEdge;
+                intersectEdges.GetLastItem(out lastEdge);
+                intersectEdges.RemoveLast();
+
+                Vector3 first = lastEdge.Point0;
+                Vector3 second = lastEdge.Point1;
 
                 Vector3 next;
 
-                if (FindAndRemoveEdge(ref second, intersectEdges, out next))
+                if (FindPointAndRemoveEdge(ref second, intersectEdges, out next))
                 {
+                    // 交差する二つの辺から多角形の法線を算出。
                     Vector3 edge0;
                     Vector3 edge1;
                     Vector3.Subtract(ref first, ref second, out edge0);
@@ -238,29 +262,30 @@ namespace Libra.Graphics.Toolkit
 
                     if (frontside)
                     {
-                        closingPolygon.Vertices.Add(next);
-                        closingPolygon.Vertices.Add(second);
-                        closingPolygon.Vertices.Add(first);
+                        // 
+                        closingPolygon.AddVertex(ref next);
+                        closingPolygon.AddVertex(ref second);
+                        closingPolygon.AddVertex(ref first);
                         firstVertex = next;
                         currentVertex = first;
                     }
                     else
                     {
-                        closingPolygon.Vertices.Add(first);
-                        closingPolygon.Vertices.Add(second);
-                        closingPolygon.Vertices.Add(next);
+                        closingPolygon.AddVertex(ref first);
+                        closingPolygon.AddVertex(ref second);
+                        closingPolygon.AddVertex(ref next);
                         firstVertex = first;
                         currentVertex = next;
                     }
 
                     while (0 < intersectEdges.Count)
                     {
-                        if (FindAndRemoveEdge(ref currentVertex, intersectEdges, out next))
+                        if (FindPointAndRemoveEdge(ref currentVertex, intersectEdges, out next))
                         {
                             if (intersectEdges.Count != 0)
                             {
                                 currentVertex = next;
-                                closingPolygon.Vertices.Add(next);
+                                closingPolygon.AddVertex(ref next);
                             }
                         }
                         else
@@ -284,65 +309,51 @@ namespace Libra.Graphics.Toolkit
             result = (angle <= DirectionEqualsTolerance);
         }
 
-        bool FindAndRemoveEdge(ref Vector3 target, List<Edge> edges, out Vector3 next)
+        bool FindPointAndRemoveEdge(ref Vector3 point, StructList<Edge> edges, out Vector3 another)
         {
+            another = default(Vector3);
+            int index = -1;
+
             for (int i = 0; i < edges.Count; i++)
             {
-                if (edges[i].Point0.Equals(ref target, PointEqualsTolerance))
+                Edge edge;
+                edges.GetItem(i, out edge);
+
+                if (edge.Point0.Equals(ref point, PointEqualsTolerance))
                 {
-                    next = edges[i].Point1;
-                    edges.RemoveAt(i);
-                    return true;
+                    another = edge.Point1;
+                    index = i;
+                    break;
                 }
-                else if (edges[i].Point1.Equals(ref target, PointEqualsTolerance))
+                else if (edge.Point1.Equals(ref point, PointEqualsTolerance))
                 {
-                    next = edges[i].Point0;
-                    edges.RemoveAt(i);
-                    return true;
+                    another = edge.Point0;
+                    index = i;
+                    break;
                 }
             }
 
-            next = default(Vector3);
-            return false;
-        }
-
-        int FindSamePointAndSwapWithLast(List<Polygon> polygons, ref Vector3 vertex)
-        {
-            for (int i = polygons.Count; 0 < i; i--)
+            // リスト内部における部分的な配列複製を回避するため、
+            // 対象となった要素を末尾と入れ替えた後、末尾を対象に削除。
+            if (0 <= index)
             {
-                var polygon = polygons[i - 1];
-                var index = FindSamePoint(polygon, ref vertex);
-                if (0 <= index)
-                {
-                    var temp = polygon.Vertices[index];
-                    polygon.Vertices[index] = polygon.Vertices[polygon.Vertices.Count - 1];
-                    polygon.Vertices[polygon.Vertices.Count - 1] = temp;
-
-                    return index;
-                }
+                edges.SwapWithLast(index);
+                edges.RemoveLast();
+                return true;
             }
-
-            return -1;
-        }
-
-        int FindSamePoint(Polygon polygon, ref Vector3 vertex)
-        {
-            for (int i = 0; i < polygon.Vertices.Count; i++)
+            else
             {
-                var v = polygon.Vertices[i];
-                if (v.Equals(ref vertex, MathHelper.ZeroTolerance))
-                    return i;
+                return false;
             }
-
-            return -1;
         }
 
         void Clip(ref Plane plane, Polygon originalPolygon, out Polygon newPolygon, out Polygon intersectPolygon)
         {
             // 各頂点が面 plane の裏側にあるか否か。
-            for (int iv = 0; iv < originalPolygon.Vertices.Count; iv++)
+            for (int iv = 0; iv < originalPolygon.VertexCount; iv++)
             {
-                var v = originalPolygon.Vertices[iv];
+                Vector3 v;
+                originalPolygon.GetVertex(iv, out v);
 
                 // 面 plane から頂点 v の距離。
                 float distance;
@@ -356,12 +367,12 @@ namespace Libra.Graphics.Toolkit
             newPolygon = new Polygon();
             intersectPolygon = new Polygon();
 
-            for (int iv0 = 0; iv0 < originalPolygon.Vertices.Count; iv0++)
+            for (int iv0 = 0; iv0 < originalPolygon.VertexCount; iv0++)
             {
                 // 二つの頂点は多角形の辺を表す。
 
                 // 次の頂点のインデックス (末尾の次は先頭)。
-                int iv1 = (iv0 + 1) % originalPolygon.Vertices.Count;
+                int iv1 = (iv0 + 1) % originalPolygon.VertexCount;
 
                 if (outsides[iv0] && outsides[iv1])
                 {
@@ -373,58 +384,74 @@ namespace Libra.Graphics.Toolkit
                 {
                     // 面 plane の外側から内側へ向かう辺の場合。
 
-                    var v0 = originalPolygon.Vertices[iv0];
-                    var v1 = originalPolygon.Vertices[iv1];
+                    Vector3 v0;
+                    Vector3 v1;
+                    originalPolygon.GetVertex(iv0, out v0);
+                    originalPolygon.GetVertex(iv1, out v1);
 
                     Vector3? intersect;
-                    IntersectEdgePlane(ref v0, ref v1, ref plane, out intersect);
+                    IntersectEdgeAndPlane(ref v0, ref v1, ref plane, out intersect);
 
                     if (intersect != null)
                     {
-                        newPolygon.Vertices.Add(intersect.Value);
-                        intersectPolygon.Vertices.Add(intersect.Value);
+                        Vector3 intersectV = intersect.Value;
+                        newPolygon.AddVertex(ref intersectV);
+                        intersectPolygon.AddVertex(ref intersectV);
                     }
 
-                    newPolygon.Vertices.Add(v1);
+                    newPolygon.AddVertex(ref v1);
                 }
                 else if (outsides[iv1])
                 {
                     // 面 plane の内側から外側へ向かう辺の場合。
 
-                    var v0 = originalPolygon.Vertices[iv0];
-                    var v1 = originalPolygon.Vertices[iv1];
+                    Vector3 v0;
+                    Vector3 v1;
+                    originalPolygon.GetVertex(iv0, out v0);
+                    originalPolygon.GetVertex(iv1, out v1);
 
                     Vector3? intersect;
-                    IntersectEdgePlane(ref v0, ref v1, ref plane, out intersect);
+                    IntersectEdgeAndPlane(ref v0, ref v1, ref plane, out intersect);
 
                     if (intersect != null)
                     {
-                        newPolygon.Vertices.Add(intersect.Value);
-                        intersectPolygon.Vertices.Add(intersect.Value);
+                        Vector3 intersectV = intersect.Value;
+                        newPolygon.AddVertex(ref intersectV);
+                        intersectPolygon.AddVertex(ref intersectV);
                     }
                 }
                 else
                 {
                     // 辺が面の内側にある場合。
 
-                    var v1 = originalPolygon.Vertices[iv1];
+                    Vector3 v1;
+                    originalPolygon.GetVertex(iv1, out v1);
 
-                    newPolygon.Vertices.Add(v1);
+                    newPolygon.AddVertex(ref v1);
                 }
             }
         }
 
-        void IntersectEdgePlane(ref Vector3 v0, ref Vector3 v1, ref Plane p, out Vector3? result)
+        /// <summary>
+        /// 辺と平面の交差を判定します。
+        /// </summary>
+        /// <param name="point0">point1 と対をなす辺の点。</param>
+        /// <param name="point1">point0 と対をなす辺の点。</param>
+        /// <param name="plane">平面。</param>
+        /// <param name="result">
+        /// 交点 (辺と平面が交差する場合)、null (それ以外の場合)。
+        /// </param>
+        void IntersectEdgeAndPlane(ref Vector3 point0, ref Vector3 point1, ref Plane plane, out Vector3? result)
         {
             // 辺の方向。
-            var direction = v0 - v1;
+            var direction = point0 - point1;
             direction.Normalize();
 
             // 辺と面 p との交差を判定。
-            var ray = new Ray(v1, direction);
+            var ray = new Ray(point1, direction);
 
             float? intersect;
-            ray.Intersects(ref p, out intersect);
+            ray.Intersects(ref plane, out intersect);
 
             if (intersect != null)
             {

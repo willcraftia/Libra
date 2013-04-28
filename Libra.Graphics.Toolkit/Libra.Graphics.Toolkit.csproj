@@ -64,6 +64,10 @@
     <Compile Include="ShadowMapEffect.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Libra.Collections\Libra.Collections.csproj">
+      <Project>{79116E63-224F-4271-905E-B08BF2B6DD9C}</Project>
+      <Name>Libra.Collections</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Libra.Graphics.Compiler.SharpDX\Libra.Graphics.Compiler.SharpDX.csproj">
       <Project>{59E12C98-86A5-4FBD-8D04-236BABB15F51}</Project>
       <Name>Libra.Graphics.Compiler.SharpDX</Name>
