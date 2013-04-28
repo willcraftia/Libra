@@ -237,27 +237,28 @@ namespace Libra.Graphics.Toolkit
             if (bodyLVSPoints.Count == 0)
             {
                 result = Vector3.Zero;
-                return;
             }
-
-            Vector3 nearWS = bodyLVSPoints[0];
-            Vector3 nearES;
-            Vector3.TransformCoordinate(ref nearWS, ref eyeView, out nearES);
-
-            for (int i = 1; i < bodyLVSPoints.Count; i++)
+            else
             {
-                Vector3 pointWS = bodyLVSPoints[i];
-                Vector3 pointES;
-                Vector3.TransformCoordinate(ref pointWS, ref eyeView, out pointES);
+                Vector3 nearWS = bodyLVSPoints[0];
+                Vector3 nearES;
+                Vector3.TransformCoordinate(ref nearWS, ref eyeView, out nearES);
 
-                if (nearES.Z < pointES.Z)
+                for (int i = 1; i < bodyLVSPoints.Count; i++)
                 {
-                    nearES = pointES;
-                    nearWS = pointWS;
-                }
-            }
+                    Vector3 pointWS = bodyLVSPoints[i];
+                    Vector3 pointES;
+                    Vector3.TransformCoordinate(ref pointWS, ref eyeView, out pointES);
 
-            result = nearWS;
+                    if (nearES.Z < pointES.Z)
+                    {
+                        nearES = pointES;
+                        nearWS = pointWS;
+                    }
+                }
+
+                result = nearWS;
+            }
         }
 
         protected void GetCameraDirectionLS(ref Matrix lightSpace, out Vector3 result)
