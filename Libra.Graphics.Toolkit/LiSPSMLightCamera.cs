@@ -6,7 +6,7 @@ using System;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class LiSPSMCamera : FocusedLightCamera
+    public sealed class LiSPSMLightCamera : FocusedLightCamera
     {
         /// <summary>
         /// 算出した最適 N 値の調整係数。
@@ -56,7 +56,7 @@ namespace Libra.Graphics.Toolkit
         /// </value>
         public bool UseOldOptimalNFormula { get; set; }
 
-        public LiSPSMCamera()
+        public LiSPSMLightCamera()
         {
             EyeDotLightThreshold = 0.9f;
             AdjustOptimalN = true;

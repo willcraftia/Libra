@@ -191,7 +191,7 @@ namespace Samples.ShadowMapping
 
         FocusedLightCamera focusedLightCamera;
 
-        LiSPSMCamera lispsmCamera;
+        LiSPSMLightCamera lispsmLightCamera;
 
         LightCameraType currentLightCameraType;
 
@@ -234,11 +234,11 @@ namespace Samples.ShadowMapping
             focusedLightCamera.LightDirection = L;
             focusedLightCamera.LightFarDistance = lightFar;
             
-            lispsmCamera = new LiSPSMCamera();
-            lispsmCamera.EyeNearDistance = cameraNear;
-            lispsmCamera.EyeFarDistance = cameraFar;
-            lispsmCamera.LightDirection = L;
-            lispsmCamera.LightFarDistance = lightFar;
+            lispsmLightCamera = new LiSPSMLightCamera();
+            lispsmLightCamera.EyeNearDistance = cameraNear;
+            lispsmLightCamera.EyeFarDistance = cameraFar;
+            lispsmLightCamera.LightDirection = L;
+            lispsmLightCamera.LightFarDistance = lightFar;
 
             currentLightCameraType = LightCameraType.LiSPSM;
 
@@ -337,7 +337,7 @@ namespace Samples.ShadowMapping
             switch (currentLightCameraType)
             {
                 case LightCameraType.LiSPSM:
-                    lightCamera = lispsmCamera;
+                    lightCamera = lispsmLightCamera;
                     break;
                 case LightCameraType.Focused:
                     lightCamera = focusedLightCamera;
