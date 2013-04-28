@@ -13,6 +13,10 @@ namespace Libra.Graphics.Toolkit
         /// </summary>
         float adjustOptimalNFactor;
 
+        Vector3 cachedNearCameraPointWS;
+
+        bool nearCameraPointWSCalculated;
+
         /// <summary>
         /// 視線とライトが平行であると見做す内積の値 (絶対値) を取得または設定します。
         /// </summary>
@@ -64,6 +68,8 @@ namespace Libra.Graphics.Toolkit
 
         protected override void Update()
         {
+            nearCameraPointWSCalculated = false;
+
             // 標準的なライト空間行列の算出。
             CalculateStandardLightSpaceMatrices();
 
@@ -149,10 +155,18 @@ namespace Libra.Graphics.Toolkit
             // 錐台 P の d (近平面から遠平面までの距離)。
             var d = Math.Abs(bodyBBoxLS.Max.Z - bodyBBoxLS.Min.Z);
 
-            // TODO
-            // CalculateNGeneral を呼び出すルートの場合、二度同じ計算をしている。
             Vector3 cameraPointWS;
-            GetNearCameraPointWS(out cameraPointWS);
+            if (nearCameraPointWSCalculated)
+            {
+                cameraPointWS = cachedNearCameraPointWS;
+            }
+            else
+            {
+                GetNearCameraPointWS(out cameraPointWS);
+
+                cachedNearCameraPointWS = cameraPointWS;
+                nearCameraPointWSCalculated = true;
+            }
 
             Vector3 cameraPointLS;
             Vector3.TransformCoordinate(ref cameraPointWS, ref lightSpace, out cameraPointLS);
@@ -203,7 +217,17 @@ namespace Libra.Graphics.Toolkit
             Matrix.Invert(ref lightSpace, out inverseLightSpace);
 
             Vector3 cameraPointWS;
-            GetNearCameraPointWS(out cameraPointWS);
+            if (nearCameraPointWSCalculated)
+            {
+                cameraPointWS = cachedNearCameraPointWS;
+            }
+            else
+            {
+                GetNearCameraPointWS(out cameraPointWS);
+
+                cachedNearCameraPointWS = cameraPointWS;
+                nearCameraPointWSCalculated = true;
+            }
 
             // z0 と z1 の算出。
 
