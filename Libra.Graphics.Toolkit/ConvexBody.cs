@@ -2,12 +2,21 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
 using Libra.Collections;
 
 #endregion
 
 namespace Libra.Graphics.Toolkit
 {
+    /// <summary>
+    /// 凸体の構築とクリップを管理するクラスです。
+    /// </summary>
+    /// <remarks>
+    /// LiSPSM で用いるために実装したクラスであり、
+    /// 一般的な凸体を扱う上での汎用性は考慮していません。
+    /// </remarks>
     public sealed class ConvexBody
     {
         #region Polygon
@@ -21,7 +30,7 @@ namespace Libra.Graphics.Toolkit
                 get { return vertices.Count; }
             }
 
-            public Polygon()
+            internal Polygon()
             {
                 vertices = new StructList<Vector3>(4);
             }
@@ -34,6 +43,11 @@ namespace Libra.Graphics.Toolkit
             public void AddVertex(ref Vector3 vertex)
             {
                 vertices.Add(ref vertex);
+            }
+
+            public void ClearVertices()
+            {
+                vertices.Clear();
             }
         }
 
@@ -61,6 +75,44 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
+        #region PolygonCollection
+
+        public sealed class PolygonCollection : Collection<Polygon>
+        {
+            ConvexBody convexBody;
+
+            internal PolygonCollection(ConvexBody convexBody)
+                : base(new List<Polygon>(6))
+            {
+                this.convexBody = convexBody;
+            }
+
+            protected override void RemoveItem(int index)
+            {
+                var item = Items[index];
+                convexBody.ReleasePolygon(item);
+
+                base.RemoveItem(index);
+            }
+
+            protected override void ClearItems()
+            {
+                foreach (var item in Items)
+                {
+                    convexBody.ReleasePolygon(item);
+                }
+
+                base.ClearItems();
+            }
+
+            internal void ClearWithoutReturnToPool()
+            {
+                base.ClearItems();
+            }
+        }
+
+        #endregion
+
         // Ogre3d Vector3 と同じ値。
         const float PointEqualsTolerance = 1e-03f;
 
@@ -74,22 +126,60 @@ namespace Libra.Graphics.Toolkit
 
         StructList<Edge> intersectEdges;
 
-        public List<Polygon> Polygons { get; private set; }
+        Pool<Polygon> polygonPool;
+
+        PolygonCollection workingPolygons;
+
+        public PolygonCollection Polygons { get; private set; }
 
         public ConvexBody()
         {
-            Polygons = new List<Polygon>(6);
+            Polygons = new PolygonCollection(this);
             corners = new Vector3[8];
             outsides = new List<bool>(6);
             intersectEdges = new StructList<Edge>();
+            polygonPool = new Pool<Polygon>(() => { return new Polygon(); });
+            workingPolygons = new PolygonCollection(this);
         }
 
+        /// <summary>
+        /// 多角形プールからインスタンスを取得します。
+        /// プールが空の場合には新たなインスタンスを生成します。
+        /// </summary>
+        /// <returns>
+        /// ポリゴンが不要になった場合には、ReleasePolygon でプールへ戻す必要があります。
+        /// </returns>
+        public Polygon CreatePolygon()
+        {
+            var result = polygonPool.Borrow();
+
+            Debug.Assert(result.VertexCount == 0, "A polygon may be shared unexpectedly.");
+
+            return result;
+        }
+
+        /// <summary>
+        /// 多角形をプールへ戻します。
+        /// </summary>
+        /// <param name="polygon">プールへ戻す多角形。</param>
+        public void ReleasePolygon(Polygon polygon)
+        {
+            if (polygon == null) throw new ArgumentNullException("polygon");
+
+            polygon.ClearVertices();
+            polygonPool.Return(polygon);
+        }
+
+        /// <summary>
+        /// 視錐台の頂点で凸体を構築します。
+        /// </summary>
+        /// <param name="frustum">視錐台。</param>
         public void Define(BoundingFrustum frustum)
         {
             Polygons.Clear();
             frustum.GetCorners(corners);
 
-            // LiSPSM/Ogre3d (CCW) に合わせる。
+            // LiSPSM/Ogre (CCW) に合わせる。
             // 各々、配列インデックスと頂点の対応が異なる点に注意。
 
             // BoundingFrustum
@@ -122,42 +212,42 @@ namespace Libra.Graphics.Toolkit
             // 6: 7: far-bottom-left
             // 7: 6: far-bottom-right
 
-            var near = new Polygon();
+            var near = CreatePolygon();
             near.AddVertex(ref corners[1]);
             near.AddVertex(ref corners[0]);
             near.AddVertex(ref corners[3]);
             near.AddVertex(ref corners[2]);
             Polygons.Add(near);
 
-            var far = new Polygon();
+            var far = CreatePolygon();
             far.AddVertex(ref corners[4]);
             far.AddVertex(ref corners[5]);
             far.AddVertex(ref corners[6]);
             far.AddVertex(ref corners[7]);
             Polygons.Add(far);
 
-            var left = new Polygon();
+            var left = CreatePolygon();
             left.AddVertex(ref corners[4]);
             left.AddVertex(ref corners[7]);
             left.AddVertex(ref corners[3]);
             left.AddVertex(ref corners[0]);
             Polygons.Add(left);
 
-            var right = new Polygon();
+            var right = CreatePolygon();
             right.AddVertex(ref corners[5]);
             right.AddVertex(ref corners[1]);
             right.AddVertex(ref corners[2]);
             right.AddVertex(ref corners[6]);
-            Polygons.Add(left);
+            Polygons.Add(right);
 
-            var bottom = new Polygon();
+            var bottom = CreatePolygon();
             bottom.AddVertex(ref corners[7]);
             bottom.AddVertex(ref corners[6]);
             bottom.AddVertex(ref corners[2]);
             bottom.AddVertex(ref corners[3]);
             Polygons.Add(bottom);
 
-            var top = new Polygon();
+            var top = CreatePolygon();
             top.AddVertex(ref corners[5]);
             top.AddVertex(ref corners[4]);
             top.AddVertex(ref corners[0]);
@@ -165,6 +255,10 @@ namespace Libra.Graphics.Toolkit
             Polygons.Add(top);
         }
 
+        /// <summary>
+        /// 境界ボックスで凸体をクリップします。
+        /// </summary>
+        /// <param name="box">境界ボックス。</param>
         public void Clip(BoundingBox box)
         {
             // near
@@ -181,34 +275,50 @@ namespace Libra.Graphics.Toolkit
             Clip(new Plane(new Vector3(0, 1, 0), box.Max));
         }
 
+        /// <summary>
+        /// 平面で凸体をクリップします。
+        /// </summary>
+        /// <param name="plane">平面。</param>
         public void Clip(Plane plane)
         {
-            // 複製。
-            var sourcePolygons = new List<Polygon>(Polygons);
-            // 元を削除。
-            Polygons.Clear();
+            //var tempPolygons = Polygons;
+            //Polygons = workingPolygons;
+            //workingPolygons = tempPolygons;
 
-            // オリジナル コードでは辺をポリゴンとして扱っているが、
+            // 複製。
+            for (int i = 0; i < Polygons.Count; i++)
+                workingPolygons.Add(Polygons[i]);
+
+            // 元を削除。
+            Polygons.ClearWithoutReturnToPool();
+
+            // オリジナル コードでは辺を Polygon クラスで扱っているが、
             // 見通しを良くするため Edge 構造体で管理。
             // ただし、途中のクリップ判定では、複数の交点を検出する可能性があるため、
             // 一度 Polygon クラスで頂点を集めた後、Edge へ変換している。
             intersectEdges.Clear();
 
-            for (int ip = 0; ip < sourcePolygons.Count; ip++)
+            for (int ip = 0; ip < workingPolygons.Count; ip++)
             {
-                var originalPolygon = sourcePolygons[ip];
+                var originalPolygon = workingPolygons[ip];
                 if (originalPolygon.VertexCount < 3)
                     continue;
 
-                Polygon newPolygon;
-                Polygon intersectPolygon;
-                Clip(ref plane, originalPolygon, out newPolygon, out intersectPolygon);
+                var newPolygon = CreatePolygon();
+                var intersectPolygon = CreatePolygon();
+
+                Clip(ref plane, originalPolygon, newPolygon, intersectPolygon);
 
                 if (3 <= newPolygon.VertexCount)
                 {
                     // 面がある場合。
 
                     Polygons.Add(newPolygon);
+                }
+                else
+                {
+                    // 追加しなかった Polygon オブジェクトはリリース。
+                    ReleasePolygon(newPolygon);
                 }
 
                 // 交差した辺を記憶。
@@ -224,17 +334,13 @@ namespace Libra.Graphics.Toolkit
                     intersectEdges.Add(ref edge);
                 }
 
-                outsides.Clear();
+                // 交差する辺についての Polygon オブジェクトをリリース。
+                ReleasePolygon(intersectPolygon);
             }
 
             // 新たな多角形の構築には、少なくとも 3 つの辺が必要。
             if (3 <= intersectEdges.Count)
             {
-                // TODO
-                // インスタンス生成を抑えたい。
-                var closingPolygon = new Polygon();
-                Polygons.Add(closingPolygon);
-
                 Edge lastEdge;
                 intersectEdges.GetLastItem(out lastEdge);
                 intersectEdges.RemoveLast();
@@ -246,6 +352,9 @@ namespace Libra.Graphics.Toolkit
 
                 if (FindPointAndRemoveEdge(ref second, intersectEdges, out next))
                 {
+                    var closingPolygon = CreatePolygon();
+                    Polygons.Add(closingPolygon);
+
                     // 交差する二つの辺から多角形の法線を算出。
                     Vector3 edge0;
                     Vector3 edge1;
@@ -293,10 +402,10 @@ namespace Libra.Graphics.Toolkit
                             break;
                         }
                     }
-
-                    Polygons.Add(closingPolygon);
                 }
             }
+
+            workingPolygons.Clear();
         }
 
         void DirectionEquals(ref Vector3 v0, ref Vector3 v1, out bool result)
@@ -347,9 +456,10 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        void Clip(ref Plane plane, Polygon originalPolygon, out Polygon newPolygon, out Polygon intersectPolygon)
+        void Clip(ref Plane plane, Polygon originalPolygon, Polygon newPolygon, Polygon intersectPolygon)
         {
             // 各頂点が面 plane の裏側にあるか否か。
+            outsides.Clear();
             for (int iv = 0; iv < originalPolygon.VertexCount; iv++)
             {
                 Vector3 v;
@@ -363,9 +473,6 @@ namespace Libra.Graphics.Toolkit
                 // さもなくば false。
                 outsides.Add(0.0f < distance);
             }
-
-            newPolygon = new Polygon();
-            intersectPolygon = new Polygon();
 
             for (int iv0 = 0; iv0 < originalPolygon.VertexCount; iv0++)
             {
