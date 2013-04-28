@@ -322,7 +322,7 @@ namespace Libra.Graphics.Toolkit
 
         protected void CreateTransformedBodyBBox(ref Matrix matrix, out BoundingBox result)
         {
-            result = new BoundingBox();
+            result = BoundingBox.Empty;
             for (int i = 0; i < bodyBPoints.Count; i++)
             {
                 var point = bodyBPoints[i];
