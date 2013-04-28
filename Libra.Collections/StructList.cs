@@ -7,6 +7,17 @@ using System.Collections.Generic;
 
 namespace Libra.Collections
 {
+    /// <summary>
+    /// 構造体の管理に特化したリストの実装です。
+    /// </summary>
+    /// <remarks>
+    /// IEnumerable.GetEnumerator() について、一般的なコレクション クラスは構造体を返却するため、
+    /// クラス オブジェクトの生成は発生しませんが、
+    /// IEnumerator インタフェースとして扱う場合にはボクシングが発生します。
+    /// このため、このクラスでは IEnumerable を実装せずに、
+    /// 明示的なインデックスによるアクセスを前提としています。
+    /// </remarks>
+    /// <typeparam name="T"></typeparam>
     public sealed class StructList<T> where T : struct
     {
         public delegate void RefAction<TValue>(ref TValue value);
