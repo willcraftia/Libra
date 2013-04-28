@@ -281,10 +281,6 @@ namespace Libra.Graphics.Toolkit
         /// <param name="plane">平面。</param>
         public void Clip(Plane plane)
         {
-            //var tempPolygons = Polygons;
-            //Polygons = workingPolygons;
-            //workingPolygons = tempPolygons;
-
             // 複製。
             for (int i = 0; i < Polygons.Count; i++)
                 workingPolygons.Add(Polygons[i]);
