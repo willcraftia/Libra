@@ -450,7 +450,8 @@ namespace Samples.ShadowMapping
         {
             var text = "B = Light camera type (" + currentLightCameraType + ")\n" +
                 "X = Shadow map form (" + shadowMapEffectForm + ")\n" +
-                "Y = Use camera frustum as scene box (" + useCameraFrustumSceneBox + ")";
+                "Y = Use camera frustum as scene box (" + useCameraFrustumSceneBox + ")\n" +
+                "L = Adjust LiSPSM optimal N (" + lispsmLightCamera.AdjustOptimalN + ")";
 
             spriteBatch.Begin();
 
@@ -504,6 +505,12 @@ namespace Samples.ShadowMapping
                 {
                     shadowMapEffectForm = ShadowMapEffectForm.Basic;
                 }
+            }
+
+            if (currentKeyboardState.IsKeyUp(Keys.L) && lastKeyboardState.IsKeyDown(Keys.L) ||
+                currentJoystickState.IsButtonUp(Buttons.LeftShoulder) && lastJoystickState.IsButtonDown(Buttons.LeftShoulder))
+            {
+                lispsmLightCamera.AdjustOptimalN = !lispsmLightCamera.AdjustOptimalN;
             }
 
             if (currentKeyboardState.IsKeyDown(Keys.Escape) ||
