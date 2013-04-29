@@ -123,7 +123,7 @@ namespace Samples.ShadowMapping
 
         #endregion
 
-        const int shadowMapWidthHeight = 2048;
+        const int shadowMapSize = 2048;
 
         const int windowWidth = 800;
 
@@ -147,7 +147,9 @@ namespace Samples.ShadowMapping
 
         float cameraFar = 1000.0f;
  
-        Vector3 lightDir = new Vector3(-0.3333333f, 0.6666667f, 0.6666667f);
+        // ライトの進行方向 (XNA Shadow Mapping では原点から見たライトの方向)。
+        // 単位ベクトル。
+        Vector3 lightDirection = new Vector3(0.3333333f, -0.6666667f, -0.6666667f);
 
         float lightFar = 500.0f;
 
@@ -221,23 +223,19 @@ namespace Samples.ShadowMapping
 
             useCameraFrustumSceneBox = true;
 
-            // lightDir はライトの進行方向ではなく、原点からのライトの位置方向。
-            var L = -lightDir;
-            L.Normalize();
-
             basicLightCamera = new BasicLightCamera();
-            basicLightCamera.LightDirection = L;
+            basicLightCamera.LightDirection = lightDirection;
 
             focusedLightCamera = new FocusedLightCamera();
             focusedLightCamera.EyeNearDistance = cameraNear;
             focusedLightCamera.EyeFarDistance = cameraFar;
-            focusedLightCamera.LightDirection = L;
+            focusedLightCamera.LightDirection = lightDirection;
             focusedLightCamera.LightFarDistance = lightFar;
             
             lispsmLightCamera = new LiSPSMLightCamera();
             lispsmLightCamera.EyeNearDistance = cameraNear;
             lispsmLightCamera.EyeFarDistance = cameraFar;
-            lispsmLightCamera.LightDirection = L;
+            lispsmLightCamera.LightDirection = lightDirection;
             lispsmLightCamera.LightFarDistance = lightFar;
 
             currentLightCameraType = LightCameraType.LiSPSM;
@@ -257,15 +255,15 @@ namespace Samples.ShadowMapping
             dudeModel = content.Load<Model>("dude");
 
             bsmRenderTarget = Device.CreateRenderTarget();
-            bsmRenderTarget.Width = shadowMapWidthHeight;
-            bsmRenderTarget.Height = shadowMapWidthHeight;
+            bsmRenderTarget.Width = shadowMapSize;
+            bsmRenderTarget.Height = shadowMapSize;
             bsmRenderTarget.Format = SurfaceFormat.Single;
             bsmRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
             bsmRenderTarget.Initialize();
 
             vsmRenderTarget = Device.CreateRenderTarget();
-            vsmRenderTarget.Width = shadowMapWidthHeight;
-            vsmRenderTarget.Height = shadowMapWidthHeight;
+            vsmRenderTarget.Width = shadowMapSize;
+            vsmRenderTarget.Height = shadowMapSize;
             vsmRenderTarget.Format = SurfaceFormat.Vector2;
             vsmRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
             vsmRenderTarget.Initialize();
@@ -411,7 +409,7 @@ namespace Samples.ShadowMapping
                 drawModelShader.View = view;
                 drawModelShader.Projection = projection;
                 drawModelShader.LightViewProjection = lightViewProjection;
-                drawModelShader.LightDirection = lightDir;
+                drawModelShader.LightDirection = lightDirection;
                 drawModelShader.DepthBias = 0.001f;
                 drawModelShader.AmbientColor = new Vector4(0.15f, 0.15f, 0.15f, 1.0f);
                 drawModelShader.ShadowMapEffectForm = shadowMapEffectForm;

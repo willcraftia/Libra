@@ -5,9 +5,10 @@
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
 
-// XNA の DrawModel.fx をシェーダ モデル 4.0 へ変更。
+// XNA Shadow Mapping サンプルの DrawModel.fx をシェーダ モデル 4.0 へ変更。
 // シャドウマップ生成シェーダは Toolkit クラスを使用。
 // 分散シャドウ マップ (VSM: Variance Shadow Map) に対応。
+// XNA Shadow Mapping サンプルとは異なり、LightDirection はライトの進行方向。
 
 cbuffer Parameters : register(b0)
 {
@@ -61,7 +62,7 @@ float4 BasicPS(VSOutput input) : SV_Target0
 { 
     float4 diffuseColor = Texture.Sample(TextureSampler, input.TexCoord);
 
-    float diffuseIntensity = saturate(dot(LightDirection, input.Normal));
+    float diffuseIntensity = saturate(dot(-LightDirection, input.Normal));
     float4 diffuse = diffuseIntensity * diffuseColor + AmbientColor;
 
     float4 lightingPosition = mul(input.WorldPos, LightViewProj);
@@ -102,7 +103,7 @@ float4 VariancePS(VSOutput input) : SV_Target0
 { 
     float4 diffuseColor = Texture.Sample(TextureSampler, input.TexCoord);
 
-    float diffuseIntensity = saturate(dot(LightDirection, input.Normal));
+    float diffuseIntensity = saturate(dot(-LightDirection, input.Normal));
     float4 diffuse = diffuseIntensity * diffuseColor + AmbientColor;
 
     float4 lightingPosition = mul(input.WorldPos, LightViewProj);
