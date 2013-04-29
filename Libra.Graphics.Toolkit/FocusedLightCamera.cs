@@ -175,6 +175,7 @@ namespace Libra.Graphics.Toolkit
 
                     // ライトが存在する方向へレイを伸ばし、シーン AABB との交点を追加。
                     float? intersect;
+                    ray.Position = v;
                     ray.Intersects(ref sceneBox, out intersect);
 
                     if (intersect != null)
