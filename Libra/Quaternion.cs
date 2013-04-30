@@ -15,9 +15,9 @@ namespace Libra
     {
         public static readonly Quaternion Zero = new Quaternion();
 
-        public static readonly Quaternion One = new Quaternion(1.0f, 1.0f, 1.0f, 1.0f);
+        public static readonly Quaternion One = new Quaternion(1, 1, 1, 1);
 
-        public static readonly Quaternion Identity = new Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
+        public static readonly Quaternion Identity = new Quaternion(0, 0, 0, 1);
 
         public float X;
 
@@ -51,29 +51,34 @@ namespace Libra
             W = w;
         }
 
-        public float Angle
+        public static Quaternion Add(Quaternion left, Quaternion right)
         {
-            get
-            {
-                float length = (X * X) + (Y * Y) + (Z * Z);
-                if (length < MathHelper.ZeroTolerance)
-                    return 0.0f;
-
-                return (float) (2.0 * Math.Acos(W));
-            }
+            Quaternion result;
+            Add(ref left, ref right, out result);
+            return result;
         }
 
-        public Vector3 Axis
+        public static void Add(ref Quaternion left, ref Quaternion right, out Quaternion result)
         {
-            get
-            {
-                float length = (X * X) + (Y * Y) + (Z * Z);
-                if (length < MathHelper.ZeroTolerance)
-                    return Vector3.UnitX;
+            result.X = left.X + right.X;
+            result.Y = left.Y + right.Y;
+            result.Z = left.Z + right.Z;
+            result.W = left.W + right.W;
+        }
 
-                float inv = 1.0f / length;
-                return new Vector3(X * inv, Y * inv, Z * inv);
-            }
+        public static Quaternion Concatenate(Quaternion left, Quaternion right)
+        {
+            Quaternion result;
+            Concatenate(ref left, ref right, out result);
+            return result;
+        }
+
+        public static void Concatenate(ref Quaternion left, ref Quaternion right, out Quaternion result)
+        {
+            result.X = (left.W * right.X) + (left.X * right.W) + (left.Z * right.Y) - (left.Y * right.Z);
+            result.Y = (left.W * right.Y) + (left.Y * right.W) + (left.X * right.Z) - (left.Z * right.X);
+            result.Z = (left.W * right.Z) + (left.Z * right.W) + (left.Y * right.X) - (left.X * right.Y);
+            result.W = (left.W * right.W) - (left.X * right.X) + (left.Y * right.Y) + (left.Z * right.Z);
         }
 
         public void Conjugate()
@@ -81,6 +86,129 @@ namespace Libra
             X = -X;
             Y = -Y;
             Z = -Z;
+        }
+
+        public static Quaternion Conjugate(Quaternion value)
+        {
+            Quaternion result;
+            Conjugate(ref value, out result);
+            return result;
+        }
+
+        public static void Conjugate(ref Quaternion value, out Quaternion result)
+        {
+            result.X = -value.X;
+            result.Y = -value.Y;
+            result.Z = -value.Z;
+            result.W = value.W;
+        }
+
+        public static Quaternion CreateFromAxisAngle(Vector3 axis, float angle)
+        {
+            Quaternion result;
+            CreateFromAxisAngle(ref axis, angle, out result);
+            return result;
+        }
+
+        public static void CreateFromAxisAngle(ref Vector3 axis, float angle, out Quaternion result)
+        {
+            Vector3 normalized;
+            Vector3.Normalize(ref axis, out normalized);
+
+            float half = angle * 0.5f;
+            float sin = (float) Math.Sin(half);
+            float cos = (float) Math.Cos(half);
+
+            result.X = normalized.X * sin;
+            result.Y = normalized.Y * sin;
+            result.Z = normalized.Z * sin;
+            result.W = cos;
+        }
+
+        public static Quaternion CreateFromRotationMatrix(Matrix matrix)
+        {
+            Quaternion result;
+            CreateFromRotationMatrix(ref matrix, out result);
+            return result;
+        }
+
+        public static void CreateFromRotationMatrix(ref Matrix matrix, out Quaternion result)
+        {
+            float sqrt;
+            float half;
+            float scale = matrix.M11 + matrix.M22 + matrix.M33;
+
+            if (scale > 0.0f)
+            {
+                sqrt = (float) Math.Sqrt(scale + 1.0f);
+                result.W = sqrt * 0.5f;
+                sqrt = 0.5f / sqrt;
+
+                result.X = (matrix.M23 - matrix.M32) * sqrt;
+                result.Y = (matrix.M31 - matrix.M13) * sqrt;
+                result.Z = (matrix.M12 - matrix.M21) * sqrt;
+            }
+            else if ((matrix.M11 >= matrix.M22) && (matrix.M11 >= matrix.M33))
+            {
+                sqrt = (float) Math.Sqrt(1.0f + matrix.M11 - matrix.M22 - matrix.M33);
+                half = 0.5f / sqrt;
+
+                result.X = 0.5f * sqrt;
+                result.Y = (matrix.M12 + matrix.M21) * half;
+                result.Z = (matrix.M13 + matrix.M31) * half;
+                result.W = (matrix.M23 - matrix.M32) * half;
+            }
+            else if (matrix.M22 > matrix.M33)
+            {
+                sqrt = (float) Math.Sqrt(1.0f + matrix.M22 - matrix.M11 - matrix.M33);
+                half = 0.5f / sqrt;
+
+                result.X = (matrix.M21 + matrix.M12) * half;
+                result.Y = 0.5f * sqrt;
+                result.Z = (matrix.M32 + matrix.M23) * half;
+                result.W = (matrix.M31 - matrix.M13) * half;
+            }
+            else
+            {
+                sqrt = (float) Math.Sqrt(1.0f + matrix.M33 - matrix.M11 - matrix.M22);
+                half = 0.5f / sqrt;
+
+                result.X = (matrix.M31 + matrix.M13) * half;
+                result.Y = (matrix.M32 + matrix.M23) * half;
+                result.Z = 0.5f * sqrt;
+                result.W = (matrix.M12 - matrix.M21) * half;
+            }
+        }
+
+        public static Quaternion CreateFromYawPitchRoll(float yaw, float pitch, float roll)
+        {
+            Quaternion result;
+            CreateFromYawPitchRoll(yaw, pitch, roll, out result);
+            return result;
+        }
+
+        public static void CreateFromYawPitchRoll(float yaw, float pitch, float roll, out Quaternion result)
+        {
+            // Euler angles: phi * theta * psi
+            // phi:   z-axis
+            // theta: x'-axis
+            // psi:   z'-axis
+
+            float halfRoll = roll * 0.5f;
+            float halfPitch = pitch * 0.5f;
+            float halfYaw = yaw * 0.5f;
+
+            float sinRoll = (float) Math.Sin(halfRoll);
+            float cosRoll = (float) Math.Cos(halfRoll);
+            float sinPitch = (float) Math.Sin(halfPitch);
+            float cosPitch = (float) Math.Cos(halfPitch);
+            float sinYaw = (float) Math.Sin(halfYaw);
+            float cosYaw = (float) Math.Cos(halfYaw);
+
+            result.X = (cosYaw * sinPitch * cosRoll) + (sinYaw * cosPitch * sinRoll);
+            result.Y = (sinYaw * cosPitch * cosRoll) - (cosYaw * sinPitch * sinRoll);
+            result.Z = (cosYaw * cosPitch * sinRoll) - (sinYaw * sinPitch * cosRoll);
+            result.W = (cosYaw * cosPitch * cosRoll) + (sinYaw * sinPitch * sinRoll);
         }
 
         public void Invert()
@@ -95,6 +223,32 @@ namespace Libra
                 Z = -Z * lengthSq;
                 W = W * lengthSq;
             }
+        }
+
+        public static Quaternion Divide(Quaternion left, Quaternion right)
+        {
+            Quaternion result;
+            Divide(ref left, ref right, out result);
+            return result;
+        }
+
+        public static void Divide(ref Quaternion left, ref Quaternion right, out Quaternion result)
+        {
+            float factor = 1f / ((right.X * right.X) + (right.Y * right.Y) + (right.Z * right.Z) + (right.W * right.W));
+            result.X = ((left.X * right.W) - (right.X * left.W) - (left.Y * right.Z) + (left.Z * right.Y)) * factor;
+            result.Y = ((left.Y * right.W) - (right.Y * left.W) - (left.Z * right.X) + (left.X * right.Z)) * factor;
+            result.Z = ((left.Z * right.W) - (right.Z * left.W) - (left.X * right.Y) + (left.Y * right.X)) * factor;
+            result.W = ((left.W * right.W) + (right.X * left.X) - (left.Y * right.Y) - (left.Z * right.Z)) * factor;
+        }
+
+        public static float Dot(Quaternion left, Quaternion right)
+        {
+            return (left.X * right.X) + (left.Y * right.Y) + (left.Z * right.Z) + (left.W * right.W);
+        }
+
+        public static void Dot(ref Quaternion left, ref Quaternion right, out float result)
+        {
+            result = (left.X * right.X) + (left.Y * right.Y) + (left.Z * right.Z) + (left.W * right.W);
         }
 
         public float Length()
@@ -118,21 +272,6 @@ namespace Libra
                 Z *= inverse;
                 W *= inverse;
             }
-        }
-
-        public static void Add(ref Quaternion left, ref Quaternion right, out Quaternion result)
-        {
-            result.X = left.X + right.X;
-            result.Y = left.Y + right.Y;
-            result.Z = left.Z + right.Z;
-            result.W = left.W + right.W;
-        }
-
-        public static Quaternion Add(Quaternion left, Quaternion right)
-        {
-            Quaternion result;
-            Add(ref left, ref right, out result);
-            return result;
         }
 
         public static void Subtract(ref Quaternion left, ref Quaternion right, out Quaternion result)
@@ -204,31 +343,6 @@ namespace Libra
             return result;
         }
 
-        public static void Conjugate(ref Quaternion value, out Quaternion result)
-        {
-            result.X = -value.X;
-            result.Y = -value.Y;
-            result.Z = -value.Z;
-            result.W = value.W;
-        }
-
-        public static Quaternion Conjugate(Quaternion value)
-        {
-            Quaternion result;
-            Conjugate(ref value, out result);
-            return result;
-        }
-
-        public static void Dot(ref Quaternion left, ref Quaternion right, out float result)
-        {
-            result = (left.X * right.X) + (left.Y * right.Y) + (left.Z * right.Z) + (left.W * right.W);
-        }
-
-        public static float Dot(Quaternion left, Quaternion right)
-        {
-            return (left.X * right.X) + (left.Y * right.Y) + (left.Z * right.Z) + (left.W * right.W);
-        }
-
         public static void Invert(ref Quaternion value, out Quaternion result)
         {
             result = value;
@@ -282,109 +396,6 @@ namespace Libra
         {
             value.Normalize();
             return value;
-        }
-
-        public static void RotationAxis(ref Vector3 axis, float angle, out Quaternion result)
-        {
-            Vector3 normalized;
-            Vector3.Normalize(ref axis, out normalized);
-
-            float half = angle * 0.5f;
-            float sin = (float) Math.Sin(half);
-            float cos = (float) Math.Cos(half);
-
-            result.X = normalized.X * sin;
-            result.Y = normalized.Y * sin;
-            result.Z = normalized.Z * sin;
-            result.W = cos;
-        }
-
-        public static Quaternion RotationAxis(Vector3 axis, float angle)
-        {
-            Quaternion result;
-            RotationAxis(ref axis, angle, out result);
-            return result;
-        }
-
-        public static void RotationMatrix(ref Matrix matrix, out Quaternion result)
-        {
-            float sqrt;
-            float half;
-            float scale = matrix.M11 + matrix.M22 + matrix.M33;
-
-            if (scale > 0.0f)
-            {
-                sqrt = (float) Math.Sqrt(scale + 1.0f);
-                result.W = sqrt * 0.5f;
-                sqrt = 0.5f / sqrt;
-
-                result.X = (matrix.M23 - matrix.M32) * sqrt;
-                result.Y = (matrix.M31 - matrix.M13) * sqrt;
-                result.Z = (matrix.M12 - matrix.M21) * sqrt;
-            }
-            else if ((matrix.M11 >= matrix.M22) && (matrix.M11 >= matrix.M33))
-            {
-                sqrt = (float) Math.Sqrt(1.0f + matrix.M11 - matrix.M22 - matrix.M33);
-                half = 0.5f / sqrt;
-
-                result.X = 0.5f * sqrt;
-                result.Y = (matrix.M12 + matrix.M21) * half;
-                result.Z = (matrix.M13 + matrix.M31) * half;
-                result.W = (matrix.M23 - matrix.M32) * half;
-            }
-            else if (matrix.M22 > matrix.M33)
-            {
-                sqrt = (float) Math.Sqrt(1.0f + matrix.M22 - matrix.M11 - matrix.M33);
-                half = 0.5f / sqrt;
-
-                result.X = (matrix.M21 + matrix.M12) * half;
-                result.Y = 0.5f * sqrt;
-                result.Z = (matrix.M32 + matrix.M23) * half;
-                result.W = (matrix.M31 - matrix.M13) * half;
-            }
-            else
-            {
-                sqrt = (float) Math.Sqrt(1.0f + matrix.M33 - matrix.M11 - matrix.M22);
-                half = 0.5f / sqrt;
-
-                result.X = (matrix.M31 + matrix.M13) * half;
-                result.Y = (matrix.M32 + matrix.M23) * half;
-                result.Z = 0.5f * sqrt;
-                result.W = (matrix.M12 - matrix.M21) * half;
-            }
-        }
-
-        public static Quaternion RotationMatrix(Matrix matrix)
-        {
-            Quaternion result;
-            RotationMatrix(ref matrix, out result);
-            return result;
-        }
-
-        public static void RotationYawPitchRoll(float yaw, float pitch, float roll, out Quaternion result)
-        {
-            float halfRoll = roll * 0.5f;
-            float halfPitch = pitch * 0.5f;
-            float halfYaw = yaw * 0.5f;
-
-            float sinRoll = (float) Math.Sin(halfRoll);
-            float cosRoll = (float) Math.Cos(halfRoll);
-            float sinPitch = (float) Math.Sin(halfPitch);
-            float cosPitch = (float) Math.Cos(halfPitch);
-            float sinYaw = (float) Math.Sin(halfYaw);
-            float cosYaw = (float) Math.Cos(halfYaw);
-
-            result.X = (cosYaw * sinPitch * cosRoll) + (sinYaw * cosPitch * sinRoll);
-            result.Y = (sinYaw * cosPitch * cosRoll) - (cosYaw * sinPitch * sinRoll);
-            result.Z = (cosYaw * cosPitch * sinRoll) - (sinYaw * sinPitch * cosRoll);
-            result.W = (cosYaw * cosPitch * cosRoll) + (sinYaw * sinPitch * sinRoll);
-        }
-
-        public static Quaternion RotationYawPitchRoll(float yaw, float pitch, float roll)
-        {
-            Quaternion result;
-            RotationYawPitchRoll(yaw, pitch, roll, out result);
-            return result;
         }
 
         public static void Slerp(ref Quaternion start, ref Quaternion end, float amount, out Quaternion result)
