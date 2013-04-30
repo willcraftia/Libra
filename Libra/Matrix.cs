@@ -197,7 +197,7 @@ namespace Libra
 
             rotationmatrix.M44 = 1f;
 
-            Quaternion.RotationMatrix(ref rotationmatrix, out rotation);
+            Quaternion.CreateFromRotationMatrix(ref rotationmatrix, out rotation);
             return true;
         }
 
@@ -1203,7 +1203,7 @@ namespace Libra
         public static void CreateFromYawPitchRoll(float yaw, float pitch, float roll, out Matrix result)
         {
             Quaternion quaternion = new Quaternion();
-            Quaternion.RotationYawPitchRoll(yaw, pitch, roll, out quaternion);
+            Quaternion.CreateFromYawPitchRoll(yaw, pitch, roll, out quaternion);
             CreateFromQuaternion(ref quaternion, out result);
         }
 
