@@ -306,6 +306,8 @@ namespace Libra
 
         public static void Multiply(ref Quaternion left, ref Quaternion right, out Quaternion result)
         {
+            // SharpDX は式に誤りがある。
+
             float lx = left.X;
             float ly = left.Y;
             float lz = left.Z;
@@ -315,10 +317,17 @@ namespace Libra
             float rz = right.Z;
             float rw = right.W;
 
-            result.X = (rx * lw + lx * rw + ry * lz) - (rz * ly);
-            result.Y = (ry * lw + ly * rw + rz * lx) - (rx * lz);
-            result.Z = (rz * lw + lz * rw + rx * ly) - (ry * lx);
-            result.W = (rw * lw) - (rx * lx + ry * ly + rz * lz);
+            // 誤: SharpDX。
+            //result.W = rw * lw - rx * lx - ry * ly - rz * lz;
+            //result.X = rx * lw + lx * rw + ry * lz - rz * ly;
+            //result.Y = ry * lw + ly * rw + rz * lx - rx * lz;
+            //result.Z = rz * lw + lz * rw + rx * ly - ry * lx;
+
+            // 正
+            result.W = lw * rw - lx * rx - ly * ry - lz * rz;
+            result.X = lw * rx + lx * rw + ly * rz - lz * ry;
+            result.Y = lw * ry + ly * rw + lz * rx - lx * rz;
+            result.Z = lw * rz + lz * rw + lx * ry - ly * rx;
         }
 
         public static Quaternion Multiply(Quaternion left, Quaternion right)
