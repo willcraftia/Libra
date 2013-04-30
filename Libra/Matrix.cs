@@ -1312,28 +1312,41 @@ namespace Libra
         {
             return !left.Equals(right);
         }
+
+        public bool Equals(Matrix other, float tolerance)
+        {
+            return Equals(ref other, tolerance);
+        }
+
+        public bool Equals(ref Matrix other, float tolerance)
+        {
+            return (Math.Abs(other.M11 - M11) < tolerance &&
+                Math.Abs(other.M12 - M12) < tolerance &&
+                Math.Abs(other.M13 - M13) < tolerance &&
+                Math.Abs(other.M14 - M14) < tolerance &&
+
+                Math.Abs(other.M21 - M21) < tolerance &&
+                Math.Abs(other.M22 - M22) < tolerance &&
+                Math.Abs(other.M23 - M23) < tolerance &&
+                Math.Abs(other.M24 - M24) < tolerance &&
+
+                Math.Abs(other.M31 - M31) < tolerance &&
+                Math.Abs(other.M32 - M32) < tolerance &&
+                Math.Abs(other.M33 - M33) < tolerance &&
+                Math.Abs(other.M34 - M34) < tolerance &&
+
+                Math.Abs(other.M41 - M41) < tolerance &&
+                Math.Abs(other.M42 - M42) < tolerance &&
+                Math.Abs(other.M43 - M43) < tolerance &&
+                Math.Abs(other.M44 - M44) < tolerance);
+        }
         
         public bool Equals(Matrix other)
         {
-            return (Math.Abs(other.M11 - M11) < MathHelper.ZeroTolerance &&
-                Math.Abs(other.M12 - M12) < MathHelper.ZeroTolerance &&
-                Math.Abs(other.M13 - M13) < MathHelper.ZeroTolerance &&
-                Math.Abs(other.M14 - M14) < MathHelper.ZeroTolerance &&
-
-                Math.Abs(other.M21 - M21) < MathHelper.ZeroTolerance &&
-                Math.Abs(other.M22 - M22) < MathHelper.ZeroTolerance &&
-                Math.Abs(other.M23 - M23) < MathHelper.ZeroTolerance &&
-                Math.Abs(other.M24 - M24) < MathHelper.ZeroTolerance &&
-
-                Math.Abs(other.M31 - M31) < MathHelper.ZeroTolerance &&
-                Math.Abs(other.M32 - M32) < MathHelper.ZeroTolerance &&
-                Math.Abs(other.M33 - M33) < MathHelper.ZeroTolerance &&
-                Math.Abs(other.M34 - M34) < MathHelper.ZeroTolerance &&
-
-                Math.Abs(other.M41 - M41) < MathHelper.ZeroTolerance &&
-                Math.Abs(other.M42 - M42) < MathHelper.ZeroTolerance &&
-                Math.Abs(other.M43 - M43) < MathHelper.ZeroTolerance &&
-                Math.Abs(other.M44 - M44) < MathHelper.ZeroTolerance);
+            return M11 == other.M11 && M12 == other.M12 && M13 == other.M13 && M14 == other.M14 &&
+                M21 == other.M21 && M22 == other.M22 && M23 == other.M23 && M24 == other.M24 &&
+                M31 == other.M31 && M32 == other.M32 && M33 == other.M33 && M34 == other.M34 &&
+                M41 == other.M41 && M42 == other.M42 && M43 == other.M43 && M44 == other.M44;
         }
 
         public override bool Equals(object obj)
