@@ -7,14 +7,8 @@ using System.Collections.Generic;
 
 namespace Libra.Graphics.Toolkit
 {
-    public abstract class LightCamera
+    public abstract class LightCamera : Camera
     {
-        // 光源カメラのビュー行列
-        public Matrix LightView;
-
-        // 光源カメラの射影行列
-        public Matrix LightProjection;
-
         /// <summary>
         /// 表示カメラのビュー行列。
         /// </summary>
@@ -72,8 +66,6 @@ namespace Libra.Graphics.Toolkit
 
         protected LightCamera()
         {
-            LightView = Matrix.Identity;
-            LightProjection = Matrix.Identity;
             eyeView = Matrix.Identity;
             eyePosition = Vector3.Zero;
             eyeDirection = Vector3.Forward;

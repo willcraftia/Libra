@@ -35,8 +35,8 @@ namespace Libra.Graphics.Toolkit
 
         protected override void Update()
         {
-            LightView = Matrix.Identity;
-            LightProjection = Matrix.Identity;
+            View = Matrix.Identity;
+            Projection = Matrix.Identity;
 
             CalculateBodyB();
 
@@ -49,11 +49,11 @@ namespace Libra.Graphics.Toolkit
             CalculateUp(ref lightDirection, ref eyeDirection, out up);
 
             // 仮ビュー行列。
-            Matrix.CreateLook(ref eyePosition, ref lightDirection, ref up, out LightView);
+            Matrix.CreateLook(ref eyePosition, ref lightDirection, ref up, out View);
 
             // 仮ビュー空間における凸体 B の AABB。
             BoundingBox bodyBBox;
-            CreateTransformedBodyBBox(ref LightView, out bodyBBox);
+            CreateTransformedBodyBBox(ref View, out bodyBBox);
 
             // n から f の距離。
             float d = bodyBBox.Max.Y - bodyBBox.Min.Y;
@@ -71,7 +71,7 @@ namespace Libra.Graphics.Toolkit
 
             // ビュー行列。
             var pPosition = eyePosition - up * (n - EyeNearDistance);
-            Matrix.CreateLook(ref pPosition, ref lightDirection, ref up, out LightView);
+            Matrix.CreateLook(ref pPosition, ref lightDirection, ref up, out View);
 
             Matrix lightSpace;
             Matrix transform;

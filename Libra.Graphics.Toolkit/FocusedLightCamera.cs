@@ -144,8 +144,8 @@ namespace Libra.Graphics.Toolkit
         protected void CalculateStandardLightSpaceMatrices()
         {
             // 方向性光源のための行列。
-            Matrix.CreateLook(ref eyePosition, ref lightDirection, ref eyeDirection, out LightView);
-            LightProjection = Matrix.Identity;
+            Matrix.CreateLook(ref eyePosition, ref lightDirection, ref eyeDirection, out View);
+            Projection = Matrix.Identity;
 
             // TODO: 点光源
         }
@@ -267,7 +267,7 @@ namespace Libra.Graphics.Toolkit
 
         protected void CreateCurrentLightSpace(out Matrix result)
         {
-            Matrix.Multiply(ref LightView, ref LightProjection, out result);
+            Matrix.Multiply(ref View, ref Projection, out result);
         }
 
         protected void CreateLightLook(ref Matrix lightSpace, out Matrix result)
@@ -387,9 +387,9 @@ namespace Libra.Graphics.Toolkit
         protected void TransformLightProjection(ref Matrix matrix)
         {
             Matrix result;
-            Matrix.Multiply(ref LightProjection, ref matrix, out result);
+            Matrix.Multiply(ref Projection, ref matrix, out result);
 
-            LightProjection = result;
+            Projection = result;
         }
     }
 }

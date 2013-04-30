@@ -513,7 +513,7 @@ namespace Samples.ShadowMapping
 
             // ライト空間行列の算出。
             Matrix lightViewProjection;
-            Matrix.Multiply(ref lightCamera.LightView, ref lightCamera.LightProjection, out lightViewProjection);
+            Matrix.Multiply(ref lightCamera.View, ref lightCamera.Projection, out lightViewProjection);
 
             return lightViewProjection;
         }
