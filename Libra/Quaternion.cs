@@ -213,16 +213,31 @@ namespace Libra
 
         public void Invert()
         {
-            float lengthSq = LengthSquared();
-            if (lengthSq > MathHelper.ZeroTolerance)
+            float lengthSquared = (X * X) + (Y * Y) + (Z * Z) + (W * W);
+            if (0.0f < lengthSquared)
             {
-                lengthSq = 1.0f / lengthSq;
-
-                X = -X * lengthSq;
-                Y = -Y * lengthSq;
-                Z = -Z * lengthSq;
-                W = W * lengthSq;
+                var factor = 1.0f / lengthSquared;
+                W *= factor;
+                X *= factor;
+                Y *= factor;
+                Z *= factor;
+                X = -X;
+                Y = -Y;
+                Z = -Z;
             }
+        }
+
+        public static Quaternion Invert(Quaternion value)
+        {
+            Quaternion result;
+            Invert(ref value, out result);
+            return result;
+        }
+
+        public static void Invert(ref Quaternion value, out Quaternion result)
+        {
+            result = value;
+            result.Invert();
         }
 
         public static Quaternion Divide(Quaternion left, Quaternion right)
@@ -234,11 +249,12 @@ namespace Libra
 
         public static void Divide(ref Quaternion left, ref Quaternion right, out Quaternion result)
         {
-            float factor = 1f / ((right.X * right.X) + (right.Y * right.Y) + (right.Z * right.Z) + (right.W * right.W));
-            result.X = ((left.X * right.W) - (right.X * left.W) - (left.Y * right.Z) + (left.Z * right.Y)) * factor;
-            result.Y = ((left.Y * right.W) - (right.Y * left.W) - (left.Z * right.X) + (left.X * right.Z)) * factor;
-            result.Z = ((left.Z * right.W) - (right.Z * left.W) - (left.X * right.Y) + (left.Y * right.X)) * factor;
-            result.W = ((left.W * right.W) + (right.X * left.X) - (left.Y * right.Y) - (left.Z * right.Z)) * factor;
+            // 四元数の除算は [left] * [right の逆四元数]。
+
+            Quaternion invertRight;
+            Invert(ref right, out invertRight);
+
+            Multiply(ref left, ref invertRight, out result);
         }
 
         public static float Dot(Quaternion left, Quaternion right)
@@ -304,18 +320,26 @@ namespace Libra
             return result;
         }
 
+        public static Quaternion Multiply(Quaternion left, Quaternion right)
+        {
+            Quaternion result;
+            Multiply(ref left, ref right, out result);
+            return result;
+        }
+
         public static void Multiply(ref Quaternion left, ref Quaternion right, out Quaternion result)
         {
             // SharpDX は式に誤りがある。
 
+            float lw = left.W;
             float lx = left.X;
             float ly = left.Y;
             float lz = left.Z;
-            float lw = left.W;
+
+            float rw = right.W;
             float rx = right.X;
             float ry = right.Y;
             float rz = right.Z;
-            float rw = right.W;
 
             // 誤: SharpDX。
             //result.W = rw * lw - rx * lx - ry * ly - rz * lz;
@@ -330,13 +354,6 @@ namespace Libra
             result.Z = lw * rz + lz * rw + lx * ry - ly * rx;
         }
 
-        public static Quaternion Multiply(Quaternion left, Quaternion right)
-        {
-            Quaternion result;
-            Multiply(ref left, ref right, out result);
-            return result;
-        }
-
         public static void Negate(ref Quaternion value, out Quaternion result)
         {
             result.X = -value.X;
@@ -349,19 +366,6 @@ namespace Libra
         {
             Quaternion result;
             Negate(ref value, out result);
-            return result;
-        }
-
-        public static void Invert(ref Quaternion value, out Quaternion result)
-        {
-            result = value;
-            result.Invert();
-        }
-
-        public static Quaternion Invert(Quaternion value)
-        {
-            Quaternion result;
-            Invert(ref value, out result);
             return result;
         }
 
