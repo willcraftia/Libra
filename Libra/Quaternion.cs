@@ -8,6 +8,9 @@ using System.Runtime.InteropServices;
 // SharpDX.Quaternion から移植。
 // 一部インタフェースを XNA 形式へ変更。
 // 一部ロジックを変更。
+// 最新バージョンでは修正済みかもしれないが、SharpDX.Quaternion の
+// Multiply は式に誤りがあるため注意 (Issue として挙がっている)。
+// また、この影響か、MonoGame の Divide も式に誤りがあるため注意。
 
 namespace Libra
 {
@@ -189,11 +192,6 @@ namespace Libra
 
         public static void CreateFromYawPitchRoll(float yaw, float pitch, float roll, out Quaternion result)
         {
-            // Euler angles: phi * theta * psi
-            // phi:   z-axis
-            // theta: x'-axis
-            // psi:   z'-axis
-
             float halfRoll = roll * 0.5f;
             float halfPitch = pitch * 0.5f;
             float halfYaw = yaw * 0.5f;
@@ -210,6 +208,36 @@ namespace Libra
             result.Z = (cosYaw * cosPitch * sinRoll) - (sinYaw * sinPitch * cosRoll);
             result.W = (cosYaw * cosPitch * cosRoll) + (sinYaw * sinPitch * sinRoll);
         }
+
+        public static Quaternion Divide(Quaternion left, Quaternion right)
+        {
+            Quaternion result;
+            Divide(ref left, ref right, out result);
+            return result;
+        }
+
+        public static void Divide(ref Quaternion left, ref Quaternion right, out Quaternion result)
+        {
+            // 四元数の除算は [left] * [right の逆四元数]。
+
+            Quaternion invertRight;
+            Invert(ref right, out invertRight);
+
+            Multiply(ref left, ref invertRight, out result);
+        }
+
+        public static float Dot(Quaternion left, Quaternion right)
+        {
+            return (left.X * right.X) + (left.Y * right.Y) + (left.Z * right.Z) + (left.W * right.W);
+        }
+
+        public static void Dot(ref Quaternion left, ref Quaternion right, out float result)
+        {
+            result = (left.X * right.X) + (left.Y * right.Y) + (left.Z * right.Z) + (left.W * right.W);
+        }
+
+        // XNA では Inverse メソッドだが、
+        // Matrix の Invert メソッドに合わせて Quaternion も Invert とする。
 
         public void Invert()
         {
@@ -240,33 +268,6 @@ namespace Libra
             result.Invert();
         }
 
-        public static Quaternion Divide(Quaternion left, Quaternion right)
-        {
-            Quaternion result;
-            Divide(ref left, ref right, out result);
-            return result;
-        }
-
-        public static void Divide(ref Quaternion left, ref Quaternion right, out Quaternion result)
-        {
-            // 四元数の除算は [left] * [right の逆四元数]。
-
-            Quaternion invertRight;
-            Invert(ref right, out invertRight);
-
-            Multiply(ref left, ref invertRight, out result);
-        }
-
-        public static float Dot(Quaternion left, Quaternion right)
-        {
-            return (left.X * right.X) + (left.Y * right.Y) + (left.Z * right.Z) + (left.W * right.W);
-        }
-
-        public static void Dot(ref Quaternion left, ref Quaternion right, out float result)
-        {
-            result = (left.X * right.X) + (left.Y * right.Y) + (left.Z * right.Z) + (left.W * right.W);
-        }
-
         public float Length()
         {
             return (float) Math.Sqrt((X * X) + (Y * Y) + (Z * Z) + (W * W));
@@ -277,95 +278,10 @@ namespace Libra
             return (X * X) + (Y * Y) + (Z * Z) + (W * W);
         }
 
-        public void Normalize()
-        {
-            float length = Length();
-            if (length > MathHelper.ZeroTolerance)
-            {
-                float inverse = 1.0f / length;
-                X *= inverse;
-                Y *= inverse;
-                Z *= inverse;
-                W *= inverse;
-            }
-        }
-
-        public static void Subtract(ref Quaternion left, ref Quaternion right, out Quaternion result)
-        {
-            result.X = left.X - right.X;
-            result.Y = left.Y - right.Y;
-            result.Z = left.Z - right.Z;
-            result.W = left.W - right.W;
-        }
-
-        public static Quaternion Subtract(Quaternion left, Quaternion right)
+        public static Quaternion Lerp(Quaternion start, Quaternion end, float amount)
         {
             Quaternion result;
-            Subtract(ref left, ref right, out result);
-            return result;
-        }
-
-        public static void Multiply(ref Quaternion value, float scale, out Quaternion result)
-        {
-            result.X = value.X * scale;
-            result.Y = value.Y * scale;
-            result.Z = value.Z * scale;
-            result.W = value.W * scale;
-        }
-
-        public static Quaternion Multiply(Quaternion value, float scale)
-        {
-            Quaternion result;
-            Multiply(ref value, scale, out result);
-            return result;
-        }
-
-        public static Quaternion Multiply(Quaternion left, Quaternion right)
-        {
-            Quaternion result;
-            Multiply(ref left, ref right, out result);
-            return result;
-        }
-
-        public static void Multiply(ref Quaternion left, ref Quaternion right, out Quaternion result)
-        {
-            // SharpDX は式に誤りがある。
-
-            float lw = left.W;
-            float lx = left.X;
-            float ly = left.Y;
-            float lz = left.Z;
-
-            float rw = right.W;
-            float rx = right.X;
-            float ry = right.Y;
-            float rz = right.Z;
-
-            // 誤: SharpDX。
-            //result.W = rw * lw - rx * lx - ry * ly - rz * lz;
-            //result.X = rx * lw + lx * rw + ry * lz - rz * ly;
-            //result.Y = ry * lw + ly * rw + rz * lx - rx * lz;
-            //result.Z = rz * lw + lz * rw + rx * ly - ry * lx;
-
-            // 正
-            result.W = lw * rw - lx * rx - ly * ry - lz * rz;
-            result.X = lw * rx + lx * rw + ly * rz - lz * ry;
-            result.Y = lw * ry + ly * rw + lz * rx - lx * rz;
-            result.Z = lw * rz + lz * rw + lx * ry - ly * rx;
-        }
-
-        public static void Negate(ref Quaternion value, out Quaternion result)
-        {
-            result.X = -value.X;
-            result.Y = -value.Y;
-            result.Z = -value.Z;
-            result.W = -value.W;
-        }
-
-        public static Quaternion Negate(Quaternion value)
-        {
-            Quaternion result;
-            Negate(ref value, out result);
+            Lerp(ref start, ref end, amount, out result);
             return result;
         }
 
@@ -373,7 +289,10 @@ namespace Libra
         {
             float inverse = 1.0f - amount;
 
-            if (Dot(start, end) >= 0.0f)
+            float dot;
+            Dot(ref start, ref end, out dot);
+
+            if (0.0f <= dot)
             {
                 result.X = (inverse * start.X) + (amount * end.X);
                 result.Y = (inverse * start.Y) + (amount * end.Y);
@@ -391,24 +310,84 @@ namespace Libra
             result.Normalize();
         }
 
-        public static Quaternion Lerp(Quaternion start, Quaternion end, float amount)
+        public static Quaternion Multiply(Quaternion value, float scale)
         {
             Quaternion result;
-            Lerp(ref start, ref end, amount, out result);
+            Multiply(ref value, scale, out result);
             return result;
         }
 
-        public static void Normalize(ref Quaternion value, out Quaternion result)
+        public static void Multiply(ref Quaternion value, float scale, out Quaternion result)
         {
-            Quaternion temp = value;
-            result = temp;
-            result.Normalize();
+            result.X = value.X * scale;
+            result.Y = value.Y * scale;
+            result.Z = value.Z * scale;
+            result.W = value.W * scale;
+        }
+
+        public static Quaternion Multiply(Quaternion left, Quaternion right)
+        {
+            Quaternion result;
+            Multiply(ref left, ref right, out result);
+            return result;
+        }
+
+        public static void Multiply(ref Quaternion left, ref Quaternion right, out Quaternion result)
+        {
+            float lw = left.W;
+            float lx = left.X;
+            float ly = left.Y;
+            float lz = left.Z;
+
+            float rw = right.W;
+            float rx = right.X;
+            float ry = right.Y;
+            float rz = right.Z;
+
+            result.W = lw * rw - lx * rx - ly * ry - lz * rz;
+            result.X = lw * rx + lx * rw + ly * rz - lz * ry;
+            result.Y = lw * ry + ly * rw + lz * rx - lx * rz;
+            result.Z = lw * rz + lz * rw + lx * ry - ly * rx;
+        }
+
+        public static Quaternion Negate(Quaternion value)
+        {
+            Quaternion result;
+            Negate(ref value, out result);
+            return result;
+        }
+
+        public static void Negate(ref Quaternion value, out Quaternion result)
+        {
+            result.X = -value.X;
+            result.Y = -value.Y;
+            result.Z = -value.Z;
+            result.W = -value.W;
+        }
+
+        public void Normalize()
+        {
+            float length = Length();
+            if (0.0f < length)
+            {
+                float factor = 1.0f / length;
+                X *= factor;
+                Y *= factor;
+                Z *= factor;
+                W *= factor;
+            }
         }
 
         public static Quaternion Normalize(Quaternion value)
         {
             value.Normalize();
             return value;
+        }
+
+        public static void Normalize(ref Quaternion value, out Quaternion result)
+        {
+            result = value;
+            result.Normalize();
         }
 
         public static void Slerp(ref Quaternion start, ref Quaternion end, float amount, out Quaternion result)
@@ -442,6 +421,21 @@ namespace Libra
             Quaternion result;
             Slerp(ref start, ref end, amount, out result);
             return result;
+        }
+
+        public static Quaternion Subtract(Quaternion left, Quaternion right)
+        {
+            Quaternion result;
+            Subtract(ref left, ref right, out result);
+            return result;
+        }
+
+        public static void Subtract(ref Quaternion left, ref Quaternion right, out Quaternion result)
+        {
+            result.X = left.X - right.X;
+            result.Y = left.Y - right.Y;
+            result.Z = left.Z - right.Z;
+            result.W = left.W - right.W;
         }
 
         public static Quaternion operator +(Quaternion left, Quaternion right)
@@ -498,12 +492,22 @@ namespace Libra
             return !left.Equals(right);
         }
 
+        public bool Equals(Quaternion other, float tolerance)
+        {
+            return Equals(ref other, tolerance);
+        }
+
+        public bool Equals(ref Quaternion other, float tolerance)
+        {
+            return ((float) Math.Abs(other.X - X) < tolerance &&
+                (float) Math.Abs(other.Y - Y) < tolerance &&
+                (float) Math.Abs(other.Z - Z) < tolerance &&
+                (float) Math.Abs(other.W - W) < tolerance);
+        }
+
         public bool Equals(Quaternion other)
         {
-            return ((float) Math.Abs(other.X - X) < MathHelper.ZeroTolerance &&
-                (float) Math.Abs(other.Y - Y) < MathHelper.ZeroTolerance &&
-                (float) Math.Abs(other.Z - Z) < MathHelper.ZeroTolerance &&
-                (float) Math.Abs(other.W - W) < MathHelper.ZeroTolerance);
+            return X == other.X && Y == other.Y && Z == other.Z && W == other.W;
         }
 
         public override bool Equals(object obj)
