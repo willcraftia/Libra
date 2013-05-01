@@ -157,6 +157,8 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
+        public bool YawAxisFixed { get; set; }
+
         public BasicCamera()
         {
             position = Vector3.Zero;
@@ -165,6 +167,7 @@ namespace Libra.Graphics.Toolkit
             aspectRatio = 1.0f;
             nearClipDistance = 1.0f;
             farClipDistance = 1000.0f;
+            YawAxisFixed = true;
         }
 
         public void LookAt(Vector3 target)
@@ -193,7 +196,7 @@ namespace Libra.Graphics.Toolkit
             rotation.Normalize();
 
             Quaternion newOrientation;
-            Quaternion.Multiply(ref orientation, ref rotation, out newOrientation);
+            Quaternion.Concatenate(ref orientation, ref rotation, out newOrientation);
 
             orientation = newOrientation;
 
@@ -205,7 +208,14 @@ namespace Libra.Graphics.Toolkit
             var baseAxis = Vector3.UnitY;
 
             Vector3 axis;
-            Vector3.Transform(ref baseAxis, ref orientation, out axis);
+            if (YawAxisFixed)
+            {
+                axis = baseAxis;
+            }
+            else
+            {
+                Vector3.Transform(ref baseAxis, ref orientation, out axis);
+            }
 
             Rotate(ref axis, angle);
         }
