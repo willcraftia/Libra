@@ -158,11 +158,12 @@ namespace Libra.Graphics.Toolkit
         }
 
         /// <summary>
-        /// Yaw 回転において回転軸を固定するか否かを示す値を取得または設定します。
+        /// Yaw 回転において回転軸を (0, 1, 0) に固定するか否かを示す値を取得または設定します。
         /// デフォルトは true です。
         /// </summary>
         /// <remarks>
-        /// 通常、人が期待するカメラの Yaw は回転軸固定です。
+        /// 通常、人が期待するカメラの Yaw は、カメラ座標系の y 軸周りの回転ではなく、
+        /// (0, 1, 0) 軸周りの回転です。
         /// </remarks>
         /// <value>
         /// true (回転軸を固定する場合)、false (それ以外の場合)。
@@ -178,6 +179,31 @@ namespace Libra.Graphics.Toolkit
             nearClipDistance = 1.0f;
             farClipDistance = 1000.0f;
             YawAxisFixed = true;
+        }
+
+        public void Move(Vector3 movement)
+        {
+            Move(ref movement);
+        }
+
+        public void Move(ref Vector3 movement)
+        {
+            Vector3.Add(ref position, ref movement, out position);
+
+            dirtyFlags |= DirtyFlags.View;
+        }
+
+        public void MoveRelative(Vector3 movement)
+        {
+            MoveRelative(ref movement);
+        }
+
+        public void MoveRelative(ref Vector3 movement)
+        {
+            Vector3 translation;
+            Vector3.Transform(ref movement, ref orientation, out translation);
+
+            Move(ref translation);
         }
 
         public void LookAt(Vector3 target)
