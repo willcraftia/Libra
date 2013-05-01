@@ -83,21 +83,12 @@ namespace Libra.Graphics.Toolkit
 
             frustum.Matrix = viewProjection;
 
-            // FOV。
-            // 参考: M22 = 1 / tan(fov / 2)
-            float fov = (float) Math.Atan(1.0f / projection.M22) * 2.0f;
-
-            // アスペクト比。
-            // 参考: M11 = M22 / aspectRatio
-            float aspectRatio = projection.M22 / projection.M11;
-
-            // 近クリップ面。
-            // 参考: M43 = near * M33
-            float nearClipDistance = projection.M43 / projection.M33;
-
-            // 遠クリップ面。
-            // 参考: M33 = far / (near - far)
-            float farClipDistance = nearClipDistance * projection.M33 / (1.0f + projection.M33);
+            // 射影行列から情報を抽出。
+            float fov;
+            float aspectRatio;
+            float nearClipDistance;
+            float farClipDistance;
+            projection.DecomposePerspectiveFieldOfView(out fov, out aspectRatio, out nearClipDistance, out farClipDistance);
 
             // シーン領域を含みうる最小限の遠クリップ面を算出。
             float adjustedFarClipDistance = CalculateFarClipDistance(ref view, ref sceneBox, nearClipDistance);
