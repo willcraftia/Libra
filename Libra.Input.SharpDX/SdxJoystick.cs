@@ -45,7 +45,7 @@ namespace Libra.Input.SharpDX
             //      X 軸     Z
             //      Y 軸     RotationZ
             //
-            //      ※別名、Z はスロットル、RotationZ は方向舵らしいが、逆に思えてならない。
+            //      ※別名、Z はスロットル、RotationZ は方向舵。
             //
 
             public void MarshalFrom(ref DIRawJoystickState value)
