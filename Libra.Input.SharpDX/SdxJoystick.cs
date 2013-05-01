@@ -36,8 +36,12 @@ namespace Libra.Input.SharpDX
             //      X 軸     X
             //      Y 軸     Y
             //
-            //      ※パッド設定画面をイメージすると分かるが、X と Y はそのまま 2D 平面にマップしている。
-            //      ※倒し具合を見るには、その平面上での位置で判断する事になる。
+            // パッド設定画面をイメージすると分かるが、X と Y はそのまま 2D 平面にマップしている。
+            // 倒し具合を見るには、その平面上での位置で判断する事になる。
+            // 値は x と y 共に [0, 1] の範囲にあり、左上隅が (0, 0)、右下隅が (1, 1)。
+            // XNA GamePad は、中心が (0, 0)、左上隅が (-1, 1)、右下隅が (1, -1) であり、
+            // 一般的に認識する 2D の座標系そのものとなっている。
+            // GamePad とジョイスティックとでは座標系が異なる点に注意。
             //
             // 右スティック
             //      ※右スティックについては曖昧だが、Z と RotationZ の組である事は確定。
@@ -45,7 +49,7 @@ namespace Libra.Input.SharpDX
             //      X 軸     Z
             //      Y 軸     RotationZ
             //
-            //      ※別名、Z はスロットル、RotationZ は方向舵。
+            // 別名、Z はスロットル、RotationZ は方向舵。
             //
 
             public void MarshalFrom(ref DIRawJoystickState value)
@@ -92,9 +96,11 @@ namespace Libra.Input.SharpDX
                     // ここで計算誤差が発生。
                     float x = (float) value.X / max;
                     float y = (float) value.Y / max;
-                    // [0, 1] を [-1, 1] へ。
+                    // x と y を [0, 1] から [-1, 1] へ。
                     x = x * 2 - 1;
                     y = y * 2 - 1;
+                    // スティック上方向が正となるように符号反転。
+                    y = -y;
                     // 計算誤差、および、スティックは正確に中心には戻らない事から、
                     // ゼロに関して補正。
                     // 最小値と最大値は越えないため、境界での補正は不要。
@@ -108,6 +114,7 @@ namespace Libra.Input.SharpDX
                     y = (float) value.RotationZ / max;
                     x = x * 2 - 1;
                     y = y * 2 - 1;
+                    y = -y;
                     if (-zeroTolerance <= x && x <= zeroTolerance) x = 0;
                     if (-zeroTolerance <= y && y <= zeroTolerance) y = 0;
                     State.ThumbSticks.Right.X = x;
