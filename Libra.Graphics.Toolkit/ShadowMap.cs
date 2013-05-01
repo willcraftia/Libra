@@ -19,7 +19,7 @@ namespace Libra.Graphics.Toolkit
 
         public delegate LightCamera CreateLightCameraCallback();
 
-        public delegate void DrawShadowCastersCallback(ShadowMapEffect effect);
+        public delegate void DrawShadowCastersCallback(Camera camera, ShadowMapEffect effect);
 
         PSSMCameras cameras;
 
@@ -33,7 +33,7 @@ namespace Libra.Graphics.Toolkit
 
         RenderTarget[] renderTargets;
 
-        Texture2D[] shadowMaps;
+        Texture2D[] textures;
 
         ShadowMapEffect shadowMapEffect;
 
@@ -77,7 +77,7 @@ namespace Libra.Graphics.Toolkit
             set { drawShadowCasters = value; }
         }
 
-        public ShadowMapEffectForm ShadowMapForm
+        public ShadowMapForm Form
         {
             get { return shadowMapEffect.Form; }
             set
@@ -89,8 +89,8 @@ namespace Libra.Graphics.Toolkit
                 shadowMapEffect.Form = value;
 
                 // VSM に関する切り替えならばレンダ ターゲットの再作成が必要。
-                if (previous == ShadowMapEffectForm.Variance ||
-                    shadowMapEffect.Form == ShadowMapEffectForm.Variance)
+                if (previous == ShadowMapForm.Variance ||
+                    shadowMapEffect.Form == ShadowMapForm.Variance)
                 {
                     dirtyFlags |= DirtyFlags.RenderTargets;
                 }
@@ -126,9 +126,9 @@ namespace Libra.Graphics.Toolkit
 
             lightCameras = new LightCamera[PSSMCameras.MaxSplitCount];
             renderTargets = new RenderTarget[PSSMCameras.MaxSplitCount];
-            shadowMaps = new Texture2D[PSSMCameras.MaxSplitCount];
+            textures = new Texture2D[PSSMCameras.MaxSplitCount];
 
-            dirtyFlags |= DirtyFlags.RenderTargets | DirtyFlags.GaussianBlur | DirtyFlags.LightCameras;
+            dirtyFlags |= DirtyFlags.LightCameras | DirtyFlags.RenderTargets | DirtyFlags.GaussianBlur;
         }
 
         public void Prepare(Matrix view, Matrix projection, BoundingBox sceneBox)
@@ -172,13 +172,16 @@ namespace Libra.Graphics.Toolkit
 
                 if (drawShadowCasters != null)
                 {
-                    drawShadowCasters(shadowMapEffect);
+                    // 現在の分割カメラに関する描画をコールバック。
+                    // 分割カメラに含まれる投影オブジェクトの選別は、
+                    // コールバックされる側のクラスで決定。
+                    drawShadowCasters(camera, shadowMapEffect);
                 }
 
                 context.SetRenderTarget(null);
 
                 // VSM ならばブラー。
-                if (shadowMapEffect.Form == ShadowMapEffectForm.Variance && blur != null)
+                if (shadowMapEffect.Form == ShadowMapForm.Variance && blur != null)
                 {
                     blur.Filter(
                         context,
@@ -197,11 +200,11 @@ namespace Libra.Graphics.Toolkit
             return lightCameras[index];
         }
 
-        public Texture2D GetShadowMap(int index)
+        public Texture2D GetTexture(int index)
         {
             if ((uint) cameras.SplitCount < (uint) index) throw new ArgumentOutOfRangeException("index");
 
-            return shadowMaps[index];
+            return textures[index];
         }
 
         void PrepareLightCameras()
@@ -212,7 +215,14 @@ namespace Libra.Graphics.Toolkit
 
                 for (int i = 0; i < cameras.SplitCount; i++)
                 {
-                    lightCameras[i] = createLightCamera();
+                    if (createLightCamera == null)
+                    {
+                        lightCameras[i] = new BasicLightCamera();
+                    }
+                    else
+                    {
+                        lightCameras[i] = createLightCamera();
+                    }
                 }
 
                 dirtyFlags &= ~DirtyFlags.LightCameras;
@@ -232,10 +242,10 @@ namespace Libra.Graphics.Toolkit
                     }
                 }
 
-                Array.Clear(shadowMaps, 0, shadowMaps.Length);
+                Array.Clear(textures, 0, textures.Length);
 
                 var format = SurfaceFormat.Single;
-                if (shadowMapEffect.Form == ShadowMapEffectForm.Variance)
+                if (shadowMapEffect.Form == ShadowMapForm.Variance)
                     format = SurfaceFormat.Vector2;
 
                 // ブラーをかける場合があるので RenderTargetUsage.Preserve。
@@ -256,7 +266,7 @@ namespace Libra.Graphics.Toolkit
 
         void PrepareGaussianBlur()
         {
-            if (shadowMapEffect.Form != ShadowMapEffectForm.Variance)
+            if (shadowMapEffect.Form != ShadowMapForm.Variance)
                 return;
 
             if ((dirtyFlags & DirtyFlags.GaussianBlur) != 0)

@@ -72,7 +72,7 @@ namespace Samples.ShadowMapping
 
             ConstantBuffer constantBuffer;
 
-            public ShadowMapEffectForm ShadowMapEffectForm { get; set; }
+            public ShadowMapForm ShadowMapEffectForm { get; set; }
 
             public DrawModelEffect(Device device)
             {
@@ -114,7 +114,7 @@ namespace Samples.ShadowMapping
                 context.VertexShaderConstantBuffers[0] = constantBuffer;
                 context.PixelShaderConstantBuffers[0] = constantBuffer;
                 context.VertexShader = vertexShader;
-                if (ShadowMapEffectForm == ShadowMapEffectForm.Variance)
+                if (ShadowMapEffectForm == ShadowMapForm.Variance)
                 {
                     context.PixelShader = variancePixelShader;
                 }
@@ -314,7 +314,7 @@ namespace Samples.ShadowMapping
         /// <summary>
         /// 現在選択されているシャドウ マップの種類。
         /// </summary>
-        ShadowMapEffectForm shadowMapEffectForm;
+        ShadowMapForm shadowMapEffectForm;
 
         public MainGame()
         {
@@ -372,7 +372,7 @@ namespace Samples.ShadowMapping
 
             currentLightCameraType = LightCameraType.LiSPSM;
 
-            shadowMapEffectForm = ShadowMapEffectForm.Variance;
+            shadowMapEffectForm = ShadowMapForm.Variance;
         }
 
         protected override void LoadContent()
@@ -434,10 +434,10 @@ namespace Samples.ShadowMapping
             // 選択されているシャドウ マップの種類に応じてレンダ ターゲットを切り替え。
             switch (shadowMapEffectForm)
             {
-                case ShadowMapEffectForm.Basic:
+                case ShadowMapForm.Basic:
                     currentShadowRenderTarget = bsmRenderTarget;
                     break;
-                case ShadowMapEffectForm.Variance:
+                case ShadowMapForm.Variance:
                     currentShadowRenderTarget = vsmRenderTarget;
                     break;
             }
@@ -516,7 +516,7 @@ namespace Samples.ShadowMapping
             context.SetRenderTarget(null);
 
             // VSM を選択している場合はシャドウ マップへブラーを適用。
-            if (shadowMapEffectForm == ShadowMapEffectForm.Variance)
+            if (shadowMapEffectForm == ShadowMapForm.Variance)
             {
                 gaussianBlur.Filter(
                     context,
@@ -657,13 +657,13 @@ namespace Samples.ShadowMapping
             if (currentKeyboardState.IsKeyUp(Keys.X) && lastKeyboardState.IsKeyDown(Keys.X) ||
                 currentJoystickState.IsButtonUp(Buttons.X) && lastJoystickState.IsButtonDown(Buttons.X))
             {
-                if (shadowMapEffectForm == ShadowMapEffectForm.Basic)
+                if (shadowMapEffectForm == ShadowMapForm.Basic)
                 {
-                    shadowMapEffectForm = ShadowMapEffectForm.Variance;
+                    shadowMapEffectForm = ShadowMapForm.Variance;
                 }
                 else
                 {
-                    shadowMapEffectForm = ShadowMapEffectForm.Basic;
+                    shadowMapEffectForm = ShadowMapForm.Basic;
                 }
             }
 

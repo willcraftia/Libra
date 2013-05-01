@@ -106,7 +106,7 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        public ShadowMapEffectForm Form { get; set; }
+        public ShadowMapForm Form { get; set; }
 
         public ShadowMapEffect(Device device)
         {
@@ -123,7 +123,7 @@ namespace Libra.Graphics.Toolkit
             view = Matrix.Identity;
             projection = Matrix.Identity;
 
-            Form = ShadowMapEffectForm.Basic;
+            Form = ShadowMapForm.Basic;
 
             dirtyFlags = DirtyFlags.World | DirtyFlags.ViewProjection;
         }
@@ -159,7 +159,7 @@ namespace Libra.Graphics.Toolkit
             context.VertexShaderConstantBuffers[0] = constantBuffer;
             context.VertexShader = sharedDeviceResource.VertexShader;
 
-            if (Form == ShadowMapEffectForm.Variance)
+            if (Form == ShadowMapForm.Variance)
             {
                 context.PixelShader = sharedDeviceResource.VariancePixelShader;
             }

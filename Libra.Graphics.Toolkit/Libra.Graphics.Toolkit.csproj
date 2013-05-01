@@ -63,7 +63,7 @@
     <Compile Include="BloomEffectPass.cs" />
     <Compile Include="PSSMCameras.cs" />
     <Compile Include="ShadowMap.cs" />
-    <Compile Include="ShadowMapEffectForm.cs" />
+    <Compile Include="ShadowMapForm.cs" />
     <Compile Include="ShadowMapEffect.cs" />
   </ItemGroup>
   <ItemGroup>

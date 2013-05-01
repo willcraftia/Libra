@@ -6,7 +6,7 @@ using System;
 
 namespace Libra.Graphics.Toolkit
 {
-    public enum ShadowMapEffectForm
+    public enum ShadowMapForm
     {
         Basic,
         Variance
