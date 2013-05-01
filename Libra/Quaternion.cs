@@ -78,10 +78,7 @@ namespace Libra
 
         public static void Concatenate(ref Quaternion left, ref Quaternion right, out Quaternion result)
         {
-            result.X = (left.W * right.X) + (left.X * right.W) + (left.Z * right.Y) - (left.Y * right.Z);
-            result.Y = (left.W * right.Y) + (left.Y * right.W) + (left.X * right.Z) - (left.Z * right.X);
-            result.Z = (left.W * right.Z) + (left.Z * right.W) + (left.Y * right.X) - (left.X * right.Y);
-            result.W = (left.W * right.W) - (left.X * right.X) + (left.Y * right.Y) + (left.Z * right.Z);
+            Multiply(ref right, ref left, out result);
         }
 
         public void Conjugate()
