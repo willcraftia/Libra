@@ -42,7 +42,7 @@ namespace Libra.Graphics.Toolkit
         /// <summary>
         /// 表示カメラのビュー行列の逆行列。
         /// </summary>
-        protected Matrix inverseEyeView;
+        protected Matrix invertEyeView;
 
         /// <summary>
         /// 表示カメラの視錐台。
@@ -80,12 +80,12 @@ namespace Libra.Graphics.Toolkit
             this.eyeProjection = eyeProjection;
             this.sceneBox = sceneBox;
 
-            Matrix.Invert(ref eyeView, out inverseEyeView);
+            Matrix.Invert(ref eyeView, out invertEyeView);
 
-            eyePosition = inverseEyeView.Translation;
-            eyeDirection = inverseEyeView.Forward;
+            eyePosition = invertEyeView.Translation;
+            eyeDirection = invertEyeView.Forward;
             eyeDirection.Normalize();
-            eyeUp = inverseEyeView.Up;
+            eyeUp = invertEyeView.Up;
             eyeUp.Normalize();
 
             Matrix eyeViewProjection;
