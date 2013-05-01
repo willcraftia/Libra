@@ -157,6 +157,16 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
+        /// <summary>
+        /// Yaw 回転において回転軸を固定するか否かを示す値を取得または設定します。
+        /// デフォルトは true です。
+        /// </summary>
+        /// <remarks>
+        /// 通常、人が期待するカメラの Yaw は回転軸固定です。
+        /// </remarks>
+        /// <value>
+        /// true (回転軸を固定する場合)、false (それ以外の場合)。
+        /// </value>
         public bool YawAxisFixed { get; set; }
 
         public BasicCamera()
