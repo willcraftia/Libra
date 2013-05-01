@@ -52,7 +52,9 @@ namespace Samples.ShadowMapping
 
             public Matrix Projection;
 
-            public Matrix LightViewProjection;
+            public Matrix LightView;
+
+            public Matrix LightProjection;
 
             public Vector3 LightDirection;
 
@@ -96,10 +98,13 @@ namespace Samples.ShadowMapping
 
             public void Apply(DeviceContext context)
             {
+                Matrix lightViewProjection;
+                Matrix.Multiply(ref LightView, ref LightProjection, out lightViewProjection);
+
                 Matrix.Transpose(ref World, out constants.World);
                 Matrix.Transpose(ref View, out constants.View);
                 Matrix.Transpose(ref Projection, out constants.Projection);
-                Matrix.Transpose(ref LightViewProjection, out constants.LightViewProjection);
+                Matrix.Transpose(ref lightViewProjection, out constants.LightViewProjection);
                 constants.LightDirection = LightDirection;
                 constants.DepthBias = DepthBias;
                 constants.AmbientColor = AmbientColor;
@@ -188,17 +193,6 @@ namespace Samples.ShadowMapping
         /// 表示カメラの視錐台。
         /// </summary>
         BoundingFrustum cameraFrustum = new BoundingFrustum(Matrix.Identity);
- 
-        /// <summary>
-        /// ライトの進行方向 (XNA Shadow Mapping では原点から見たライトの方向)。
-        /// 単位ベクトル。
-        /// </summary>
-        Vector3 lightDirection = new Vector3(0.3333333f, -0.6666667f, -0.6666667f);
-
-        /// <summary>
-        /// ライトによる投影を処理する距離。
-        /// </summary>
-        float lightFar = 500.0f;
 
         /// <summary>
         /// 前回の更新処理におけるキーボード状態。
@@ -241,6 +235,11 @@ namespace Samples.ShadowMapping
         Model dudeModel;
 
         /// <summary>
+        /// デュード モデルに適用するワールド行列。
+        /// </summary>
+        Matrix world;
+
+        /// <summary>
         /// 明示するシーン領域。
         /// </summary>
         BoundingBox sceneBox;
@@ -278,11 +277,6 @@ namespace Samples.ShadowMapping
         RenderTarget currentShadowRenderTarget;
 
         /// <summary>
-        /// デュード モデルに適用するワールド行列。
-        /// </summary>
-        Matrix world;
-
-        /// <summary>
         /// 基礎的な簡易ライト カメラ。
         /// シーン領域へ焦点を合わせない。
         /// XNA Shadow Mapping のライト カメラ算出と同程度の品質。
@@ -308,9 +302,9 @@ namespace Samples.ShadowMapping
         LightCameraType currentLightCameraType;
 
         /// <summary>
-        /// 現在のライト空間行列 (ビュー×射影行列)。
+        /// 現在選択されているライト カメラ。
         /// </summary>
-        Matrix lightViewProjection;
+        LightCamera currentLightCamera;
 
         /// <summary>
         /// VSM で用いるガウシアン ブラー。
@@ -354,20 +348,27 @@ namespace Samples.ShadowMapping
 
             // ライト カメラの初期化。
 
+            // ライトの進行方向 (XNA Shadow Mapping では原点から見たライトの方向)。
+            // 単位ベクトル。
+            var lightDirection = new Vector3(0.3333333f, -0.6666667f, -0.6666667f);
+
+            // ライトによる投影を処理する距離。
+            float lightFar = 500.0f;
+
             basicLightCamera = new BasicLightCamera();
             basicLightCamera.LightDirection = lightDirection;
 
             focusedLightCamera = new FocusedLightCamera();
-            focusedLightCamera.EyeNearDistance = camera.NearClipDistance;
-            focusedLightCamera.EyeFarDistance = camera.FarClipDistance;
+            focusedLightCamera.EyeNearClipDistance = camera.NearClipDistance;
+            focusedLightCamera.EyeFarClipDistance = camera.FarClipDistance;
             focusedLightCamera.LightDirection = lightDirection;
-            focusedLightCamera.LightFarDistance = lightFar;
+            focusedLightCamera.LightFarClipDistance = lightFar;
             
             lispsmLightCamera = new LiSPSMLightCamera();
-            lispsmLightCamera.EyeNearDistance = camera.NearClipDistance;
-            lispsmLightCamera.EyeFarDistance = camera.FarClipDistance;
+            lispsmLightCamera.EyeNearClipDistance = camera.NearClipDistance;
+            lispsmLightCamera.EyeFarClipDistance = camera.FarClipDistance;
             lispsmLightCamera.LightDirection = lightDirection;
-            lispsmLightCamera.LightFarDistance = lightFar;
+            lispsmLightCamera.LightFarClipDistance = lightFar;
 
             currentLightCameraType = LightCameraType.LiSPSM;
 
@@ -423,8 +424,8 @@ namespace Samples.ShadowMapping
         {
             var context = Device.ImmediateContext;
 
-            // ライト カメラによるライト空間行列の算出。
-            lightViewProjection = CreateLightViewProjection();
+            // ライト カメラの更新。
+            UpdateLightCamera();
 
             // 念のため状態を初期状態へ。
             context.BlendState = BlendState.Opaque;
@@ -456,7 +457,7 @@ namespace Samples.ShadowMapping
             base.Draw(gameTime);
         }
 
-        Matrix CreateLightViewProjection()
+        void UpdateLightCamera()
         {
             // ライト カメラへ指定するシーン領域。
             BoundingBox actualSceneBox;
@@ -476,28 +477,21 @@ namespace Samples.ShadowMapping
             }
 
             // 利用するライト カメラの選択。
-            LightCamera lightCamera;
             switch (currentLightCameraType)
             {
                 case LightCameraType.LiSPSM:
-                    lightCamera = lispsmLightCamera;
+                    currentLightCamera = lispsmLightCamera;
                     break;
                 case LightCameraType.Focused:
-                    lightCamera = focusedLightCamera;
+                    currentLightCamera = focusedLightCamera;
                     break;
                 default:
-                    lightCamera = basicLightCamera;
+                    currentLightCamera = basicLightCamera;
                     break;
             }
 
             // カメラの行列を更新。
-            lightCamera.Update(camera.View, camera.Projection, actualSceneBox);
-
-            // ライト空間行列の算出。
-            Matrix lightViewProjection;
-            Matrix.Multiply(ref lightCamera.View, ref lightCamera.Projection, out lightViewProjection);
-
-            return lightViewProjection;
+            currentLightCamera.Update(camera.View, camera.Projection, actualSceneBox);
         }
 
         void CreateShadowMap()
@@ -557,7 +551,8 @@ namespace Samples.ShadowMapping
             {
                 // シャドウ マップ エフェクトの準備。
                 shadowMapEffect.World = world;
-                shadowMapEffect.LightViewProjection = lightViewProjection;
+                shadowMapEffect.View = currentLightCamera.View;
+                shadowMapEffect.Projection = currentLightCamera.Projection;
                 shadowMapEffect.Form = shadowMapEffectForm;
                 shadowMapEffect.Apply(context);
             }
@@ -567,8 +562,9 @@ namespace Samples.ShadowMapping
                 drawModelEffect.World = world;
                 drawModelEffect.View = camera.View;
                 drawModelEffect.Projection = camera.Projection;
-                drawModelEffect.LightViewProjection = lightViewProjection;
-                drawModelEffect.LightDirection = lightDirection;
+                drawModelEffect.LightView = currentLightCamera.View;
+                drawModelEffect.LightProjection = currentLightCamera.Projection;
+                drawModelEffect.LightDirection = currentLightCamera.LightDirection;
                 drawModelEffect.DepthBias = 0.001f;
                 drawModelEffect.AmbientColor = new Vector4(0.15f, 0.15f, 0.15f, 1.0f);
                 drawModelEffect.ShadowMapEffectForm = shadowMapEffectForm;

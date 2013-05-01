@@ -7,7 +7,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class ShadowMapEffect : IDisposable
+    public sealed class ShadowMapEffect : IEffectMatrices, IDisposable
     {
         #region SharedDeviceResource
 
@@ -40,7 +40,7 @@ namespace Libra.Graphics.Toolkit
         {
             public Matrix World;
 
-            public Matrix LightViewProjection;
+            public Matrix ViewProjection;
         }
 
         #endregion
@@ -50,9 +50,9 @@ namespace Libra.Graphics.Toolkit
         [Flags]
         enum DirtyFlags
         {
-            World               = (1 << 0),
-            LightViewProjection = (1 << 1),
-            Constants           = (1 << 2)
+            World           = (1 << 0),
+            ViewProjection  = (1 << 1),
+            Constants       = (1 << 2)
         }
 
         #endregion
@@ -67,7 +67,9 @@ namespace Libra.Graphics.Toolkit
 
         Matrix world;
 
-        Matrix lightViewProjection;
+        Matrix view;
+
+        Matrix projection;
 
         DirtyFlags dirtyFlags;
 
@@ -76,24 +78,31 @@ namespace Libra.Graphics.Toolkit
             get { return world; }
             set
             {
-                if (world == value) return;
-
                 world = value;
 
                 dirtyFlags |= DirtyFlags.World;
             }
         }
 
-        public Matrix LightViewProjection
+        public Matrix View
         {
-            get { return lightViewProjection; }
+            get { return view; }
             set
             {
-                if (lightViewProjection == value) return;
+                view = value;
 
-                lightViewProjection = value;
+                dirtyFlags |= DirtyFlags.ViewProjection;
+            }
+        }
 
-                dirtyFlags |= DirtyFlags.LightViewProjection;
+        public Matrix Projection
+        {
+            get { return projection; }
+            set
+            {
+                projection = value;
+
+                dirtyFlags |= DirtyFlags.ViewProjection;
             }
         }
 
@@ -111,11 +120,12 @@ namespace Libra.Graphics.Toolkit
             constantBuffer.Initialize<Constants>();
 
             world = Matrix.Identity;
-            lightViewProjection = Matrix.Identity;
+            view = Matrix.Identity;
+            projection = Matrix.Identity;
 
             Form = ShadowMapEffectForm.Basic;
 
-            dirtyFlags = DirtyFlags.World | DirtyFlags.LightViewProjection;
+            dirtyFlags = DirtyFlags.World | DirtyFlags.ViewProjection;
         }
 
         public void Apply(DeviceContext context)
@@ -128,11 +138,14 @@ namespace Libra.Graphics.Toolkit
                 dirtyFlags |= DirtyFlags.Constants;
             }
 
-            if ((dirtyFlags & DirtyFlags.LightViewProjection) != 0)
+            if ((dirtyFlags & DirtyFlags.ViewProjection) != 0)
             {
-                Matrix.Transpose(ref lightViewProjection, out constants.LightViewProjection);
+                Matrix viewProjection;
+                Matrix.Multiply(ref view, ref projection, out viewProjection);
 
-                dirtyFlags &= ~DirtyFlags.LightViewProjection;
+                Matrix.Transpose(ref viewProjection, out constants.ViewProjection);
+
+                dirtyFlags &= ~DirtyFlags.ViewProjection;
                 dirtyFlags |= DirtyFlags.Constants;
             }
 

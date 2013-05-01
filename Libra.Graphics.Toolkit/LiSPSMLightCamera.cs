@@ -259,8 +259,8 @@ namespace Libra.Graphics.Toolkit
 
         float CalculateOldOptimalN()
         {
-            var n = EyeNearDistance;
-            var f = EyeFarDistance;
+            var n = EyeNearClipDistance;
+            var f = EyeFarClipDistance;
             var d = Math.Abs(f - n);
 
             float dot;

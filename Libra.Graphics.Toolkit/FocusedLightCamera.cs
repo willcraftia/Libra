@@ -50,12 +50,12 @@ namespace Libra.Graphics.Toolkit
         /// <summary>
         /// 表示カメラの近平面までの距離を取得または設定します。
         /// </summary>
-        public float EyeNearDistance { get; set; }
+        public float EyeNearClipDistance { get; set; }
 
         /// <summary>
         /// 表示カメラの遠平面までの距離を取得または設定します。
         /// </summary>
-        public float EyeFarDistance { get; set; }
+        public float EyeFarClipDistance { get; set; }
 
         /// <summary>
         /// ライトの遠平面までの距離を取得または設定します。
@@ -66,7 +66,7 @@ namespace Libra.Graphics.Toolkit
         /// そのようにして影を有効とする範囲を狭めることにより、
         /// シャドウ マップの精度を向上させることができます。
         /// </remarks>
-        public float LightFarDistance { get; set; }
+        public float LightFarClipDistance { get; set; }
 
         /// <summary>
         /// 凸体 B のライトの光源へ向かっての押し出しの距離を取得または設定します。
@@ -91,9 +91,9 @@ namespace Libra.Graphics.Toolkit
             bodyLVSPoints = new List<Vector3>();
             corners = new Vector3[BoundingBox.CornerCount];
 
-            EyeNearDistance = 1.0f;
-            EyeFarDistance = 1000.0f;
-            LightFarDistance = 0.0f;
+            EyeNearClipDistance = 1.0f;
+            EyeFarClipDistance = 1000.0f;
+            LightFarClipDistance = 0.0f;
             BodyBExtrudeDistance = 0.0f;
         }
 
@@ -159,7 +159,7 @@ namespace Libra.Graphics.Toolkit
             bodyB.Define(eyeFrustum);
             bodyB.Clip(sceneBox);
 
-            var farDistance = LightFarDistance;
+            var farDistance = LightFarClipDistance;
             if (0.0f < farDistance)
             {
                 var point = eyePosition + eyeDirection * farDistance;
