@@ -180,29 +180,14 @@ namespace Samples.ShadowMapping
         SpriteFont spriteFont;
 
         /// <summary>
-        /// 表示カメラの位置。
+        /// 表示カメラ。
         /// </summary>
-        Vector3 cameraPosition = new Vector3(0, 70, 100);
-        
-        /// <summary>
-        /// 表示カメラの視線方向。
-        /// </summary>
-        Vector3 cameraForward = new Vector3(0, -0.4472136f, -0.8944272f);
+        BasicCamera camera;
         
         /// <summary>
         /// 表示カメラの視錐台。
         /// </summary>
         BoundingFrustum cameraFrustum = new BoundingFrustum(Matrix.Identity);
-
-        /// <summary>
-        /// 表示カメラの近平面までの距離。
-        /// </summary>
-        float cameraNear = 1.0f;
-
-        /// <summary>
-        /// 表示カメラの遠平面までの距離。
-        /// </summary>
-        float cameraFar = 1000.0f;
  
         /// <summary>
         /// ライトの進行方向 (XNA Shadow Mapping では原点から見たライトの方向)。
@@ -296,16 +281,6 @@ namespace Samples.ShadowMapping
         /// デュード モデルに適用するワールド行列。
         /// </summary>
         Matrix world;
-        
-        /// <summary>
-        /// 表示カメラのビュー行列。
-        /// </summary>
-        Matrix view;
-        
-        /// <summary>
-        /// 表示カメラの射影行列。
-        /// </summary>
-        Matrix projection;
 
         /// <summary>
         /// 基礎的な簡易ライト カメラ。
@@ -356,8 +331,15 @@ namespace Samples.ShadowMapping
             graphicsManager.PreferredBackBufferWidth = windowWidth;
             graphicsManager.PreferredBackBufferHeight = windowHeight;
 
-            var aspectRatio = (float) windowWidth / (float) windowHeight;
-            projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspectRatio, cameraNear, cameraFar);
+            camera = new BasicCamera
+            {
+                Position = new Vector3(0, 70, 100),
+                Direction = new Vector3(0, -0.4472136f, -0.8944272f),
+                Fov = MathHelper.PiOver4,
+                AspectRatio = (float) windowWidth / (float) windowHeight,
+                NearClipDistance = 1.0f,
+                FarClipDistance = 1000.0f
+            };
 
             corners = new Vector3[8];
 
@@ -376,14 +358,14 @@ namespace Samples.ShadowMapping
             basicLightCamera.LightDirection = lightDirection;
 
             focusedLightCamera = new FocusedLightCamera();
-            focusedLightCamera.EyeNearDistance = cameraNear;
-            focusedLightCamera.EyeFarDistance = cameraFar;
+            focusedLightCamera.EyeNearDistance = camera.NearClipDistance;
+            focusedLightCamera.EyeFarDistance = camera.FarClipDistance;
             focusedLightCamera.LightDirection = lightDirection;
             focusedLightCamera.LightFarDistance = lightFar;
             
             lispsmLightCamera = new LiSPSMLightCamera();
-            lispsmLightCamera.EyeNearDistance = cameraNear;
-            lispsmLightCamera.EyeFarDistance = cameraFar;
+            lispsmLightCamera.EyeNearDistance = camera.NearClipDistance;
+            lispsmLightCamera.EyeFarDistance = camera.FarClipDistance;
             lispsmLightCamera.LightDirection = lightDirection;
             lispsmLightCamera.LightFarDistance = lightFar;
 
@@ -490,7 +472,7 @@ namespace Samples.ShadowMapping
             {
                 // 明示する場合。
                 actualSceneBox = sceneBox;
-                actualSceneBox.Merge(cameraPosition);
+                actualSceneBox.Merge(camera.Position);
             }
 
             // 利用するライト カメラの選択。
@@ -509,7 +491,7 @@ namespace Samples.ShadowMapping
             }
 
             // カメラの行列を更新。
-            lightCamera.Update(view, projection, actualSceneBox);
+            lightCamera.Update(camera.View, camera.Projection, actualSceneBox);
 
             // ライト空間行列の算出。
             Matrix lightViewProjection;
@@ -583,8 +565,8 @@ namespace Samples.ShadowMapping
             {
                 // モデル描画エフェクトの準備。
                 drawModelEffect.World = world;
-                drawModelEffect.View = view;
-                drawModelEffect.Projection = projection;
+                drawModelEffect.View = camera.View;
+                drawModelEffect.Projection = camera.Projection;
                 drawModelEffect.LightViewProjection = lightViewProjection;
                 drawModelEffect.LightDirection = lightDirection;
                 drawModelEffect.DepthBias = 0.001f;
@@ -707,7 +689,7 @@ namespace Samples.ShadowMapping
             float time = (float) gameTime.ElapsedGameTime.TotalMilliseconds;
  
             float pitch = -currentJoystickState.ThumbSticks.Right.Y * time * 0.001f;
-            float turn = -currentJoystickState.ThumbSticks.Right.X * time * 0.001f;
+            float yaw = -currentJoystickState.ThumbSticks.Right.X * time * 0.001f;
 
             if (currentKeyboardState.IsKeyDown(Keys.Up))
                 pitch += time * 0.001f;
@@ -716,51 +698,43 @@ namespace Samples.ShadowMapping
                 pitch -= time * 0.001f;
 
             if (currentKeyboardState.IsKeyDown(Keys.Left))
-                turn += time * 0.001f;
+                yaw += time * 0.001f;
 
             if (currentKeyboardState.IsKeyDown(Keys.Right))
-                turn -= time * 0.001f;
+                yaw -= time * 0.001f;
 
-            var cameraRight = Vector3.Cross(Vector3.Up, cameraForward);
-            var flatFront = Vector3.Cross(cameraRight, Vector3.Up);
+            camera.Pitch(pitch);
+            camera.Yaw(yaw);
 
-            var pitchMatrix = Matrix.CreateFromAxisAngle(cameraRight, pitch);
-            var turnMatrix = Matrix.CreateFromAxisAngle(Vector3.Up, turn);
-
-            var tiltedFront = Vector3.TransformNormal(cameraForward, pitchMatrix * turnMatrix);
-
-            if (Vector3.Dot(tiltedFront, flatFront) > 0.001f)
-            {
-                cameraForward = Vector3.Normalize(tiltedFront);
-            }
+            var movement = new Vector3();
 
             if (currentKeyboardState.IsKeyDown(Keys.W))
-                cameraPosition += cameraForward * time * 0.1f;
+                movement.Z -= time * 0.1f;
 
             if (currentKeyboardState.IsKeyDown(Keys.S))
-                cameraPosition -= cameraForward * time * 0.1f;
+                movement.Z += time * 0.1f;
 
             if (currentKeyboardState.IsKeyDown(Keys.A))
-                cameraPosition += cameraRight * time * 0.1f;
+                movement.X -= time * 0.1f;
 
             if (currentKeyboardState.IsKeyDown(Keys.D))
-                cameraPosition -= cameraRight * time * 0.1f;
+                movement.X += time * 0.1f;
 
-            cameraPosition += cameraForward * currentJoystickState.ThumbSticks.Left.Y * time * 0.1f;
-            cameraPosition -= cameraRight * currentJoystickState.ThumbSticks.Left.X * time * 0.1f;
+            movement.Z -= currentJoystickState.ThumbSticks.Left.Y * time * 0.1f;
+            movement.X += currentJoystickState.ThumbSticks.Left.X * time * 0.1f;
+
+            camera.MoveRelative(ref movement);
 
             if (currentJoystickState.Buttons.RightStick == ButtonState.Pressed ||
                 currentKeyboardState.IsKeyDown(Keys.R))
             {
-                cameraPosition = new Vector3(0, 50, 50);
-                cameraForward = new Vector3(0, 0, -1);
+                camera.Position = new Vector3(0, 50, 50);
+                camera.Direction = Vector3.Forward;
             }
 
-            cameraForward.Normalize();
+            camera.Update();
 
-            view = Matrix.CreateLookAt(cameraPosition, cameraPosition + cameraForward, Vector3.Up);
-
-            cameraFrustum.Matrix = view * projection;
+            cameraFrustum.Matrix = camera.View * camera.Projection;
         }
     }
 
