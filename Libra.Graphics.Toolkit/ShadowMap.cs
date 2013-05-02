@@ -145,6 +145,7 @@ namespace Libra.Graphics.Toolkit
 
         public void Draw(DeviceContext context, ref Vector3 lightDirection)
         {
+            PrepareLightCameras();
             PrepareRenderTargets();
             PrepareGaussianBlur();
 
