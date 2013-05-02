@@ -48,17 +48,7 @@ namespace Libra.Graphics.Toolkit
         Vector3[] corners;
 
         /// <summary>
-        /// 表示カメラの近平面までの距離を取得または設定します。
-        /// </summary>
-        public float EyeNearClipDistance { get; set; }
-
-        /// <summary>
-        /// 表示カメラの遠平面までの距離を取得または設定します。
-        /// </summary>
-        public float EyeFarClipDistance { get; set; }
-
-        /// <summary>
-        /// ライトの遠平面までの距離を取得または設定します。
+        /// ライトの遠クリップ面までの距離を取得または設定します。
         /// デフォルトは 0 です。
         /// </summary>
         /// <remarks>
@@ -91,8 +81,6 @@ namespace Libra.Graphics.Toolkit
             bodyLVSPoints = new List<Vector3>();
             corners = new Vector3[BoundingBox.CornerCount];
 
-            EyeNearClipDistance = 1.0f;
-            EyeFarClipDistance = 1000.0f;
             LightFarClipDistance = 0.0f;
             BodyBExtrudeDistance = 0.0f;
         }

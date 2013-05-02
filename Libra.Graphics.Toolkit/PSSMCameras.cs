@@ -86,16 +86,24 @@ namespace Libra.Graphics.Toolkit
             // 射影行列から情報を抽出。
             float fov;
             float aspectRatio;
-            float nearClipDistance;
-            float farClipDistance;
-            projection.DecomposePerspectiveFieldOfView(out fov, out aspectRatio, out nearClipDistance, out farClipDistance);
+            float left;
+            float right;
+            float bottom;
+            float top;
+            float near;
+            float far;
+            projection.ExtractPerspective(
+                out fov, out aspectRatio,
+                out left, out right,
+                out bottom, out top,
+                out near, out far);
 
             // シーン領域を含みうる最小限の遠クリップ面を算出。
-            float adjustedFarClipDistance = CalculateFarClipDistance(ref view, ref sceneBox, nearClipDistance);
-            adjustedFarClipDistance = Math.Min(farClipDistance, adjustedFarClipDistance);
+            float adjustedFar = CalculateFarClipDistance(ref view, ref sceneBox, near);
+            adjustedFar = Math.Min(far, adjustedFar);
 
             // 分割距離を算出。
-            CalculateSplitDistances(nearClipDistance, adjustedFarClipDistance);
+            CalculateSplitDistances(near, adjustedFar);
 
             // 分割カメラを更新。
             for (int i = 0; i < splitCount; i++)

@@ -70,7 +70,7 @@ namespace Libra.Graphics.Toolkit
             float f = n + d;
 
             // ビュー行列。
-            var pPosition = eyePosition - up * (n - EyeNearClipDistance);
+            var pPosition = eyePosition - up * (n - eyeProjectionNear);
             Matrix.CreateLook(ref pPosition, ref lightDirection, ref up, out View);
 
             Matrix lightSpace;
@@ -117,7 +117,7 @@ namespace Libra.Graphics.Toolkit
 
             float sinGamma = (float) Math.Sqrt(1.0 - eDotL * eDotL);
 
-            var zN = EyeNearClipDistance / sinGamma;
+            var zN = eyeProjectionNear / sinGamma;
 
             if (UseNewNFormula)
             {

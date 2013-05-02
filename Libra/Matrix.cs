@@ -781,6 +781,9 @@ namespace Libra
             return result;
         }
 
+        // CreateOrthographic は、
+        // CreateOrthographicOffCenter(-w/2, w/2, -h/2, h/2, n, f) と等価。
+
         public static Matrix CreateOrthographic(
             float width,
             float height,
@@ -813,49 +816,6 @@ namespace Libra
                 M43 = zNearPlane * zRange,
                 M44 = 1.0f
             };
-        }
-
-        public bool DecomposeOrthographic(
-            out float width,
-            out float height,
-            out float nearPlaneDistance,
-            out float farPlaneDistance)
-        {
-            // ゼロ除算になるケースは分解不能で終わらせる。
-            if (MathHelper.FastAbs(M11) < MathHelper.ZeroTolerance ||
-                MathHelper.FastAbs(M22) < MathHelper.ZeroTolerance ||
-                MathHelper.FastAbs(M33) < MathHelper.ZeroTolerance)
-            {
-                width = float.NaN;
-                height = float.NaN;
-                nearPlaneDistance = float.NaN;
-                farPlaneDistance = float.NaN;
-
-                return false;
-            }
-
-            // 参考:
-            //      M43 = near * M33
-            //      near = M43 / M33
-            nearPlaneDistance = M43 / M33;
-
-            // 参考:
-            //      M33 = 1 / (near - far)
-            //      M43 = near * M33
-            //      far = (M43 - 1) / M33
-            farPlaneDistance = (M43 - 1.0f) / M33;
-
-            // 参考:
-            //      M11 = 2 / width
-            //      width = 2 / M11
-            width = 2.0f / M11;
-
-            // 参考:
-            //      M22 = 2 / height
-            //      height = 2 / M22
-            height = 2.0f / M22;
-
-            return true;
         }
 
         public static Matrix CreateOrthographicOffCenter(
@@ -900,7 +860,7 @@ namespace Libra
             };
         }
 
-        public bool DecomposeOrthographicOffCenter(
+        public bool ExtractOrthographic(
             out float left,
             out float right,
             out float bottom,
@@ -961,6 +921,9 @@ namespace Libra
             return true;
         }
 
+        // CreatePerspective は、
+        // CreatePerspectiveOffCenter(-w/2, w/2, -h/2, h/2, n, f) と等価。
+
         public static Matrix CreatePerspective(
             float width,
             float height,
@@ -995,49 +958,13 @@ namespace Libra
             };
         }
 
-        public bool DecomposePerspective(
-            out float width,
-            out float height,
-            out float nearPlaneDistance,
-            out float farPlaneDistance)
-        {
-            // ゼロ除算になるケースは分解不能で終わらせる。
-            if (MathHelper.FastAbs(M11) < MathHelper.ZeroTolerance ||
-                MathHelper.FastAbs(M22) < MathHelper.ZeroTolerance ||
-                MathHelper.FastAbs(M33) < MathHelper.ZeroTolerance ||
-                MathHelper.FastAbs(M33 + 1.0f) < MathHelper.ZeroTolerance)
-            {
-                width = float.NaN;
-                height = float.NaN;
-                nearPlaneDistance = float.NaN;
-                farPlaneDistance = float.NaN;
-
-                return false;
-            }
-
-            // 参考:
-            //      M43 = near * M33
-            //      near = M43 / M33
-            nearPlaneDistance = M43 / M33;
-
-            // 参考:
-            //      M33 = far / (near - far)
-            //      M43 = near * M33
-            //      far = M43 / (M33 + 1)
-            farPlaneDistance = M43 / (M33 + 1.0f);
-
-            // 参考:
-            //      M11 = 2 * near / width
-            //      width = 2 * near / M11
-            width = 2.0f * nearPlaneDistance / M11;
-
-            // 参考:
-            //      M22 = 2 * near / height
-            //      height = 2 * near / M22
-            height = 2.0f * nearPlaneDistance / M22;
-
-            return true;
-        }
+        // CreatePerspectiveFieldOfView は、
+        // yScale = 1/tan(fov/2)
+        // xScale = yScale/aspectRatio
+        // w = 2*n/xScale
+        // h = 2*n/yScale
+        // となり、
+        // CreatePerspectiveOffCenter(-w/2, w/2, -h/2, h/2, n, f) と等価。
 
         public static Matrix CreatePerspectiveFieldOfView(
             float fieldOfView,
@@ -1073,50 +1000,6 @@ namespace Libra
                 M34 = -1.0f,
                 M43 = nearPlaneDistance * zRange
             };
-        }
-
-        public bool DecomposePerspectiveFieldOfView(
-            out float fieldOfView,
-            out float aspectRatio,
-            out float nearPlaneDistance,
-            out float farPlaneDistance)
-        {
-            // ゼロ除算になるケースは分解不能で終わらせる。
-            if (MathHelper.FastAbs(M11) < MathHelper.ZeroTolerance ||
-                MathHelper.FastAbs(M22) < MathHelper.ZeroTolerance ||
-                MathHelper.FastAbs(M33) < MathHelper.ZeroTolerance ||
-                MathHelper.FastAbs(M33 + 1.0f) < MathHelper.ZeroTolerance)
-            {
-                fieldOfView = float.NaN;
-                aspectRatio = float.NaN;
-                nearPlaneDistance = float.NaN;
-                farPlaneDistance = float.NaN;
-
-                return false;
-            }
-
-            // 参考:
-            //      M43 = near * M33
-            //      near = M43 / M33
-            nearPlaneDistance = M43 / M33;
-
-            // 参考:
-            //      M33 = far / (near - far)
-            //      M43 = near * M33
-            //      far = M43 / (M33 + 1)
-            farPlaneDistance = M43 / (M33 + 1.0f);
-
-            // 参考:
-            //      M22 = 1 / tan(fov / 2)
-            //      fov = atan(1 / M22) * 2
-            fieldOfView = (float) Math.Atan(1.0f / M22) * 2.0f;
-
-            // 参考:
-            //      M11 = M22 / aspectRatio
-            //      aspectRatio = M11 / M22
-            aspectRatio = M22 / M11;
-
-            return true;
         }
 
         public static Matrix CreatePerspectiveOffCenter(
@@ -1161,7 +1044,9 @@ namespace Libra
             };
         }
 
-        public bool DecomposePerspectiveOffCenter(
+        public bool ExtractPerspective(
+            out float fieldOfView,
+            out float aspectRatio,
             out float left,
             out float right,
             out float bottom,
@@ -1169,12 +1054,14 @@ namespace Libra
             out float nearPlaneDistance,
             out float farPlaneDistance)
         {
-            // ゼロ除算になるケースは分解不能で終わらせる。
+            // ゼロ除算になるケースは抽出失敗で終わらせる。
             if (MathHelper.FastAbs(M11) < MathHelper.ZeroTolerance ||
                 MathHelper.FastAbs(M22) < MathHelper.ZeroTolerance ||
                 MathHelper.FastAbs(M33) < MathHelper.ZeroTolerance ||
                 MathHelper.FastAbs(M33 + 1.0f) < MathHelper.ZeroTolerance)
             {
+                fieldOfView = float.NaN;
+                aspectRatio = float.NaN;
                 left = float.NaN;
                 right = float.NaN;
                 bottom = float.NaN;
@@ -1219,6 +1106,16 @@ namespace Libra
             //      M32 = (top + bottom) / (top - bottom)
             //      top = near * (M32 + 1) / M22
             top = nearPlaneDistance * (M32 + 1.0f) / M22;
+
+            // 参考:
+            //      M22 = 1 / tan(fov / 2)
+            //      fov = atan(1 / M22) * 2
+            fieldOfView = (float) Math.Atan(1.0f / M22) * 2.0f;
+
+            // 参考:
+            //      M11 = M22 / aspectRatio
+            //      aspectRatio = M11 / M22
+            aspectRatio = M22 / M11;
 
             return true;
         }

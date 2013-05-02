@@ -359,14 +359,10 @@ namespace Samples.ShadowMapping
             basicLightCamera.LightDirection = lightDirection;
 
             focusedLightCamera = new FocusedLightCamera();
-            focusedLightCamera.EyeNearClipDistance = camera.NearClipDistance;
-            focusedLightCamera.EyeFarClipDistance = camera.FarClipDistance;
             focusedLightCamera.LightDirection = lightDirection;
             focusedLightCamera.LightFarClipDistance = lightFar;
             
             lispsmLightCamera = new LiSPSMLightCamera();
-            lispsmLightCamera.EyeNearClipDistance = camera.NearClipDistance;
-            lispsmLightCamera.EyeFarClipDistance = camera.FarClipDistance;
             lispsmLightCamera.LightDirection = lightDirection;
             lispsmLightCamera.LightFarClipDistance = lightFar;
 

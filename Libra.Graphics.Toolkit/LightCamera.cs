@@ -45,6 +45,51 @@ namespace Libra.Graphics.Toolkit
         protected Matrix invertEyeView;
 
         /// <summary>
+        /// 表示カメラの射影行列の種類。
+        /// </summary>
+        protected ProjectionType eyeProjectionType;
+
+        /// <summary>
+        /// 表示カメラの射影行列の左クリップ面位置。
+        /// </summary>
+        protected float eyeProjectionLeft;
+
+        /// <summary>
+        /// 表示カメラの射影行列の右クリップ面位置。
+        /// </summary>
+        protected float eyeProjectionRight;
+
+        /// <summary>
+        /// 表示カメラの射影行列の下クリップ面位置。
+        /// </summary>
+        protected float eyeProjectionBottom;
+
+        /// <summary>
+        /// 表示カメラの射影行列の上クリップ面位置。
+        /// </summary>
+        protected float eyeProjectionTop;
+
+        /// <summary>
+        /// 表示カメラの射影行列の近クリップ面位置。
+        /// </summary>
+        protected float eyeProjectionNear;
+
+        /// <summary>
+        /// 表示カメラの射影行列の遠クリップ面位置。
+        /// </summary>
+        protected float eyeProjectionFar;
+
+        /// <summary>
+        /// 表示カメラの射影行列の視野角。
+        /// </summary>
+        protected float eyeProjectionFov;
+
+        /// <summary>
+        /// 表示カメラの射影行列のアスペクト比。
+        /// </summary>
+        protected float eyeProjectionAspectRatio;
+
+        /// <summary>
         /// 表示カメラの視錐台。
         /// </summary>
         protected BoundingFrustum eyeFrustum;
@@ -87,6 +132,37 @@ namespace Libra.Graphics.Toolkit
             eyeDirection.Normalize();
             eyeUp = invertEyeView.Up;
             eyeUp.Normalize();
+
+            // eyeProjection に正しい射影行列が設定されている事を仮定。
+            if (eyeProjection.M44 == 1.0f)
+            {
+                // 正射影。
+                eyeProjectionType = ProjectionType.Orthographic;
+                eyeProjection.ExtractOrthographic(
+                    out eyeProjectionLeft,
+                    out eyeProjectionRight,
+                    out eyeProjectionBottom,
+                    out eyeProjectionTop,
+                    out eyeProjectionNear,
+                    out eyeProjectionFar);
+
+                eyeProjectionFov = float.NaN;
+                eyeProjectionAspectRatio = float.NaN;
+            }
+            else
+            {
+                // 透視射影。
+                eyeProjectionType = ProjectionType.Perspective;
+                eyeProjection.ExtractPerspective(
+                    out eyeProjectionFov,
+                    out eyeProjectionAspectRatio,
+                    out eyeProjectionLeft,
+                    out eyeProjectionRight,
+                    out eyeProjectionBottom,
+                    out eyeProjectionTop,
+                    out eyeProjectionNear,
+                    out eyeProjectionFar);
+            }
 
             Matrix eyeViewProjection;
             Matrix.Multiply(ref eyeView, ref eyeProjection, out eyeViewProjection);
