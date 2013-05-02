@@ -158,6 +158,7 @@ namespace Libra.Graphics.Toolkit
                 var lightCamera = lightCameras[i];
 
                 // ライト カメラを更新。
+                lightCamera.LightDirection = lightDirection;
                 lightCamera.Update(camera.View, camera.Projection, sceneBox);
 
                 // エフェクトを設定。
