@@ -8,7 +8,7 @@ namespace Libra.Graphics.Toolkit
 {
     public sealed class PSSMCameras
     {
-        public const int MaxSplitCount = 4;
+        public const int MaxSplitCount = 3;
 
         int splitCount;
 
@@ -72,6 +72,13 @@ namespace Libra.Graphics.Toolkit
 
             splitCount = 3;
             splitLambda = 0.5f;
+        }
+
+        public float GetSplitDistance(int index)
+        {
+            if ((uint) (splitCount + 1) < (uint) index) throw new ArgumentOutOfRangeException("index");
+
+            return splitDistances[index];
         }
 
         public void Update(Matrix view, Matrix projection, BoundingBox sceneBox)
@@ -179,7 +186,7 @@ namespace Libra.Graphics.Toolkit
             }
 
             splitDistances[0] = n;
-            splitDistances[splitCount + 1] = f;
+            splitDistances[splitCount] = f;
         }
     }
 }

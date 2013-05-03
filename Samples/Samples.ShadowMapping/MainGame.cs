@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Runtime.InteropServices;
 using Libra;
 using Libra.Games;
 using Libra.Graphics;
@@ -27,21 +28,35 @@ namespace Samples.ShadowMapping
             /// <summary>
             /// 定数バッファの定義。
             /// </summary>
+            [StructLayout(LayoutKind.Explicit, Size = 240 + 64 * PSSMCameras.MaxSplitCount)]
             struct Constants
             {
+                [FieldOffset(0)]
                 public Matrix World;
 
+                [FieldOffset(64)]
                 public Matrix View;
 
+                [FieldOffset(128)]
                 public Matrix Projection;
 
-                public Matrix LightViewProjection;
+                [FieldOffset(192)]
+                public Vector4 AmbientColor;
 
-                public Vector3 LightDirection;
-
+                [FieldOffset(208)]
                 public float DepthBias;
 
-                public Vector4 AmbientColor;
+                [FieldOffset(212)]
+                public int SplitCount;
+
+                [FieldOffset(224)]
+                public Vector3 LightDirection;
+
+                [FieldOffset(240), MarshalAs(UnmanagedType.ByValArray, SizeConst = PSSMCameras.MaxSplitCount)]
+                public float[] SplitDistances;
+
+                [FieldOffset(256), MarshalAs(UnmanagedType.ByValArray, SizeConst = PSSMCameras.MaxSplitCount)]
+                public Matrix[] LightViewProjection;
             }
 
             #endregion
@@ -52,15 +67,13 @@ namespace Samples.ShadowMapping
 
             public Matrix Projection;
 
-            public Matrix LightView;
-
-            public Matrix LightProjection;
-
-            public Vector3 LightDirection;
+            public Vector4 AmbientColor;
 
             public float DepthBias;
 
-            public Vector4 AmbientColor;
+            public ShadowMap ShadowMap;
+
+            public ShaderResourceView Texture;
 
             Constants constants;
 
@@ -71,8 +84,6 @@ namespace Samples.ShadowMapping
             PixelShader variancePixelShader;
 
             ConstantBuffer constantBuffer;
-
-            public ShadowMapForm ShadowMapEffectForm { get; set; }
 
             public DrawModelEffect(Device device)
             {
@@ -94,27 +105,54 @@ namespace Samples.ShadowMapping
                 constantBuffer = device.CreateConstantBuffer();
                 constantBuffer.Usage = ResourceUsage.Dynamic;
                 constantBuffer.Initialize<Constants>();
+
+                constants.SplitDistances = new float[PSSMCameras.MaxSplitCount];
+                constants.LightViewProjection = new Matrix[PSSMCameras.MaxSplitCount];
             }
 
             public void Apply(DeviceContext context)
             {
-                Matrix lightViewProjection;
-                Matrix.Multiply(ref LightView, ref LightProjection, out lightViewProjection);
-
                 Matrix.Transpose(ref World, out constants.World);
                 Matrix.Transpose(ref View, out constants.View);
                 Matrix.Transpose(ref Projection, out constants.Projection);
-                Matrix.Transpose(ref lightViewProjection, out constants.LightViewProjection);
-                constants.LightDirection = LightDirection;
-                constants.DepthBias = DepthBias;
+
                 constants.AmbientColor = AmbientColor;
+                constants.DepthBias = DepthBias;
+                constants.SplitCount = ShadowMap.SplitCount;
+                constants.LightDirection = ShadowMap.LightDirection;
+
+                for (int i = 0; i < PSSMCameras.MaxSplitCount; i++)
+                {
+                    if (i < ShadowMap.SplitCount)
+                    {
+                        constants.SplitDistances[i] = ShadowMap.GetSplitDistance(i);
+
+                        var lightCamera = ShadowMap.GetCamera(i);
+                        Matrix lightViewProjection;
+                        Matrix.Multiply(ref lightCamera.View, ref lightCamera.Projection, out lightViewProjection);
+
+                        Matrix.Transpose(ref lightViewProjection, out constants.LightViewProjection[i]);
+
+                        context.PixelShaderResources[i + 1] = ShadowMap.GetTexture(i).GetShaderResourceView();
+                    }
+                    else
+                    {
+                        constants.SplitDistances[i] = 0.0f;
+                        constants.LightViewProjection[i] = Matrix.Identity;
+                        context.PixelShaderResources[i + 1] = null;
+                    }
+                }
 
                 constantBuffer.SetData(context, constants);
 
                 context.VertexShaderConstantBuffers[0] = constantBuffer;
                 context.PixelShaderConstantBuffers[0] = constantBuffer;
+
+                context.PixelShaderResources[0] = Texture;
+
                 context.VertexShader = vertexShader;
-                if (ShadowMapEffectForm == ShadowMapForm.Variance)
+
+                if (ShadowMap.Form == ShadowMapForm.Variance)
                 {
                     context.PixelShader = variancePixelShader;
                 }
@@ -262,59 +300,21 @@ namespace Samples.ShadowMapping
         float rotateDude = 0.0f;
 
         /// <summary>
-        /// 基礎的なシャドウ マップのレンダ ターゲット。
+        /// シャドウ マップ生成機能。
         /// </summary>
-        RenderTarget bsmRenderTarget;
+        ShadowMap shadowMap;
 
-        /// <summary>
-        /// VSM のレンダ ターゲット。
-        /// </summary>
-        RenderTarget vsmRenderTarget;
+        // ライトの進行方向 (XNA Shadow Mapping では原点から見たライトの方向)。
+        // 単位ベクトル。
+        Vector3 lightDirection = new Vector3(0.3333333f, -0.6666667f, -0.6666667f);
 
-        /// <summary>
-        /// 現在選択されているシャドウ マップのレンダ ターゲット。
-        /// </summary>
-        RenderTarget currentShadowRenderTarget;
-
-        /// <summary>
-        /// 基礎的な簡易ライト カメラ。
-        /// シーン領域へ焦点を合わせない。
-        /// XNA Shadow Mapping のライト カメラ算出と同程度の品質。
-        /// </summary>
-        BasicLightCamera basicLightCamera;
-
-        /// <summary>
-        /// シーン領域へ焦点を合わせるライト カメラ。
-        /// 焦点合わせにより、BasicLightCamera よりも高品質となる。
-        /// </summary>
-        FocusedLightCamera focusedLightCamera;
-
-        /// <summary>
-        /// LiSPSM ライト カメラ。
-        /// 焦点合わせおよび LiSPSM による補正により、
-        /// FocusedLightCamera よりも高品質となる。
-        /// </summary>
-        LiSPSMLightCamera lispsmLightCamera;
+        // ライトによる投影を処理する距離。
+        float lightFar = 500.0f;
 
         /// <summary>
         /// 現在選択されているライト カメラの種類。
         /// </summary>
         LightCameraType currentLightCameraType;
-
-        /// <summary>
-        /// 現在選択されているライト カメラ。
-        /// </summary>
-        LightCamera currentLightCamera;
-
-        /// <summary>
-        /// VSM で用いるガウシアン ブラー。
-        /// </summary>
-        GaussianBlur gaussianBlur;
-
-        /// <summary>
-        /// 現在選択されているシャドウ マップの種類。
-        /// </summary>
-        ShadowMapForm shadowMapEffectForm;
 
         public MainGame()
         {
@@ -346,29 +346,26 @@ namespace Samples.ShadowMapping
 
             useCameraFrustumSceneBox = true;
 
-            // ライト カメラの初期化。
-
-            // ライトの進行方向 (XNA Shadow Mapping では原点から見たライトの方向)。
-            // 単位ベクトル。
-            var lightDirection = new Vector3(0.3333333f, -0.6666667f, -0.6666667f);
-
-            // ライトによる投影を処理する距離。
-            float lightFar = 500.0f;
-
-            basicLightCamera = new BasicLightCamera();
-            basicLightCamera.LightDirection = lightDirection;
-
-            focusedLightCamera = new FocusedLightCamera();
-            focusedLightCamera.LightDirection = lightDirection;
-            focusedLightCamera.LightFarClipDistance = lightFar;
-            
-            lispsmLightCamera = new LiSPSMLightCamera();
-            lispsmLightCamera.LightDirection = lightDirection;
-            lispsmLightCamera.LightFarClipDistance = lightFar;
-
             currentLightCameraType = LightCameraType.LiSPSM;
+        }
 
-            shadowMapEffectForm = ShadowMapForm.Variance;
+        LightCamera CreateBasicLightCamera()
+        {
+            return new BasicLightCamera();
+        }
+
+        LightCamera CreateFocusedLightCamera()
+        {
+            var result = new FocusedLightCamera();
+            result.LightFarClipDistance = lightFar;
+            return result;
+        }
+
+        LightCamera CreateLiSPSMLightCamera()
+        {
+            var result = new LiSPSMLightCamera();
+            result.LightFarClipDistance = lightFar;
+            return result;
         }
 
         protected override void LoadContent()
@@ -382,27 +379,16 @@ namespace Samples.ShadowMapping
             gridModel = content.Load<Model>("grid");
             dudeModel = content.Load<Model>("dude");
 
-            // 基礎的なシャドウ マップは R 値のみを用いる。
-            bsmRenderTarget = Device.CreateRenderTarget();
-            bsmRenderTarget.Width = shadowMapSize;
-            bsmRenderTarget.Height = shadowMapSize;
-            bsmRenderTarget.Format = SurfaceFormat.Single;
-            bsmRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
-            bsmRenderTarget.Initialize();
-
-            // VSM は RG 値の二つを用いる。
-            vsmRenderTarget = Device.CreateRenderTarget();
-            vsmRenderTarget.Width = shadowMapSize;
-            vsmRenderTarget.Height = shadowMapSize;
-            vsmRenderTarget.Format = SurfaceFormat.Vector2;
-            vsmRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
-            vsmRenderTarget.Initialize();
-
-            // ガウシアン ブラーは VSM で用いるため、
-            // 内部で使用するレンダ ターゲットは VSM に合わせる。
-            gaussianBlur = new GaussianBlur(Device, vsmRenderTarget.Width, vsmRenderTarget.Height, vsmRenderTarget.Format);
-            gaussianBlur.Radius = 4;
-            gaussianBlur.Amount = 16;
+            shadowMap = new ShadowMap(Device);
+            shadowMap.Size = shadowMapSize;
+            shadowMap.SplitCount = 3;
+            shadowMap.Form = ShadowMapForm.Variance;
+            shadowMap.BlurRadius = 4;
+            shadowMap.BlurAmount = 16;
+            shadowMap.LightDirection = lightDirection;
+            shadowMap.CreateLightCamera = CreateLiSPSMLightCamera;
+            shadowMap.DrawShadowCasters = DrawShadowCasters;
+            shadowMap.Form = ShadowMapForm.Variance;
         }
 
         protected override void Update(GameTime gameTime)
@@ -420,23 +406,9 @@ namespace Samples.ShadowMapping
         {
             var context = Device.ImmediateContext;
 
-            // ライト カメラの更新。
-            UpdateLightCamera();
-
             // 念のため状態を初期状態へ。
             context.BlendState = BlendState.Opaque;
             context.DepthStencilState = DepthStencilState.Default;
-
-            // 選択されているシャドウ マップの種類に応じてレンダ ターゲットを切り替え。
-            switch (shadowMapEffectForm)
-            {
-                case ShadowMapForm.Basic:
-                    currentShadowRenderTarget = bsmRenderTarget;
-                    break;
-                case ShadowMapForm.Variance:
-                    currentShadowRenderTarget = vsmRenderTarget;
-                    break;
-            }
 
             // シャドウ マップの描画。
             CreateShadowMap();
@@ -453,7 +425,7 @@ namespace Samples.ShadowMapping
             base.Draw(gameTime);
         }
 
-        void UpdateLightCamera()
+        void PrepareShadowMap()
         {
             // ライト カメラへ指定するシーン領域。
             BoundingBox actualSceneBox;
@@ -476,49 +448,27 @@ namespace Samples.ShadowMapping
             switch (currentLightCameraType)
             {
                 case LightCameraType.LiSPSM:
-                    currentLightCamera = lispsmLightCamera;
+                    shadowMap.CreateLightCamera = CreateLiSPSMLightCamera;
                     break;
                 case LightCameraType.Focused:
-                    currentLightCamera = focusedLightCamera;
+                    shadowMap.CreateLightCamera = CreateFocusedLightCamera;
                     break;
                 default:
-                    currentLightCamera = basicLightCamera;
+                    shadowMap.CreateLightCamera = CreateBasicLightCamera;
                     break;
             }
 
-            // カメラの行列を更新。
-            currentLightCamera.Update(camera.View, camera.Projection, actualSceneBox);
+            // シャドウ マッピング機能の準備。
+            shadowMap.Prepare(camera.View, camera.Projection, actualSceneBox);
         }
 
         void CreateShadowMap()
         {
             var context = Device.ImmediateContext;
 
-            // 選択中のシャドウ マップ レンダ ターゲットを設定。
-            context.SetRenderTarget(currentShadowRenderTarget.GetRenderTargetView());
+            PrepareShadowMap();
 
-            // レンダ ターゲットの R あるいは RG を 1 で埋める (1 は最遠の深度)。
-            // 同時に、深度ステンシルの深度も 1 へ。
-            context.Clear(Color.White);
-
-            // デュード モデルのワールド行列。
-            world = Matrix.CreateRotationY(MathHelper.ToRadians(rotateDude));
-            
-            // 投影オブジェクトとしてデュード モデルを描画。
-            // グリッド モデルは非投影オブジェクト。
-            DrawModel(dudeModel, true);
-
-            // レンダ ターゲットをデフォルトへ戻す。
-            context.SetRenderTarget(null);
-
-            // VSM を選択している場合はシャドウ マップへブラーを適用。
-            if (shadowMapEffectForm == ShadowMapForm.Variance)
-            {
-                gaussianBlur.Filter(
-                    context,
-                    currentShadowRenderTarget.GetShaderResourceView(),
-                    currentShadowRenderTarget.GetRenderTargetView());
-            }
+            shadowMap.Draw(context);
         }
 
         void DrawWithShadowMap()
@@ -532,42 +482,55 @@ namespace Samples.ShadowMapping
 
             // シャドウ マップと共にグリッド モデルを描画。
             world = Matrix.Identity;
-            DrawModel(gridModel, false);
+            DrawModelWithShadowMap(gridModel);
 
             // シャドウ マップと共にデュード モデルを描画。
             world = Matrix.CreateRotationY(MathHelper.ToRadians(rotateDude));
-            DrawModel(dudeModel, false);
+            DrawModelWithShadowMap(dudeModel);
         }
 
-        void DrawModel(Model model, bool createShadowMap)
+        // コールバック。
+        void DrawShadowCasters(Camera camera, ShadowMapEffect effect)
+        {
+            // デュード モデルのワールド行列。
+            world = Matrix.CreateRotationY(MathHelper.ToRadians(rotateDude));
+
+            DrawShadowCaster(camera, effect, dudeModel);
+        }
+
+        void DrawShadowCaster(Camera camera, ShadowMapEffect effect, Model model)
         {
             var context = Device.ImmediateContext;
 
-            if (createShadowMap)
-            {
-                // シャドウ マップ エフェクトの準備。
-                shadowMapEffect.World = world;
-                shadowMapEffect.View = currentLightCamera.View;
-                shadowMapEffect.Projection = currentLightCamera.Projection;
-                shadowMapEffect.Form = shadowMapEffectForm;
-                shadowMapEffect.Apply(context);
-            }
-            else
-            {
-                // モデル描画エフェクトの準備。
-                drawModelEffect.World = world;
-                drawModelEffect.View = camera.View;
-                drawModelEffect.Projection = camera.Projection;
-                drawModelEffect.LightView = currentLightCamera.View;
-                drawModelEffect.LightProjection = currentLightCamera.Projection;
-                drawModelEffect.LightDirection = currentLightCamera.LightDirection;
-                drawModelEffect.DepthBias = 0.001f;
-                drawModelEffect.AmbientColor = new Vector4(0.15f, 0.15f, 0.15f, 1.0f);
-                drawModelEffect.ShadowMapEffectForm = shadowMapEffectForm;
-                drawModelEffect.Apply(context);
+            // シャドウ マップ エフェクトの準備。
+            shadowMapEffect.World = world;
+            shadowMapEffect.View = camera.View;
+            shadowMapEffect.Projection = camera.Projection;
+            shadowMapEffect.Apply(context);
 
-                context.PixelShaderResources[1] = currentShadowRenderTarget.GetShaderResourceView();
+            context.PrimitiveTopology = PrimitiveTopology.TriangleList;
+
+            foreach (var mesh in model.Meshes)
+            {
+                foreach (var meshPart in mesh.MeshParts)
+                {
+                    context.SetVertexBuffer(0, meshPart.VertexBuffer);
+                    context.IndexBuffer = meshPart.IndexBuffer;
+                    context.DrawIndexed(meshPart.IndexCount, meshPart.StartIndexLocation, meshPart.BaseVertexLocation);
+                }
             }
+        }
+
+        void DrawModelWithShadowMap(Model model)
+        {
+            var context = Device.ImmediateContext;
+
+            drawModelEffect.World = world;
+            drawModelEffect.View = camera.View;
+            drawModelEffect.Projection = camera.Projection;
+            drawModelEffect.AmbientColor = new Vector4(0.15f, 0.15f, 0.15f, 1.0f);
+            drawModelEffect.DepthBias = 0.001f;
+            drawModelEffect.ShadowMap = shadowMap;
 
             // モデルを描画。
             // モデルは XNB 標準状態で読み込んでいるため、
@@ -582,11 +545,10 @@ namespace Samples.ShadowMapping
                     context.SetVertexBuffer(0, meshPart.VertexBuffer);
                     context.IndexBuffer = meshPart.IndexBuffer;
 
-                    if (!createShadowMap)
-                    {
-                        // BasicEffect に設定されているモデルのテクスチャを取得して設定。
-                        context.PixelShaderResources[0] = (meshPart.Effect as BasicEffect).Texture;
-                    }
+                    // BasicEffect に設定されているモデルのテクスチャを取得して設定。
+                    drawModelEffect.Texture = (meshPart.Effect as BasicEffect).Texture;
+
+                    drawModelEffect.Apply(context);
 
                     context.DrawIndexed(meshPart.IndexCount, meshPart.StartIndexLocation, meshPart.BaseVertexLocation);
                 }
@@ -597,17 +559,24 @@ namespace Samples.ShadowMapping
         {
             // 現在のフレームで生成したシャドウ マップを画面左上に表示。
             spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Opaque, SamplerState.PointClamp);
-            spriteBatch.Draw(currentShadowRenderTarget.GetShaderResourceView(), new Rectangle(0, 0, 128, 128), Color.White);
+            for (int i = 0; i < shadowMap.SplitCount; i++)
+            {
+                var x = i * 128;
+                spriteBatch.Draw(shadowMap.GetTexture(i).GetShaderResourceView(), new Rectangle(x, 0, 128, 128), Color.White);
+            }
             spriteBatch.End();
         }
 
         void DrawOverlayText()
         {
             // HUD のテキストを表示。
+            //var text = "B = Light camera type (" + currentLightCameraType + ")\n" +
+            //    "X = Shadow map form (" + shadowMapEffectForm + ")\n" +
+            //    "Y = Use camera frustum as scene box (" + useCameraFrustumSceneBox + ")\n" +
+            //    "L = Adjust LiSPSM optimal N (" + lispsmLightCamera.AdjustOptimalN + ")";
             var text = "B = Light camera type (" + currentLightCameraType + ")\n" +
-                "X = Shadow map form (" + shadowMapEffectForm + ")\n" +
-                "Y = Use camera frustum as scene box (" + useCameraFrustumSceneBox + ")\n" +
-                "L = Adjust LiSPSM optimal N (" + lispsmLightCamera.AdjustOptimalN + ")";
+                "X = Shadow map form (" + shadowMap.Form + ")\n" +
+                "Y = Use camera frustum as scene box (" + useCameraFrustumSceneBox + ")";
 
             spriteBatch.Begin();
 
@@ -653,21 +622,21 @@ namespace Samples.ShadowMapping
             if (currentKeyboardState.IsKeyUp(Keys.X) && lastKeyboardState.IsKeyDown(Keys.X) ||
                 currentJoystickState.IsButtonUp(Buttons.X) && lastJoystickState.IsButtonDown(Buttons.X))
             {
-                if (shadowMapEffectForm == ShadowMapForm.Basic)
+                if (shadowMap.Form == ShadowMapForm.Basic)
                 {
-                    shadowMapEffectForm = ShadowMapForm.Variance;
+                    shadowMap.Form = ShadowMapForm.Variance;
                 }
                 else
                 {
-                    shadowMapEffectForm = ShadowMapForm.Basic;
+                    shadowMap.Form = ShadowMapForm.Basic;
                 }
             }
 
-            if (currentKeyboardState.IsKeyUp(Keys.L) && lastKeyboardState.IsKeyDown(Keys.L) ||
-                currentJoystickState.IsButtonUp(Buttons.LeftShoulder) && lastJoystickState.IsButtonDown(Buttons.LeftShoulder))
-            {
-                lispsmLightCamera.AdjustOptimalN = !lispsmLightCamera.AdjustOptimalN;
-            }
+            //if (currentKeyboardState.IsKeyUp(Keys.L) && lastKeyboardState.IsKeyDown(Keys.L) ||
+            //    currentJoystickState.IsButtonUp(Buttons.LeftShoulder) && lastJoystickState.IsButtonDown(Buttons.LeftShoulder))
+            //{
+            //    lispsmLightCamera.AdjustOptimalN = !lispsmLightCamera.AdjustOptimalN;
+            //}
 
             if (currentKeyboardState.IsKeyDown(Keys.Escape) ||
                 currentJoystickState.Buttons.Back == ButtonState.Pressed)

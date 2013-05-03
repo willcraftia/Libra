@@ -41,6 +41,8 @@ namespace Libra.Graphics.Toolkit
 
         int size;
 
+        Vector3 lightDirection;
+
         DirtyFlags dirtyFlags;
 
         public Device Device { get; private set; }
@@ -114,6 +116,18 @@ namespace Libra.Graphics.Toolkit
 
         public int BlurAmount { get; set; }
 
+        public Vector3 LightDirection
+        {
+            get { return lightDirection; }
+            set
+            {
+                if (value.IsZero()) throw new ArgumentException("Light direction must be not zero.", "value");
+
+                lightDirection = value;
+                lightDirection.Normalize();
+            }
+        }
+
         public ShadowMap(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
@@ -143,7 +157,12 @@ namespace Libra.Graphics.Toolkit
             return cameras[index];
         }
 
-        public void Draw(DeviceContext context, ref Vector3 lightDirection)
+        public float GetSplitDistance(int index)
+        {
+            return cameras.GetSplitDistance(index);
+        }
+
+        public void Draw(DeviceContext context)
         {
             PrepareLightCameras();
             PrepareRenderTargets();
@@ -191,7 +210,7 @@ namespace Libra.Graphics.Toolkit
                         renderTarget.GetRenderTargetView());
                 }
 
-                context.SetRenderTarget(null);
+                textures[i] = renderTarget;
             }
         }
 
