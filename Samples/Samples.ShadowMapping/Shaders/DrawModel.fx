@@ -19,10 +19,10 @@ cbuffer Parameters : register(b0)
     float4x4 Projection     : packoffset(c8);
     float4   AmbientColor   : packoffset(c12);
     float    DepthBias      : packoffset(c13);
-    int      SplitCount     : packoffset(c13.y);
-    float3   LightDirection : packoffset(c14);
-    float    SplitDistances[MAX_SPLIT_COUNT + 1]    : packoffset(c15);
-    float4x4 LightViewProjections[MAX_SPLIT_COUNT]  : packoffset(c19);
+    int      SplitCount     : packoffset(c14);
+    float3   LightDirection : packoffset(c15);
+    float    SplitDistances[MAX_SPLIT_COUNT + 1]    : packoffset(c16);
+    float4x4 LightViewProjections[MAX_SPLIT_COUNT]  : packoffset(c20);
 };
 
 Texture2D<float4> Texture                               : register(t0);
@@ -41,25 +41,26 @@ struct VSInput
 
 struct VSOutput
 {
-    float4 Position : SV_Position;
-    float3 Normal   : TEXCOORD0;
-    float2 TexCoord : TEXCOORD1;
-    float4 WorldPos : TEXCOORD2;
-    float4 ViewPosition     : TEXCOORD3;
+    float4 Position   : SV_Position;
+    float3 Normal     : TEXCOORD0;
+    float2 TexCoord   : TEXCOORD1;
+    float4 PositionWS : TEXCOORD2;
+    float4 PositionVS : TEXCOORD3;
 };
 
 VSOutput VS(VSInput input)
 {
     VSOutput output;
 
-    float4x4 WorldViewProj = mul(mul(World, View), Projection);
+    float4 positionWS = mul(input.Position, World);
+    float4 positionVS = mul(positionWS, View);
 
-    output.Position = mul(input.Position, WorldViewProj);
+    output.Position = mul(positionVS, Projection);
     output.Normal =  normalize(mul(float4(input.Normal, 0), World)).xyz;
     output.TexCoord = input.TexCoord;
 
-    output.WorldPos = mul(input.Position, World);
-    output.ViewPosition = mul(output.WorldPos, View);
+    output.PositionWS = positionWS;
+    output.PositionVS = positionVS;
 
     return output;
 }
@@ -71,7 +72,7 @@ float4 BasicPS(VSOutput input) : SV_Target0
     float diffuseIntensity = saturate(dot(-LightDirection, input.Normal));
     float4 diffuse = diffuseIntensity * diffuseColor + AmbientColor;
 
-    float distance = abs(input.ViewPosition.z);
+    float distance = abs(input.PositionVS.z);
 
     float shadow = 1;
 
@@ -83,7 +84,7 @@ float4 BasicPS(VSOutput input) : SV_Target0
 
         if (SplitDistances[i] <= distance && distance < SplitDistances[i + 1])
         {
-            float4 positionLS = mul(input.WorldPos, LightViewProjections[i]);
+            float4 positionLS = mul(input.PositionWS, LightViewProjections[i]);
             depthLS = (positionLS.z / positionLS.w) - DepthBias;
 
             float2 shadowMapTexCoord = 0.5 * positionLS.xy / positionLS.w + float2(0.5, 0.5);
@@ -105,9 +106,8 @@ float4 BasicPS(VSOutput input) : SV_Target0
             //
             // 1. 分岐の外で明示的に導関数を計算して SampleGrad() へ渡す。
             // 2. SampleLevel() を用いてミップマップ レベルを明示する。
+            // ---
             depthShadowMap = BasicShadowMap[i].SampleLevel(ShadowMapSampler, shadowMapTexCoord, 0);
-
-shadow = 0;
         }
 
         if (depthShadowMap < depthLS)
@@ -143,7 +143,7 @@ float4 VariancePS(VSOutput input) : SV_Target0
     float diffuseIntensity = saturate(dot(-LightDirection, input.Normal));
     float4 diffuse = diffuseIntensity * diffuseColor + AmbientColor;
 
-    float distance = abs(input.ViewPosition.z);
+    float distance = abs(input.PositionVS.z);
 
     float shadow = 1;
 
@@ -152,7 +152,7 @@ float4 VariancePS(VSOutput input) : SV_Target0
     {
         if (SplitDistances[i] <= distance && distance < SplitDistances[i + 1])
         {
-            float4 positionLS = mul(input.WorldPos, LightViewProjections[i]);
+            float4 positionLS = mul(input.PositionWS, LightViewProjections[i]);
 
             float2 shadowMapTexCoord = 0.5 * positionLS.xy / positionLS.w + float2( 0.5, 0.5 );
             shadowMapTexCoord.y = 1 - shadowMapTexCoord.y;
@@ -162,14 +162,11 @@ float4 VariancePS(VSOutput input) : SV_Target0
             float2 moments = VarianceShadowMap[i].SampleLevel(ShadowMapSampler, shadowMapTexCoord, 0);
             shadow = TestVSM(positionLS, moments);
 
-//            shadow *= 0.5f;
-//            shadow += 0.5f;
+            // 最も影な部分を 0.5 にするための調整。
+            shadow *= 0.5f;
+            shadow += 0.5f;
         }
     }
-
-//    float shadow = TestVSM(positionLS, shadowMapTexCoord);
-
-    // 最も影な部分を 0.5 にするための調整。
 
     diffuse.xyz *= shadow;
 

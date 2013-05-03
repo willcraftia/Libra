@@ -28,7 +28,7 @@ namespace Samples.ShadowMapping
             /// <summary>
             /// 定数バッファの定義。
             /// </summary>
-            [StructLayout(LayoutKind.Explicit, Size = 240 + 64 * PSSMCameras.MaxSplitCount)]
+            [StructLayout(LayoutKind.Explicit, Size = 256 + (16 + 64) * PSSMCameras.MaxSplitCount)]
             struct Constants
             {
                 [FieldOffset(0)]
@@ -46,16 +46,16 @@ namespace Samples.ShadowMapping
                 [FieldOffset(208)]
                 public float DepthBias;
 
-                [FieldOffset(212)]
+                [FieldOffset(224)]
                 public int SplitCount;
 
-                [FieldOffset(224)]
+                [FieldOffset(240)]
                 public Vector3 LightDirection;
 
-                [FieldOffset(240), MarshalAs(UnmanagedType.ByValArray, SizeConst = PSSMCameras.MaxSplitCount)]
-                public float[] SplitDistances;
-
                 [FieldOffset(256), MarshalAs(UnmanagedType.ByValArray, SizeConst = PSSMCameras.MaxSplitCount)]
+                public Vector4[] SplitDistances;
+
+                [FieldOffset(320), MarshalAs(UnmanagedType.ByValArray, SizeConst = PSSMCameras.MaxSplitCount)]
                 public Matrix[] LightViewProjection;
             }
 
@@ -106,7 +106,7 @@ namespace Samples.ShadowMapping
                 constantBuffer.Usage = ResourceUsage.Dynamic;
                 constantBuffer.Initialize<Constants>();
 
-                constants.SplitDistances = new float[PSSMCameras.MaxSplitCount];
+                constants.SplitDistances = new Vector4[PSSMCameras.MaxSplitCount];
                 constants.LightViewProjection = new Matrix[PSSMCameras.MaxSplitCount];
             }
 
@@ -125,9 +125,9 @@ namespace Samples.ShadowMapping
                 {
                     if (i < ShadowMap.SplitCount)
                     {
-                        constants.SplitDistances[i] = ShadowMap.GetSplitDistance(i);
+                        constants.SplitDistances[i].X = ShadowMap.GetSplitDistance(i);
 
-                        var lightCamera = ShadowMap.GetCamera(i);
+                        var lightCamera = ShadowMap.GetLightCamera(i);
                         Matrix lightViewProjection;
                         Matrix.Multiply(ref lightCamera.View, ref lightCamera.Projection, out lightViewProjection);
 
@@ -137,7 +137,7 @@ namespace Samples.ShadowMapping
                     }
                     else
                     {
-                        constants.SplitDistances[i] = 0.0f;
+                        constants.SplitDistances[i].X = 0.0f;
                         constants.LightViewProjection[i] = Matrix.Identity;
                         context.PixelShaderResources[i + 1] = null;
                     }
@@ -253,11 +253,6 @@ namespace Samples.ShadowMapping
         JoystickState currentJoystickState;
 
         /// <summary>
-        /// シャドウ マップ エフェクト。
-        /// </summary>
-        ShadowMapEffect shadowMapEffect;
-
-        /// <summary>
         /// モデル描画エフェクト。
         /// </summary>
         DrawModelEffect drawModelEffect;
@@ -271,6 +266,16 @@ namespace Samples.ShadowMapping
         /// デュード モデル (人)。
         /// </summary>
         Model dudeModel;
+
+        /// <summary>
+        /// デュード モデルのローカル空間境界ボックス。
+        /// </summary>
+        BoundingBox dudeBoxLocal;
+
+        /// <summary>
+        /// デュード モデルのワールド空間境界ボックス。
+        /// </summary>
+        BoundingBox dudeBoxWorld;
 
         /// <summary>
         /// デュード モデルに適用するワールド行列。
@@ -316,6 +321,8 @@ namespace Samples.ShadowMapping
         /// </summary>
         LightCameraType currentLightCameraType;
 
+        BoundingFrustum splitFrustum;
+
         public MainGame()
         {
             graphicsManager = new GraphicsManager(this);
@@ -347,6 +354,8 @@ namespace Samples.ShadowMapping
             useCameraFrustumSceneBox = true;
 
             currentLightCameraType = LightCameraType.LiSPSM;
+
+            splitFrustum = new BoundingFrustum(Matrix.Identity);
         }
 
         LightCamera CreateBasicLightCamera()
@@ -370,7 +379,6 @@ namespace Samples.ShadowMapping
 
         protected override void LoadContent()
         {
-            shadowMapEffect = new ShadowMapEffect(Device);
             drawModelEffect = new DrawModelEffect(Device);
 
             spriteBatch = new SpriteBatch(Device.ImmediateContext);
@@ -378,6 +386,12 @@ namespace Samples.ShadowMapping
 
             gridModel = content.Load<Model>("grid");
             dudeModel = content.Load<Model>("dude");
+
+            dudeBoxLocal = BoundingBox.Empty;
+            foreach (var mesh in dudeModel.Meshes)
+            {
+                dudeBoxLocal.Merge(BoundingBox.CreateFromSphere(mesh.BoundingSphere));
+            }
 
             shadowMap = new ShadowMap(Device);
             shadowMap.Size = shadowMapSize;
@@ -464,11 +478,23 @@ namespace Samples.ShadowMapping
 
         void CreateShadowMap()
         {
-            var context = Device.ImmediateContext;
+            // デュード モデルのワールド行列。
+            world = Matrix.CreateRotationY(MathHelper.ToRadians(rotateDude));
+
+            dudeBoxLocal.GetCorners(corners);
+            dudeBoxWorld = BoundingBox.Empty;
+            foreach (var corner in corners)
+            {
+                Vector3 cornerLocal = corner;
+                Vector3 cornerWorld;
+                Vector3.Transform(ref cornerLocal, ref world, out cornerWorld);
+
+                dudeBoxWorld.Merge(ref cornerWorld);
+            }
 
             PrepareShadowMap();
 
-            shadowMap.Draw(context);
+            shadowMap.Draw(Device.ImmediateContext);
         }
 
         void DrawWithShadowMap()
@@ -492,10 +518,17 @@ namespace Samples.ShadowMapping
         // コールバック。
         void DrawShadowCasters(Camera camera, ShadowMapEffect effect)
         {
-            // デュード モデルのワールド行列。
-            world = Matrix.CreateRotationY(MathHelper.ToRadians(rotateDude));
+            Matrix viewProjection;
+            Matrix.Multiply(ref camera.View, ref camera.Projection, out viewProjection);
 
-            DrawShadowCaster(camera, effect, dudeModel);
+            splitFrustum.Matrix = viewProjection;
+
+            ContainmentType containment;
+            splitFrustum.Contains(ref dudeBoxWorld, out containment);
+            if (containment != ContainmentType.Disjoint)
+            {
+                DrawShadowCaster(camera, effect, dudeModel);
+            }
         }
 
         void DrawShadowCaster(Camera camera, ShadowMapEffect effect, Model model)
@@ -503,10 +536,8 @@ namespace Samples.ShadowMapping
             var context = Device.ImmediateContext;
 
             // シャドウ マップ エフェクトの準備。
-            shadowMapEffect.World = world;
-            shadowMapEffect.View = camera.View;
-            shadowMapEffect.Projection = camera.Projection;
-            shadowMapEffect.Apply(context);
+            effect.World = world;
+            effect.Apply(context);
 
             context.PrimitiveTopology = PrimitiveTopology.TriangleList;
 
