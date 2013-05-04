@@ -71,7 +71,7 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        public const int MaxRadius = 15;
+        public const int MaxRadius = 7;
 
         public const int MaxKernelSize = MaxRadius * 2 + 1;
 
