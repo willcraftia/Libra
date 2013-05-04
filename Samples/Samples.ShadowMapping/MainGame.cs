@@ -210,19 +210,19 @@ namespace Samples.ShadowMapping
         const int MaxSplitDistanceCount = MaxSplitCount + 1;
 
         /// <summary>
-        /// シャドウ マップのサイズ (正方形)。
-        /// </summary>
-        const int shadowMapSize = 2048;
-
-        /// <summary>
         /// ウィンドウの幅。
         /// </summary>
-        const int windowWidth = 800;
+        const int WindowWidth = 800;
 
         /// <summary>
         /// ウィンドウの高さ。
         /// </summary>
-        const int windowHeight = 480;
+        const int WindowHeight = 480;
+
+        /// <summary>
+        /// シャドウ マップのサイズ。
+        /// </summary>
+        static readonly int[] ShadowMapSizes = { 512, 1024, 2048 };
 
         /// <summary>
         /// Libra のグラフィックス マネージャ。
@@ -405,21 +405,26 @@ namespace Samples.ShadowMapping
         /// </summary>
         BoundingFrustum currentFrustum;
 
+        /// <summary>
+        /// 現在のシャドウ マップ サイズのインデックス。
+        /// </summary>
+        int currentShadowMapSizeIndex = 1;
+
         public MainGame()
         {
             graphicsManager = new GraphicsManager(this);
 
             content = new XnbManager(Services, "Content");
 
-            graphicsManager.PreferredBackBufferWidth = windowWidth;
-            graphicsManager.PreferredBackBufferHeight = windowHeight;
+            graphicsManager.PreferredBackBufferWidth = WindowWidth;
+            graphicsManager.PreferredBackBufferHeight = WindowHeight;
 
             camera = new BasicCamera
             {
                 Position = new Vector3(0, 70, 100),
                 Direction = new Vector3(0, -0.4472136f, -0.8944272f),
                 Fov = MathHelper.PiOver4,
-                AspectRatio = (float) windowWidth / (float) windowHeight,
+                AspectRatio = (float) WindowWidth / (float) WindowHeight,
                 NearClipDistance = 1.0f,
                 FarClipDistance = 1000.0f
             };
@@ -486,13 +491,7 @@ namespace Samples.ShadowMapping
             for (int i = 0; i < shadowMaps.Length; i++)
             {
                 shadowMaps[i] = new ShadowMap(Device);
-                shadowMaps[i].Form = shadowMapForm;
-                shadowMaps[i].Size = shadowMapSize;
             }
-
-            gaussianBlur = new GaussianBlur(Device, shadowMapSize, shadowMapSize, SurfaceFormat.Vector2);
-            gaussianBlur.Radius = 7;
-            gaussianBlur.Amount = 7;
         }
 
         protected override void Update(GameTime gameTime)
@@ -604,11 +603,20 @@ namespace Samples.ShadowMapping
 
                 // シャドウ マップを描画。
                 shadowMaps[i].Form = shadowMapForm;
+                shadowMaps[i].Size = ShadowMapSizes[currentShadowMapSizeIndex];
                 shadowMaps[i].Draw(context, camera.View, splitProjections[i], lightView, lightProjection, DrawShadowCasters);
 
                 // VSM の場合は生成したシャドウ マップへブラーを適用。
                 if (shadowMapForm == ShadowMapForm.Variance)
                 {
+                    if (gaussianBlur == null)
+                    {
+                        var shadowMapSize = ShadowMapSizes[currentShadowMapSizeIndex];
+                        gaussianBlur = new GaussianBlur(Device, shadowMapSize, shadowMapSize, SurfaceFormat.Vector2);
+                        gaussianBlur.Radius = 7;
+                        gaussianBlur.Amount = 7;
+                    }
+
                     gaussianBlur.Filter(
                         context,
                         shadowMaps[i].RenderTarget.GetShaderResourceView(),
@@ -725,16 +733,18 @@ namespace Samples.ShadowMapping
 
         void DrawOverlayText()
         {
+            var currentShadowMapSize = ShadowMapSizes[currentShadowMapSizeIndex];
+
             // HUD のテキストを表示。
             var text = "B = Light camera type (" + currentLightCameraType + ")\n" +
                 "X = Shadow map form (" + shadowMapForm + ")\n" +
                 "Y = Use camera frustum as scene box (" + useCameraFrustumSceneBox + ")\n" +
-                "L = Adjust LiSPSM optimal N (" + liSPSMLightCameraBuilder.AdjustOptimalN + ")";
+                "L = Shadow map size (" + currentShadowMapSize + "x" + currentShadowMapSize + ")";
 
             spriteBatch.Begin();
 
-            spriteBatch.DrawString(spriteFont, text, new Vector2(65, 300), Color.Black);
-            spriteBatch.DrawString(spriteFont, text, new Vector2(64, 299), Color.White);
+            spriteBatch.DrawString(spriteFont, text, new Vector2(65, 350), Color.White);
+            spriteBatch.DrawString(spriteFont, text, new Vector2(64, 350 - 1), Color.Blue);
 
             spriteBatch.End();
         }
@@ -788,7 +798,15 @@ namespace Samples.ShadowMapping
             if (currentKeyboardState.IsKeyUp(Keys.L) && lastKeyboardState.IsKeyDown(Keys.L) ||
                 currentJoystickState.IsButtonUp(Buttons.LeftShoulder) && lastJoystickState.IsButtonDown(Buttons.LeftShoulder))
             {
-                liSPSMLightCameraBuilder.AdjustOptimalN = !liSPSMLightCameraBuilder.AdjustOptimalN;
+                currentShadowMapSizeIndex++;
+                if (ShadowMapSizes.Length <= currentShadowMapSizeIndex)
+                    currentShadowMapSizeIndex = 0;
+
+                if (gaussianBlur != null)
+                {
+                    gaussianBlur.Dispose();
+                    gaussianBlur = null;
+                }
             }
 
             if (currentKeyboardState.IsKeyDown(Keys.Escape) ||
