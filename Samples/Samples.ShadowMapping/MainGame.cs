@@ -317,6 +317,12 @@ namespace Samples.ShadowMapping
         /// </summary>
         float rotateDude = 0.0f;
 
+        BasicLightCameraBuilder basicLightCameraBuilder;
+
+        FocusedLightCameraBuilder focusedLightCameraBuilder;
+
+        LiSPSMLightCameraBuilder liSPSMLightCameraBuilder;
+
         /// <summary>
         /// シャドウ マップ生成機能。
         /// </summary>
@@ -368,26 +374,13 @@ namespace Samples.ShadowMapping
 
             currentLightCameraType = LightCameraType.LiSPSM;
 
+            basicLightCameraBuilder = new BasicLightCameraBuilder();
+            focusedLightCameraBuilder = new FocusedLightCameraBuilder();
+            focusedLightCameraBuilder.LightFarClipDistance = lightFar;
+            liSPSMLightCameraBuilder = new LiSPSMLightCameraBuilder();
+            liSPSMLightCameraBuilder.LightFarClipDistance = lightFar;
+
             splitFrustum = new BoundingFrustum(Matrix.Identity);
-        }
-
-        LightCamera CreateBasicLightCamera()
-        {
-            return new BasicLightCamera();
-        }
-
-        LightCamera CreateFocusedLightCamera()
-        {
-            var result = new FocusedLightCamera();
-            result.LightFarClipDistance = lightFar;
-            return result;
-        }
-
-        LightCamera CreateLiSPSMLightCamera()
-        {
-            var result = new LiSPSMLightCamera();
-            result.LightFarClipDistance = lightFar;
-            return result;
         }
 
         protected override void LoadContent()
@@ -415,7 +408,7 @@ namespace Samples.ShadowMapping
             // ブラーを強くすると影の弱い部分が大きくなってしまう・・・
             shadowMap.BlurAmount = 7;
             shadowMap.LightDirection = lightDirection;
-            shadowMap.CreateLightCamera = CreateLiSPSMLightCamera;
+            shadowMap.LightCameraBuilder = liSPSMLightCameraBuilder;
             shadowMap.DrawShadowCasters = DrawShadowCasters;
             shadowMap.Form = ShadowMapForm.Variance;
         }
@@ -477,13 +470,13 @@ namespace Samples.ShadowMapping
             switch (currentLightCameraType)
             {
                 case LightCameraType.LiSPSM:
-                    shadowMap.CreateLightCamera = CreateLiSPSMLightCamera;
+                    shadowMap.LightCameraBuilder = liSPSMLightCameraBuilder;
                     break;
                 case LightCameraType.Focused:
-                    shadowMap.CreateLightCamera = CreateFocusedLightCamera;
+                    shadowMap.LightCameraBuilder = focusedLightCameraBuilder;
                     break;
                 default:
-                    shadowMap.CreateLightCamera = CreateBasicLightCamera;
+                    shadowMap.LightCameraBuilder = basicLightCameraBuilder;
                     break;
             }
 

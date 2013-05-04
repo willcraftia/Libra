@@ -12,20 +12,19 @@ namespace Libra.Graphics.Toolkit
         [Flags]
         enum DirtyFlags
         {
-            LightCameras    = (1 << 0),
-            RenderTargets   = (1 << 1),
-            GaussianBlur    = (1 << 2),
+            RenderTargets   = (1 << 0),
+            GaussianBlur    = (1 << 1),
         }
 
-        public delegate LightCamera CreateLightCameraCallback();
+        static readonly LightCameraBuilder DefaultLightCameraBuilder = new BasicLightCameraBuilder();
 
         public delegate void DrawShadowCastersCallback(Camera camera, ShadowMapEffect effect);
 
         PSSMCameras cameras;
 
-        CreateLightCameraCallback createLightCamera;
+        LightCameraBuilder lightCameraBuilder;
 
-        LightCamera[] lightCameras;
+        Camera[] lightCameras;
 
         BoundingBox sceneBox;
 
@@ -60,17 +59,10 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        public CreateLightCameraCallback CreateLightCamera
+        public LightCameraBuilder LightCameraBuilder
         {
-            get { return createLightCamera; }
-            set
-            {
-                if (createLightCamera == value) return;
-
-                createLightCamera = value;
-
-                dirtyFlags |= DirtyFlags.LightCameras;
-            }
+            get { return lightCameraBuilder; }
+            set { lightCameraBuilder = value; }
         }
 
         public DrawShadowCastersCallback DrawShadowCasters
@@ -137,12 +129,18 @@ namespace Libra.Graphics.Toolkit
             shadowMapEffect = new ShadowMapEffect(device);
 
             cameras = new PSSMCameras();
+            lightCameraBuilder = DefaultLightCameraBuilder;
 
-            lightCameras = new LightCamera[PSSMCameras.MaxSplitCount];
+            lightCameras = new Camera[PSSMCameras.MaxSplitCount];
+            for (int i = 0; i < lightCameras.Length; i++)
+            {
+                lightCameras[i] = new Camera();
+            }
+
             renderTargets = new RenderTarget[PSSMCameras.MaxSplitCount];
             textures = new Texture2D[PSSMCameras.MaxSplitCount];
 
-            dirtyFlags |= DirtyFlags.LightCameras | DirtyFlags.RenderTargets | DirtyFlags.GaussianBlur;
+            dirtyFlags |= DirtyFlags.RenderTargets | DirtyFlags.GaussianBlur;
         }
 
         public void Prepare(Matrix view, Matrix projection, BoundingBox sceneBox)
@@ -169,12 +167,14 @@ namespace Libra.Graphics.Toolkit
 
         public void Draw(DeviceContext context)
         {
-            PrepareLightCameras();
             PrepareRenderTargets();
             PrepareGaussianBlur();
 
             context.DepthStencilState = DepthStencilState.Default;
             context.BlendState = BlendState.Opaque;
+
+            lightCameraBuilder.SceneBox = sceneBox;
+            lightCameraBuilder.LightDirection = lightDirection;
 
             // 各分割カメラについて描画。
             for (int i = 0; i < cameras.SplitCount; i++)
@@ -183,8 +183,9 @@ namespace Libra.Graphics.Toolkit
                 var lightCamera = lightCameras[i];
 
                 // ライト カメラを更新。
-                lightCamera.LightDirection = lightDirection;
-                lightCamera.Update(camera.View, camera.Projection, sceneBox);
+                lightCameraBuilder.EyeView = camera.View;
+                lightCameraBuilder.EyeProjection = camera.Projection;
+                lightCameraBuilder.Build(out lightCameras[i].View, out lightCameras[i].Projection);
 
                 // エフェクトを設定。
                 shadowMapEffect.View = lightCamera.View;
@@ -219,7 +220,7 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        public LightCamera GetLightCamera(int index)
+        public Camera GetLightCamera(int index)
         {
             if ((uint) cameras.SplitCount < (uint) index) throw new ArgumentOutOfRangeException("index");
 
@@ -235,23 +236,9 @@ namespace Libra.Graphics.Toolkit
 
         void PrepareLightCameras()
         {
-            if ((dirtyFlags & DirtyFlags.LightCameras) != 0)
+            for (int i = 0; i < cameras.SplitCount; i++)
             {
-                Array.Clear(lightCameras, 0, lightCameras.Length);
-
-                for (int i = 0; i < cameras.SplitCount; i++)
-                {
-                    if (createLightCamera == null)
-                    {
-                        lightCameras[i] = new BasicLightCamera();
-                    }
-                    else
-                    {
-                        lightCameras[i] = createLightCamera();
-                    }
-                }
-
-                dirtyFlags &= ~DirtyFlags.LightCameras;
+                lightCameraBuilder.Build(out lightCameras[i].View, out lightCameras[i].Projection);
             }
         }
 

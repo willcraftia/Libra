@@ -7,26 +7,23 @@ using System.Collections.Generic;
 
 namespace Libra.Graphics.Toolkit
 {
-    /// <summary>
-    /// シーン領域に焦点を合わせるライト カメラを構築するクラスです。
-    /// </summary>
-    public class FocusedLightCamera : LightCamera
+    public class FocusedLightCameraBuilder : LightCameraBuilder
     {
         // y -> -z
         // z -> y
         protected static readonly Matrix NormalToLightSpace = new Matrix(
-            1,  0,  0,  0,
-            0,  0,  1,  0,
-            0, -1,  0,  0,
-            0,  0,  0,  1);
+            1, 0, 0, 0,
+            0, 0, 1, 0,
+            0, -1, 0, 0,
+            0, 0, 0, 1);
 
         // y -> z
         // z -> -y
         protected static readonly Matrix LightSpaceToNormal = new Matrix(
-            1,  0,  0,  0,
-            0,  0, -1,  0,
-            0,  1,  0,  0,
-            0,  0,  0,  1);
+            1, 0, 0, 0,
+            0, 0, -1, 0,
+            0, 1, 0, 0,
+            0, 0, 0, 1);
 
         /// <summary>
         /// 凸体 B。
@@ -76,7 +73,7 @@ namespace Libra.Graphics.Toolkit
         /// </remarks>
         public float BodyBExtrudeDistance { get; set; }
 
-        public FocusedLightCamera()
+        public FocusedLightCameraBuilder()
         {
             bodyB = new ConvexBody();
             bodyLVS = new ConvexBody();
@@ -88,10 +85,10 @@ namespace Libra.Graphics.Toolkit
             BodyBExtrudeDistance = 0.0f;
         }
 
-        protected override void Update()
+        protected override void BuildCore(out Matrix lightView, out Matrix lightProjection)
         {
             // 標準的なライト空間行列の算出。
-            CalculateStandardLightSpaceMatrices();
+            CalculateStandardLightSpaceMatrices(out lightView, out lightProjection);
 
             // 凸体 B の算出。
             CalculateBodyB();
@@ -111,32 +108,32 @@ namespace Libra.Graphics.Toolkit
 
             // 軸の変換。
             transform = NormalToLightSpace;
-            TransformLightProjection(ref transform);
+            TransformLightProjection(ref lightProjection, ref transform);
 
             // ライト空間におけるカメラ方向へ変換。
-            CreateCurrentLightSpace(out lightSpace);
+            Matrix.Multiply(ref lightView, ref lightProjection, out lightSpace);
             CreateLightLook(ref lightSpace, out transform);
-            TransformLightProjection(ref transform);
+            TransformLightProjection(ref lightProjection, ref transform);
 
             // 単位立方体へ射影。
-            CreateCurrentLightSpace(out lightSpace);
+            Matrix.Multiply(ref lightView, ref lightProjection, out lightSpace);
             CreateTransformToUnitCube(ref lightSpace, out transform);
-            TransformLightProjection(ref transform);
+            TransformLightProjection(ref lightProjection, ref transform);
 
             // 軸の変換 (元へ戻す)。
             transform = LightSpaceToNormal;
-            TransformLightProjection(ref transform);
+            TransformLightProjection(ref lightProjection, ref transform);
 
             // DirectX クリッピング空間へ変換。
             Matrix.CreateOrthographicOffCenter(-1, 1, -1, 1, -1, 1, out transform);
-            TransformLightProjection(ref transform);
+            TransformLightProjection(ref lightProjection, ref transform);
         }
 
-        protected void CalculateStandardLightSpaceMatrices()
+        protected void CalculateStandardLightSpaceMatrices(out Matrix lightView, out Matrix lightProjection)
         {
             // 方向性光源のための行列。
-            Matrix.CreateLook(ref eyePosition, ref lightDirection, ref eyeDirection, out View);
-            Projection = Matrix.Identity;
+            Matrix.CreateLook(ref eyePosition, ref lightDirection, ref eyeDirection, out lightView);
+            lightProjection = Matrix.Identity;
 
             // TODO: 点光源
         }
@@ -256,11 +253,6 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        protected void CreateCurrentLightSpace(out Matrix result)
-        {
-            Matrix.Multiply(ref View, ref Projection, out result);
-        }
-
         protected void CreateLightLook(ref Matrix lightSpace, out Matrix result)
         {
             Vector3 position = Vector3.Zero;
@@ -318,7 +310,7 @@ namespace Libra.Graphics.Toolkit
 
             // 方向。
             result = bLS - eLS;
-            
+
             // xz 平面 (シャドウ マップ) に平行 (射影)。
             result.Y = 0.0f;
 
@@ -375,12 +367,12 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        protected void TransformLightProjection(ref Matrix matrix)
+        protected void TransformLightProjection(ref Matrix lightProjection, ref Matrix matrix)
         {
             Matrix result;
-            Matrix.Multiply(ref Projection, ref matrix, out result);
+            Matrix.Multiply(ref lightProjection, ref matrix, out result);
 
-            Projection = result;
+            lightProjection = result;
         }
     }
 }

@@ -41,10 +41,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BasicCamera.cs" />
+    <Compile Include="BasicLightCameraBuilder.cs" />
     <Compile Include="BloomEffect.cs" />
     <Compile Include="BlurSettings.cs" />
     <Compile Include="BasicLightCamera.cs" />
     <Compile Include="Camera.cs" />
+    <Compile Include="FocusedLightCameraBuilder.cs" />
+    <Compile Include="LightCameraBuilder.cs" />
     <Compile Include="ConvexBody.cs" />
     <Compile Include="FocusedLightCamera.cs" />
     <Compile Include="FullScreenQuad.cs" />
@@ -53,6 +56,7 @@
     <Compile Include="GaussianBlurEffect.cs" />
     <Compile Include="LightCamera.cs" />
     <Compile Include="LiSPSMLightCamera.cs" />
+    <Compile Include="LiSPSMLightCameraBuilder.cs" />
     <Compile Include="OldLiSPSMCamera.cs" />
     <Compile Include="ProjectionType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
