@@ -180,7 +180,6 @@ namespace Libra
 
         public static float CalculateGaussian(float sigma, float n)
         {
-            // 参考: sigmaRoot = (float) Math.Sqrt(2.0f * Math.PI * sigma * sigma)
             var twoSigmaSquare = 2.0f * sigma * sigma;
             var sigmaRoot = (float) Math.Sqrt(Math.PI * twoSigmaSquare);
             return (float) Math.Exp(-(n * n) / twoSigmaSquare) / sigmaRoot;
