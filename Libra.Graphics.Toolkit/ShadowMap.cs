@@ -1,76 +1,49 @@
 ﻿#region Using
 
 using System;
-using System.Collections.Generic;
 
 #endregion
 
 namespace Libra.Graphics.Toolkit
 {
+    /// <summary>
+    /// シャドウ マップを描画するクラスです。
+    /// </summary>
+    /// <remarks>
+    /// このクラスはシャドウ マップの描画に専念するため、
+    /// VSM 形式でシャドウ マップを生成する場合、
+    /// 別途、このクラスで描画したシャドウ マップに対してブラーを適用する必要があります。
+    /// </remarks>
     public sealed class ShadowMap : IDisposable
     {
-        [Flags]
-        enum DirtyFlags
-        {
-            RenderTargets   = (1 << 0),
-            GaussianBlur    = (1 << 1),
-        }
+        /// <summary>
+        /// 投影オブジェクトを描画する際に呼び出されるコールバック デリゲートです。
+        /// コールバックを受けたクラスは、シャドウ マップ エフェクトを用いて投影オブジェクトを描画します。
+        /// 描画する投影オブジェクトの選択は、コールバックを受けたクラスが決定します。
+        /// </summary>
+        /// <param name="eyeView">現在の表示カメラのビュー行列。</param>
+        /// <param name="eyeProjection">現在の表示カメラの射影行列。</param>
+        /// <param name="effect">シャドウ マップ エフェクト。</param>
+        public delegate void DrawShadowCastersCallback(Matrix eyeView, Matrix eyeProjection, ShadowMapEffect effect);
 
-        static readonly LightCameraBuilder DefaultLightCameraBuilder = new BasicLightCameraBuilder();
-
-        public delegate void DrawShadowCastersCallback(Camera camera, ShadowMapEffect effect);
-
-        PSSMCameras cameras;
-
-        LightCameraBuilder lightCameraBuilder;
-
-        Camera[] lightCameras;
-
-        BoundingBox sceneBox;
-
-        DrawShadowCastersCallback drawShadowCasters;
-
-        RenderTarget[] renderTargets;
-
-        Texture2D[] textures;
-
+        /// <summary>
+        /// シャドウ マップ エフェクト。
+        /// </summary>
         ShadowMapEffect shadowMapEffect;
 
-        GaussianBlur blur;
-
+        /// <summary>
+        /// シャドウ マップのサイズ。
+        /// </summary>
         int size;
 
-        Vector3 lightDirection;
-
-        DirtyFlags dirtyFlags;
-
+        /// <summary>
+        /// デバイスを取得します。
+        /// </summary>
         public Device Device { get; private set; }
 
-        public int SplitCount
-        {
-            get { return cameras.SplitCount; }
-            set
-            {
-                if (cameras.SplitCount == value) return;
-
-                cameras.SplitCount = value;
-
-                dirtyFlags |= DirtyFlags.RenderTargets;
-            }
-        }
-
-        public LightCameraBuilder LightCameraBuilder
-        {
-            get { return lightCameraBuilder; }
-            set { lightCameraBuilder = value; }
-        }
-
-        public DrawShadowCastersCallback DrawShadowCasters
-        {
-            get { return drawShadowCasters; }
-            set { drawShadowCasters = value; }
-        }
-
+        /// <summary>
+        /// シャドウ マップ形式を取得または設定します。
+        /// </summary>
         public ShadowMapForm Form
         {
             get { return shadowMapEffect.Form; }
@@ -86,11 +59,14 @@ namespace Libra.Graphics.Toolkit
                 if (previous == ShadowMapForm.Variance ||
                     shadowMapEffect.Form == ShadowMapForm.Variance)
                 {
-                    dirtyFlags |= DirtyFlags.RenderTargets;
+                    InvalidateRenderTarget();
                 }
             }
         }
 
+        /// <summary>
+        /// シャドウ マップのサイズを取得または設定します。
+        /// </summary>
         public int Size
         {
             get { return size; }
@@ -100,26 +76,24 @@ namespace Libra.Graphics.Toolkit
 
                 size = value;
 
-                dirtyFlags |= DirtyFlags.RenderTargets | DirtyFlags.GaussianBlur;
+                InvalidateRenderTarget();
             }
         }
 
-        public int BlurRadius { get; set; }
+        /// <summary>
+        /// シャドウ マップが描画されるレンダ ターゲットを取得します。
+        /// </summary>
+        /// <remarks>
+        /// レンダ ターゲットは、初回の Draw メソッドが呼び出されるまで生成されません。
+        /// また、シャドウ マップ形式を変更した場合、
+        /// Draw メソッドでレンダ ターゲットが再生成される可能性があります。
+        /// </remarks>
+        public RenderTarget RenderTarget { get; private set; }
 
-        public int BlurAmount { get; set; }
-
-        public Vector3 LightDirection
-        {
-            get { return lightDirection; }
-            set
-            {
-                if (value.IsZero()) throw new ArgumentException("Light direction must be not zero.", "value");
-
-                lightDirection = value;
-                lightDirection.Normalize();
-            }
-        }
-
+        /// <summary>
+        /// インスタンスを生成します。
+        /// </summary>
+        /// <param name="device">デバイス。</param>
         public ShadowMap(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
@@ -127,175 +101,69 @@ namespace Libra.Graphics.Toolkit
             Device = device;
 
             shadowMapEffect = new ShadowMapEffect(device);
-
-            cameras = new PSSMCameras();
-            lightCameraBuilder = DefaultLightCameraBuilder;
-
-            lightCameras = new Camera[PSSMCameras.MaxSplitCount];
-            for (int i = 0; i < lightCameras.Length; i++)
-            {
-                lightCameras[i] = new Camera();
-            }
-
-            renderTargets = new RenderTarget[PSSMCameras.MaxSplitCount];
-            textures = new Texture2D[PSSMCameras.MaxSplitCount];
-
-            dirtyFlags |= DirtyFlags.RenderTargets | DirtyFlags.GaussianBlur;
         }
 
-        public void Prepare(Matrix view, Matrix projection, BoundingBox sceneBox)
+        /// <summary>
+        /// シャドウ マップを描画します。
+        /// </summary>
+        /// <param name="context">デバイス コンテキスト。</param>
+        /// <param name="eyeView">表示カメラのビュー行列。</param>
+        /// <param name="eyeProjection">表示カメラの射影行列。</param>
+        /// <param name="lightView">ライト カメラのビュー行列。</param>
+        /// <param name="lightProjection">ライト カメラの射影行列。</param>
+        /// <param name="drawShadowCasters">投影オブジェクト描画コールバック。</param>
+        public void Draw(
+            DeviceContext context,
+            Matrix eyeView, Matrix eyeProjection,
+            Matrix lightView, Matrix lightProjection,
+            DrawShadowCastersCallback drawShadowCasters)
         {
-            this.sceneBox = sceneBox;
+            if (context == null) throw new ArgumentNullException("context");
+            if (drawShadowCasters == null) throw new ArgumentNullException("drawShadowCasters");
 
-            cameras.Update(view, projection, sceneBox);
-        }
-
-        public Camera GetCamera(int index)
-        {
-            return cameras[index];
-        }
-
-        public float[] GetSplitDistances()
-        {
-            return cameras.GetSplitDistances();
-        }
-
-        public void GetSplitDistances(float[] results)
-        {
-            cameras.GetSplitDistances(results);
-        }
-
-        public void Draw(DeviceContext context)
-        {
-            PrepareRenderTargets();
-            PrepareGaussianBlur();
+            PrepareRenderTarget();
 
             context.DepthStencilState = DepthStencilState.Default;
             context.BlendState = BlendState.Opaque;
 
-            lightCameraBuilder.SceneBox = sceneBox;
-            lightCameraBuilder.LightDirection = lightDirection;
+            // エフェクトを設定。
+            shadowMapEffect.View = lightView;
+            shadowMapEffect.Projection = lightProjection;
 
-            // 各分割カメラについて描画。
-            for (int i = 0; i < cameras.SplitCount; i++)
+            context.SetRenderTarget(RenderTarget.GetRenderTargetView());
+            context.Clear(Color.White);
+
+            // 描画をコールバック。
+            // 描画する投影オブジェクトの選別は、コールバックされる側のクラスで決定。
+            drawShadowCasters(eyeView, eyeProjection, shadowMapEffect);
+
+            context.SetRenderTarget(null);
+        }
+
+        void PrepareRenderTarget()
+        {
+            if (RenderTarget == null)
             {
-                var camera = cameras[i];
-                var lightCamera = lightCameras[i];
-
-                // ライト カメラを更新。
-                lightCameraBuilder.EyeView = camera.View;
-                lightCameraBuilder.EyeProjection = camera.Projection;
-                lightCameraBuilder.Build(out lightCameras[i].View, out lightCameras[i].Projection);
-
-                // エフェクトを設定。
-                shadowMapEffect.View = lightCamera.View;
-                shadowMapEffect.Projection = lightCamera.Projection;
-
-                // 描画
-                var renderTarget = renderTargets[i];
-
-                context.SetRenderTarget(renderTarget.GetRenderTargetView());
-                context.Clear(Color.White);
-
-                if (drawShadowCasters != null)
-                {
-                    // 現在の分割カメラに関する描画をコールバック。
-                    // 分割カメラに含まれる投影オブジェクトの選別は、
-                    // コールバックされる側のクラスで決定。
-                    drawShadowCasters(camera, shadowMapEffect);
-                }
-
-                context.SetRenderTarget(null);
-
-                // VSM ならばブラー。
-                if (shadowMapEffect.Form == ShadowMapForm.Variance && blur != null)
-                {
-                    blur.Filter(
-                        context,
-                        renderTarget.GetShaderResourceView(),
-                        renderTarget.GetRenderTargetView());
-                }
-
-                textures[i] = renderTarget;
-            }
-        }
-
-        public Camera GetLightCamera(int index)
-        {
-            if ((uint) cameras.SplitCount < (uint) index) throw new ArgumentOutOfRangeException("index");
-
-            return lightCameras[index];
-        }
-
-        public Texture2D GetTexture(int index)
-        {
-            if ((uint) cameras.SplitCount < (uint) index) throw new ArgumentOutOfRangeException("index");
-
-            return textures[index];
-        }
-
-        void PrepareLightCameras()
-        {
-            for (int i = 0; i < cameras.SplitCount; i++)
-            {
-                lightCameraBuilder.Build(out lightCameras[i].View, out lightCameras[i].Projection);
-            }
-        }
-
-        void PrepareRenderTargets()
-        {
-            if ((dirtyFlags & DirtyFlags.RenderTargets) != 0)
-            {
-                for (int i = 0; i < renderTargets.Length; i++)
-                {
-                    if (renderTargets[i] != null)
-                    {
-                        renderTargets[i].Dispose();
-                        renderTargets[i] = null;
-                    }
-                }
-
-                Array.Clear(textures, 0, textures.Length);
-
                 var format = SurfaceFormat.Single;
                 if (shadowMapEffect.Form == ShadowMapForm.Variance)
                     format = SurfaceFormat.Vector2;
 
-                // ブラーをかける場合があるので RenderTargetUsage.Preserve。
-                for (int i = 0; i < cameras.SplitCount; i++)
-                {
-                    renderTargets[i] = Device.CreateRenderTarget();
-                    renderTargets[i].Width = size;
-                    renderTargets[i].Height = size;
-                    renderTargets[i].Format = format;
-                    renderTargets[i].RenderTargetUsage = RenderTargetUsage.Preserve;
-                    renderTargets[i].Name = "ShadowMap" + i;
-                    renderTargets[i].Initialize();
-                }
-
-                dirtyFlags &= ~DirtyFlags.RenderTargets;
+                RenderTarget = Device.CreateRenderTarget();
+                RenderTarget.Width = size;
+                RenderTarget.Height = size;
+                RenderTarget.Format = format;
+                RenderTarget.RenderTargetUsage = RenderTargetUsage.Preserve;
+                RenderTarget.Initialize();
             }
         }
 
-        void PrepareGaussianBlur()
+        void InvalidateRenderTarget()
         {
-            if (shadowMapEffect.Form != ShadowMapForm.Variance)
-                return;
-
-            if ((dirtyFlags & DirtyFlags.GaussianBlur) != 0)
+            if (RenderTarget != null)
             {
-                if (blur != null)
-                {
-                    blur.Dispose();
-                }
-
-                blur = new GaussianBlur(Device, size, size, SurfaceFormat.Vector2);
-
-                dirtyFlags &= ~DirtyFlags.GaussianBlur;
+                RenderTarget.Dispose();
+                RenderTarget = null;
             }
-
-            blur.Radius = BlurRadius;
-            blur.Amount = BlurAmount;
         }
 
         #region IDisposable
@@ -320,15 +188,9 @@ namespace Libra.Graphics.Toolkit
             if (disposing)
             {
                 shadowMapEffect.Dispose();
-                
-                if (blur != null)
-                    blur.Dispose();
 
-                foreach (var renderTarget in renderTargets)
-                {
-                    if (renderTarget != null)
-                        renderTarget.Dispose();
-                }
+                if (RenderTarget != null)
+                    RenderTarget.Dispose();
             }
 
             disposed = true;

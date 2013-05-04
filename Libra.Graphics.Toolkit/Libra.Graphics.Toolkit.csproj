@@ -43,7 +43,6 @@
     <Compile Include="BasicCamera.cs" />
     <Compile Include="BasicLightCameraBuilder.cs" />
     <Compile Include="BloomEffect.cs" />
-    <Compile Include="BlurSettings.cs" />
     <Compile Include="Camera.cs" />
     <Compile Include="FocusedLightCameraBuilder.cs" />
     <Compile Include="LightCameraBuilder.cs" />
@@ -52,7 +51,6 @@
     <Compile Include="GaussianBlurEffectPass.cs" />
     <Compile Include="GaussianBlur.cs" />
     <Compile Include="GaussianBlurEffect.cs" />
-    <Compile Include="LightCamera.cs" />
     <Compile Include="LiSPSMLightCameraBuilder.cs" />
     <Compile Include="ProjectionType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -62,10 +60,10 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="BloomEffectPass.cs" />
-    <Compile Include="PSSMCameras.cs" />
     <Compile Include="ShadowMap.cs" />
     <Compile Include="ShadowMapForm.cs" />
     <Compile Include="ShadowMapEffect.cs" />
+    <Compile Include="PSSM.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Libra.Collections\Libra.Collections.csproj">

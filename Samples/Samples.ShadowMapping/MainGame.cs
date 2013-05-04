@@ -56,14 +56,10 @@ namespace Samples.ShadowMapping
                 public Vector4[] SplitDistances;
 
                 [FieldOffset(256 + (16 * MaxSplitDistanceCount)), MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxSplitCount)]
-                public Matrix[] LightViewProjection;
+                public Matrix[] LightViewProjections;
             }
 
             #endregion
-
-            const int MaxSplitCount = PSSMCameras.MaxSplitCount;
-
-            const int MaxSplitDistanceCount = MaxSplitCount + 1;
 
             public Matrix World;
 
@@ -75,7 +71,17 @@ namespace Samples.ShadowMapping
 
             public float DepthBias;
 
-            public ShadowMap ShadowMap;
+            public Vector3 LightDirection;
+
+            public int SplitCount;
+
+            public float[] SplitDistances;
+
+            public ShadowMap[] ShadowMaps;
+
+            public Matrix[] LightViewProjections;
+
+            public ShadowMapForm ShadowMapForm;
 
             public ShaderResourceView Texture;
 
@@ -88,8 +94,6 @@ namespace Samples.ShadowMapping
             PixelShader variancePixelShader;
 
             ConstantBuffer constantBuffer;
-
-            float[] splitDistances;
 
             public DrawModelEffect(Device device)
             {
@@ -113,9 +117,7 @@ namespace Samples.ShadowMapping
                 constantBuffer.Initialize<Constants>();
 
                 constants.SplitDistances = new Vector4[MaxSplitDistanceCount];
-                constants.LightViewProjection = new Matrix[MaxSplitCount];
-
-                splitDistances = new float[MaxSplitDistanceCount];
+                constants.LightViewProjections = new Matrix[MaxSplitCount];
             }
 
             public void Apply(DeviceContext context)
@@ -126,34 +128,28 @@ namespace Samples.ShadowMapping
 
                 constants.AmbientColor = AmbientColor;
                 constants.DepthBias = DepthBias;
-                constants.SplitCount = ShadowMap.SplitCount;
-                constants.LightDirection = ShadowMap.LightDirection;
+                constants.SplitCount = SplitCount;
+                constants.LightDirection = LightDirection;
 
+                Array.Clear(constants.LightViewProjections, 0, constants.LightViewProjections.Length);
                 for (int i = 0; i < MaxSplitCount; i++)
                 {
-                    if (i < ShadowMap.SplitCount)
+                    if (i < SplitCount)
                     {
-                        var lightCamera = ShadowMap.GetLightCamera(i);
-                        Matrix lightViewProjection;
-                        Matrix.Multiply(ref lightCamera.View, ref lightCamera.Projection, out lightViewProjection);
+                        Matrix.Transpose(ref LightViewProjections[i], out constants.LightViewProjections[i]);
 
-                        Matrix.Transpose(ref lightViewProjection, out constants.LightViewProjection[i]);
-
-                        context.PixelShaderResources[i + 1] = ShadowMap.GetTexture(i).GetShaderResourceView();
+                        context.PixelShaderResources[i + 1] = ShadowMaps[i].RenderTarget.GetShaderResourceView();
                     }
                     else
                     {
-                        constants.SplitDistances[i].X = 0.0f;
-                        constants.LightViewProjection[i] = Matrix.Identity;
                         context.PixelShaderResources[i + 1] = null;
                     }
                 }
 
-                Array.Clear(splitDistances, 0, splitDistances.Length);
-                ShadowMap.GetSplitDistances(splitDistances);
-                for (int i = 0; i < splitDistances.Length; i++)
+                Array.Clear(constants.SplitDistances, 0, constants.SplitDistances.Length);
+                for (int i = 0; i < MaxSplitDistanceCount; i++)
                 {
-                    constants.SplitDistances[i].X = splitDistances[i];
+                    constants.SplitDistances[i].X = SplitDistances[i];
                 }
 
                 constantBuffer.SetData(context, constants);
@@ -165,7 +161,7 @@ namespace Samples.ShadowMapping
 
                 context.VertexShader = vertexShader;
 
-                if (ShadowMap.Form == ShadowMapForm.Variance)
+                if (ShadowMapForm == ShadowMapForm.Variance)
                 {
                     context.PixelShader = variancePixelShader;
                 }
@@ -199,6 +195,10 @@ namespace Samples.ShadowMapping
         }
 
         #endregion
+
+        const int MaxSplitCount = 3;
+
+        const int MaxSplitDistanceCount = MaxSplitCount + 1;
 
         /// <summary>
         /// シャドウ マップのサイズ (正方形)。
@@ -243,17 +243,17 @@ namespace Samples.ShadowMapping
         /// <summary>
         /// 表示カメラの視錐台。
         /// </summary>
-        BoundingFrustum cameraFrustum = new BoundingFrustum(Matrix.Identity);
+        BoundingFrustum cameraFrustum;
 
         /// <summary>
         /// 前回の更新処理におけるキーボード状態。
         /// </summary>
-        KeyboardState lastKeyboardState = new KeyboardState();
+        KeyboardState lastKeyboardState;
 
         /// <summary>
         /// 前回の更新処理におけるジョイスティック状態。
         /// </summary>
-        JoystickState lastJoystickState = new JoystickState();
+        JoystickState lastJoystickState;
 
         /// <summary>
         /// 現在の更新処理におけるキーボード状態。
@@ -315,7 +315,12 @@ namespace Samples.ShadowMapping
         /// <summary>
         /// デュード モデルの回転量。
         /// </summary>
-        float rotateDude = 0.0f;
+        float rotateDude;
+
+        /// <summary>
+        /// 現在選択されているライト カメラの種類。
+        /// </summary>
+        LightCameraType currentLightCameraType;
 
         BasicLightCameraBuilder basicLightCameraBuilder;
 
@@ -323,24 +328,29 @@ namespace Samples.ShadowMapping
 
         LiSPSMLightCameraBuilder liSPSMLightCameraBuilder;
 
-        /// <summary>
-        /// シャドウ マップ生成機能。
-        /// </summary>
-        ShadowMap shadowMap;
+        int splitCount;
+
+        PSSM pssm;
+
+        float[] splitDistances;
+
+        Matrix[] splitProjections;
+
+        ShadowMap[] shadowMaps;
+
+        Matrix[] lightViewProjections;
+
+        ShadowMapForm shadowMapForm;
+
+        GaussianBlur gaussianBlur;
 
         // ライトの進行方向 (XNA Shadow Mapping では原点から見たライトの方向)。
-        // 単位ベクトル。
         Vector3 lightDirection = new Vector3(0.3333333f, -0.6666667f, -0.6666667f);
 
         // ライトによる投影を処理する距離。
         float lightFar = 500.0f;
 
-        /// <summary>
-        /// 現在選択されているライト カメラの種類。
-        /// </summary>
-        LightCameraType currentLightCameraType;
-
-        BoundingFrustum splitFrustum;
+        BoundingFrustum currentFrustum;
 
         public MainGame()
         {
@@ -361,6 +371,8 @@ namespace Samples.ShadowMapping
                 FarClipDistance = 1000.0f
             };
 
+            cameraFrustum = new BoundingFrustum(Matrix.Identity);
+
             corners = new Vector3[8];
 
             // gridModel が半径約 183 であるため、
@@ -380,7 +392,26 @@ namespace Samples.ShadowMapping
             liSPSMLightCameraBuilder = new LiSPSMLightCameraBuilder();
             liSPSMLightCameraBuilder.LightFarClipDistance = lightFar;
 
-            splitFrustum = new BoundingFrustum(Matrix.Identity);
+            splitCount = MaxSplitCount;
+
+            pssm = new PSSM();
+            pssm.Count = splitCount;
+            pssm.Fov = camera.Fov;
+            pssm.AspectRatio = camera.AspectRatio;
+            pssm.NearClipDistance = camera.NearClipDistance;
+            pssm.FarClipDistance = camera.FarClipDistance;
+
+            splitDistances = new float[MaxSplitCount + 1];
+            splitProjections = new Matrix[MaxSplitCount];
+            shadowMaps = new ShadowMap[MaxSplitCount];
+            lightViewProjections = new Matrix[MaxSplitCount];
+
+            shadowMapForm = ShadowMapForm.Basic;
+
+            // 単位ベクトル。
+            lightDirection = new Vector3(0.3333333f, -0.6666667f, -0.6666667f);
+
+            currentFrustum = new BoundingFrustum(Matrix.Identity);
         }
 
         protected override void LoadContent()
@@ -399,18 +430,16 @@ namespace Samples.ShadowMapping
                 dudeBoxLocal.Merge(BoundingBox.CreateFromSphere(mesh.BoundingSphere));
             }
 
-            shadowMap = new ShadowMap(Device);
-            shadowMap.Size = shadowMapSize;
-            shadowMap.SplitCount = 3;
-            shadowMap.Form = ShadowMapForm.Variance;
-            shadowMap.BlurRadius = 7;
-            // TODO
-            // ブラーを強くすると影の弱い部分が大きくなってしまう・・・
-            shadowMap.BlurAmount = 7;
-            shadowMap.LightDirection = lightDirection;
-            shadowMap.LightCameraBuilder = liSPSMLightCameraBuilder;
-            shadowMap.DrawShadowCasters = DrawShadowCasters;
-            shadowMap.Form = ShadowMapForm.Variance;
+            for (int i = 0; i < shadowMaps.Length; i++)
+            {
+                shadowMaps[i] = new ShadowMap(Device);
+                shadowMaps[i].Form = shadowMapForm;
+                shadowMaps[i].Size = shadowMapSize;
+            }
+
+            gaussianBlur = new GaussianBlur(Device, shadowMapSize, shadowMapSize, SurfaceFormat.Vector2);
+            gaussianBlur.Radius = 7;
+            gaussianBlur.Amount = 7;
         }
 
         protected override void Update(GameTime gameTime)
@@ -447,43 +476,6 @@ namespace Samples.ShadowMapping
             base.Draw(gameTime);
         }
 
-        void PrepareShadowMap()
-        {
-            // ライト カメラへ指定するシーン領域。
-            BoundingBox actualSceneBox;
-
-            if (useCameraFrustumSceneBox)
-            {
-                // 視錐台全体とする場合。
-                cameraFrustum.GetCorners(corners);
-                actualSceneBox = BoundingBox.CreateFromPoints(corners);
-
-            }
-            else
-            {
-                // 明示する場合。
-                actualSceneBox = sceneBox;
-                actualSceneBox.Merge(camera.Position);
-            }
-
-            // 利用するライト カメラの選択。
-            switch (currentLightCameraType)
-            {
-                case LightCameraType.LiSPSM:
-                    shadowMap.LightCameraBuilder = liSPSMLightCameraBuilder;
-                    break;
-                case LightCameraType.Focused:
-                    shadowMap.LightCameraBuilder = focusedLightCameraBuilder;
-                    break;
-                default:
-                    shadowMap.LightCameraBuilder = basicLightCameraBuilder;
-                    break;
-            }
-
-            // シャドウ マッピング機能の準備。
-            shadowMap.Prepare(camera.View, camera.Projection, actualSceneBox);
-        }
-
         void CreateShadowMap()
         {
             // デュード モデルのワールド行列。
@@ -500,9 +492,76 @@ namespace Samples.ShadowMapping
                 dudeBoxWorld.Merge(ref cornerWorld);
             }
 
-            PrepareShadowMap();
+            // ライト カメラへ指定するシーン領域。
+            BoundingBox actualSceneBox;
+            if (useCameraFrustumSceneBox)
+            {
+                // 視錐台全体とする場合。
+                cameraFrustum.Matrix = camera.View * camera.Projection;
+                cameraFrustum.GetCorners(corners);
+                actualSceneBox = BoundingBox.CreateFromPoints(corners);
 
-            shadowMap.Draw(Device.ImmediateContext);
+            }
+            else
+            {
+                // 明示する場合。
+                actualSceneBox = sceneBox;
+                actualSceneBox.Merge(camera.Position);
+            }
+
+            // 表示カメラの分割
+            pssm.View = camera.View;
+            pssm.SceneBox = actualSceneBox;
+            pssm.Split(splitDistances, splitProjections);
+
+            // 使用するライト カメラ ビルダの選択。
+            LightCameraBuilder currentLightCameraBuilder;
+            switch (currentLightCameraType)
+            {
+                case LightCameraType.LiSPSM:
+                    currentLightCameraBuilder = liSPSMLightCameraBuilder;
+                    break;
+                case LightCameraType.Focused:
+                    currentLightCameraBuilder = focusedLightCameraBuilder;
+                    break;
+                default:
+                    currentLightCameraBuilder = basicLightCameraBuilder;
+                    break;
+            }
+
+            // 各分割で共通のビルダ プロパティを設定。
+            currentLightCameraBuilder.EyeView = camera.View;
+            currentLightCameraBuilder.LightDirection = lightDirection;
+            currentLightCameraBuilder.SceneBox = sceneBox;
+
+            var context = Device.ImmediateContext;
+
+            for (int i = 0; i < splitCount; i++)
+            {
+                // 射影行列は分割毎に異なる。
+                currentLightCameraBuilder.EyeProjection = splitProjections[i];
+
+                // ライトのビューおよび射影行列の算出。
+                Matrix lightView;
+                Matrix lightProjection;
+                currentLightCameraBuilder.Build(out lightView, out lightProjection);
+
+                // 後のモデル描画用にライト空間行列を算出。
+                Matrix.Multiply(ref lightView, ref lightProjection, out lightViewProjections[i]);
+
+                // シャドウ マップを描画。
+                shadowMaps[i].Form = shadowMapForm;
+                shadowMaps[i].Draw(context, camera.View, splitProjections[i], lightView, lightProjection, DrawShadowCasters);
+
+                // VSM の場合は生成したシャドウ マップへブラーを適用。
+                if (shadowMapForm == ShadowMapForm.Variance)
+                {
+                    gaussianBlur.Filter(
+                        context,
+                        shadowMaps[i].RenderTarget.GetShaderResourceView(),
+                        shadowMaps[i].RenderTarget.GetRenderTargetView());
+                }
+            }
         }
 
         void DrawWithShadowMap()
@@ -524,15 +583,15 @@ namespace Samples.ShadowMapping
         }
 
         // コールバック。
-        void DrawShadowCasters(Camera camera, ShadowMapEffect effect)
+        void DrawShadowCasters(Matrix eyeView, Matrix eyeProjection, ShadowMapEffect effect)
         {
             Matrix viewProjection;
-            Matrix.Multiply(ref camera.View, ref camera.Projection, out viewProjection);
+            Matrix.Multiply(ref eyeView, ref eyeProjection, out viewProjection);
 
-            splitFrustum.Matrix = viewProjection;
+            currentFrustum.Matrix = viewProjection;
 
             ContainmentType containment;
-            splitFrustum.Contains(ref dudeBoxWorld, out containment);
+            currentFrustum.Contains(ref dudeBoxWorld, out containment);
             if (containment != ContainmentType.Disjoint)
             {
                 DrawShadowCaster(camera, effect, dudeModel);
@@ -569,7 +628,12 @@ namespace Samples.ShadowMapping
             drawModelEffect.Projection = camera.Projection;
             drawModelEffect.AmbientColor = new Vector4(0.15f, 0.15f, 0.15f, 1.0f);
             drawModelEffect.DepthBias = 0.001f;
-            drawModelEffect.ShadowMap = shadowMap;
+            drawModelEffect.LightDirection = lightDirection;
+            drawModelEffect.SplitCount = splitCount;
+            drawModelEffect.SplitDistances = splitDistances;
+            drawModelEffect.ShadowMaps = shadowMaps;
+            drawModelEffect.ShadowMapForm = shadowMapForm;
+            drawModelEffect.LightViewProjections = lightViewProjections;
 
             // モデルを描画。
             // モデルは XNB 標準状態で読み込んでいるため、
@@ -598,10 +662,10 @@ namespace Samples.ShadowMapping
         {
             // 現在のフレームで生成したシャドウ マップを画面左上に表示。
             spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Opaque, SamplerState.PointClamp);
-            for (int i = 0; i < shadowMap.SplitCount; i++)
+            for (int i = 0; i < splitCount; i++)
             {
                 var x = i * 128;
-                spriteBatch.Draw(shadowMap.GetTexture(i).GetShaderResourceView(), new Rectangle(x, 0, 128, 128), Color.White);
+                spriteBatch.Draw(shadowMaps[i].RenderTarget.GetShaderResourceView(), new Rectangle(x, 0, 128, 128), Color.White);
             }
             spriteBatch.End();
         }
@@ -610,7 +674,7 @@ namespace Samples.ShadowMapping
         {
             // HUD のテキストを表示。
             var text = "B = Light camera type (" + currentLightCameraType + ")\n" +
-                "X = Shadow map form (" + shadowMap.Form + ")\n" +
+                "X = Shadow map form (" + shadowMapForm + ")\n" +
                 "Y = Use camera frustum as scene box (" + useCameraFrustumSceneBox + ")\n" +
                 "L = Adjust LiSPSM optimal N (" + liSPSMLightCameraBuilder.AdjustOptimalN + ")";
 
@@ -658,13 +722,13 @@ namespace Samples.ShadowMapping
             if (currentKeyboardState.IsKeyUp(Keys.X) && lastKeyboardState.IsKeyDown(Keys.X) ||
                 currentJoystickState.IsButtonUp(Buttons.X) && lastJoystickState.IsButtonDown(Buttons.X))
             {
-                if (shadowMap.Form == ShadowMapForm.Basic)
+                if (shadowMapForm == ShadowMapForm.Basic)
                 {
-                    shadowMap.Form = ShadowMapForm.Variance;
+                    shadowMapForm = ShadowMapForm.Variance;
                 }
                 else
                 {
-                    shadowMap.Form = ShadowMapForm.Basic;
+                    shadowMapForm = ShadowMapForm.Basic;
                 }
             }
 
@@ -730,8 +794,6 @@ namespace Samples.ShadowMapping
             }
 
             camera.Update();
-
-            cameraFrustum.Matrix = camera.View * camera.Projection;
         }
     }
 
