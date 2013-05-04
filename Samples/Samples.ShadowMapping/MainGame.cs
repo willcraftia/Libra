@@ -561,7 +561,10 @@ namespace Samples.ShadowMapping
                 actualSceneBox.Merge(camera.Position);
             }
 
-            // 表示カメラの分割
+            // 表示カメラの分割。
+            // デフォルトのラムダ値 0.5f ではカメラ手前が少し狭すぎるか？
+            // ここは表示カメラの far の値に応じて調整する。
+            pssm.Lambda = 0.4f;
             pssm.View = camera.View;
             pssm.SceneBox = actualSceneBox;
             pssm.Split(splitDistances, splitProjections);
