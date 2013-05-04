@@ -157,9 +157,14 @@ namespace Libra.Graphics.Toolkit
             return cameras[index];
         }
 
-        public float GetSplitDistance(int index)
+        public float[] GetSplitDistances()
         {
-            return cameras.GetSplitDistance(index);
+            return cameras.GetSplitDistances();
+        }
+
+        public void GetSplitDistances(float[] results)
+        {
+            cameras.GetSplitDistances(results);
         }
 
         public void Draw(DeviceContext context)

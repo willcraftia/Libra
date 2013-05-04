@@ -74,11 +74,21 @@ namespace Libra.Graphics.Toolkit
             splitLambda = 0.5f;
         }
 
-        public float GetSplitDistance(int index)
+        public float[] GetSplitDistances()
         {
-            if ((uint) (splitCount + 1) < (uint) index) throw new ArgumentOutOfRangeException("index");
+            var results = new float[splitCount + 1];
+            GetSplitDistances(results);
+            return results;
+        }
 
-            return splitDistances[index];
+        public void GetSplitDistances(float[] results)
+        {
+            if (results.Length < SplitCount + 1) throw new ArgumentOutOfRangeException("Insufficient array size.", "results");
+
+            for (int i = 0; i < splitCount + 1; i++)
+            {
+                results[i] = splitDistances[i];
+            }
         }
 
         public void Update(Matrix view, Matrix projection, BoundingBox sceneBox)
@@ -186,7 +196,7 @@ namespace Libra.Graphics.Toolkit
             }
 
             splitDistances[0] = n;
-            splitDistances[splitCount] = f;
+            splitDistances[splitDistances.Length - 1] = f;
         }
     }
 }

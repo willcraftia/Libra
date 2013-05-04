@@ -85,6 +85,8 @@ namespace Samples.ShadowMapping
 
             ConstantBuffer constantBuffer;
 
+            float[] splitDistances;
+
             public DrawModelEffect(Device device)
             {
                 var compiler = ShaderCompiler.CreateShaderCompiler();
@@ -106,8 +108,12 @@ namespace Samples.ShadowMapping
                 constantBuffer.Usage = ResourceUsage.Dynamic;
                 constantBuffer.Initialize<Constants>();
 
-                constants.SplitDistances = new Vector4[PSSMCameras.MaxSplitCount];
+                // splitDistances は (PSSMCameras.MaxSplitCount + 1) の容量。
+
+                constants.SplitDistances = new Vector4[PSSMCameras.MaxSplitCount + 1];
                 constants.LightViewProjection = new Matrix[PSSMCameras.MaxSplitCount];
+
+                splitDistances = new float[PSSMCameras.MaxSplitCount + 1];
             }
 
             public void Apply(DeviceContext context)
@@ -125,8 +131,6 @@ namespace Samples.ShadowMapping
                 {
                     if (i < ShadowMap.SplitCount)
                     {
-                        constants.SplitDistances[i].X = ShadowMap.GetSplitDistance(i);
-
                         var lightCamera = ShadowMap.GetLightCamera(i);
                         Matrix lightViewProjection;
                         Matrix.Multiply(ref lightCamera.View, ref lightCamera.Projection, out lightViewProjection);
@@ -141,6 +145,13 @@ namespace Samples.ShadowMapping
                         constants.LightViewProjection[i] = Matrix.Identity;
                         context.PixelShaderResources[i + 1] = null;
                     }
+                }
+
+                Array.Clear(splitDistances, 0, splitDistances.Length);
+                ShadowMap.GetSplitDistances(splitDistances);
+                for (int i = 0; i < splitDistances.Length; i++)
+                {
+                    constants.SplitDistances[i].X = splitDistances[i];
                 }
 
                 constantBuffer.SetData(context, constants);
@@ -397,8 +408,10 @@ namespace Samples.ShadowMapping
             shadowMap.Size = shadowMapSize;
             shadowMap.SplitCount = 3;
             shadowMap.Form = ShadowMapForm.Variance;
-            shadowMap.BlurRadius = 4;
-            shadowMap.BlurAmount = 16;
+            shadowMap.BlurRadius = 7;
+            // TODO
+            // ブラーを強くすると影の弱い部分が大きくなってしまう・・・
+            shadowMap.BlurAmount = 7;
             shadowMap.LightDirection = lightDirection;
             shadowMap.CreateLightCamera = CreateLiSPSMLightCamera;
             shadowMap.DrawShadowCasters = DrawShadowCasters;
@@ -560,7 +573,7 @@ namespace Samples.ShadowMapping
             drawModelEffect.View = camera.View;
             drawModelEffect.Projection = camera.Projection;
             drawModelEffect.AmbientColor = new Vector4(0.15f, 0.15f, 0.15f, 1.0f);
-            drawModelEffect.DepthBias = 0.001f;
+            drawModelEffect.DepthBias = 0.0001f;
             drawModelEffect.ShadowMap = shadowMap;
 
             // モデルを描画。
