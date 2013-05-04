@@ -1,15 +1,3 @@
-//-----------------------------------------------------------------------------
-// DrawModel.fx
-//
-// Microsoft XNA Community Game Platform
-// Copyright (C) Microsoft Corporation. All rights reserved.
-//-----------------------------------------------------------------------------
-
-// XNA Shadow Mapping サンプルの DrawModel.fx をシェーダ モデル 4.0 へ変更。
-// シャドウマップ生成シェーダは Toolkit クラスを使用。
-// 分散シャドウ マップ (VSM: Variance Shadow Map) に対応。
-// XNA Shadow Mapping サンプルとは異なり、LightDirection はライトの進行方向。
-
 #define MAX_SPLIT_COUNT 3
 
 cbuffer Parameters : register(b0)
