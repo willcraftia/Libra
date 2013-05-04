@@ -19,7 +19,7 @@ namespace Samples.ShadowMapping
         #region DrawModelEffect
 
         /// <summary>
-        /// モデル描画シェーダの簡易管理クラス。
+        /// モデル描画シェーダの簡易管理クラスです。
         /// </summary>
         sealed class DrawModelEffect
         {
@@ -176,6 +176,9 @@ namespace Samples.ShadowMapping
 
         #region LightCameraType
 
+        /// <summary>
+        /// ライト カメラの種類を表します。
+        /// </summary>
         enum LightCameraType
         {
             /// <summary>
@@ -196,8 +199,14 @@ namespace Samples.ShadowMapping
 
         #endregion
 
+        /// <summary>
+        /// 最大分割数。
+        /// </summary>
         const int MaxSplitCount = 3;
 
+        /// <summary>
+        /// 最大分割距離数。
+        /// </summary>
         const int MaxSplitDistanceCount = MaxSplitCount + 1;
 
         /// <summary>
@@ -322,34 +331,78 @@ namespace Samples.ShadowMapping
         /// </summary>
         LightCameraType currentLightCameraType;
 
+        /// <summary>
+        /// 基礎ライト カメラ ビルダ。
+        /// </summary>
         BasicLightCameraBuilder basicLightCameraBuilder;
 
+        /// <summary>
+        /// 焦点合わせライト カメラ ビルダ。
+        /// </summary>
         FocusedLightCameraBuilder focusedLightCameraBuilder;
 
+        /// <summary>
+        /// LiSPSM ライト カメラ ビルダ。
+        /// </summary>
         LiSPSMLightCameraBuilder liSPSMLightCameraBuilder;
 
+        /// <summary>
+        /// 分割数。
+        /// </summary>
         int splitCount;
 
+        /// <summary>
+        /// PSSM 分割機能。
+        /// </summary>
         PSSM pssm;
 
+        /// <summary>
+        /// 分割された距離の配列。
+        /// </summary>
         float[] splitDistances;
 
+        /// <summary>
+        /// 分割された射影行列の配列。
+        /// </summary>
         Matrix[] splitProjections;
 
+        /// <summary>
+        /// 分割されたシャドウ マップの配列。
+        /// </summary>
         ShadowMap[] shadowMaps;
 
+        /// <summary>
+        /// 分割されたライト カメラ空間行列の配列。
+        /// </summary>
         Matrix[] lightViewProjections;
 
+        /// <summary>
+        /// シャドウ マップ形式。
+        /// </summary>
         ShadowMapForm shadowMapForm;
 
+        /// <summary>
+        /// ガウシアン ブラー。
+        /// </summary>
         GaussianBlur gaussianBlur;
 
-        // ライトの進行方向 (XNA Shadow Mapping では原点から見たライトの方向)。
+        /// <summary>
+        /// ライトの進行方向。
+        /// </summary>
+        /// <remarks>
+        /// XNA Shadow Mapping では原点から見たライトの方向であり、
+        /// ここでの方向の定義が異なる点に注意が必要です。
+        /// </remarks>
         Vector3 lightDirection = new Vector3(0.3333333f, -0.6666667f, -0.6666667f);
 
-        // ライトによる投影を処理する距離。
+        /// <summary>
+        /// ライトによる投影を処理する距離。
+        /// </summary>
         float lightFar = 500.0f;
 
+        /// <summary>
+        /// 現在の表示カメラの境界錐台。
+        /// </summary>
         BoundingFrustum currentFrustum;
 
         public MainGame()
