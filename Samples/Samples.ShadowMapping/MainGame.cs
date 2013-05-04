@@ -28,7 +28,7 @@ namespace Samples.ShadowMapping
             /// <summary>
             /// 定数バッファの定義。
             /// </summary>
-            [StructLayout(LayoutKind.Explicit, Size = 256 + (16 + 64) * PSSMCameras.MaxSplitCount)]
+            [StructLayout(LayoutKind.Explicit, Size = 256 + (16 * MaxSplitDistanceCount) + (64 * MaxSplitCount))]
             struct Constants
             {
                 [FieldOffset(0)]
@@ -52,14 +52,18 @@ namespace Samples.ShadowMapping
                 [FieldOffset(240)]
                 public Vector3 LightDirection;
 
-                [FieldOffset(256), MarshalAs(UnmanagedType.ByValArray, SizeConst = PSSMCameras.MaxSplitCount)]
+                [FieldOffset(256), MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxSplitDistanceCount)]
                 public Vector4[] SplitDistances;
 
-                [FieldOffset(320), MarshalAs(UnmanagedType.ByValArray, SizeConst = PSSMCameras.MaxSplitCount)]
+                [FieldOffset(256 + (16 * MaxSplitDistanceCount)), MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxSplitCount)]
                 public Matrix[] LightViewProjection;
             }
 
             #endregion
+
+            const int MaxSplitCount = PSSMCameras.MaxSplitCount;
+
+            const int MaxSplitDistanceCount = MaxSplitCount + 1;
 
             public Matrix World;
 
@@ -108,12 +112,10 @@ namespace Samples.ShadowMapping
                 constantBuffer.Usage = ResourceUsage.Dynamic;
                 constantBuffer.Initialize<Constants>();
 
-                // splitDistances は (PSSMCameras.MaxSplitCount + 1) の容量。
+                constants.SplitDistances = new Vector4[MaxSplitDistanceCount];
+                constants.LightViewProjection = new Matrix[MaxSplitCount];
 
-                constants.SplitDistances = new Vector4[PSSMCameras.MaxSplitCount + 1];
-                constants.LightViewProjection = new Matrix[PSSMCameras.MaxSplitCount];
-
-                splitDistances = new float[PSSMCameras.MaxSplitCount + 1];
+                splitDistances = new float[MaxSplitDistanceCount];
             }
 
             public void Apply(DeviceContext context)
@@ -127,7 +129,7 @@ namespace Samples.ShadowMapping
                 constants.SplitCount = ShadowMap.SplitCount;
                 constants.LightDirection = ShadowMap.LightDirection;
 
-                for (int i = 0; i < PSSMCameras.MaxSplitCount; i++)
+                for (int i = 0; i < MaxSplitCount; i++)
                 {
                     if (i < ShadowMap.SplitCount)
                     {
@@ -573,7 +575,7 @@ namespace Samples.ShadowMapping
             drawModelEffect.View = camera.View;
             drawModelEffect.Projection = camera.Projection;
             drawModelEffect.AmbientColor = new Vector4(0.15f, 0.15f, 0.15f, 1.0f);
-            drawModelEffect.DepthBias = 0.0001f;
+            drawModelEffect.DepthBias = 0.001f;
             drawModelEffect.ShadowMap = shadowMap;
 
             // モデルを描画。
