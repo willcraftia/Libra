@@ -609,13 +609,10 @@ namespace Samples.ShadowMapping
         void DrawOverlayText()
         {
             // HUD のテキストを表示。
-            //var text = "B = Light camera type (" + currentLightCameraType + ")\n" +
-            //    "X = Shadow map form (" + shadowMapEffectForm + ")\n" +
-            //    "Y = Use camera frustum as scene box (" + useCameraFrustumSceneBox + ")\n" +
-            //    "L = Adjust LiSPSM optimal N (" + lispsmLightCamera.AdjustOptimalN + ")";
             var text = "B = Light camera type (" + currentLightCameraType + ")\n" +
                 "X = Shadow map form (" + shadowMap.Form + ")\n" +
-                "Y = Use camera frustum as scene box (" + useCameraFrustumSceneBox + ")";
+                "Y = Use camera frustum as scene box (" + useCameraFrustumSceneBox + ")\n" +
+                "L = Adjust LiSPSM optimal N (" + liSPSMLightCameraBuilder.AdjustOptimalN + ")";
 
             spriteBatch.Begin();
 
@@ -671,11 +668,11 @@ namespace Samples.ShadowMapping
                 }
             }
 
-            //if (currentKeyboardState.IsKeyUp(Keys.L) && lastKeyboardState.IsKeyDown(Keys.L) ||
-            //    currentJoystickState.IsButtonUp(Buttons.LeftShoulder) && lastJoystickState.IsButtonDown(Buttons.LeftShoulder))
-            //{
-            //    lispsmLightCamera.AdjustOptimalN = !lispsmLightCamera.AdjustOptimalN;
-            //}
+            if (currentKeyboardState.IsKeyUp(Keys.L) && lastKeyboardState.IsKeyDown(Keys.L) ||
+                currentJoystickState.IsButtonUp(Buttons.LeftShoulder) && lastJoystickState.IsButtonDown(Buttons.LeftShoulder))
+            {
+                liSPSMLightCameraBuilder.AdjustOptimalN = !liSPSMLightCameraBuilder.AdjustOptimalN;
+            }
 
             if (currentKeyboardState.IsKeyDown(Keys.Escape) ||
                 currentJoystickState.Buttons.Back == ButtonState.Pressed)
