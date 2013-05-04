@@ -127,7 +127,9 @@ namespace Libra.Graphics.Toolkit
         /// ラムダ値を取得または設定します。
         /// </summary>
         /// <remarks>
-        /// ラムダ値は、分割間の重なり度合いを決定します。
+        /// ラムダ値は [0, 1] の範囲で分割の形式を決定します。
+        /// 0 に近い程に均等な分割になり、1 に近い程に対数的な分割
+        /// (カメラ手前の分割範囲が狭く、奥に行く程に分割範囲が広がる) になります。
         /// </remarks>
         public float Lambda
         {
@@ -243,6 +245,12 @@ namespace Libra.Graphics.Toolkit
                 // CL = n * (f / n)^(i / m)
                 // CU = n + (f - n) * (i / m)
                 // C = CL * lambda + CU * (1 - lambda)
+
+                // CL は対数分割での値。
+                // CU は均等分割での値。
+                // パラメータ lambda で対数分割の程度を調整。
+                // lambda = 1 ならば対数分割のみ。
+                // lambda = 0 ならば均等分割のみ。
 
                 float log = n * (float) Math.Pow(fdn, idm);
                 float uniform = n + fsn * idm;
