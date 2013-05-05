@@ -53,10 +53,10 @@ namespace Libra.Input
             if ((button & Input.Buttons.Start) != 0 && Buttons.Start != ButtonState.Pressed)
                 return false;
 
-            if ((button & Input.Buttons.LeftTrigger) != 0 && 0 < Triggers.Left)
+            if ((button & Input.Buttons.LeftTrigger) != 0 && Triggers.Left == 0.0f)
                 return false;
 
-            if ((button & Input.Buttons.RightTrigger) != 0 && 0 < Triggers.Left)
+            if ((button & Input.Buttons.RightTrigger) != 0 && Triggers.Left == 0.0f)
                 return false;
 
             if ((button & Input.Buttons.DPadUp) != 0 && DPad.Up != ButtonState.Pressed)
