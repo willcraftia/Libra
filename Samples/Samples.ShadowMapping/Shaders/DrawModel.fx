@@ -2,15 +2,16 @@
 
 cbuffer Parameters : register(b0)
 {
-    float4x4 World          : packoffset(c0);
-    float4x4 View           : packoffset(c4);
-    float4x4 Projection     : packoffset(c8);
-    float4   AmbientColor   : packoffset(c12);
-    float    DepthBias      : packoffset(c13);
-    int      SplitCount     : packoffset(c14);
-    float3   LightDirection : packoffset(c15);
-    float    SplitDistances[MAX_SPLIT_COUNT + 1]    : packoffset(c16);
-    float4x4 LightViewProjections[MAX_SPLIT_COUNT]  : packoffset(c20);
+    float4x4 World                                  : packoffset(c0);
+    float4x4 View                                   : packoffset(c4);
+    float4x4 Projection                             : packoffset(c8);
+    float4   AmbientColor                           : packoffset(c12);
+    float    DepthBias                              : packoffset(c13);
+    int      SplitCount                             : packoffset(c14);
+    float3   LightDirection                         : packoffset(c15);
+    float3   ShadowColor                            : packoffset(c16);
+    float    SplitDistances[MAX_SPLIT_COUNT + 1]    : packoffset(c17);
+    float4x4 LightViewProjections[MAX_SPLIT_COUNT]  : packoffset(c21);
 };
 
 Texture2D<float4> Texture                               : register(t0);
@@ -62,7 +63,7 @@ float4 BasicPS(VSOutput input) : SV_Target0
 
     float distance = abs(input.PositionVS.z);
 
-    float shadow = 1;
+    float shadow = 0;
 
     [unroll]
     for (int i = 0; i < SplitCount; i++)
@@ -96,15 +97,16 @@ float4 BasicPS(VSOutput input) : SV_Target0
             // 2. SampleLevel() を用いてミップマップ レベルを明示する。
             // ---
             depthShadowMap = BasicShadowMap[i].SampleLevel(ShadowMapSampler, shadowMapTexCoord, 0);
-        }
 
-        if (depthShadowMap < depthLS)
-        {
-            shadow *= 0.5;
+            shadow = (depthShadowMap < depthLS);
+
+            break;
         }
     }
 
-    diffuse.xyz *= shadow;
+    float3 blendShadowColor = lerp(float3(1, 1, 1), ShadowColor, shadow);
+
+    diffuse.xyz *= blendShadowColor;
 
     return diffuse;
 }
@@ -133,7 +135,7 @@ float4 VariancePS(VSOutput input) : SV_Target0
 
     float distance = abs(input.PositionVS.z);
 
-    float shadow = 1;
+    float shadow = 0;
 
     [unroll]
     for (int i = 0; i < SplitCount; i++)
@@ -148,15 +150,17 @@ float4 VariancePS(VSOutput input) : SV_Target0
             // Sample() では gradient-based operation に関する警告が発生。
             // これは SampleLevel() で LOD を明示することで解決可能。
             float2 moments = VarianceShadowMap[i].SampleLevel(ShadowMapSampler, shadowMapTexCoord, 0);
-            shadow = TestVSM(positionLS, moments);
+            float test = TestVSM(positionLS, moments);
 
-            // 最も影な部分を 0.5 にするための調整。
-            shadow *= 0.5f;
-            shadow += 0.5f;
+            shadow = (1 - test);
+
+            break;
         }
     }
 
-    diffuse.xyz *= shadow;
+    float3 blendShadowColor = lerp(float3(1, 1, 1), ShadowColor, shadow);
+
+    diffuse.xyz *= blendShadowColor;
 
     return diffuse;
 }

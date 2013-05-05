@@ -28,7 +28,7 @@ namespace Samples.ShadowMapping
             /// <summary>
             /// 定数バッファの定義。
             /// </summary>
-            [StructLayout(LayoutKind.Explicit, Size = 256 + (16 * MaxSplitDistanceCount) + (64 * MaxSplitCount))]
+            [StructLayout(LayoutKind.Explicit, Size = 272 + (16 * MaxSplitDistanceCount) + (64 * MaxSplitCount))]
             struct Constants
             {
                 [FieldOffset(0)]
@@ -52,10 +52,13 @@ namespace Samples.ShadowMapping
                 [FieldOffset(240)]
                 public Vector3 LightDirection;
 
-                [FieldOffset(256), MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxSplitDistanceCount)]
+                [FieldOffset(256)]
+                public Vector3 ShadowColor;
+
+                [FieldOffset(272), MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxSplitDistanceCount)]
                 public Vector4[] SplitDistances;
 
-                [FieldOffset(256 + (16 * MaxSplitDistanceCount)), MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxSplitCount)]
+                [FieldOffset(272 + (16 * MaxSplitDistanceCount)), MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxSplitCount)]
                 public Matrix[] LightViewProjections;
             }
 
@@ -71,9 +74,11 @@ namespace Samples.ShadowMapping
 
             public float DepthBias;
 
+            public int SplitCount;
+
             public Vector3 LightDirection;
 
-            public int SplitCount;
+            public Vector3 ShadowColor;
 
             public float[] SplitDistances;
 
@@ -130,6 +135,7 @@ namespace Samples.ShadowMapping
                 constants.DepthBias = DepthBias;
                 constants.SplitCount = SplitCount;
                 constants.LightDirection = LightDirection;
+                constants.ShadowColor = ShadowColor;
 
                 Array.Clear(constants.LightViewProjections, 0, constants.LightViewProjections.Length);
                 for (int i = 0; i < MaxSplitCount; i++)
@@ -693,6 +699,7 @@ namespace Samples.ShadowMapping
             drawModelEffect.AmbientColor = new Vector4(0.15f, 0.15f, 0.15f, 1.0f);
             drawModelEffect.DepthBias = 0.001f;
             drawModelEffect.LightDirection = lightDirection;
+            drawModelEffect.ShadowColor = new Vector3(0.5f, 0.5f, 0.5f);
             drawModelEffect.SplitCount = splitCount;
             drawModelEffect.SplitDistances = splitDistances;
             drawModelEffect.ShadowMaps = shadowMaps;
