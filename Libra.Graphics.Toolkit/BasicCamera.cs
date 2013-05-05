@@ -122,10 +122,11 @@ namespace Libra.Graphics.Toolkit
             {
                 if (value.IsZero()) throw new ArgumentException("Direction must be not zero.", "value");
 
-                value.Normalize();
+                var direction = value;
+                direction.Normalize();
 
                 var start = Vector3.Forward;
-                Quaternion.CreateRotationBetween(ref start, ref value, out orientation);
+                Quaternion.CreateRotationBetween(ref start, ref direction, out orientation);
 
                 dirtyFlags |= DirtyFlags.View;
             }
