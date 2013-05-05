@@ -187,9 +187,9 @@ namespace Samples.ShadowMapping
             LiSPSM  = 0,
             
             /// <summary>
-            /// FocusedLightCamera を用いる。
+            /// UniformLightCamera を用いる。
             /// </summary>
-            Focused = 1,
+            Uniform = 1,
 
             /// <summary>
             /// BasicLightCamera を用いる。
@@ -332,14 +332,14 @@ namespace Samples.ShadowMapping
         LightCameraType currentLightCameraType;
 
         /// <summary>
-        /// 基礎ライト カメラ ビルダ。
+        /// 簡易ライト カメラ ビルダ。
         /// </summary>
         BasicLightCameraBuilder basicLightCameraBuilder;
 
         /// <summary>
-        /// 焦点合わせライト カメラ ビルダ。
+        /// USM ライト カメラ ビルダ。
         /// </summary>
-        FocusedLightCameraBuilder focusedLightCameraBuilder;
+        UniformLightCameraBuilder uniformLightCameraBuilder;
 
         /// <summary>
         /// LiSPSM ライト カメラ ビルダ。
@@ -445,15 +445,14 @@ namespace Samples.ShadowMapping
             currentLightCameraType = LightCameraType.LiSPSM;
 
             basicLightCameraBuilder = new BasicLightCameraBuilder();
-            focusedLightCameraBuilder = new FocusedLightCameraBuilder();
-            focusedLightCameraBuilder.LightFarClipDistance = lightFar;
+            uniformLightCameraBuilder = new UniformLightCameraBuilder();
+            uniformLightCameraBuilder.LightFarClipDistance = lightFar;
             liSPSMLightCameraBuilder = new LiSPSMLightCameraBuilder();
             liSPSMLightCameraBuilder.LightFarClipDistance = lightFar;
 
             splitCount = MaxSplitCount;
 
             pssm = new PSSM();
-            pssm.Count = splitCount;
             pssm.Fov = camera.Fov;
             pssm.AspectRatio = camera.AspectRatio;
             pssm.NearClipDistance = camera.NearClipDistance;
@@ -564,6 +563,7 @@ namespace Samples.ShadowMapping
             // 表示カメラの分割。
             // デフォルトのラムダ値 0.5f ではカメラ手前が少し狭すぎるか？
             // ここは表示カメラの far の値に応じて調整する。
+            pssm.Count = splitCount;
             pssm.Lambda = 0.4f;
             pssm.View = camera.View;
             pssm.SceneBox = actualSceneBox;
@@ -576,8 +576,8 @@ namespace Samples.ShadowMapping
                 case LightCameraType.LiSPSM:
                     currentLightCameraBuilder = liSPSMLightCameraBuilder;
                     break;
-                case LightCameraType.Focused:
-                    currentLightCameraBuilder = focusedLightCameraBuilder;
+                case LightCameraType.Uniform:
+                    currentLightCameraBuilder = uniformLightCameraBuilder;
                     break;
                 default:
                     currentLightCameraBuilder = basicLightCameraBuilder;
@@ -724,12 +724,14 @@ namespace Samples.ShadowMapping
 
         void DrawShadowMapToScreen()
         {
+            const int mapSize = 96;
+
             // 現在のフレームで生成したシャドウ マップを画面左上に表示。
             spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Opaque, SamplerState.PointClamp);
             for (int i = 0; i < splitCount; i++)
             {
-                var x = i * 128;
-                spriteBatch.Draw(shadowMaps[i].RenderTarget.GetShaderResourceView(), new Rectangle(x, 0, 128, 128), Color.White);
+                var x = i * mapSize;
+                spriteBatch.Draw(shadowMaps[i].RenderTarget.GetShaderResourceView(), new Rectangle(x, 0, mapSize, mapSize), Color.White);
             }
             spriteBatch.End();
         }
@@ -741,13 +743,14 @@ namespace Samples.ShadowMapping
             // HUD のテキストを表示。
             var text = "B = Light camera type (" + currentLightCameraType + ")\n" +
                 "X = Shadow map form (" + shadowMapForm + ")\n" +
-                "Y = Use camera frustum as scene box (" + useCameraFrustumSceneBox + ")\n" +
+                "Y = Camera frustum as scene box (" + useCameraFrustumSceneBox + ")\n" +
+                "K = Split count (" + splitCount + ")\n" +
                 "L = Shadow map size (" + currentShadowMapSize + "x" + currentShadowMapSize + ")";
 
             spriteBatch.Begin();
 
-            spriteBatch.DrawString(spriteFont, text, new Vector2(65, 350), Color.White);
-            spriteBatch.DrawString(spriteFont, text, new Vector2(64, 350 - 1), Color.Blue);
+            spriteBatch.DrawString(spriteFont, text, new Vector2(65, 350), Color.Black);
+            spriteBatch.DrawString(spriteFont, text, new Vector2(64, 350 - 1), Color.Yellow);
 
             spriteBatch.End();
         }
@@ -796,6 +799,14 @@ namespace Samples.ShadowMapping
                 {
                     shadowMapForm = ShadowMapForm.Basic;
                 }
+            }
+
+            if (currentKeyboardState.IsKeyUp(Keys.K) && lastKeyboardState.IsKeyDown(Keys.K) ||
+                currentJoystickState.IsButtonUp(Buttons.RightShoulder) && lastJoystickState.IsButtonDown(Buttons.RightShoulder))
+            {
+                splitCount++;
+                if (MaxSplitCount < splitCount)
+                    splitCount = 1;
             }
 
             if (currentKeyboardState.IsKeyUp(Keys.L) && lastKeyboardState.IsKeyDown(Keys.L) ||

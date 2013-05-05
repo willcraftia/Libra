@@ -44,7 +44,7 @@
     <Compile Include="BasicLightCameraBuilder.cs" />
     <Compile Include="BloomEffect.cs" />
     <Compile Include="Camera.cs" />
-    <Compile Include="FocusedLightCameraBuilder.cs" />
+    <Compile Include="UniformLightCameraBuilder.cs" />
     <Compile Include="LightCameraBuilder.cs" />
     <Compile Include="ConvexBody.cs" />
     <Compile Include="FullScreenQuad.cs" />

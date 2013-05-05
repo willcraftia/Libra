@@ -9,7 +9,7 @@ namespace Libra.Graphics.Toolkit
     /// <summary>
     /// LiSPSM のライト カメラを構築するクラスです。
     /// </summary>
-    public sealed class LiSPSMLightCameraBuilder : FocusedLightCameraBuilder
+    public sealed class LiSPSMLightCameraBuilder : UniformLightCameraBuilder
     {
         /// <summary>
         /// 算出した最適 N 値の調整係数。

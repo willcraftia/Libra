@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace Libra.Graphics.Toolkit
 {
-    public class FocusedLightCameraBuilder : LightCameraBuilder
+    public class UniformLightCameraBuilder : LightCameraBuilder
     {
         // y -> -z
         // z -> y
@@ -73,7 +73,7 @@ namespace Libra.Graphics.Toolkit
         /// </remarks>
         public float BodyBExtrudeDistance { get; set; }
 
-        public FocusedLightCameraBuilder()
+        public UniformLightCameraBuilder()
         {
             bodyB = new ConvexBody();
             bodyLVS = new ConvexBody();
