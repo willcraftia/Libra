@@ -74,6 +74,27 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
+        internal static byte[] DepthMapPS {
+            get {
+                object obj = ResourceManager.GetObject("DepthMapPS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] DepthMapVS {
+            get {
+                object obj = ResourceManager.GetObject("DepthMapVS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] DepthOfFieldPS {
+            get {
+                object obj = ResourceManager.GetObject("DepthOfFieldPS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
         internal static byte[] FullScreenQuadVS {
             get {
                 object obj = ResourceManager.GetObject("FullScreenQuadVS", resourceCulture);

@@ -28,6 +28,17 @@ call :CompileShader ShadowMap VS %vs_profile%
 call :CompileShader ShadowMap BasicPS %ps_profile%
 call :CompileShader ShadowMap VariancePS %ps_profile%
 
+::
+:: DepthMap VS/PS
+::
+call :CompileShader DepthMap VS %vs_profile%
+call :CompileShader DepthMap PS %ps_profile%
+
+::
+:: DepthOfField PS
+::
+call :CompileShader DepthOfField PS %ps_profile%
+
 echo.
 
 if %error% == 0 (

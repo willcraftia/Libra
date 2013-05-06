@@ -139,4 +139,13 @@
   <data name="GaussianBlurPS" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Shaders\Compiled\GaussianBlurPS.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="DepthMapPS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Shaders\Compiled\DepthMapPS.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="DepthMapVS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Shaders\Compiled\DepthMapVS.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="DepthOfFieldPS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Shaders\Compiled\DepthOfFieldPS.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
 </root>
