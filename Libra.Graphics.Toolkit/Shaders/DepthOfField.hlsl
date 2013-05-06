@@ -3,9 +3,9 @@ cbuffer Parameters : register(b0)
     float FocusRange        : packoffset(c0.x);
     float FocusDistance     : packoffset(c0.y);
     // NearClipDistance = near * far / (far - near)
-    float NearClipDistance : packoffset(c0.z);
+    float NearClipDistance  : packoffset(c0.z);
     // FarClipDistance = far / (far - near)
-    float FarClipDistance  : packoffset(c0.w);
+    float FarClipDistance   : packoffset(c0.w);
 };
 
 Texture2D<float4> NormalSceneMap    : register(t0);
