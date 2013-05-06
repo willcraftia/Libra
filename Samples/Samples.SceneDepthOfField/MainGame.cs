@@ -156,6 +156,8 @@ namespace Samples.SceneDepthOfField
                 Device, bluredSceneRenderTarget.Width, bluredSceneRenderTarget.Height, bluredSceneRenderTarget.Format);
 
             depthOfField = new DepthOfField(Device);
+            depthOfField.NearClipDistance = camera.NearClipDistance;
+            depthOfField.FarClipDistance = camera.FarClipDistance;
 
             gridModel = content.Load<Model>("grid");
             dudeModel = content.Load<Model>("dude");
