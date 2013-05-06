@@ -109,7 +109,7 @@
     <ProjectReference Include="..\Samples.Audio3DContent\Samples.Audio3DContent.contentproj">
       <Name>Samples.Audio3DContent %28Content%29</Name>
       <XnaReferenceType>Content</XnaReferenceType>
-      <Project>{16EF5249-2180-4432-9F07-65AAF4D9AA37}</Project>
+      <Project>{18D8DF47-20E2-40DA-B2D8-E053FE5CFC8C}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
