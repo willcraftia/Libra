@@ -664,11 +664,11 @@ namespace Samples.ShadowMapping
             currentFrustum.Contains(ref dudeBoxWorld, out containment);
             if (containment != ContainmentType.Disjoint)
             {
-                DrawShadowCaster(camera, effect, dudeModel);
+                DrawShadowCaster(effect, dudeModel);
             }
         }
 
-        void DrawShadowCaster(Camera camera, ShadowMapEffect effect, Model model)
+        void DrawShadowCaster(ShadowMapEffect effect, Model model)
         {
             var context = Device.ImmediateContext;
 
