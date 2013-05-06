@@ -153,7 +153,7 @@ namespace Libra.Graphics.Toolkit
                 dirtyFlags &= ~DirtyFlags.Constants;
             }
 
-            context.VertexShaderConstantBuffers[0] = constantBuffer;
+            context.PixelShaderConstantBuffers[0] = constantBuffer;
             context.PixelShader = sharedDeviceResource.PixelShader;
 
             context.PixelShaderResources[0] = NormalSceneMap;
