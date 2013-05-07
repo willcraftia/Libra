@@ -1,7 +1,7 @@
 cbuffer Parameters : register(b0)
 {
-    float FocusScale            : packoffset(c0.x);
-    float FocusDistance         : packoffset(c0.y);
+    float    FocusScale         : packoffset(c0.x);
+    float    FocusDistance      : packoffset(c0.y);
     float4x4 InvertProjection   : packoffset(c1);
 };
 
