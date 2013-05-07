@@ -65,7 +65,7 @@ float4 BasicPS(VSOutput input) : SV_Target0
 
     float shadow = 0;
 
-    [unroll]
+    [unroll(MAX_SPLIT_COUNT)]
     for (int i = 0; i < SplitCount; i++)
     {
         float depthLS = 0;
@@ -137,7 +137,7 @@ float4 VariancePS(VSOutput input) : SV_Target0
 
     float shadow = 0;
 
-    [unroll]
+    [unroll(MAX_SPLIT_COUNT)]
     for (int i = 0; i < SplitCount; i++)
     {
         if (SplitDistances[i] <= distance && distance < SplitDistances[i + 1])
