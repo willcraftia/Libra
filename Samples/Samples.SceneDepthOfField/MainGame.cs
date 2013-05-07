@@ -378,6 +378,14 @@ namespace Samples.SceneDepthOfField
                     depthOfField.FocusRange = 500.0f;
             }
 
+            if (currentJoystickState.Buttons.RightStick == ButtonState.Pressed ||
+                currentKeyboardState.IsKeyDown(Keys.R))
+            {
+                // カメラ位置と同じ操作で焦点もリセット。
+                depthOfField.FocusDistance = 10;
+                depthOfField.FocusRange = 200;
+            }
+
             if (currentKeyboardState.IsKeyDown(Keys.End) ||
                 currentJoystickState.IsButtonDown(Buttons.LeftTrigger))
             {
