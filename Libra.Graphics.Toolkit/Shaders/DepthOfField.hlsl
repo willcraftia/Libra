@@ -1,6 +1,7 @@
 cbuffer Parameters : register(b0)
 {
-    float FocusRange        : packoffset(c0.x);
+    // FocusScale = 1 / range
+    float FocusScale        : packoffset(c0.x);
     float FocusDistance     : packoffset(c0.y);
     // NearClipDistance = near * far / (far - near)
     float NearClipDistance  : packoffset(c0.z);
@@ -24,7 +25,7 @@ float4 PS(float4 color    : COLOR0,
     float depth = DepthMap.Sample(DepthMapSampler, texCoord);
 
     float sceneDistance = -NearClipDistance / (depth - FarClipDistance);
-    float blurFactor = saturate(abs(sceneDistance - FocusDistance) / FocusRange);
+    float blurFactor = saturate(abs(sceneDistance - FocusDistance) * FocusScale);
 
     return lerp(normalScene, bluredScene, blurFactor);
 }

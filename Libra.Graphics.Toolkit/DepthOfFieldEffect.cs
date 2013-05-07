@@ -30,7 +30,7 @@ namespace Libra.Graphics.Toolkit
         [StructLayout(LayoutKind.Sequential)]
         public struct Constants
         {
-            public float FocusRange;
+            public float FocusScale;
 
             public float FocusDistance;
             
@@ -46,8 +46,9 @@ namespace Libra.Graphics.Toolkit
         [Flags]
         enum DirtyFlags
         {
-            Clipping    = (1 << 0),
-            Constants   = (1 << 1)
+            FocusScale  = (1 << 0),
+            Clipping    = (1 << 1),
+            Constants   = (1 << 2)
         }
 
         #endregion
@@ -60,6 +61,8 @@ namespace Libra.Graphics.Toolkit
 
         Constants constants;
 
+        float focusRange;
+
         float nearClipDistance;
 
         float farClipDistance;
@@ -68,12 +71,12 @@ namespace Libra.Graphics.Toolkit
 
         public float FocusRange
         {
-            get { return constants.FocusRange; }
+            get { return focusRange; }
             set
             {
-                constants.FocusRange = value;
+                focusRange = value;
 
-                dirtyFlags |= DirtyFlags.Constants;
+                dirtyFlags |= DirtyFlags.FocusScale;
             }
         }
 
@@ -95,7 +98,7 @@ namespace Libra.Graphics.Toolkit
             {
                 nearClipDistance = value;
 
-                dirtyFlags |= DirtyFlags.Clipping | DirtyFlags.Constants;
+                dirtyFlags |= DirtyFlags.Clipping;
             }
         }
 
@@ -106,7 +109,7 @@ namespace Libra.Graphics.Toolkit
             {
                 farClipDistance = value;
 
-                dirtyFlags |= DirtyFlags.Clipping | DirtyFlags.Constants;
+                dirtyFlags |= DirtyFlags.Clipping;
             }
         }
 
@@ -127,16 +130,24 @@ namespace Libra.Graphics.Toolkit
             constantBuffer = device.CreateConstantBuffer();
             constantBuffer.Initialize<Constants>();
 
-            constants.FocusDistance = 10.0f;
-            constants.FocusRange = 100.0f;
+            focusRange = 100.0f;
             nearClipDistance = 1.0f;
             farClipDistance = 1000.0f;
 
-            dirtyFlags = DirtyFlags.Clipping | DirtyFlags.Constants;
+            constants.FocusDistance = 10.0f;
+
+            dirtyFlags = DirtyFlags.FocusScale | DirtyFlags.Clipping | DirtyFlags.Constants;
         }
 
         public void Apply(DeviceContext context)
         {
+            if ((dirtyFlags & DirtyFlags.FocusScale) != 0)
+            {
+                constants.FocusScale = 1.0f / focusRange;
+
+                dirtyFlags &= ~DirtyFlags.FocusScale;
+                dirtyFlags |= DirtyFlags.Constants;
+            }
             if ((dirtyFlags & DirtyFlags.Clipping) != 0)
             {
                 constants.FarClipDistance = farClipDistance / (farClipDistance - nearClipDistance);
