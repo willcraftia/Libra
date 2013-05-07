@@ -56,8 +56,8 @@ namespace Libra.Graphics
         public Vector3 Project(Vector3 source, Matrix projection, Matrix view, Matrix world)
         {
             var matrix = Matrix.Multiply(Matrix.Multiply(world, view), projection);
-            var vector = (Vector3) Vector3.Transform(source, matrix);
-            float a = (((source.X * matrix.M14) + (source.Y * matrix.M24)) + (source.Z * matrix.M34)) + matrix.M44;
+            var vector = Vector3.Transform(source, matrix);
+            float a = (source.X * matrix.M14) + (source.Y * matrix.M24) + (source.Z * matrix.M34) + matrix.M44;
 
             if (!MathHelper.WithinEpsilon(a, 1f))
             {
