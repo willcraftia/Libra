@@ -2,8 +2,10 @@
 
 using System;
 using System.Runtime.InteropServices;
+using System.Text;
 using Libra;
 using Libra.Games;
+using Libra.Games.Debugging;
 using Libra.Graphics;
 using Libra.Graphics.Compiler;
 using Libra.Graphics.Toolkit;
@@ -416,6 +418,16 @@ namespace Samples.ShadowMapping
         /// </summary>
         int currentShadowMapSizeIndex = 1;
 
+        /// <summary>
+        /// フレーム レート計測器。
+        /// </summary>
+        FrameRateMeasure frameRateMeasure;
+
+        /// <summary>
+        /// ウィンドウ タイトル作成用文字列バッファ。
+        /// </summary>
+        StringBuilder stringBuilder;
+
         public MainGame()
         {
             graphicsManager = new GraphicsManager(this);
@@ -475,6 +487,11 @@ namespace Samples.ShadowMapping
             lightDirection = new Vector3(0.3333333f, -0.6666667f, -0.6666667f);
 
             currentFrustum = new BoundingFrustum(Matrix.Identity);
+
+            frameRateMeasure = new FrameRateMeasure(this);
+            Components.Add(frameRateMeasure);
+
+            stringBuilder = new StringBuilder();
         }
 
         protected override void LoadContent()
@@ -506,6 +523,11 @@ namespace Samples.ShadowMapping
 
             // 表示カメラの更新。
             UpdateCamera(gameTime);
+
+            stringBuilder.Length = 0;
+            stringBuilder.Append("FPS: ");
+            stringBuilder.AppendNumber(frameRateMeasure.FrameRate);
+            Window.Title = stringBuilder.ToString();
 
             base.Update(gameTime);
         }
