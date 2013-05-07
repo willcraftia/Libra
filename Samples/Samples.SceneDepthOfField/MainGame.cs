@@ -355,7 +355,7 @@ namespace Samples.SceneDepthOfField
                 rotateDude += time * 0.2f;
 
             if (currentKeyboardState.IsKeyDown(Keys.PageUp) ||
-                currentJoystickState.IsButtonDown(Buttons.RightShoulder))
+                currentJoystickState.IsButtonDown(Buttons.DPadUp))
             {
                 depthOfField.FocusDistance += 1;
                 if (camera.FarClipDistance < depthOfField.FocusDistance)
@@ -363,7 +363,7 @@ namespace Samples.SceneDepthOfField
             }
 
             if (currentKeyboardState.IsKeyDown(Keys.PageDown) ||
-                currentJoystickState.IsButtonDown(Buttons.RightTrigger))
+                currentJoystickState.IsButtonDown(Buttons.DPadDown))
             {
                 depthOfField.FocusDistance -= 1;
                 if (depthOfField.FocusDistance < camera.NearClipDistance)
@@ -371,7 +371,7 @@ namespace Samples.SceneDepthOfField
             }
 
             if (currentKeyboardState.IsKeyDown(Keys.Home) ||
-                currentJoystickState.IsButtonDown(Buttons.LeftShoulder))
+                currentJoystickState.IsButtonDown(Buttons.DPadRight))
             {
                 depthOfField.FocusRange += 1;
                 if (500.0f < depthOfField.FocusRange)
@@ -387,7 +387,7 @@ namespace Samples.SceneDepthOfField
             }
 
             if (currentKeyboardState.IsKeyDown(Keys.End) ||
-                currentJoystickState.IsButtonDown(Buttons.LeftTrigger))
+                currentJoystickState.IsButtonDown(Buttons.DPadLeft))
             {
                 depthOfField.FocusRange -= 1;
                 if (depthOfField.FocusRange < 10.0f)
