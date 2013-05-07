@@ -77,6 +77,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.SceneDepthOfField",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Libra.Games.Debugging", "Libra.Games.Debugging\Libra.Games.Debugging.csproj", "{49B9E5C6-208A-4EEF-BD7E-D4C109B21362}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.SceneGodRayContent", "Samples\Samples.SceneGodRayContent\Samples.SceneGodRayContent.contentproj", "{B690C27C-0C6D-4DE8-B141-8FA37CD613D0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.SceneGodRay", "Samples\Samples.SceneGodRay\Samples.SceneGodRay.csproj", "{91DF2625-6243-4EA3-8D81-EF43B0CB9BA0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -435,6 +439,22 @@ Global
 		{49B9E5C6-208A-4EEF-BD7E-D4C109B21362}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{49B9E5C6-208A-4EEF-BD7E-D4C109B21362}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{49B9E5C6-208A-4EEF-BD7E-D4C109B21362}.Release|x86.ActiveCfg = Release|Any CPU
+		{B690C27C-0C6D-4DE8-B141-8FA37CD613D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B690C27C-0C6D-4DE8-B141-8FA37CD613D0}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{B690C27C-0C6D-4DE8-B141-8FA37CD613D0}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B690C27C-0C6D-4DE8-B141-8FA37CD613D0}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{B690C27C-0C6D-4DE8-B141-8FA37CD613D0}.Release|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{B690C27C-0C6D-4DE8-B141-8FA37CD613D0}.Release|x86.ActiveCfg = Debug|Any CPU
+		{91DF2625-6243-4EA3-8D81-EF43B0CB9BA0}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{91DF2625-6243-4EA3-8D81-EF43B0CB9BA0}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{91DF2625-6243-4EA3-8D81-EF43B0CB9BA0}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{91DF2625-6243-4EA3-8D81-EF43B0CB9BA0}.Debug|x86.ActiveCfg = Debug|x86
+		{91DF2625-6243-4EA3-8D81-EF43B0CB9BA0}.Debug|x86.Build.0 = Debug|x86
+		{91DF2625-6243-4EA3-8D81-EF43B0CB9BA0}.Release|Any CPU.ActiveCfg = Release|x86
+		{91DF2625-6243-4EA3-8D81-EF43B0CB9BA0}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{91DF2625-6243-4EA3-8D81-EF43B0CB9BA0}.Release|Mixed Platforms.Build.0 = Release|x86
+		{91DF2625-6243-4EA3-8D81-EF43B0CB9BA0}.Release|x86.ActiveCfg = Release|x86
+		{91DF2625-6243-4EA3-8D81-EF43B0CB9BA0}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
