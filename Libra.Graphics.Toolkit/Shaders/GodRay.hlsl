@@ -1,4 +1,4 @@
-#define MAX_SAMPLE_COUNT 7
+#define MAX_SAMPLE_COUNT 32
 
 cbuffer Parameters : register(b0)
 {

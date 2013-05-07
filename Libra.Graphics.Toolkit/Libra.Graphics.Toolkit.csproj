@@ -48,6 +48,8 @@
     <Compile Include="DepthMapEffect.cs" />
     <Compile Include="DepthOfField.cs" />
     <Compile Include="DepthOfFieldEffect.cs" />
+    <Compile Include="GodRayEffect.cs" />
+    <Compile Include="GodRayOcclusionMapEffect.cs" />
     <Compile Include="UniformLightCameraBuilder.cs" />
     <Compile Include="LightCameraBuilder.cs" />
     <Compile Include="ConvexBody.cs" />
@@ -118,6 +120,8 @@
     <None Include="Shaders\DepthOfField.hlsl" />
     <None Include="Shaders\FullScreenQuad.hlsl" />
     <None Include="Shaders\GaussianBlur.hlsl" />
+    <None Include="Shaders\GodRay.hlsl" />
+    <None Include="Shaders\GodRayOcclusionMap.hlsl" />
     <None Include="Shaders\ShadowMap.hlsl" />
   </ItemGroup>
   <ItemGroup />
