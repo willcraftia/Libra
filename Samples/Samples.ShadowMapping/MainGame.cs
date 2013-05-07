@@ -306,7 +306,12 @@ namespace Samples.ShadowMapping
         BoundingBox dudeBoxWorld;
 
         /// <summary>
-        /// デュード モデルに適用するワールド行列。
+        /// デュード モデルの回転量。
+        /// </summary>
+        float rotateDude;
+
+        /// <summary>
+        /// モデルに適用するワールド行列。
         /// </summary>
         Matrix world;
 
@@ -326,11 +331,6 @@ namespace Samples.ShadowMapping
         /// 視錐台や境界ボックスの頂点を得るための一時作業配列。
         /// </summary>
         Vector3[] corners;
-
-        /// <summary>
-        /// デュード モデルの回転量。
-        /// </summary>
-        float rotateDude;
 
         /// <summary>
         /// 現在選択されているライト カメラの種類。
