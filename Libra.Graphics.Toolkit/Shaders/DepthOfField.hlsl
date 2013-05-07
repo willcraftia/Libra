@@ -20,10 +20,15 @@ float4 PS(float4 color    : COLOR0,
     float4 bluredScene = BluredSceneMap.Sample(BluredSceneMapSampler, texCoord);
     float depth = DepthMap.Sample(DepthMapSampler, texCoord);
 
-    float4 depthSample = mul(float4(texCoord, depth, 1), InvertProjection);
-    float sceneDistance = depthSample.z / depthSample.w;
+    // 射影行列の逆行列を掛けてビュー空間における座標を算出。
+    float4 depthVS = mul(float4(texCoord, depth, 1), InvertProjection);
 
+    // z 距離 (符号反転)。
+    float sceneDistance = -depthVS.z / depthVS.w;
+
+    // ブラー係数 (FocusDistance に近い程に 0、離れている程に 1)。
     float blurFactor = saturate(abs(sceneDistance - FocusDistance) * FocusScale);
 
+    // 通常シーンとブラー済みシーンを線形補間。
     return lerp(normalScene, bluredScene, blurFactor);
 }
