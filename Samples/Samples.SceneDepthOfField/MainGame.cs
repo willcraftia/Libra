@@ -262,7 +262,7 @@ namespace Samples.SceneDepthOfField
             {
                 foreach (BasicEffect effect in mesh.Effects)
                 {
-                    effect.World = Matrix.Identity;
+                    effect.World = world;
                     effect.View = camera.View;
                     effect.Projection = camera.Projection;
                     effect.EnableDefaultLighting();
