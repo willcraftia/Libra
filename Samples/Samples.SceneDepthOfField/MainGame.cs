@@ -325,7 +325,8 @@ namespace Samples.SceneDepthOfField
         void DrawOverlayText()
         {
             // HUD のテキストを表示。
-            var text = "";
+            var text = "PageUp/Down = Focus distance (" + depthOfField.FocusDistance + ")\n" +
+                "Home/End = Focus range (" + depthOfField.FocusRange + ")";
 
             spriteBatch.Begin();
 
@@ -352,6 +353,38 @@ namespace Samples.SceneDepthOfField
                 rotateDude -= time * 0.2f;
             if (currentKeyboardState.IsKeyDown(Keys.E))
                 rotateDude += time * 0.2f;
+
+            if (currentKeyboardState.IsKeyDown(Keys.PageUp) ||
+                currentJoystickState.IsButtonDown(Buttons.RightShoulder))
+            {
+                depthOfField.FocusDistance += 1;
+                if (camera.FarClipDistance < depthOfField.FocusDistance)
+                    depthOfField.FocusDistance = camera.FarClipDistance;
+            }
+
+            if (currentKeyboardState.IsKeyDown(Keys.PageDown) ||
+                currentJoystickState.IsButtonDown(Buttons.RightTrigger))
+            {
+                depthOfField.FocusDistance -= 1;
+                if (depthOfField.FocusDistance < camera.NearClipDistance)
+                    depthOfField.FocusDistance = camera.NearClipDistance;
+            }
+
+            if (currentKeyboardState.IsKeyDown(Keys.Home) ||
+                currentJoystickState.IsButtonDown(Buttons.LeftShoulder))
+            {
+                depthOfField.FocusRange += 1;
+                if (500.0f < depthOfField.FocusRange)
+                    depthOfField.FocusRange = 500.0f;
+            }
+
+            if (currentKeyboardState.IsKeyDown(Keys.End) ||
+                currentJoystickState.IsButtonDown(Buttons.LeftTrigger))
+            {
+                depthOfField.FocusRange -= 1;
+                if (depthOfField.FocusRange < 10.0f)
+                    depthOfField.FocusRange = 10.0f;
+            }
 
             if (currentKeyboardState.IsKeyDown(Keys.Escape) ||
                 currentJoystickState.Buttons.Back == ButtonState.Pressed)
