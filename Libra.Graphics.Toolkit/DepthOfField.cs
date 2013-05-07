@@ -26,16 +26,10 @@ namespace Libra.Graphics.Toolkit
             set { effect.FocusRange = value; }
         }
 
-        public float NearClipDistance
+        public Matrix Projection
         {
-            get { return effect.NearClipDistance; }
-            set { effect.NearClipDistance = value; }
-        }
-
-        public float FarClipDistance
-        {
-            get { return effect.FarClipDistance; }
-            set { effect.FarClipDistance = value; }
+            get { return effect.Projection; }
+            set { effect.Projection = value; }
         }
 
         public DepthOfField(Device device)
@@ -64,13 +58,17 @@ namespace Libra.Graphics.Toolkit
             var previousBlendState = context.BlendState;
             var previousDepthStencilState = context.DepthStencilState;
             var previousRasterizerState = context.RasterizerState;
-            var previousSamplerState = context.PixelShaderSamplers[0];
+            var previousSamplerState0 = context.PixelShaderSamplers[0];
+            var previousSamplerState1 = context.PixelShaderSamplers[1];
+            var previousSamplerState2 = context.PixelShaderSamplers[2];
 
             // ステートの設定。
             context.BlendState = BlendState.Opaque;
             context.DepthStencilState = DepthStencilState.None;
             context.RasterizerState = RasterizerState.CullBack;
             context.PixelShaderSamplers[0] = SamplerState.LinearClamp;
+            context.PixelShaderSamplers[1] = SamplerState.LinearClamp;
+            context.PixelShaderSamplers[2] = SamplerState.PointClamp;
 
             // エフェクトの設定。
             effect.NormalSceneMap = normalSceneMap;
@@ -85,7 +83,9 @@ namespace Libra.Graphics.Toolkit
             context.BlendState = previousBlendState;
             context.DepthStencilState = previousDepthStencilState;
             context.RasterizerState = previousRasterizerState;
-            context.PixelShaderSamplers[0] = previousSamplerState;
+            context.PixelShaderSamplers[0] = previousSamplerState0;
+            context.PixelShaderSamplers[1] = previousSamplerState1;
+            context.PixelShaderSamplers[2] = previousSamplerState2;
         }
 
         #region IDisposable

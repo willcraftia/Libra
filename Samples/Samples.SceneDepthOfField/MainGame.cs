@@ -132,6 +132,7 @@ namespace Samples.SceneDepthOfField
                 NearClipDistance = 1.0f,
                 FarClipDistance = 1000.0f
             };
+            camera.Update();
         }
 
         protected override void LoadContent()
@@ -156,8 +157,7 @@ namespace Samples.SceneDepthOfField
                 Device, bluredSceneRenderTarget.Width, bluredSceneRenderTarget.Height, bluredSceneRenderTarget.Format);
 
             depthOfField = new DepthOfField(Device);
-            depthOfField.NearClipDistance = camera.NearClipDistance;
-            depthOfField.FarClipDistance = camera.FarClipDistance;
+            depthOfField.Projection = camera.Projection;
 
             gridModel = content.Load<Model>("grid");
             dudeModel = content.Load<Model>("dude");

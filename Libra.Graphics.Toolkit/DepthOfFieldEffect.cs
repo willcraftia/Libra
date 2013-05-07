@@ -27,16 +27,13 @@ namespace Libra.Graphics.Toolkit
 
         #region Constants
 
-        [StructLayout(LayoutKind.Sequential)]
         public struct Constants
         {
-            public float FocusScale;
+            // X = scale
+            // Y = distance
+            public Vector4 Focus;
 
-            public float FocusDistance;
-            
-            public float NearClipDistance;
-            
-            public float FarClipDistance;
+            public Matrix InvertProjection;
         }
 
         #endregion
@@ -46,9 +43,9 @@ namespace Libra.Graphics.Toolkit
         [Flags]
         enum DirtyFlags
         {
-            FocusScale  = (1 << 0),
-            Clipping    = (1 << 1),
-            Constants   = (1 << 2)
+            FocusScale          = (1 << 0),
+            InvertProjection    = (1 << 1),
+            Constants           = (1 << 2)
         }
 
         #endregion
@@ -63,9 +60,7 @@ namespace Libra.Graphics.Toolkit
 
         float focusRange;
 
-        float nearClipDistance;
-
-        float farClipDistance;
+        Matrix projection;
 
         DirtyFlags dirtyFlags;
 
@@ -80,36 +75,25 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
+        public Matrix Projection
+        {
+            get { return projection; }
+            set
+            {
+                projection = value;
+
+                dirtyFlags |= DirtyFlags.InvertProjection;
+            }
+        }
+
         public float FocusDistance
         {
-            get { return constants.FocusDistance; }
+            get { return constants.Focus.Y; }
             set
             {
-                constants.FocusDistance = value;
+                constants.Focus.Y = value;
 
                 dirtyFlags |= DirtyFlags.Constants;
-            }
-        }
-
-        public float NearClipDistance
-        {
-            get { return nearClipDistance; }
-            set
-            {
-                nearClipDistance = value;
-
-                dirtyFlags |= DirtyFlags.Clipping;
-            }
-        }
-
-        public float FarClipDistance
-        {
-            get { return farClipDistance; }
-            set
-            {
-                farClipDistance = value;
-
-                dirtyFlags |= DirtyFlags.Clipping;
             }
         }
 
@@ -130,30 +114,31 @@ namespace Libra.Graphics.Toolkit
             constantBuffer = device.CreateConstantBuffer();
             constantBuffer.Initialize<Constants>();
 
-            focusRange = 100.0f;
-            nearClipDistance = 1.0f;
-            farClipDistance = 1000.0f;
+            focusRange = 200.0f;
+            projection = Matrix.Identity;
 
-            constants.FocusDistance = 10.0f;
+            constants.Focus.Y = 10.0f;
 
-            dirtyFlags = DirtyFlags.FocusScale | DirtyFlags.Clipping | DirtyFlags.Constants;
+            dirtyFlags = DirtyFlags.FocusScale | DirtyFlags.InvertProjection | DirtyFlags.Constants;
         }
 
         public void Apply(DeviceContext context)
         {
             if ((dirtyFlags & DirtyFlags.FocusScale) != 0)
             {
-                constants.FocusScale = 1.0f / focusRange;
+                constants.Focus.X = 1.0f / focusRange;
 
                 dirtyFlags &= ~DirtyFlags.FocusScale;
                 dirtyFlags |= DirtyFlags.Constants;
             }
-            if ((dirtyFlags & DirtyFlags.Clipping) != 0)
+            if ((dirtyFlags & DirtyFlags.InvertProjection) != 0)
             {
-                constants.FarClipDistance = farClipDistance / (farClipDistance - nearClipDistance);
-                constants.NearClipDistance = nearClipDistance * constants.FarClipDistance;
+                Matrix invertProjection;
+                Matrix.Invert(ref projection, out invertProjection);
 
-                dirtyFlags &= ~DirtyFlags.Clipping;
+                Matrix.Transpose(ref invertProjection, out constants.InvertProjection);
+
+                dirtyFlags &= ~DirtyFlags.InvertProjection;
                 dirtyFlags |= DirtyFlags.Constants;
             }
 

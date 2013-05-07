@@ -1,12 +1,8 @@
 cbuffer Parameters : register(b0)
 {
-    // FocusScale = 1 / range
-    float FocusScale        : packoffset(c0.x);
-    float FocusDistance     : packoffset(c0.y);
-    // NearClipDistance = near * far / (far - near)
-    float NearClipDistance  : packoffset(c0.z);
-    // FarClipDistance = far / (far - near)
-    float FarClipDistance   : packoffset(c0.w);
+    float FocusScale            : packoffset(c0.x);
+    float FocusDistance         : packoffset(c0.y);
+    float4x4 InvertProjection   : packoffset(c1);
 };
 
 Texture2D<float4> NormalSceneMap    : register(t0);
@@ -24,7 +20,9 @@ float4 PS(float4 color    : COLOR0,
     float4 bluredScene = BluredSceneMap.Sample(BluredSceneMapSampler, texCoord);
     float depth = DepthMap.Sample(DepthMapSampler, texCoord);
 
-    float sceneDistance = -NearClipDistance / (depth - FarClipDistance);
+    float4 depthSample = mul(float4(texCoord, depth, 1), InvertProjection);
+    float sceneDistance = depthSample.z / depthSample.w;
+
     float blurFactor = saturate(abs(sceneDistance - FocusDistance) * FocusScale);
 
     return lerp(normalScene, bluredScene, blurFactor);
