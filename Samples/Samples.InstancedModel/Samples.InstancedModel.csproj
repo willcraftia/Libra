@@ -53,6 +53,10 @@
     <Compile Include="SpinningInstance.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Libra.Games.Debugging\Libra.Games.Debugging.csproj">
+      <Project>{49B9E5C6-208A-4EEF-BD7E-D4C109B21362}</Project>
+      <Name>Libra.Games.Debugging</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Libra.Games.Forms.SharpDX\Libra.Games.Forms.SharpDX.csproj">
       <Project>{18B2993B-626D-4337-91A2-ED0239B8D843}</Project>
       <Name>Libra.Games.Forms.SharpDX</Name>

@@ -75,6 +75,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.SceneDepthOfFieldCo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.SceneDepthOfField", "Samples\Samples.SceneDepthOfField\Samples.SceneDepthOfField.csproj", "{AA1742FC-1299-4ABD-8FFC-E1C810D4425C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Libra.Games.Debugging", "Libra.Games.Debugging\Libra.Games.Debugging.csproj", "{49B9E5C6-208A-4EEF-BD7E-D4C109B21362}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -423,6 +425,16 @@ Global
 		{AA1742FC-1299-4ABD-8FFC-E1C810D4425C}.Release|Mixed Platforms.Build.0 = Release|x86
 		{AA1742FC-1299-4ABD-8FFC-E1C810D4425C}.Release|x86.ActiveCfg = Release|x86
 		{AA1742FC-1299-4ABD-8FFC-E1C810D4425C}.Release|x86.Build.0 = Release|x86
+		{49B9E5C6-208A-4EEF-BD7E-D4C109B21362}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{49B9E5C6-208A-4EEF-BD7E-D4C109B21362}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{49B9E5C6-208A-4EEF-BD7E-D4C109B21362}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{49B9E5C6-208A-4EEF-BD7E-D4C109B21362}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{49B9E5C6-208A-4EEF-BD7E-D4C109B21362}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{49B9E5C6-208A-4EEF-BD7E-D4C109B21362}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{49B9E5C6-208A-4EEF-BD7E-D4C109B21362}.Release|Any CPU.Build.0 = Release|Any CPU
+		{49B9E5C6-208A-4EEF-BD7E-D4C109B21362}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{49B9E5C6-208A-4EEF-BD7E-D4C109B21362}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{49B9E5C6-208A-4EEF-BD7E-D4C109B21362}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

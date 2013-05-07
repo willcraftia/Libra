@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using Libra;
 using Libra.Games;
+using Libra.Games.Debugging;
 using Libra.Graphics;
 using Libra.Graphics.Compiler;
 using Libra.Input;
@@ -89,11 +90,7 @@ namespace Samples.InstancedModel
 
         InputLayout instanceInputLayout;
 
-        int frameRate;
-        
-        int frameCounter;
-        
-        TimeSpan elapsedTime;
+        FrameRateMeasure frameRateMeasure;
 
         KeyboardState lastKeyboardState;
         
@@ -117,6 +114,14 @@ namespace Samples.InstancedModel
 
             for (int i = 0; i < InitialInstanceCount; i++)
                 instances.Add(new SpinningInstance());
+        }
+
+        protected override void Initialize()
+        {
+            frameRateMeasure = new FrameRateMeasure(this);
+            Components.Add(frameRateMeasure);
+
+            base.Initialize();
         }
 
         protected override void LoadContent()
@@ -170,15 +175,6 @@ namespace Samples.InstancedModel
             {
                 instance.Update(gameTime);
             }
-
-            elapsedTime += gameTime.ElapsedGameTime;
-
-            if (elapsedTime > TimeSpan.FromSeconds(1))
-            {
-                elapsedTime -= TimeSpan.FromSeconds(1);
-                frameRate = frameCounter;
-                frameCounter = 0;
-            } 
             
             base.Update(gameTime);
         }
@@ -221,8 +217,6 @@ namespace Samples.InstancedModel
             }
 
             DrawOverlayText();
-            
-            frameCounter++;
 
             base.Draw(gameTime);
         }
@@ -341,7 +335,7 @@ namespace Samples.InstancedModel
                                      "A = Change technique\n" +
                                      "X = Add instances\n" +
                                      "Y = Remove instances\n",
-                                     frameRate,
+                                     frameRateMeasure.FrameRate,
                                      instances.Count,
                                      instancingTechnique);
 
