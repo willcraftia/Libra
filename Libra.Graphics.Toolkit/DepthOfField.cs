@@ -6,26 +6,47 @@ using System;
 
 namespace Libra.Graphics.Toolkit
 {
+    /// <summary>
+    /// 被写界深度を考慮したシーンを描画するクラスです。
+    /// </summary>
     public sealed class DepthOfField : IDisposable
     {
+        /// <summary>
+        /// 被写界深度エフェクト。
+        /// </summary>
         DepthOfFieldEffect effect;
 
+        /// <summary>
+        /// フルスクリーン クアッド。
+        /// </summary>
         FullScreenQuad fullScreenQuad;
 
+        /// <summary>
+        /// デバイス。
+        /// </summary>
         public Device Device { get; private set; }
 
+        /// <summary>
+        /// 焦点距離を取得または設定します。
+        /// </summary>
         public float FocusDistance
         {
             get { return effect.FocusDistance; }
             set { effect.FocusDistance = value; }
         }
 
+        /// <summary>
+        /// 焦点範囲を取得または設定します。
+        /// </summary>
         public float FocusRange
         {
             get { return effect.FocusRange; }
             set { effect.FocusRange = value; }
         }
 
+        /// <summary>
+        /// 表示カメラの射影行列を取得または設定します。
+        /// </summary>
         public Matrix Projection
         {
             get { return effect.Projection; }
@@ -43,6 +64,14 @@ namespace Libra.Graphics.Toolkit
             fullScreenQuad = new FullScreenQuad(Device);
         }
 
+        /// <summary>
+        /// 深度マップを参照して、通常シーンとブラー済みシーンを合成し、
+        /// 現在設定されているレンダ ターゲットへ結果を描画します。
+        /// </summary>
+        /// <param name="context">デバイス コンテキスト。</param>
+        /// <param name="normalSceneMap">通常シーン。</param>
+        /// <param name="bluredSceneMap">ブラー済みシーン。</param>
+        /// <param name="depthMap">深度マップ。</param>
         public void Draw(
             DeviceContext context,
             ShaderResourceView normalSceneMap,

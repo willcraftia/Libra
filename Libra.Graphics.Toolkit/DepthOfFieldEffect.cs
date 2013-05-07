@@ -8,6 +8,9 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
+    /// <summary>
+    /// 被写界深度を考慮したシーンの生成を担うエフェクトです。
+    /// </summary>
     public sealed class DepthOfFieldEffect : IDisposable
     {
         #region SharedDeviceResource
@@ -27,7 +30,7 @@ namespace Libra.Graphics.Toolkit
 
         #region Constants
 
-        public struct Constants
+        struct Constants
         {
             // X = scale
             // Y = distance
@@ -64,28 +67,9 @@ namespace Libra.Graphics.Toolkit
 
         DirtyFlags dirtyFlags;
 
-        public float FocusRange
-        {
-            get { return focusRange; }
-            set
-            {
-                focusRange = value;
-
-                dirtyFlags |= DirtyFlags.FocusScale;
-            }
-        }
-
-        public Matrix Projection
-        {
-            get { return projection; }
-            set
-            {
-                projection = value;
-
-                dirtyFlags |= DirtyFlags.InvertProjection;
-            }
-        }
-
+        /// <summary>
+        /// 焦点距離を取得または設定します。
+        /// </summary>
         public float FocusDistance
         {
             get { return constants.Focus.Y; }
@@ -97,10 +81,47 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
+        /// <summary>
+        /// 焦点範囲を取得または設定します。
+        /// </summary>
+        public float FocusRange
+        {
+            get { return focusRange; }
+            set
+            {
+                focusRange = value;
+
+                dirtyFlags |= DirtyFlags.FocusScale;
+            }
+        }
+
+        /// <summary>
+        /// 表示カメラの射影行列を取得または設定します。
+        /// </summary>
+        public Matrix Projection
+        {
+            get { return projection; }
+            set
+            {
+                projection = value;
+
+                dirtyFlags |= DirtyFlags.InvertProjection;
+            }
+        }
+
+        /// <summary>
+        /// 通常シーンを取得または設定します。
+        /// </summary>
         public ShaderResourceView NormalSceneMap { get; set; }
 
+        /// <summary>
+        /// ブラー済みシーンを取得または設定します。
+        /// </summary>
         public ShaderResourceView BluredSceneMap { get; set; }
 
+        /// <summary>
+        /// 深度マップを取得または設定します。
+        /// </summary>
         public ShaderResourceView DepthMap { get; set; }
 
         public DepthOfFieldEffect(Device device)
