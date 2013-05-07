@@ -107,6 +107,9 @@
     <None Include="Shaders\Compiled\DepthOfFieldPS.bin" />
     <None Include="Shaders\Compiled\FullScreenQuadVS.bin" />
     <None Include="Shaders\Compiled\GaussianBlurPS.bin" />
+    <None Include="Shaders\Compiled\GodRayOcclusionMapPS.bin" />
+    <None Include="Shaders\Compiled\GodRayOcclusionMapVS.bin" />
+    <None Include="Shaders\Compiled\GodRayPS.bin" />
     <None Include="Shaders\Compiled\ShadowMapBasicPS.bin" />
     <None Include="Shaders\Compiled\ShadowMapVariancePS.bin" />
     <None Include="Shaders\Compiled\ShadowMapVS.bin" />

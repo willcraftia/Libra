@@ -39,6 +39,13 @@ call :CompileShader DepthMap PS %ps_profile%
 ::
 call :CompileShader DepthOfField PS %ps_profile%
 
+::
+:: GodRayOcclusionMap/GodRay VS/PS
+::
+call :CompileShader GodRayOcclusionMap VS %vs_profile%
+call :CompileShader GodRayOcclusionMap PS %ps_profile%
+call :CompileShader GodRay PS %ps_profile%
+
 echo.
 
 if %error% == 0 (

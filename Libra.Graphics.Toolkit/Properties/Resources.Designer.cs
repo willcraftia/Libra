@@ -109,6 +109,27 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
+        internal static byte[] GodRayOcclusionMapPS {
+            get {
+                object obj = ResourceManager.GetObject("GodRayOcclusionMapPS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] GodRayOcclusionMapVS {
+            get {
+                object obj = ResourceManager.GetObject("GodRayOcclusionMapVS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] GodRayPS {
+            get {
+                object obj = ResourceManager.GetObject("GodRayPS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
         internal static byte[] ShadowMapBasicPS {
             get {
                 object obj = ResourceManager.GetObject("ShadowMapBasicPS", resourceCulture);
