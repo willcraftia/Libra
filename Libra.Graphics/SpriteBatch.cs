@@ -476,6 +476,7 @@ namespace Libra.Graphics
             {
                 sprites.Add(sprite);
                 RenderBatch(sprite.Texture, 0, 1);
+                sprites.Clear();
             }
             else
             {
