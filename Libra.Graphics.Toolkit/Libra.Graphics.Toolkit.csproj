@@ -44,6 +44,7 @@
     <Compile Include="BasicLightCameraBuilder.cs" />
     <Compile Include="BloomEffect.cs" />
     <Compile Include="Camera.cs" />
+    <Compile Include="CubeMesh.cs" />
     <Compile Include="DepthMap.cs" />
     <Compile Include="DepthMapEffect.cs" />
     <Compile Include="DepthOfField.cs" />
@@ -51,6 +52,7 @@
     <Compile Include="GodRayEffect.cs" />
     <Compile Include="GodRayOcclusionMap.cs" />
     <Compile Include="GodRayOcclusionMapEffect.cs" />
+    <Compile Include="PrimitiveMesh.cs" />
     <Compile Include="UniformLightCameraBuilder.cs" />
     <Compile Include="LightCameraBuilder.cs" />
     <Compile Include="ConvexBody.cs" />
