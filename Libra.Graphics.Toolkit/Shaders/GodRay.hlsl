@@ -1,4 +1,4 @@
-#define MAX_SAMPLE_COUNT 100
+#define MAX_SAMPLE_COUNT 128
 
 cbuffer Parameters : register(b0)
 {
@@ -10,23 +10,16 @@ cbuffer Parameters : register(b0)
     float Exposure              : packoffset(c2.w);
 };
 
-Texture2D<float4> SceneMap      : register(t0);
-Texture2D<float3> OcclusionMap  : register(t1);
-
-SamplerState SceneMapSampler        : register(s0);
-SamplerState OcclusionMapSampler    : register(s1);
+Texture2D<float3> SceneMap : register(t0);
+SamplerState SceneMapSampler : register(s0);
 
 float4 PS(float4 color    : COLOR0,
           float2 texCoord : TEXCOORD0) : SV_Target
 {
-float2 originalTexCoord = texCoord;
-
-
     float2 deltaTexCoord = (texCoord - ScreenLightPosition);
     deltaTexCoord *= 1.0f / SampleCount * Density;
 
-    float3 occlusion = OcclusionMap.Sample(OcclusionMapSampler, texCoord);
-//    float3 occlusion = SceneMap.Sample(SceneMapSampler, texCoord).xyz;
+    float3 sceneColor = SceneMap.Sample(SceneMapSampler, texCoord);
 
     float illuminationDecay = 1;
 
@@ -35,16 +28,12 @@ float2 originalTexCoord = texCoord;
     {
         texCoord -= deltaTexCoord;
 
-        float3 sample = OcclusionMap.Sample(OcclusionMapSampler, texCoord);
-//        float3 sample = SceneMap.Sample(SceneMapSampler, texCoord).xyz;
+        float3 sample = SceneMap.Sample(SceneMapSampler, texCoord);
 
         sample *= illuminationDecay * Weight;
-        occlusion += sample;
+        sceneColor += sample;
         illuminationDecay *= Decay;
     }
 
-//    float4 scene = SceneMap.Sample(SceneMapSampler, texCoord);
-//    return float4(occlusion * Exposure, 1) + scene;
-//return float4(occlusion * Exposure, 1);
-return float4(occlusion * Exposure, 1) + SceneMap.Sample(SceneMapSampler, originalTexCoord);
+    return float4(sceneColor * Exposure, 1);
 }

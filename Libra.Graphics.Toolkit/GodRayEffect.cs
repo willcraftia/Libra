@@ -151,8 +151,6 @@ namespace Libra.Graphics.Toolkit
 
         public ShaderResourceView SceneMap { get; set; }
 
-        public ShaderResourceView OcclusionMap { get; set; }
-
         public GodRayEffect(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
@@ -164,13 +162,12 @@ namespace Libra.Graphics.Toolkit
             constantBuffer = device.CreateConstantBuffer();
             constantBuffer.Initialize<Constants>();
 
-            constants.SampleCount = 32;
+            constants.SampleCount = 100;
             constants.ScreenLightPosition = Vector2.Zero;
-            //constants.Density = 1.0f;
             constants.Density = 0.1f;
             constants.Decay = 0.8f;
-            constants.Weight = 0.8f;
-            constants.Exposure = 0.8f;
+            constants.Weight = 0.5f;
+            constants.Exposure = 0.5f;
         }
 
         public void Apply(DeviceContext context)
@@ -186,10 +183,7 @@ namespace Libra.Graphics.Toolkit
             context.PixelShader = sharedDeviceResource.PixelShader;
 
             context.PixelShaderResources[0] = SceneMap;
-            context.PixelShaderResources[1] = OcclusionMap;
-
             context.PixelShaderSamplers[0] = SamplerState.LinearClamp;
-            context.PixelShaderSamplers[1] = SamplerState.LinearClamp;
         }
 
         #region IDisposable
