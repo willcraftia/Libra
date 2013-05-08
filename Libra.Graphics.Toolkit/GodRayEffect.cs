@@ -61,7 +61,7 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        public const int MaxSampleCount = 7;
+        public const int MaxSampleCount = 32;
 
         Device device;
 
@@ -163,6 +163,14 @@ namespace Libra.Graphics.Toolkit
 
             constantBuffer = device.CreateConstantBuffer();
             constantBuffer.Initialize<Constants>();
+
+            constants.SampleCount = 32;
+            constants.ScreenLightPosition = Vector2.Zero;
+            //constants.Density = 1.0f;
+            constants.Density = 0.1f;
+            constants.Decay = 0.8f;
+            constants.Weight = 0.8f;
+            constants.Exposure = 0.8f;
         }
 
         public void Apply(DeviceContext context)

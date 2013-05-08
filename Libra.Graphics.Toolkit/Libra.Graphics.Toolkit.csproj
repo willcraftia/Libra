@@ -49,6 +49,7 @@
     <Compile Include="DepthOfField.cs" />
     <Compile Include="DepthOfFieldEffect.cs" />
     <Compile Include="GodRayEffect.cs" />
+    <Compile Include="GodRayOcclusionMap.cs" />
     <Compile Include="GodRayOcclusionMapEffect.cs" />
     <Compile Include="UniformLightCameraBuilder.cs" />
     <Compile Include="LightCameraBuilder.cs" />
