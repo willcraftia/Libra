@@ -7,7 +7,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class GodRayOcclusionMapEffect : IEffectMatrices, IDisposable
+    public sealed class GodRayOcclusionMapEffect : IEffect, IEffectMatrices, IDisposable
     {
         #region SharedDeviceResource
 
