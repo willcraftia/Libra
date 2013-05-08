@@ -89,10 +89,12 @@ namespace Samples.SceneGodRay
         /// </summary>
         RenderTarget normalSceneRenderTarget;
 
+        RenderTarget godRayRenderTarget;
+
         /// <summary>
         /// グリッド モデル (格子状の床)。
         /// </summary>
-        Model gridModel;
+        //Model gridModel;
 
         /// <summary>
         /// デュード モデル (人)。
@@ -146,9 +148,16 @@ namespace Samples.SceneGodRay
             normalSceneRenderTarget.Width = WindowWidth;
             normalSceneRenderTarget.Height = WindowHeight;
             normalSceneRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
+            normalSceneRenderTarget.Name = "NormalScene";
             normalSceneRenderTarget.Initialize();
 
-            gridModel = content.Load<Model>("grid");
+            godRayRenderTarget = Device.CreateRenderTarget();
+            godRayRenderTarget.Width = WindowWidth;
+            godRayRenderTarget.Height = WindowHeight;
+            godRayRenderTarget.Name = "GodRayScene";
+            godRayRenderTarget.Initialize();
+
+            //gridModel = content.Load<Model>("grid");
             dudeModel = content.Load<Model>("dude");
         }
 
@@ -201,7 +210,7 @@ namespace Samples.SceneGodRay
 
         void DrawOcclusionMapObjects(Matrix view, Matrix projection, GodRayOcclusionMapEffect effect)
         {
-            DrawModel(gridModel, Matrix.Identity, effect);
+            //DrawModel(gridModel, Matrix.Identity, effect);
             DrawModel(dudeModel, Matrix.CreateRotationY(MathHelper.ToRadians(rotateDude)), effect);
         }
 
@@ -234,7 +243,7 @@ namespace Samples.SceneGodRay
 
             context.Clear(Color.CornflowerBlue);
 
-            DrawModel(gridModel, Matrix.Identity);
+            //DrawModel(gridModel, Matrix.Identity);
             DrawModel(dudeModel, Matrix.CreateRotationY(MathHelper.ToRadians(rotateDude)));
 
             context.SetRenderTarget(null);
@@ -275,21 +284,30 @@ namespace Samples.SceneGodRay
                 projectedPosition.Z < 0 || projectedPosition.Z > 1)
             {
                 spriteBatch.Begin();
-                spriteBatch.Draw(normalSceneRenderTarget.GetShaderResourceView(), normalSceneRenderTarget.Bounds, Color.White);
+                spriteBatch.Draw(normalSceneRenderTarget.GetShaderResourceView(), Vector2.Zero, Color.White);
                 spriteBatch.End();
                 return;
             }
+            else
+            {
+                context.SetRenderTarget(godRayRenderTarget.GetRenderTargetView());
 
-            context.PixelShaderSamplers[0] = SamplerState.LinearClamp;
-            context.PixelShaderSamplers[1] = SamplerState.LinearClamp;
+                godRayEffect.ScreenLightPosition = new Vector2(projectedPosition.X / godRayRenderTarget.Width, projectedPosition.Y / godRayRenderTarget.Height);
+                //godRayEffect.SceneMap = normalSceneRenderTarget.GetShaderResourceView();
+                godRayEffect.SceneMap = occlusionMap.RenderTarget.GetShaderResourceView();
+                godRayEffect.Apply(context);
 
-            //godRayEffect.ScreenLightPosition = new Vector2(400, 240);
-            godRayEffect.ScreenLightPosition = new Vector2(projectedPosition.X / context.Viewport.Width, projectedPosition.Y / context.Viewport.Height);
-            godRayEffect.SceneMap = normalSceneRenderTarget.GetShaderResourceView();
-            godRayEffect.OcclusionMap = occlusionMap.RenderTarget.GetShaderResourceView();
-            godRayEffect.Apply(context);
+                fullScreenQuad.Draw(context);
 
-            fullScreenQuad.Draw(context);
+                context.SetRenderTarget(null);
+
+                context.Clear(Color.Black);
+
+                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Additive);
+                spriteBatch.Draw(normalSceneRenderTarget.GetShaderResourceView(), Vector2.Zero, Color.White);
+                spriteBatch.Draw(godRayRenderTarget.GetShaderResourceView(), Vector2.Zero, Color.White);
+                spriteBatch.End();
+            }
         }
 
         void DrawInterMapsToScreen()
@@ -301,7 +319,7 @@ namespace Samples.SceneGodRay
             int w = (int) (WindowWidth * scale);
             int h = (int) (WindowHeight * scale);
 
-            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Opaque, SamplerState.PointClamp);
+            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque, SamplerState.PointClamp);
 
             int index;
             int x;
@@ -313,6 +331,10 @@ namespace Samples.SceneGodRay
             index = 1;
             x = index * w;
             spriteBatch.Draw(normalSceneRenderTarget.GetShaderResourceView(), new Rectangle(x, 0, w, h), Color.White);
+
+            index = 2;
+            x = index * w;
+            spriteBatch.Draw(godRayRenderTarget.GetShaderResourceView(), new Rectangle(x, 0, w, h), Color.White);
 
             spriteBatch.End();
         }
