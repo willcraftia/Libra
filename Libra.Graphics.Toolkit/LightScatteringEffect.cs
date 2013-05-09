@@ -61,7 +61,7 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        public const int MaxSampleCount = 32;
+        public const int MaxSampleCount = 128;
 
         Device device;
 
@@ -102,7 +102,7 @@ namespace Libra.Graphics.Toolkit
             get { return constants.Density; }
             set
             {
-                if (value <= 0.0f) throw new ArgumentOutOfRangeException("value");
+                if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
 
                 constants.Density = value;
 
@@ -115,7 +115,7 @@ namespace Libra.Graphics.Toolkit
             get { return constants.Decay; }
             set
             {
-                if (value <= 0.0f) throw new ArgumentOutOfRangeException("value");
+                if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
 
                 constants.Decay = value;
 
@@ -128,7 +128,7 @@ namespace Libra.Graphics.Toolkit
             get { return constants.Weight; }
             set
             {
-                if (value <= 0.0f) throw new ArgumentOutOfRangeException("value");
+                if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
 
                 constants.Weight = value;
 
@@ -141,7 +141,7 @@ namespace Libra.Graphics.Toolkit
             get { return constants.Exposure; }
             set
             {
-                if (value <= 0.0f) throw new ArgumentOutOfRangeException("value");
+                if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
 
                 constants.Exposure = value;
 
