@@ -53,6 +53,7 @@
     <Compile Include="GodRayOcclusionMap.cs" />
     <Compile Include="GodRayOcclusionMapEffect.cs" />
     <Compile Include="PrimitiveMesh.cs" />
+    <Compile Include="SphereMesh.cs" />
     <Compile Include="UniformLightCameraBuilder.cs" />
     <Compile Include="LightCameraBuilder.cs" />
     <Compile Include="ConvexBody.cs" />
