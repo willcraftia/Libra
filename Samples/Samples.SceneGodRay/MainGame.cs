@@ -110,7 +110,16 @@ namespace Samples.SceneGodRay
         /// ライトの進行方向。
         /// </summary>
         //Vector3 lightDirection = Vector3.Normalize(new Vector3(0.3333333f, -0.6666667f, 0.6666667f));
-        Vector3 lightDirection = Vector3.Normalize(new Vector3(-1, -0.1f, 0.3f));
+        //Vector3 lightDirection = Vector3.Normalize(new Vector3(-1, -0.1f, 0.3f));
+        Vector3 lightDirection = Vector3.Backward;
+
+        BasicEffect basicEffect;
+
+        CubeMesh cubeMesh;
+
+        Matrix cubeScale = Matrix.CreateScale(10.0f);
+
+        SkySphere skySphere;
 
         public MainGame()
         {
@@ -159,6 +168,18 @@ namespace Samples.SceneGodRay
 
             //gridModel = content.Load<Model>("grid");
             dudeModel = content.Load<Model>("dude");
+
+            basicEffect = new BasicEffect(Device);
+            basicEffect.DiffuseColor = Color.Red.ToVector3();
+            basicEffect.DirectionalLights[0].Direction = lightDirection;
+            basicEffect.EnableDefaultLighting();
+
+            cubeMesh = new CubeMesh(Device);
+
+            skySphere = new SkySphere(Device);
+            skySphere.SunDirection = -lightDirection;
+            skySphere.SkyColor = Color.CornflowerBlue.ToVector3();
+            skySphere.SunColor = Color.White.ToVector3();
         }
 
         protected override void Update(GameTime gameTime)
@@ -208,29 +229,40 @@ namespace Samples.SceneGodRay
             occlusionMap.Draw(context, camera.View, camera.Projection, DrawOcclusionMapObjects);
         }
 
-        void DrawOcclusionMapObjects(Matrix view, Matrix projection, GodRayOcclusionMapEffect effect)
-        {
-            //DrawModel(gridModel, Matrix.Identity, effect);
-            DrawModel(dudeModel, Matrix.CreateRotationY(MathHelper.ToRadians(rotateDude)), effect);
-        }
+        // TODO
+        // コールバック メソッドでコンテキストを受け取れないとおかしい。
 
-        void DrawModel(Model model, Matrix world, GodRayOcclusionMapEffect effect)
+        void DrawOcclusionMapObjects(Matrix view, Matrix projection, GodRayOcclusionMapEffect effect)
         {
             var context = Device.ImmediateContext;
 
-            // 閉塞マップ エフェクトの準備。
-            effect.World = world;
-            effect.Apply(context);
+            DrawCubeMeshes(context, effect);
+        }
 
-            context.PrimitiveTopology = PrimitiveTopology.TriangleList;
+        void DrawCubeMeshes(DeviceContext context, IEffect effect)
+        {
+            var effectMatrices = effect as IEffectMatrices;
 
-            foreach (var mesh in model.Meshes)
+            const float distance = 20.0f;
+
+            for (int x = -2; x < 2; x++)
             {
-                foreach (var meshPart in mesh.MeshParts)
+                for (int y = -2; y < 2; y++)
                 {
-                    context.SetVertexBuffer(0, meshPart.VertexBuffer);
-                    context.IndexBuffer = meshPart.IndexBuffer;
-                    context.DrawIndexed(meshPart.IndexCount, meshPart.StartIndexLocation, meshPart.BaseVertexLocation);
+                    for (int z = -2; z < 2; z++)
+                    {
+                        if (effectMatrices != null)
+                        {
+                            var position = new Vector3(x * distance, y * distance, z * distance);
+                            var translation = Matrix.CreateTranslation(position);
+
+                            effectMatrices.World = cubeScale * translation;
+                        }
+
+                        effect.Apply(context);
+
+                        cubeMesh.Draw(context);
+                    }
                 }
             }
         }
@@ -243,28 +275,12 @@ namespace Samples.SceneGodRay
 
             context.Clear(Color.CornflowerBlue);
 
-            //DrawModel(gridModel, Matrix.Identity);
-            DrawModel(dudeModel, Matrix.CreateRotationY(MathHelper.ToRadians(rotateDude)));
+            basicEffect.View = camera.View;
+            basicEffect.Projection = camera.Projection;
+
+            DrawCubeMeshes(context, basicEffect);
 
             context.SetRenderTarget(null);
-        }
-
-        void DrawModel(Model model, Matrix world)
-        {
-            var context = Device.ImmediateContext;
-
-            foreach (var mesh in model.Meshes)
-            {
-                foreach (BasicEffect effect in mesh.Effects)
-                {
-                    effect.World = world;
-                    effect.View = camera.View;
-                    effect.Projection = camera.Projection;
-                    effect.EnableDefaultLighting();
-                }
-
-                mesh.Draw(context);
-            }
         }
 
         void CreateFinalSceneMap()
@@ -281,7 +297,8 @@ namespace Samples.SceneGodRay
 
             if (/*projectedPosition.X < 0 || projectedPosition.X > viewport.Width ||
                 projectedPosition.Y < 0 || projectedPosition.Y > viewport.Height ||*/
-                projectedPosition.Z < 0 || projectedPosition.Z > 1)
+                /*projectedPosition.Z < 0 || projectedPosition.Z > 1*/
+                false)
             {
                 spriteBatch.Begin();
                 spriteBatch.Draw(normalSceneRenderTarget.GetShaderResourceView(), Vector2.Zero, Color.White);
