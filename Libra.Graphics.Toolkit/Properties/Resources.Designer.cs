@@ -109,9 +109,9 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
-        internal static byte[] GodRayPS {
+        internal static byte[] LightScatteringPS {
             get {
-                object obj = ResourceManager.GetObject("GodRayPS", resourceCulture);
+                object obj = ResourceManager.GetObject("LightScatteringPS", resourceCulture);
                 return ((byte[])(obj));
             }
         }

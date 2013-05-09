@@ -8,7 +8,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class GodRayEffect : IDisposable
+    public sealed class LightScatteringEffect : IDisposable
     {
         #region SharedDeviceResource
 
@@ -19,7 +19,7 @@ namespace Libra.Graphics.Toolkit
             public SharedDeviceResource(Device device)
             {
                 PixelShader = device.CreatePixelShader();
-                PixelShader.Initialize(Resources.GodRayPS);
+                PixelShader.Initialize(Resources.LightScatteringPS);
             }
         }
 
@@ -151,13 +151,13 @@ namespace Libra.Graphics.Toolkit
 
         public ShaderResourceView SceneMap { get; set; }
 
-        public GodRayEffect(Device device)
+        public LightScatteringEffect(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 
             this.device = device;
 
-            sharedDeviceResource = device.GetSharedResource<GodRayEffect, SharedDeviceResource>();
+            sharedDeviceResource = device.GetSharedResource<LightScatteringEffect, SharedDeviceResource>();
 
             constantBuffer = device.CreateConstantBuffer();
             constantBuffer.Initialize<Constants>();
@@ -190,7 +190,7 @@ namespace Libra.Graphics.Toolkit
 
         bool disposed;
 
-        ~GodRayEffect()
+        ~LightScatteringEffect()
         {
             Dispose(false);
         }

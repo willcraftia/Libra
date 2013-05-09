@@ -49,7 +49,7 @@
     <Compile Include="DepthMapEffect.cs" />
     <Compile Include="DepthOfField.cs" />
     <Compile Include="DepthOfFieldEffect.cs" />
-    <Compile Include="GodRayEffect.cs" />
+    <Compile Include="LightScatteringEffect.cs" />
     <Compile Include="SingleColorObjectEffect.cs" />
     <Compile Include="PrimitiveMesh.cs" />
     <Compile Include="SphereMesh.cs" />
@@ -112,7 +112,7 @@
     <None Include="Shaders\Compiled\DepthOfFieldPS.bin" />
     <None Include="Shaders\Compiled\FullScreenQuadVS.bin" />
     <None Include="Shaders\Compiled\GaussianBlurPS.bin" />
-    <None Include="Shaders\Compiled\GodRayPS.bin" />
+    <None Include="Shaders\Compiled\LightScatteringPS.bin" />
     <None Include="Shaders\Compiled\ShadowMapBasicPS.bin" />
     <None Include="Shaders\Compiled\ShadowMapVariancePS.bin" />
     <None Include="Shaders\Compiled\ShadowMapVS.bin" />
@@ -123,7 +123,7 @@
     <None Include="Shaders\DepthOfField.hlsl" />
     <None Include="Shaders\FullScreenQuad.hlsl" />
     <None Include="Shaders\GaussianBlur.hlsl" />
-    <None Include="Shaders\GodRay.hlsl" />
+    <None Include="Shaders\LightScattering.hlsl" />
     <None Include="Shaders\SingleColorObject.hlsl" />
     <None Include="Shaders\ShadowMap.hlsl" />
   </ItemGroup>

@@ -70,38 +70,60 @@ namespace Samples.SceneGodRay
         JoystickState currentJoystickState;
 
         /// <summary>
-        /// 閉塞マップのスケール。
+        /// ライト閉塞マップの描画先レンダ ターゲット。
         /// </summary>
-        //float mapScale = 0.5f;
-        float mapScale = 1.0f;
+        RenderTarget occlusionRenderTarget;
 
-        GodRayEffect godRayEffect;
-
-        FullScreenQuad fullScreenQuad;
+        /// <summary>
+        /// ライト放射マップの描画先レンダ ターゲット。
+        /// </summary>
+        RenderTarget lightScatteringRenderTarget;
 
         /// <summary>
         /// 通常シーンの描画先レンダ ターゲット。
         /// </summary>
         RenderTarget normalSceneRenderTarget;
 
-        RenderTarget occlusionRenderTarget;
-
-        RenderTarget godRayRenderTarget;
+        /// <summary>
+        /// 閉塞マップのスケール。
+        /// </summary>
+        float mapScale = 0.25f;
+        //float mapScale = 1.0f;
 
         /// <summary>
         /// ライトの進行方向。
         /// </summary>
         Vector3 lightDirection = Vector3.Backward;
 
+        /// <summary>
+        /// 基礎エフェクト。
+        /// </summary>
         BasicEffect basicEffect;
 
+        /// <summary>
+        /// 単色オブジェクト描画エフェクト。
+        /// </summary>
+        SingleColorObjectEffect singleColorObjectEffect;
+
+        /// <summary>
+        /// ライト放射エフェクト。
+        /// </summary>
+        LightScatteringEffect lightScatteringEffect;
+
+        /// <summary>
+        /// FullScreenQuad。
+        /// </summary>
+        FullScreenQuad fullScreenQuad;
+
+        /// <summary>
+        /// 立方体メッシュ。
+        /// </summary>
         CubeMesh cubeMesh;
 
-        Matrix cubeScale = Matrix.CreateScale(10.0f);
-
+        /// <summary>
+        /// スカイ スフィア。
+        /// </summary>
         SkySphere skySphere;
-
-        SingleColorObjectEffect singleColorObjectEffect;
 
         public MainGame()
         {
@@ -118,7 +140,7 @@ namespace Samples.SceneGodRay
                 Direction = Vector3.Forward,
                 Fov = MathHelper.PiOver4,
                 AspectRatio = (float) WindowWidth / (float) WindowHeight,
-                NearClipDistance = 0.1f,
+                NearClipDistance = 1.0f,
                 FarClipDistance = 1000.0f
             };
             camera.Update();
@@ -129,11 +151,18 @@ namespace Samples.SceneGodRay
             spriteBatch = new SpriteBatch(Device.ImmediateContext);
             spriteFont = content.Load<SpriteFont>("hudFont");
 
-            godRayEffect = new GodRayEffect(Device);
-            godRayEffect.Density = 2.0f;
-            godRayEffect.Exposure = 0.8f;
+            occlusionRenderTarget = Device.CreateRenderTarget();
+            occlusionRenderTarget.Width = (int) (WindowWidth * mapScale);
+            occlusionRenderTarget.Height = (int) (WindowHeight * mapScale);
+            occlusionRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
+            occlusionRenderTarget.Name = "Occlusion";
+            occlusionRenderTarget.Initialize();
 
-            fullScreenQuad = new FullScreenQuad(Device);
+            lightScatteringRenderTarget = Device.CreateRenderTarget();
+            lightScatteringRenderTarget.Width = (int) (WindowWidth * mapScale);
+            lightScatteringRenderTarget.Height = (int) (WindowHeight * mapScale);
+            lightScatteringRenderTarget.Name = "LightScattering";
+            lightScatteringRenderTarget.Initialize();
 
             normalSceneRenderTarget = Device.CreateRenderTarget();
             normalSceneRenderTarget.Width = WindowWidth;
@@ -142,26 +171,22 @@ namespace Samples.SceneGodRay
             normalSceneRenderTarget.Name = "Normal";
             normalSceneRenderTarget.Initialize();
 
-            occlusionRenderTarget = Device.CreateRenderTarget();
-            occlusionRenderTarget.Width = WindowWidth;
-            occlusionRenderTarget.Height = WindowHeight;
-            occlusionRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
-            occlusionRenderTarget.Name = "Occlusion";
-            occlusionRenderTarget.Initialize();
-
-            godRayRenderTarget = Device.CreateRenderTarget();
-            godRayRenderTarget.Width = WindowWidth;
-            godRayRenderTarget.Height = WindowHeight;
-            godRayRenderTarget.Name = "GodRay";
-            godRayRenderTarget.Initialize();
-
             basicEffect = new BasicEffect(Device);
             basicEffect.Projection = camera.Projection;
             basicEffect.DiffuseColor = Color.Red.ToVector3();
             basicEffect.DirectionalLights[0].Direction = lightDirection;
             basicEffect.EnableDefaultLighting();
 
-            cubeMesh = new CubeMesh(Device);
+            singleColorObjectEffect = new SingleColorObjectEffect(Device);
+            singleColorObjectEffect.Projection = camera.Projection;
+
+            lightScatteringEffect = new LightScatteringEffect(Device);
+            lightScatteringEffect.Density = 2.0f;
+            lightScatteringEffect.Exposure = 0.8f;
+
+            fullScreenQuad = new FullScreenQuad(Device);
+
+            cubeMesh = new CubeMesh(Device, 10.0f);
 
             skySphere = new SkySphere(Device);
             skySphere.Projection = camera.Projection;
@@ -169,9 +194,6 @@ namespace Samples.SceneGodRay
             skySphere.SunThreshold = 0.99f;
             skySphere.SkyColor = Color.CornflowerBlue.ToVector3();
             skySphere.SunColor = Color.White.ToVector3();
-
-            singleColorObjectEffect = new SingleColorObjectEffect(Device);
-            singleColorObjectEffect.Projection = camera.Projection;
         }
 
         protected override void Update(GameTime gameTime)
@@ -245,7 +267,10 @@ namespace Samples.SceneGodRay
         {
             var effectMatrices = effect as IEffectMatrices;
 
-            const float distance = 20.0f;
+            const float distance = 30.0f;
+
+            Vector3 position;
+            Matrix world;
 
             for (int x = -2; x < 3; x++)
             {
@@ -255,14 +280,16 @@ namespace Samples.SceneGodRay
                     {
                         if (effectMatrices != null)
                         {
-                            var position = new Vector3(x * distance, y * distance, z * distance);
-                            var translation = Matrix.CreateTranslation(position);
+                            position.X = x * distance;
+                            position.Y = y * distance;
+                            position.Z = z * distance;
 
-                            effectMatrices.World = cubeScale * translation;
+                            Matrix.CreateTranslation(ref position, out world);
+
+                            effectMatrices.World = world;
                         }
 
                         effect.Apply(context);
-
                         cubeMesh.Draw(context);
                     }
                 }
@@ -274,41 +301,45 @@ namespace Samples.SceneGodRay
             var infiniteView = camera.View;
             infiniteView.Translation = Vector3.Zero;
 
-            Matrix projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, context.Viewport.AspectRatio, 0.1f, 500.0f);
+            var lightPosition = -lightDirection;
+
+            // 参考にした XNA Lens Flare サンプルでは調整無しだが、それは near = 0.1 であるが故であり、
+            // near = 1 などの距離を置くと、単位ベクトルを射影した場合に
+            // 射影空間の外に出てしまう (0 から near の間に射影されてしまう)。
+            // このため、near だけカメラ奥へ押し出した後に射影する (射影空間に収まる位置で射影する)。
+            lightPosition.Z -= camera.NearClipDistance;
 
             var viewport = context.Viewport;
-            var projectedPosition = viewport.Project(-lightDirection, projection, infiniteView, Matrix.Identity);
+            var projectedPosition = viewport.Project(lightPosition, camera.Projection, infiniteView, Matrix.Identity);
 
-            if (/*projectedPosition.X < 0 || projectedPosition.X > viewport.Width ||
-                projectedPosition.Y < 0 || projectedPosition.Y > viewport.Height ||*/
-                /*projectedPosition.Z < 0 || projectedPosition.Z > 1*/
-                false)
+            if (projectedPosition.Z < 0 || projectedPosition.Z > 1)
             {
+                // ライト位置がカメラの外ならば、ライト放射の効果を適用しない (適用しても効果が発生しない)。
                 spriteBatch.Begin();
                 spriteBatch.Draw(normalSceneRenderTarget.GetShaderResourceView(), Vector2.Zero, Color.White);
                 spriteBatch.End();
                 return;
             }
-            else
-            {
-                context.SetRenderTarget(godRayRenderTarget.GetRenderTargetView());
 
-                godRayEffect.ScreenLightPosition = new Vector2(
-                    projectedPosition.X / godRayRenderTarget.Width, projectedPosition.Y / godRayRenderTarget.Height);
-                godRayEffect.SceneMap = occlusionRenderTarget.GetShaderResourceView();
-                godRayEffect.Apply(context);
+            // ライト閉塞マップからライト放射マップを生成。
+            context.SetRenderTarget(lightScatteringRenderTarget.GetRenderTargetView());
 
-                fullScreenQuad.Draw(context);
+            // テクスチャ座標としてライト位置を設定。
+            lightScatteringEffect.ScreenLightPosition = new Vector2(projectedPosition.X / viewport.Width, projectedPosition.Y / viewport.Height);
+            lightScatteringEffect.SceneMap = occlusionRenderTarget.GetShaderResourceView();
+            lightScatteringEffect.Apply(context);
 
-                context.SetRenderTarget(null);
+            fullScreenQuad.Draw(context);
 
-                context.Clear(Color.Black);
+            // ライト放射マップと通常シーンを加算混合。
+            context.SetRenderTarget(null);
 
-                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Additive);
-                spriteBatch.Draw(normalSceneRenderTarget.GetShaderResourceView(), Vector2.Zero, Color.White);
-                spriteBatch.Draw(godRayRenderTarget.GetShaderResourceView(), Vector2.Zero, Color.White);
-                spriteBatch.End();
-            }
+            context.Clear(Color.Black);
+
+            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Additive);
+            spriteBatch.Draw(normalSceneRenderTarget.GetShaderResourceView(), Vector2.Zero, Color.White);
+            spriteBatch.Draw(lightScatteringRenderTarget.GetShaderResourceView(), new Rectangle(0, 0, WindowWidth, WindowHeight), Color.White);
+            spriteBatch.End();
         }
 
         void DrawInterMapsToScreen()
@@ -335,7 +366,7 @@ namespace Samples.SceneGodRay
 
             index = 2;
             x = index * w;
-            spriteBatch.Draw(godRayRenderTarget.GetShaderResourceView(), new Rectangle(x, 0, w, h), Color.White);
+            spriteBatch.Draw(lightScatteringRenderTarget.GetShaderResourceView(), new Rectangle(x, 0, w, h), Color.White);
 
             spriteBatch.End();
         }

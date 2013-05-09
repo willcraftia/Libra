@@ -46,9 +46,9 @@ call :CompileShader SingleColorObject VS %vs_profile%
 call :CompileShader SingleColorObject PS %ps_profile%
 
 ::
-:: GodRay VS/PS
+:: LightScattering VS/PS
 ::
-call :CompileShader GodRay PS %ps_profile%
+call :CompileShader LightScattering PS %ps_profile%
 
 echo.
 
