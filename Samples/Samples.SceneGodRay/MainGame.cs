@@ -25,6 +25,11 @@ namespace Samples.SceneGodRay
         const int WindowHeight = 480;
 
         /// <summary>
+        /// マップ スケール配列。
+        /// </summary>
+        static readonly float[] MapScales = { 1.0f, 0.5f, 0.25f };
+
+        /// <summary>
         /// Libra のグラフィックス マネージャ。
         /// </summary>
         GraphicsManager graphicsManager;
@@ -55,19 +60,9 @@ namespace Samples.SceneGodRay
         KeyboardState lastKeyboardState;
 
         /// <summary>
-        /// 前回の更新処理におけるジョイスティック状態。
-        /// </summary>
-        JoystickState lastJoystickState;
-
-        /// <summary>
         /// 現在の更新処理におけるキーボード状態。
         /// </summary>
         KeyboardState currentKeyboardState;
-
-        /// <summary>
-        /// 現在の更新処理におけるジョイスティック状態。
-        /// </summary>
-        JoystickState currentJoystickState;
 
         /// <summary>
         /// ライト閉塞マップの描画先レンダ ターゲット。
@@ -85,10 +80,9 @@ namespace Samples.SceneGodRay
         RenderTarget normalSceneRenderTarget;
 
         /// <summary>
-        /// 閉塞マップのスケール。
+        /// 現在選択されているマップ スケールのインデックス。
         /// </summary>
-        float mapScale = 0.25f;
-        //float mapScale = 1.0f;
+        int currentMapScaleIndex = 0;
 
         /// <summary>
         /// ライトの進行方向。
@@ -151,19 +145,6 @@ namespace Samples.SceneGodRay
             spriteBatch = new SpriteBatch(Device.ImmediateContext);
             spriteFont = content.Load<SpriteFont>("hudFont");
 
-            occlusionRenderTarget = Device.CreateRenderTarget();
-            occlusionRenderTarget.Width = (int) (WindowWidth * mapScale);
-            occlusionRenderTarget.Height = (int) (WindowHeight * mapScale);
-            occlusionRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
-            occlusionRenderTarget.Name = "Occlusion";
-            occlusionRenderTarget.Initialize();
-
-            lightScatteringRenderTarget = Device.CreateRenderTarget();
-            lightScatteringRenderTarget.Width = (int) (WindowWidth * mapScale);
-            lightScatteringRenderTarget.Height = (int) (WindowHeight * mapScale);
-            lightScatteringRenderTarget.Name = "LightScattering";
-            lightScatteringRenderTarget.Initialize();
-
             normalSceneRenderTarget = Device.CreateRenderTarget();
             normalSceneRenderTarget.Width = WindowWidth;
             normalSceneRenderTarget.Height = WindowHeight;
@@ -173,7 +154,7 @@ namespace Samples.SceneGodRay
 
             basicEffect = new BasicEffect(Device);
             basicEffect.Projection = camera.Projection;
-            basicEffect.DiffuseColor = Color.Red.ToVector3();
+            basicEffect.DiffuseColor = Color.Black.ToVector3();
             basicEffect.DirectionalLights[0].Direction = lightDirection;
             basicEffect.EnableDefaultLighting();
 
@@ -182,7 +163,7 @@ namespace Samples.SceneGodRay
 
             lightScatteringEffect = new LightScatteringEffect(Device);
             lightScatteringEffect.Density = 2.0f;
-            lightScatteringEffect.Exposure = 0.8f;
+            lightScatteringEffect.Exposure = 2.0f;
 
             fullScreenQuad = new FullScreenQuad(Device);
 
@@ -239,6 +220,16 @@ namespace Samples.SceneGodRay
 
         void CreateOcclusionMap(DeviceContext context)
         {
+            if (occlusionRenderTarget == null)
+            {
+                occlusionRenderTarget = Device.CreateRenderTarget();
+                occlusionRenderTarget.Width = (int) (WindowWidth * MapScales[currentMapScaleIndex]);
+                occlusionRenderTarget.Height = (int) (WindowHeight * MapScales[currentMapScaleIndex]);
+                occlusionRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
+                occlusionRenderTarget.Name = "Occlusion";
+                occlusionRenderTarget.Initialize();
+            }
+
             context.SetRenderTarget(occlusionRenderTarget.GetRenderTargetView());
 
             context.Clear(Color.Black);
@@ -321,6 +312,15 @@ namespace Samples.SceneGodRay
                 return;
             }
 
+            if (lightScatteringRenderTarget == null)
+            {
+                lightScatteringRenderTarget = Device.CreateRenderTarget();
+                lightScatteringRenderTarget.Width = (int) (WindowWidth * MapScales[currentMapScaleIndex]);
+                lightScatteringRenderTarget.Height = (int) (WindowHeight * MapScales[currentMapScaleIndex]);
+                lightScatteringRenderTarget.Name = "LightScattering";
+                lightScatteringRenderTarget.Initialize();
+            }
+
             // ライト閉塞マップからライト放射マップを生成。
             context.SetRenderTarget(lightScatteringRenderTarget.GetRenderTargetView());
 
@@ -371,17 +371,35 @@ namespace Samples.SceneGodRay
             spriteBatch.End();
         }
 
+        void InvalidateRenderTargets()
+        {
+            if (occlusionRenderTarget != null)
+            {
+                occlusionRenderTarget.Dispose();
+                occlusionRenderTarget = null;
+            }
+            if (lightScatteringRenderTarget != null)
+            {
+                lightScatteringRenderTarget.Dispose();
+                lightScatteringRenderTarget = null;
+            }
+        }
+
         void DrawOverlayText()
         {
             // HUD のテキストを表示。
-            var text = "";
-            //var text = "PageUp/Down = Focus distance (" + depthOfField.FocusDistance + ")\n" +
-            //    "Home/End = Focus range (" + depthOfField.FocusRange + ")";
+            var text =
+                "T/G: Exposure (" + lightScatteringEffect.Exposure + ")\n" +
+                "Y/H: Density (" + lightScatteringEffect.Density + ")\n" +
+                "U/J: Decay (" + lightScatteringEffect.Decay + ")\n" +
+                "I/K: Weight (" + lightScatteringEffect.Weight + ")\n" +
+                "PageUp/Down: Sample count (" + lightScatteringEffect.SampleCount + ")\n" +
+                "Home/End: Light occlusion & scattering map scale (x " + MapScales[currentMapScaleIndex] + ")";
 
             spriteBatch.Begin();
 
-            spriteBatch.DrawString(spriteFont, text, new Vector2(65, 350), Color.Black);
-            spriteBatch.DrawString(spriteFont, text, new Vector2(64, 350 - 1), Color.Yellow);
+            spriteBatch.DrawString(spriteFont, text, new Vector2(33, 352), Color.Black);
+            spriteBatch.DrawString(spriteFont, text, new Vector2(32, 352 - 1), Color.Yellow);
 
             spriteBatch.End();
         }
@@ -391,15 +409,52 @@ namespace Samples.SceneGodRay
             float time = (float) gameTime.ElapsedGameTime.TotalMilliseconds;
 
             lastKeyboardState = currentKeyboardState;
-            lastJoystickState = currentJoystickState;
 
             currentKeyboardState = Keyboard.GetState();
-            currentJoystickState = Joystick.GetState();
 
-            if (currentKeyboardState.IsKeyDown(Keys.Escape) ||
-                currentJoystickState.Buttons.Back == ButtonState.Pressed)
-            {
+            if (currentKeyboardState.IsKeyDown(Keys.Escape))
                 Exit();
+
+            if (currentKeyboardState.IsKeyDown(Keys.T))
+                lightScatteringEffect.Exposure += 0.01f;
+            if (currentKeyboardState.IsKeyDown(Keys.G))
+                lightScatteringEffect.Exposure = Math.Max(0.0f, lightScatteringEffect.Exposure - 0.01f);
+
+            if (currentKeyboardState.IsKeyDown(Keys.Y))
+                lightScatteringEffect.Density += 0.01f;
+            if (currentKeyboardState.IsKeyDown(Keys.H))
+                lightScatteringEffect.Density = Math.Max(0.0f, lightScatteringEffect.Density - 0.01f);
+
+            if (currentKeyboardState.IsKeyDown(Keys.U))
+                lightScatteringEffect.Decay += 0.01f;
+            if (currentKeyboardState.IsKeyDown(Keys.J))
+                lightScatteringEffect.Decay = Math.Max(0.0f, lightScatteringEffect.Decay - 0.01f);
+
+            if (currentKeyboardState.IsKeyDown(Keys.I))
+                lightScatteringEffect.Weight += 0.01f;
+            if (currentKeyboardState.IsKeyDown(Keys.K))
+                lightScatteringEffect.Weight = Math.Max(0.0f, lightScatteringEffect.Weight - 0.01f);
+
+            if (currentKeyboardState.IsKeyDown(Keys.PageUp))
+                lightScatteringEffect.SampleCount = Math.Min(LightScatteringEffect.MaxSampleCount, lightScatteringEffect.SampleCount + 1);
+            if (currentKeyboardState.IsKeyDown(Keys.PageDown))
+                lightScatteringEffect.SampleCount = Math.Max(0, lightScatteringEffect.SampleCount - 1);
+
+            if (currentKeyboardState.IsKeyUp(Keys.Home) && lastKeyboardState.IsKeyDown(Keys.Home))
+            {
+                if (0 < currentMapScaleIndex)
+                {
+                    currentMapScaleIndex--;
+                    InvalidateRenderTargets();
+                }
+            }
+            if (currentKeyboardState.IsKeyUp(Keys.End) && lastKeyboardState.IsKeyDown(Keys.End))
+            {
+                if (currentMapScaleIndex < MapScales.Length - 1)
+                {
+                    currentMapScaleIndex++;
+                    InvalidateRenderTargets();
+                }
             }
         }
 
@@ -407,8 +462,8 @@ namespace Samples.SceneGodRay
         {
             float time = (float) gameTime.ElapsedGameTime.TotalMilliseconds;
 
-            float pitch = -currentJoystickState.ThumbSticks.Right.Y * time * 0.001f;
-            float yaw = -currentJoystickState.ThumbSticks.Right.X * time * 0.001f;
+            float pitch = 0.0f;
+            float yaw = 0.0f;
 
             if (currentKeyboardState.IsKeyDown(Keys.Up))
                 pitch += time * 0.001f;
@@ -439,13 +494,9 @@ namespace Samples.SceneGodRay
             if (currentKeyboardState.IsKeyDown(Keys.D))
                 movement.X += time * 0.1f;
 
-            movement.Z -= currentJoystickState.ThumbSticks.Left.Y * time * 0.1f;
-            movement.X += currentJoystickState.ThumbSticks.Left.X * time * 0.1f;
-
             camera.MoveRelative(ref movement);
 
-            if (currentJoystickState.Buttons.RightStick == ButtonState.Pressed ||
-                currentKeyboardState.IsKeyDown(Keys.R))
+            if (currentKeyboardState.IsKeyDown(Keys.R))
             {
                 camera.Position = new Vector3(0, 0, 300);
                 camera.Direction = Vector3.Forward;
