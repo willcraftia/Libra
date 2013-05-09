@@ -23,14 +23,7 @@ namespace Libra.Graphics
 
         public float AspectRatio
         {
-            get
-            {
-                if (!MathHelper.WithinEpsilon(Height, 0f))
-                {
-                    return Width / Height;
-                }
-                return 0f;
-            }
+            get { return Width / Height; }
         }
 
         public Viewport(float x, float y, float width, float height)
@@ -55,37 +48,50 @@ namespace Libra.Graphics
 
         public Vector3 Project(Vector3 source, Matrix projection, Matrix view, Matrix world)
         {
-            var matrix = Matrix.Multiply(Matrix.Multiply(world, view), projection);
-            var vector = Vector3.Transform(source, matrix);
-            float a = (source.X * matrix.M14) + (source.Y * matrix.M24) + (source.Z * matrix.M34) + matrix.M44;
+            Vector3 result;
+            Project(ref source, ref projection, ref view, ref world, out result);
+            return result;
+        }
 
-            if (!MathHelper.WithinEpsilon(a, 1f))
-            {
-                vector = (vector / a);
-            }
+        public void Project(ref Vector3 source, ref Matrix projection, ref Matrix view, ref Matrix world, out Vector3 result)
+        {
+            Matrix worldView;
+            Matrix.Multiply(ref world, ref view, out worldView);
 
-            vector.X = (vector.X + 1f) * 0.5f * Width + X;
-            vector.Y = (-vector.Y + 1f) * 0.5f * Height + Y;
-            vector.Z = vector.Z * (MaxDepth - MinDepth) + MinDepth;
+            Matrix transform;
+            Matrix.Multiply(ref worldView, ref projection, out transform);
 
-            return vector;
+            Vector3.TransformCoordinate(ref source, ref transform, out result);
+
+            result.X = (result.X + 1f) * 0.5f * Width + X;
+            result.Y = (-result.Y + 1f) * 0.5f * Height + Y;
+            result.Z = result.Z * (MaxDepth - MinDepth) + MinDepth;
         }
 
         public Vector3 Unproject(Vector3 source, Matrix projection, Matrix view, Matrix world)
         {
-            var matrix = Matrix.Invert(Matrix.Multiply(Matrix.Multiply(world, view), projection));
-            source.X = (source.X - X) / Width * 2f - 1f;
-            source.Y = -((source.Y - Y) / Height * 2f - 1f);
-            source.Z = (source.Z - MinDepth) / (MaxDepth - MinDepth);
-            var vector = (Vector3) Vector3.Transform(source, matrix);
+            Vector3 result;
+            Unproject(ref source, ref projection, ref view, ref world, out result);
+            return result;
+        }
 
-            float a = source.X * matrix.M14 + source.Y * matrix.M24 + source.Z * matrix.M34 + matrix.M44;
-            if (!MathHelper.WithinEpsilon(a, 1f))
-            {
-                vector = (vector / a);
-            }
+        public void Unproject(ref Vector3 source, ref Matrix projection, ref Matrix view, ref Matrix world, out Vector3 result)
+        {
+            Vector3 adjustedSource = source;
+            adjustedSource.X = (adjustedSource.X - X) / Width * 2f - 1f;
+            adjustedSource.Y = -((adjustedSource.Y - Y) / Height * 2f - 1f);
+            adjustedSource.Z = (adjustedSource.Z - MinDepth) / (MaxDepth - MinDepth);
 
-            return vector;
+            Matrix worldView;
+            Matrix.Multiply(ref world, ref view, out worldView);
+
+            Matrix transform;
+            Matrix.Multiply(ref worldView, ref projection, out transform);
+
+            Matrix invertTransform;
+            Matrix.Invert(ref transform, out invertTransform);
+
+            Vector3.TransformCoordinate(ref adjustedSource, ref invertTransform, out result);
         }
 
         #region ToString
