@@ -1,15 +1,19 @@
-cbuffer Parameters : register(b0)
+cbuffer VSParameters : register(b0)
 {
     float4x4 WorldViewProjection;
-    float3 SkyColor;
+};
+
+cbuffer PSParameters : register(b0)
+{
+    float3 SkyColor     : packoffset(c0);
     // ‹“_‚©‚çŒ©‚½‘¾—z‚Ì•ûŒü
-    float3 SunDirection;
-    float3 SunColor;
+    float3 SunDirection : packoffset(c1);
+    float3 SunColor     : packoffset(c2);
     // ‘¾—z‚ÌêŠ‚ğ”»’è‚·‚é‚½‚ß‚Ìè‡’l (0.999 ˆÈã‚ª‘Ã“–)
-    float SunThreshold;
+    float SunThreshold  : packoffset(c3.x);
     // 0: ‘¾—z‚ğ•`‰æ‚µ‚È‚¢
     // 1: ‘¾—z‚ğ•`‰æ‚·‚é
-    float SunVisible;
+    float SunVisible    : packoffset(c3.y);
 };
 
 struct VSInput
@@ -21,7 +25,7 @@ struct VSInput
 struct VSOutput
 {
     float4 Position : SV_Position;
-    float3 Normal   : TEXCOORD0;
+    float3 Normal   : NORMAL0;
 };
 
 VSOutput VS(VSInput input)
@@ -45,7 +49,7 @@ float4 PS(VSOutput input) : SV_Target0
     // SunThreshold ‚©‚ç‘¾—z‚Ì”ÍˆÍ‚ğZo
     amount -= SunThreshold;
     amount = saturate(amount);
-    amount *= 1 / (1 - SunThreshold);
+    amount /= (1 - SunThreshold);
 
     // ‘¾—z‚ÌF‚ğƒuƒŒƒ“ƒh
     color.rgb += SunColor * amount;

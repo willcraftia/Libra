@@ -164,10 +164,10 @@ namespace Libra.Graphics.Toolkit
 
             constants.SampleCount = 100;
             constants.ScreenLightPosition = Vector2.Zero;
-            constants.Density = 0.1f;
-            constants.Decay = 0.8f;
+            constants.Density = 1.0f;
+            constants.Decay = 0.9f;
             constants.Weight = 0.5f;
-            constants.Exposure = 0.5f;
+            constants.Exposure = 1.0f;
         }
 
         public void Apply(DeviceContext context)

@@ -75,11 +75,6 @@ namespace Samples.SceneGodRay
         //float mapScale = 0.5f;
         float mapScale = 1.0f;
 
-        /// <summary>
-        /// 閉塞マップ。
-        /// </summary>
-        GodRayOcclusionMap occlusionMap;
-
         GodRayEffect godRayEffect;
 
         FullScreenQuad fullScreenQuad;
@@ -89,28 +84,13 @@ namespace Samples.SceneGodRay
         /// </summary>
         RenderTarget normalSceneRenderTarget;
 
+        RenderTarget occlusionRenderTarget;
+
         RenderTarget godRayRenderTarget;
-
-        /// <summary>
-        /// グリッド モデル (格子状の床)。
-        /// </summary>
-        //Model gridModel;
-
-        /// <summary>
-        /// デュード モデル (人)。
-        /// </summary>
-        Model dudeModel;
-
-        /// <summary>
-        /// デュード モデルの回転量。
-        /// </summary>
-        float rotateDude;
 
         /// <summary>
         /// ライトの進行方向。
         /// </summary>
-        //Vector3 lightDirection = Vector3.Normalize(new Vector3(0.3333333f, -0.6666667f, 0.6666667f));
-        //Vector3 lightDirection = Vector3.Normalize(new Vector3(-1, -0.1f, 0.3f));
         Vector3 lightDirection = Vector3.Backward;
 
         BasicEffect basicEffect;
@@ -120,6 +100,8 @@ namespace Samples.SceneGodRay
         Matrix cubeScale = Matrix.CreateScale(10.0f);
 
         SkySphere skySphere;
+
+        SingleColorObjectEffect singleColorObjectEffect;
 
         public MainGame()
         {
@@ -132,11 +114,11 @@ namespace Samples.SceneGodRay
 
             camera = new BasicCamera
             {
-                Position = new Vector3(0, 70, 100),
-                Direction = new Vector3(0, -0.4472136f, -0.8944272f),
+                Position = new Vector3(0, 0, 300),
+                Direction = Vector3.Forward,
                 Fov = MathHelper.PiOver4,
                 AspectRatio = (float) WindowWidth / (float) WindowHeight,
-                NearClipDistance = 1.0f,
+                NearClipDistance = 0.1f,
                 FarClipDistance = 1000.0f
             };
             camera.Update();
@@ -147,9 +129,9 @@ namespace Samples.SceneGodRay
             spriteBatch = new SpriteBatch(Device.ImmediateContext);
             spriteFont = content.Load<SpriteFont>("hudFont");
 
-            occlusionMap = new GodRayOcclusionMap(Device);
-
             godRayEffect = new GodRayEffect(Device);
+            godRayEffect.Density = 2.0f;
+            godRayEffect.Exposure = 0.8f;
 
             fullScreenQuad = new FullScreenQuad(Device);
 
@@ -157,19 +139,24 @@ namespace Samples.SceneGodRay
             normalSceneRenderTarget.Width = WindowWidth;
             normalSceneRenderTarget.Height = WindowHeight;
             normalSceneRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
-            normalSceneRenderTarget.Name = "NormalScene";
+            normalSceneRenderTarget.Name = "Normal";
             normalSceneRenderTarget.Initialize();
+
+            occlusionRenderTarget = Device.CreateRenderTarget();
+            occlusionRenderTarget.Width = WindowWidth;
+            occlusionRenderTarget.Height = WindowHeight;
+            occlusionRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
+            occlusionRenderTarget.Name = "Occlusion";
+            occlusionRenderTarget.Initialize();
 
             godRayRenderTarget = Device.CreateRenderTarget();
             godRayRenderTarget.Width = WindowWidth;
             godRayRenderTarget.Height = WindowHeight;
-            godRayRenderTarget.Name = "GodRayScene";
+            godRayRenderTarget.Name = "GodRay";
             godRayRenderTarget.Initialize();
 
-            //gridModel = content.Load<Model>("grid");
-            dudeModel = content.Load<Model>("dude");
-
             basicEffect = new BasicEffect(Device);
+            basicEffect.Projection = camera.Projection;
             basicEffect.DiffuseColor = Color.Red.ToVector3();
             basicEffect.DirectionalLights[0].Direction = lightDirection;
             basicEffect.EnableDefaultLighting();
@@ -177,9 +164,14 @@ namespace Samples.SceneGodRay
             cubeMesh = new CubeMesh(Device);
 
             skySphere = new SkySphere(Device);
+            skySphere.Projection = camera.Projection;
             skySphere.SunDirection = -lightDirection;
+            skySphere.SunThreshold = 0.99f;
             skySphere.SkyColor = Color.CornflowerBlue.ToVector3();
             skySphere.SunColor = Color.White.ToVector3();
+
+            singleColorObjectEffect = new SingleColorObjectEffect(Device);
+            singleColorObjectEffect.Projection = camera.Projection;
         }
 
         protected override void Update(GameTime gameTime)
@@ -197,18 +189,22 @@ namespace Samples.SceneGodRay
         {
             var context = Device.ImmediateContext;
 
+            singleColorObjectEffect.View = camera.View;
+            skySphere.View = camera.View;
+            basicEffect.View = camera.View;
+
             // 念のため状態を初期状態へ。
             context.BlendState = BlendState.Opaque;
             context.DepthStencilState = DepthStencilState.Default;
 
             // 閉塞マップを作成。
-            CreateOcclusionMap();
+            CreateOcclusionMap(context);
 
             // 通常シーンを描画。
-            CreateNormalSceneMap();
+            CreateNormalSceneMap(context);
 
             // 最終的なシーンをバック バッファへ描画。
-            CreateFinalSceneMap();
+            CreateFinalSceneMap(context);
 
             // 中間マップを描画。
             DrawInterMapsToScreen();
@@ -219,24 +215,30 @@ namespace Samples.SceneGodRay
             base.Draw(gameTime);
         }
 
-        void CreateOcclusionMap()
+        void CreateOcclusionMap(DeviceContext context)
         {
-            var context = Device.ImmediateContext;
+            context.SetRenderTarget(occlusionRenderTarget.GetRenderTargetView());
 
-            occlusionMap.Width = (int) (WindowWidth * mapScale);
-            occlusionMap.Height = (int) (WindowHeight * mapScale);
+            context.Clear(Color.Black);
 
-            occlusionMap.Draw(context, camera.View, camera.Projection, DrawOcclusionMapObjects);
+            DrawCubeMeshes(context, singleColorObjectEffect);
+
+            skySphere.SkyColor = Color.Black.ToVector3();
+            skySphere.Draw(context);
         }
 
-        // TODO
-        // コールバック メソッドでコンテキストを受け取れないとおかしい。
-
-        void DrawOcclusionMapObjects(Matrix view, Matrix projection, GodRayOcclusionMapEffect effect)
+        void CreateNormalSceneMap(DeviceContext context)
         {
-            var context = Device.ImmediateContext;
+            context.SetRenderTarget(normalSceneRenderTarget.GetRenderTargetView());
 
-            DrawCubeMeshes(context, effect);
+            context.Clear(Color.CornflowerBlue);
+
+            DrawCubeMeshes(context, basicEffect);
+
+            skySphere.SkyColor = Color.CornflowerBlue.ToVector3();
+            skySphere.Draw(context);
+
+            context.SetRenderTarget(null);
         }
 
         void DrawCubeMeshes(DeviceContext context, IEffect effect)
@@ -245,11 +247,11 @@ namespace Samples.SceneGodRay
 
             const float distance = 20.0f;
 
-            for (int x = -2; x < 2; x++)
+            for (int x = -2; x < 3; x++)
             {
-                for (int y = -2; y < 2; y++)
+                for (int y = -2; y < 3; y++)
                 {
-                    for (int z = -2; z < 2; z++)
+                    for (int z = -2; z < 3; z++)
                     {
                         if (effectMatrices != null)
                         {
@@ -267,26 +269,8 @@ namespace Samples.SceneGodRay
             }
         }
 
-        void CreateNormalSceneMap()
+        void CreateFinalSceneMap(DeviceContext context)
         {
-            var context = Device.ImmediateContext;
-
-            context.SetRenderTarget(normalSceneRenderTarget.GetRenderTargetView());
-
-            context.Clear(Color.CornflowerBlue);
-
-            basicEffect.View = camera.View;
-            basicEffect.Projection = camera.Projection;
-
-            DrawCubeMeshes(context, basicEffect);
-
-            context.SetRenderTarget(null);
-        }
-
-        void CreateFinalSceneMap()
-        {
-            var context = Device.ImmediateContext;
-
             var infiniteView = camera.View;
             infiniteView.Translation = Vector3.Zero;
 
@@ -309,9 +293,9 @@ namespace Samples.SceneGodRay
             {
                 context.SetRenderTarget(godRayRenderTarget.GetRenderTargetView());
 
-                godRayEffect.ScreenLightPosition = new Vector2(projectedPosition.X / godRayRenderTarget.Width, projectedPosition.Y / godRayRenderTarget.Height);
-                //godRayEffect.SceneMap = normalSceneRenderTarget.GetShaderResourceView();
-                godRayEffect.SceneMap = occlusionMap.RenderTarget.GetShaderResourceView();
+                godRayEffect.ScreenLightPosition = new Vector2(
+                    projectedPosition.X / godRayRenderTarget.Width, projectedPosition.Y / godRayRenderTarget.Height);
+                godRayEffect.SceneMap = occlusionRenderTarget.GetShaderResourceView();
                 godRayEffect.Apply(context);
 
                 fullScreenQuad.Draw(context);
@@ -343,7 +327,7 @@ namespace Samples.SceneGodRay
 
             index = 0;
             x = index * w;
-            spriteBatch.Draw(occlusionMap.RenderTarget.GetShaderResourceView(), new Rectangle(x, 0, w, h), Color.White);
+            spriteBatch.Draw(occlusionRenderTarget.GetShaderResourceView(), new Rectangle(x, 0, w, h), Color.White);
 
             index = 1;
             x = index * w;
@@ -380,14 +364,6 @@ namespace Samples.SceneGodRay
 
             currentKeyboardState = Keyboard.GetState();
             currentJoystickState = Joystick.GetState();
-
-            rotateDude += currentJoystickState.Triggers.Right * time * 0.2f;
-            rotateDude -= currentJoystickState.Triggers.Left * time * 0.2f;
-
-            if (currentKeyboardState.IsKeyDown(Keys.Q))
-                rotateDude -= time * 0.2f;
-            if (currentKeyboardState.IsKeyDown(Keys.E))
-                rotateDude += time * 0.2f;
 
             if (currentKeyboardState.IsKeyDown(Keys.Escape) ||
                 currentJoystickState.Buttons.Back == ButtonState.Pressed)
@@ -440,7 +416,7 @@ namespace Samples.SceneGodRay
             if (currentJoystickState.Buttons.RightStick == ButtonState.Pressed ||
                 currentKeyboardState.IsKeyDown(Keys.R))
             {
-                camera.Position = new Vector3(0, 50, 50);
+                camera.Position = new Vector3(0, 0, 300);
                 camera.Direction = Vector3.Forward;
             }
 

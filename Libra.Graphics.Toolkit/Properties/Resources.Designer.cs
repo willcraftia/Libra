@@ -109,20 +109,6 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
-        internal static byte[] GodRayOcclusionMapPS {
-            get {
-                object obj = ResourceManager.GetObject("GodRayOcclusionMapPS", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        internal static byte[] GodRayOcclusionMapVS {
-            get {
-                object obj = ResourceManager.GetObject("GodRayOcclusionMapVS", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
         internal static byte[] GodRayPS {
             get {
                 object obj = ResourceManager.GetObject("GodRayPS", resourceCulture);
@@ -147,6 +133,20 @@ namespace Libra.Graphics.Toolkit.Properties {
         internal static byte[] ShadowMapVS {
             get {
                 object obj = ResourceManager.GetObject("ShadowMapVS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] SingleColorObjectPS {
+            get {
+                object obj = ResourceManager.GetObject("SingleColorObjectPS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] SingleColorObjectVS {
+            get {
+                object obj = ResourceManager.GetObject("SingleColorObjectVS", resourceCulture);
                 return ((byte[])(obj));
             }
         }

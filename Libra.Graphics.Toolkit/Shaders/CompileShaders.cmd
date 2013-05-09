@@ -40,10 +40,14 @@ call :CompileShader DepthMap PS %ps_profile%
 call :CompileShader DepthOfField PS %ps_profile%
 
 ::
-:: GodRayOcclusionMap/GodRay VS/PS
+:: SingleColorObject VS/PS
 ::
-call :CompileShader GodRayOcclusionMap VS %vs_profile%
-call :CompileShader GodRayOcclusionMap PS %ps_profile%
+call :CompileShader SingleColorObject VS %vs_profile%
+call :CompileShader SingleColorObject PS %ps_profile%
+
+::
+:: GodRay VS/PS
+::
 call :CompileShader GodRay PS %ps_profile%
 
 echo.

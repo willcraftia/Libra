@@ -38,27 +38,33 @@ namespace Samples.SceneGodRay
 
         #endregion
 
-        #region Constants
+        #region VSConstants
 
-        [StructLayout(LayoutKind.Explicit, Size = 128)]
-        public struct Constants
+        public struct VSConstants
+        {
+            public Matrix WorldViewProjection;
+        }
+
+        #endregion
+
+        #region PSConstants
+
+        [StructLayout(LayoutKind.Explicit, Size = 64)]
+        public struct PSConstants
         {
             [FieldOffset(0)]
-            public Matrix WorldViewProjection;
-
-            [FieldOffset(64)]
             public Vector3 SkyColor;
 
-            [FieldOffset(80)]
+            [FieldOffset(16)]
             public Vector3 SunDirection;
 
-            [FieldOffset(96)]
+            [FieldOffset(32)]
             public Vector3 SunColor;
 
-            [FieldOffset(112)]
+            [FieldOffset(48)]
             public float SunThreshold;
 
-            [FieldOffset(116)]
+            [FieldOffset(52)]
             public float SunVisible;
         }
 
@@ -71,7 +77,8 @@ namespace Samples.SceneGodRay
         {
             ViewProjection      = (1 << 0),
             WorldViewProjection = (1 << 1),
-            Constants           = (1 << 2)
+            VSConstants         = (1 << 2),
+            PSConstants         = (1 << 3)
         }
 
         #endregion
@@ -80,9 +87,13 @@ namespace Samples.SceneGodRay
 
         SharedDeviceResource sharedDeviceResource;
 
-        ConstantBuffer constantBuffer;
+        ConstantBuffer vsConstantBuffer;
 
-        Constants constants;
+        ConstantBuffer psConstantBuffer;
+
+        VSConstants vsConstants;
+
+        PSConstants psConstants;
 
         Matrix world;
 
@@ -129,56 +140,56 @@ namespace Samples.SceneGodRay
 
         public Vector3 SkyColor
         {
-            get { return constants.SkyColor; }
+            get { return psConstants.SkyColor; }
             set
             {
-                constants.SkyColor = value;
+                psConstants.SkyColor = value;
 
-                dirtyFlags |= DirtyFlags.Constants;
+                dirtyFlags |= DirtyFlags.PSConstants;
             }
         }
 
         public Vector3 SunDirection
         {
-            get { return constants.SunDirection; }
+            get { return psConstants.SunDirection; }
             set
             {
-                constants.SunDirection = value;
+                psConstants.SunDirection = value;
 
-                dirtyFlags |= DirtyFlags.Constants;
+                dirtyFlags |= DirtyFlags.PSConstants;
             }
         }
 
         public Vector3 SunColor
         {
-            get { return constants.SunColor; }
+            get { return psConstants.SunColor; }
             set
             {
-                constants.SunColor = value;
+                psConstants.SunColor = value;
 
-                dirtyFlags |= DirtyFlags.Constants;
+                dirtyFlags |= DirtyFlags.PSConstants;
             }
         }
 
         public float SunThreshold
         {
-            get { return constants.SunThreshold; }
+            get { return psConstants.SunThreshold; }
             set
             {
-                constants.SunThreshold = value;
+                psConstants.SunThreshold = value;
 
-                dirtyFlags |= DirtyFlags.Constants;
+                dirtyFlags |= DirtyFlags.PSConstants;
             }
         }
 
         public bool SunVisible
         {
-            get { return constants.SunVisible != 0.0f; }
+            get { return psConstants.SunVisible != 0.0f; }
             set
             {
-                constants.SunVisible = (value) ? 1.0f : 0.0f;
+                psConstants.SunVisible = (value) ? 1.0f : 0.0f;
 
-                dirtyFlags |= DirtyFlags.Constants;
+                dirtyFlags |= DirtyFlags.PSConstants;
             }
         }
 
@@ -190,22 +201,25 @@ namespace Samples.SceneGodRay
 
             sharedDeviceResource = device.GetSharedResource<SkySphereEffect, SharedDeviceResource>();
 
-            constantBuffer = device.CreateConstantBuffer();
-            constantBuffer.Initialize<Constants>();
+            vsConstantBuffer = device.CreateConstantBuffer();
+            vsConstantBuffer.Initialize<VSConstants>();
+
+            psConstantBuffer = device.CreateConstantBuffer();
+            psConstantBuffer.Initialize<PSConstants>();
 
             world = Matrix.Identity;
             view = Matrix.Identity;
             projection = Matrix.Identity;
             viewProjection = Matrix.Identity;
 
-            constants.WorldViewProjection = Matrix.Identity;
-            constants.SkyColor = Vector3.Zero;
-            constants.SunDirection = Vector3.Up;
-            constants.SunColor = Vector3.One;
-            constants.SunThreshold = 0.999f;
-            constants.SunVisible = 1.0f;
+            vsConstants.WorldViewProjection = Matrix.Identity;
+            psConstants.SkyColor = Vector3.Zero;
+            psConstants.SunDirection = Vector3.Up;
+            psConstants.SunColor = Vector3.One;
+            psConstants.SunThreshold = 0.999f;
+            psConstants.SunVisible = 1.0f;
 
-            dirtyFlags = DirtyFlags.Constants;
+            dirtyFlags = DirtyFlags.VSConstants | DirtyFlags.PSConstants;
         }
 
         public void Apply(DeviceContext context)
@@ -223,21 +237,29 @@ namespace Samples.SceneGodRay
                 Matrix worldViewProjection;
                 Matrix.Multiply(ref world, ref viewProjection, out worldViewProjection);
 
-                Matrix.Transpose(ref worldViewProjection, out constants.WorldViewProjection);
+                Matrix.Transpose(ref worldViewProjection, out vsConstants.WorldViewProjection);
 
                 dirtyFlags &= ~DirtyFlags.WorldViewProjection;
-                dirtyFlags |= DirtyFlags.Constants;
+                dirtyFlags |= DirtyFlags.VSConstants;
             }
 
-            if ((dirtyFlags & DirtyFlags.Constants) != 0)
+            if ((dirtyFlags & DirtyFlags.VSConstants) != 0)
             {
-                constantBuffer.SetData(context, constants);
+                vsConstantBuffer.SetData(context, vsConstants);
 
-                dirtyFlags &= ~DirtyFlags.Constants;
+                dirtyFlags &= ~DirtyFlags.VSConstants;
             }
 
-            context.VertexShaderConstantBuffers[0] = constantBuffer;
+            if ((dirtyFlags & DirtyFlags.PSConstants) != 0)
+            {
+                psConstantBuffer.SetData(context, psConstants);
+
+                dirtyFlags &= ~DirtyFlags.PSConstants;
+            }
+
+            context.VertexShaderConstantBuffers[0] = vsConstantBuffer;
             context.VertexShader = sharedDeviceResource.VertexShader;
+            context.PixelShaderConstantBuffers[0] = psConstantBuffer;
             context.PixelShader = sharedDeviceResource.PixelShader;
         }
 
@@ -263,7 +285,7 @@ namespace Samples.SceneGodRay
             if (disposing)
             {
                 sharedDeviceResource = null;
-                constantBuffer.Dispose();
+                vsConstantBuffer.Dispose();
             }
 
             disposed = true;

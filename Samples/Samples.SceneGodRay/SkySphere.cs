@@ -11,19 +11,65 @@ namespace Samples.SceneGodRay
 {
     public sealed class SkySphere
     {
+        #region DirtyFlags
+
+        [Flags]
+        enum DirtyFlags
+        {
+            LocalView       = (1 << 0),
+            LocalProjection = (1 << 1)
+        }
+
+        #endregion
+
+        /// <summary>
+        /// DepthFunction に LessEqual を用いる読み取り専用深度ステンシル ステート。
+        /// Libra の DepthRead は Less (D3D11 デフォルト) を深度比較に用いるため、
+        /// DepthRead では SkySphere の射影を遠クリップ面に強制する際に
+        /// SkySphere の頂点深度が深度ステンシルのデフォルト深度 1 と等価となり、描画から除外されてしまう。
+        /// そこで、深度比較を LessEqual とし、深度 1 に等しいなら描画対象にする。
+        /// </summary>
+        static readonly DepthStencilState DepthReadWithLessEqual = new DepthStencilState
+        {
+            DepthEnable = true,
+            DepthWriteEnable = false,
+            DepthFunction = ComparisonFunction.LessEqual,
+            Name = "SkySphere.DepthReadWithLessEqual"
+        };
+
         SkySphereEffect skySphereEffect;
 
         SphereMesh sphereMesh;
 
-        Vector3 skyColor;
+        Matrix view;
 
-        bool sunVisible = true;
+        Matrix projection;
 
-        float sunThreshold = 0.999f;
-
-        Vector3[] frustumCorners = new Vector3[8];
+        DirtyFlags dirtyFlags;
 
         public Device Device { get; private set; }
+
+        public Matrix View
+        {
+            get { return view; }
+            set
+            {
+                view = value;
+
+                dirtyFlags |= DirtyFlags.LocalView;
+            }
+        }
+
+        public Matrix Projection
+        {
+            get { return projection; }
+            set
+            {
+                projection = value;
+
+                dirtyFlags |= DirtyFlags.LocalProjection;
+            }
+        }
 
         public Vector3 SkyColor
         {
@@ -63,27 +109,40 @@ namespace Samples.SceneGodRay
 
             skySphereEffect = new SkySphereEffect(device);
             skySphereEffect.World = Matrix.Identity;
-            sphereMesh = new SphereMesh(device);
+            sphereMesh = new SphereMesh(device, 1, 32);
+
+            dirtyFlags |= DirtyFlags.LocalView | DirtyFlags.LocalProjection;
         }
 
-        public void Draw(DeviceContext context, Matrix view, Matrix projection)
+        public void Draw(DeviceContext context)
         {
-            var localView = view;
-            view.Translation = Vector3.Zero;
+            if ((dirtyFlags & DirtyFlags.LocalView) != 0)
+            {
+                var localView = view;
+                localView.Translation = Vector3.Zero;
 
-            // z = w を強制してファー クリップ面に描画。
-            var localProjection = projection;
-            localProjection.M13 = localProjection.M14;
-            localProjection.M23 = localProjection.M24;
-            localProjection.M33 = localProjection.M34;
-            localProjection.M43 = localProjection.M44;
+                skySphereEffect.View = localView;
 
-            skySphereEffect.View = localView;
-            skySphereEffect.Projection = localProjection;
+                dirtyFlags &= ~DirtyFlags.LocalView;
+            }
 
-            // 深度は読み取り専用。
-            // スカイ スフィアは最後に描画する前提。
-            context.DepthStencilState = DepthStencilState.DepthRead;
+            if ((dirtyFlags & DirtyFlags.LocalProjection) != 0)
+            {
+                // z = w を強制して遠クリップ面に描画。
+                var localProjection = projection;
+                localProjection.M13 = localProjection.M14;
+                localProjection.M23 = localProjection.M24;
+                localProjection.M33 = localProjection.M34;
+                localProjection.M43 = localProjection.M44;
+
+                skySphereEffect.Projection = localProjection;
+
+                dirtyFlags &= ~DirtyFlags.LocalProjection;
+            }
+
+            // 読み取り専用深度かつ深度比較 LessEqual。
+            context.DepthStencilState = DepthReadWithLessEqual;
+            // 内側 (背面) を描画。
             context.RasterizerState = RasterizerState.CullFront;
 
             skySphereEffect.Apply(context);

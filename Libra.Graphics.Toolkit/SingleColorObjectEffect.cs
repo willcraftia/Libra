@@ -7,7 +7,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class GodRayOcclusionMapEffect : IEffect, IEffectMatrices, IDisposable
+    public sealed class SingleColorObjectEffect : IEffect, IEffectMatrices, IDisposable
     {
         #region SharedDeviceResource
 
@@ -20,20 +20,29 @@ namespace Libra.Graphics.Toolkit
             public SharedDeviceResource(Device device)
             {
                 VertexShader = device.CreateVertexShader();
-                VertexShader.Initialize(Resources.GodRayOcclusionMapVS);
+                VertexShader.Initialize(Resources.SingleColorObjectVS);
 
                 PixelShader = device.CreatePixelShader();
-                PixelShader.Initialize(Resources.GodRayOcclusionMapPS);
+                PixelShader.Initialize(Resources.SingleColorObjectPS);
             }
         }
 
         #endregion
 
-        #region Constants
+        #region VSConstants
 
-        public struct Constants
+        public struct VSConstants
         {
             public Matrix WorldViewProjection;
+        }
+
+        #endregion
+
+        #region PSConstants
+
+        public struct PSConstants
+        {
+            public Vector4 Color;
         }
 
         #endregion
@@ -45,7 +54,8 @@ namespace Libra.Graphics.Toolkit
         {
             ViewProjection      = (1 << 0),
             WorldViewProjection = (1 << 1),
-            Constants           = (1 << 2)
+            VSConstants         = (1 << 2),
+            PSConstants         = (1 << 3)
         }
 
         #endregion
@@ -54,9 +64,13 @@ namespace Libra.Graphics.Toolkit
 
         SharedDeviceResource sharedDeviceResource;
 
-        ConstantBuffer constantBuffer;
+        ConstantBuffer vsConstantBuffer;
 
-        Constants constants;
+        ConstantBuffer psConstantBuffer;
+
+        VSConstants vsConstants;
+
+        PSConstants psConstants;
 
         Matrix world;
 
@@ -101,23 +115,40 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        public GodRayOcclusionMapEffect(Device device)
+        public Vector4 Color
+        {
+            get { return psConstants.Color; }
+            set
+            {
+                psConstants.Color = value;
+
+                dirtyFlags |= DirtyFlags.PSConstants;
+            }
+        }
+
+        public SingleColorObjectEffect(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 
             this.device = device;
 
-            sharedDeviceResource = device.GetSharedResource<GodRayOcclusionMapEffect, SharedDeviceResource>();
+            sharedDeviceResource = device.GetSharedResource<SingleColorObjectEffect, SharedDeviceResource>();
 
-            constantBuffer = device.CreateConstantBuffer();
-            constantBuffer.Initialize<Constants>();
+            vsConstantBuffer = device.CreateConstantBuffer();
+            vsConstantBuffer.Initialize<VSConstants>();
+
+            psConstantBuffer = device.CreateConstantBuffer();
+            psConstantBuffer.Initialize<PSConstants>();
 
             world = Matrix.Identity;
             view = Matrix.Identity;
             projection = Matrix.Identity;
             viewProjection = Matrix.Identity;
 
-            dirtyFlags = DirtyFlags.WorldViewProjection;
+            vsConstants.WorldViewProjection = Matrix.Identity;
+            psConstants.Color = Vector4.Zero;
+
+            dirtyFlags = DirtyFlags.VSConstants | DirtyFlags.PSConstants;
         }
 
         public void Apply(DeviceContext context)
@@ -135,21 +166,29 @@ namespace Libra.Graphics.Toolkit
                 Matrix worldViewProjection;
                 Matrix.Multiply(ref world, ref viewProjection, out worldViewProjection);
 
-                Matrix.Transpose(ref worldViewProjection, out constants.WorldViewProjection);
+                Matrix.Transpose(ref worldViewProjection, out vsConstants.WorldViewProjection);
 
                 dirtyFlags &= ~DirtyFlags.WorldViewProjection;
-                dirtyFlags |= DirtyFlags.Constants;
+                dirtyFlags |= DirtyFlags.VSConstants;
             }
 
-            if ((dirtyFlags & DirtyFlags.Constants) != 0)
+            if ((dirtyFlags & DirtyFlags.VSConstants) != 0)
             {
-                constantBuffer.SetData(context, constants);
+                vsConstantBuffer.SetData(context, vsConstants);
 
-                dirtyFlags &= ~DirtyFlags.Constants;
+                dirtyFlags &= ~DirtyFlags.VSConstants;
             }
 
-            context.VertexShaderConstantBuffers[0] = constantBuffer;
+            if ((dirtyFlags & DirtyFlags.PSConstants) != 0)
+            {
+                psConstantBuffer.SetData(context, psConstants);
+
+                dirtyFlags &= ~DirtyFlags.PSConstants;
+            }
+
+            context.VertexShaderConstantBuffers[0] = vsConstantBuffer;
             context.VertexShader = sharedDeviceResource.VertexShader;
+            context.PixelShaderConstantBuffers[0] = psConstantBuffer;
             context.PixelShader = sharedDeviceResource.PixelShader;
         }
 
@@ -157,7 +196,7 @@ namespace Libra.Graphics.Toolkit
 
         bool disposed;
 
-        ~GodRayOcclusionMapEffect()
+        ~SingleColorObjectEffect()
         {
             Dispose(false);
         }
@@ -175,7 +214,7 @@ namespace Libra.Graphics.Toolkit
             if (disposing)
             {
                 sharedDeviceResource = null;
-                constantBuffer.Dispose();
+                vsConstantBuffer.Dispose();
             }
 
             disposed = true;
