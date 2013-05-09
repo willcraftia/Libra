@@ -119,6 +119,16 @@ namespace Samples.SceneGodRay
         /// </summary>
         SkySphere skySphere;
 
+        /// <summary>
+        /// ライト位置がカメラの後方であるか否かを示す値。
+        /// </summary>
+        bool lightBehindCamera;
+
+        /// <summary>
+        /// スクリーン空間におけるライト位置 (テクスチャ座標)。
+        /// </summary>
+        Vector2 screenLightPosition;
+
         public MainGame()
         {
             graphicsManager = new GraphicsManager(this);
@@ -196,12 +206,43 @@ namespace Samples.SceneGodRay
             skySphere.View = camera.View;
             basicEffect.View = camera.View;
 
+            // ライト位置の算出。
+
+            var infiniteView = camera.View;
+            infiniteView.Translation = Vector3.Zero;
+
+            var lightPosition = -lightDirection;
+
+            // 参考にした XNA Lens Flare サンプルでは調整無しだが、それは near = 0.1 であるが故であり、
+            // それなりの距離 (near = 1 など) を置くと、単位ベクトルであるライト方向を射影した場合に
+            // 射影空間の外に出てしまう (0 から near の間に射影されてしまう)。
+            // このため、near だけカメラ奥へ押し出した後に射影する (射影空間に収まる位置で射影する)。
+            lightPosition.Z -= camera.NearClipDistance;
+
+            var viewport = context.Viewport;
+            var projectedPosition = viewport.Project(lightPosition, camera.Projection, infiniteView, Matrix.Identity);
+
+            if (projectedPosition.Z < 0 || projectedPosition.Z > 1)
+            {
+                lightBehindCamera = true;
+            }
+            else
+            {
+                lightBehindCamera = false;
+                screenLightPosition = new Vector2(projectedPosition.X / viewport.Width, projectedPosition.Y / viewport.Height);
+            }
+
+            // 描画。
+
             // 念のため状態を初期状態へ。
             context.BlendState = BlendState.Opaque;
             context.DepthStencilState = DepthStencilState.Default;
 
-            // 閉塞マップを作成。
-            CreateOcclusionMap(context);
+            // ライト閉塞マップを作成。
+            if (!lightBehindCamera)
+            {
+                CreateOcclusionMap(context);
+            }
 
             // 通常シーンを描画。
             CreateNormalSceneMap(context);
@@ -289,23 +330,9 @@ namespace Samples.SceneGodRay
 
         void CreateFinalSceneMap(DeviceContext context)
         {
-            var infiniteView = camera.View;
-            infiniteView.Translation = Vector3.Zero;
-
-            var lightPosition = -lightDirection;
-
-            // 参考にした XNA Lens Flare サンプルでは調整無しだが、それは near = 0.1 であるが故であり、
-            // near = 1 などの距離を置くと、単位ベクトルを射影した場合に
-            // 射影空間の外に出てしまう (0 から near の間に射影されてしまう)。
-            // このため、near だけカメラ奥へ押し出した後に射影する (射影空間に収まる位置で射影する)。
-            lightPosition.Z -= camera.NearClipDistance;
-
-            var viewport = context.Viewport;
-            var projectedPosition = viewport.Project(lightPosition, camera.Projection, infiniteView, Matrix.Identity);
-
-            if (projectedPosition.Z < 0 || projectedPosition.Z > 1)
+            if (lightBehindCamera)
             {
-                // ライト位置がカメラの外ならば、ライト放射の効果を適用しない (適用しても効果が発生しない)。
+                // ライト位置がカメラの後方ならば、ライト放射効果を適用しない。
                 spriteBatch.Begin();
                 spriteBatch.Draw(normalSceneRenderTarget.GetShaderResourceView(), Vector2.Zero, Color.White);
                 spriteBatch.End();
@@ -325,7 +352,7 @@ namespace Samples.SceneGodRay
             context.SetRenderTarget(lightScatteringRenderTarget.GetRenderTargetView());
 
             // テクスチャ座標としてライト位置を設定。
-            lightScatteringEffect.ScreenLightPosition = new Vector2(projectedPosition.X / viewport.Width, projectedPosition.Y / viewport.Height);
+            lightScatteringEffect.ScreenLightPosition = screenLightPosition;
             lightScatteringEffect.SceneMap = occlusionRenderTarget.GetShaderResourceView();
             lightScatteringEffect.Apply(context);
 
@@ -426,9 +453,9 @@ namespace Samples.SceneGodRay
                 lightScatteringEffect.Density = Math.Max(0.0f, lightScatteringEffect.Density - 0.01f);
 
             if (currentKeyboardState.IsKeyDown(Keys.U))
-                lightScatteringEffect.Decay += 0.01f;
+                lightScatteringEffect.Decay += 0.001f;
             if (currentKeyboardState.IsKeyDown(Keys.J))
-                lightScatteringEffect.Decay = Math.Max(0.0f, lightScatteringEffect.Decay - 0.01f);
+                lightScatteringEffect.Decay = Math.Max(0.0f, lightScatteringEffect.Decay - 0.001f);
 
             if (currentKeyboardState.IsKeyDown(Keys.I))
                 lightScatteringEffect.Weight += 0.01f;
