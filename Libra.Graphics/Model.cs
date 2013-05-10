@@ -51,7 +51,7 @@ namespace Libra.Graphics
             }
         }
 
-        public void Draw(DeviceContext context, Matrix world, IEffect effect)
+        public void Draw(DeviceContext context, IEffect effect, Matrix world)
         {
             if (context == null) throw new ArgumentNullException("context");
             if (effect == null) throw new ArgumentNullException("effect");
