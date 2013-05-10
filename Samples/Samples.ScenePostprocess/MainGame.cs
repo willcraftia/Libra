@@ -59,6 +59,8 @@ namespace Samples.ScenePostprocess
         /// </summary>
         KeyboardState currentKeyboardState;
 
+        RenderTarget depthNormalRenderTarget;
+
         /// <summary>
         /// 通常シーンの描画先レンダ ターゲット。
         /// </summary>
@@ -71,6 +73,10 @@ namespace Samples.ScenePostprocess
         Monochrome monochrome;
 
         Scanline scanline;
+
+        Edge edge;
+
+        DepthNormalMapEffect depthNormalMapEffect;
 
         /// <summary>
         /// メッシュ描画のための基礎エフェクト。
@@ -123,6 +129,13 @@ namespace Samples.ScenePostprocess
             spriteBatch = new SpriteBatch(Device.ImmediateContext);
             spriteFont = content.Load<SpriteFont>("hudFont");
 
+            depthNormalRenderTarget = Device.CreateRenderTarget();
+            depthNormalRenderTarget.Width = WindowWidth;
+            depthNormalRenderTarget.Height = WindowHeight;
+            depthNormalRenderTarget.Format = SurfaceFormat.Vector4;
+            depthNormalRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
+            depthNormalRenderTarget.Initialize();
+
             normalSceneRenderTarget = Device.CreateRenderTarget();
             normalSceneRenderTarget.Width = WindowWidth;
             normalSceneRenderTarget.Height = WindowHeight;
@@ -139,6 +152,11 @@ namespace Samples.ScenePostprocess
             scanline = new Scanline(Device);
             scanline.Density = WindowHeight * MathHelper.PiOver2;
             postprocessorChain.Postprocessors.Add(scanline);
+
+            edge = new Edge(Device);
+            postprocessorChain.Postprocessors.Add(edge);
+
+            depthNormalMapEffect = new DepthNormalMapEffect(Device);
 
             basicEffect = new BasicEffect(Device);
             basicEffect.AmbientLightColor = new Vector3(0.15f, 0.15f, 0.15f);
@@ -170,13 +188,20 @@ namespace Samples.ScenePostprocess
             context.BlendState = BlendState.Opaque;
             context.DepthStencilState = DepthStencilState.Default;
 
+            // 深度法線マップを描画。
+            CreateDepthNormalMap(context);
+
             // 通常シーンを描画。
             CreateNormalSceneMap(context);
 
+            // ポストプロセスを適用。
             finalSceneTexture = postprocessorChain.Draw(context, normalSceneRenderTarget.GetShaderResourceView());
 
             // 最終的なシーンをバック バッファへ描画。
             CreateFinalSceneMap(context);
+
+            // 中間マップを描画。
+            DrawInterMapsToScreen();
 
             // HUD のテキストを描画。
             DrawOverlayText();
@@ -184,30 +209,69 @@ namespace Samples.ScenePostprocess
             base.Draw(gameTime);
         }
 
+        void CreateDepthNormalMap(DeviceContext context)
+        {
+            context.SetRenderTarget(depthNormalRenderTarget.GetRenderTargetView());
+            context.Clear(Vector4.One);
+
+            DrawScene(context, depthNormalMapEffect);
+
+            context.SetRenderTarget(null);
+
+            // エッジ強調エフェクトへ深度法線マップを設定。
+            edge.DepthNormalMap = depthNormalRenderTarget.GetShaderResourceView();
+        }
+
         void CreateNormalSceneMap(DeviceContext context)
         {
             context.SetRenderTarget(normalSceneRenderTarget.GetRenderTargetView());
             context.Clear(Color.CornflowerBlue);
 
-            basicEffect.View = camera.View;
-            basicEffect.Projection = camera.Projection;
-
-            DrawPrimitiveMesh(context, cubeMesh, new Vector3(1, 0, 0), Matrix.CreateTranslation(-40, 10, 0));
-            DrawPrimitiveMesh(context, sphereMesh, new Vector3(0, 1, 0), Matrix.CreateTranslation(0, 10, -40));
-            for (float z = -180; z <= 180; z += 40)
-            {
-                DrawPrimitiveMesh(context, cylinderMesh, new Vector3(0, 0, 1), Matrix.CreateTranslation(-180, 40, z));
-            }
-            DrawPrimitiveMesh(context, squareMesh, new Vector3(0.5f), Matrix.Identity);
+            DrawScene(context, basicEffect);
 
             context.SetRenderTarget(null);
         }
 
-        void DrawPrimitiveMesh(DeviceContext context, PrimitiveMesh mesh, Vector3 color, Matrix world)
+        void DrawPrimitiveMesh(DeviceContext context, PrimitiveMesh mesh, Matrix world, Vector3 color)
         {
             basicEffect.DiffuseColor = color;
-            basicEffect.World = world;
-            basicEffect.Apply(context);
+
+            DrawPrimitiveMesh(context, mesh, world, color, basicEffect);
+        }
+
+        void DrawScene(DeviceContext context, IEffect effect)
+        {
+            var effectMatrices = effect as IEffectMatrices;
+            if (effectMatrices != null)
+            {
+                effectMatrices.View = camera.View;
+                effectMatrices.Projection = camera.Projection;
+            }
+
+            DrawPrimitiveMesh(context, cubeMesh, Matrix.CreateTranslation(-40, 10, 0), new Vector3(1, 0, 0), effect);
+            DrawPrimitiveMesh(context, sphereMesh, Matrix.CreateTranslation(0, 10, -40), new Vector3(0, 1, 0), effect);
+            for (float z = -180; z <= 180; z += 40)
+            {
+                DrawPrimitiveMesh(context, cylinderMesh, Matrix.CreateTranslation(-180, 40, z), new Vector3(0, 0, 1), effect);
+            }
+            DrawPrimitiveMesh(context, squareMesh, Matrix.Identity, new Vector3(0.5f), effect);
+        }
+
+        void DrawPrimitiveMesh(DeviceContext context, PrimitiveMesh mesh, Matrix world, Vector3 color, IEffect effect)
+        {
+            var effectMatrices = effect as IEffectMatrices;
+            if (effectMatrices != null)
+            {
+                effectMatrices.World = world;
+            }
+
+            var basicEffect = effect as BasicEffect;
+            if (basicEffect != null)
+            {
+                basicEffect.DiffuseColor = color;
+            }
+
+            effect.Apply(context);
             mesh.Draw(context);
         }
 
@@ -215,6 +279,31 @@ namespace Samples.ScenePostprocess
         {
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
             spriteBatch.Draw(finalSceneTexture, Vector2.Zero, Color.White);
+            spriteBatch.End();
+        }
+
+        void DrawInterMapsToScreen()
+        {
+            // 中間マップを画面左上に表示。
+
+            const float scale = 0.2f;
+
+            int w = (int) (WindowWidth * scale);
+            int h = (int) (WindowHeight * scale);
+
+            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque, SamplerState.PointClamp);
+
+            int index;
+            int x;
+
+            index = 0;
+            x = index * w;
+            spriteBatch.Draw(depthNormalRenderTarget.GetShaderResourceView(), new Rectangle(x, 0, w, h), Color.White);
+
+            index = 1;
+            x = index * w;
+            spriteBatch.Draw(normalSceneRenderTarget.GetShaderResourceView(), new Rectangle(x, 0, w, h), Color.White);
+
             spriteBatch.End();
         }
 
