@@ -81,6 +81,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.SceneGodRayContent"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.SceneGodRay", "Samples\Samples.SceneGodRay\Samples.SceneGodRay.csproj", "{91DF2625-6243-4EA3-8D81-EF43B0CB9BA0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.ScenePostprocessContent", "Samples\Samples.ScenePostprocessContent\Samples.ScenePostprocessContent.contentproj", "{0767D061-E630-4816-879B-5DD8A53F3457}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.ScenePostprocess", "Samples\Samples.ScenePostprocess\Samples.ScenePostprocess.csproj", "{EACC3ECD-296A-4B7C-82EB-B4E244E6A4ED}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -455,6 +459,22 @@ Global
 		{91DF2625-6243-4EA3-8D81-EF43B0CB9BA0}.Release|Mixed Platforms.Build.0 = Release|x86
 		{91DF2625-6243-4EA3-8D81-EF43B0CB9BA0}.Release|x86.ActiveCfg = Release|x86
 		{91DF2625-6243-4EA3-8D81-EF43B0CB9BA0}.Release|x86.Build.0 = Release|x86
+		{0767D061-E630-4816-879B-5DD8A53F3457}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0767D061-E630-4816-879B-5DD8A53F3457}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{0767D061-E630-4816-879B-5DD8A53F3457}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0767D061-E630-4816-879B-5DD8A53F3457}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{0767D061-E630-4816-879B-5DD8A53F3457}.Release|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{0767D061-E630-4816-879B-5DD8A53F3457}.Release|x86.ActiveCfg = Debug|Any CPU
+		{EACC3ECD-296A-4B7C-82EB-B4E244E6A4ED}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{EACC3ECD-296A-4B7C-82EB-B4E244E6A4ED}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{EACC3ECD-296A-4B7C-82EB-B4E244E6A4ED}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{EACC3ECD-296A-4B7C-82EB-B4E244E6A4ED}.Debug|x86.ActiveCfg = Debug|x86
+		{EACC3ECD-296A-4B7C-82EB-B4E244E6A4ED}.Debug|x86.Build.0 = Debug|x86
+		{EACC3ECD-296A-4B7C-82EB-B4E244E6A4ED}.Release|Any CPU.ActiveCfg = Release|x86
+		{EACC3ECD-296A-4B7C-82EB-B4E244E6A4ED}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{EACC3ECD-296A-4B7C-82EB-B4E244E6A4ED}.Release|Mixed Platforms.Build.0 = Release|x86
+		{EACC3ECD-296A-4B7C-82EB-B4E244E6A4ED}.Release|x86.ActiveCfg = Release|x86
+		{EACC3ECD-296A-4B7C-82EB-B4E244E6A4ED}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
