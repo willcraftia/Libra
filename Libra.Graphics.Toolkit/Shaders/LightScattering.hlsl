@@ -10,8 +10,8 @@ cbuffer Parameters : register(b0)
     float Exposure              : packoffset(c2.w);
 };
 
-Texture2D<float3> SceneMap : register(t0);
-SamplerState SceneMapSampler : register(s0);
+Texture2D<float3> Texture : register(t0);
+SamplerState TextureSampler : register(s0);
 
 float4 PS(float4 color    : COLOR0,
           float2 texCoord : TEXCOORD0) : SV_Target
@@ -19,7 +19,7 @@ float4 PS(float4 color    : COLOR0,
     float2 deltaTexCoord = (texCoord - ScreenLightPosition);
     deltaTexCoord *= 1.0f / SampleCount * Density;
 
-    float3 sceneColor = SceneMap.Sample(SceneMapSampler, texCoord);
+    float3 sceneColor = Texture.Sample(TextureSampler, texCoord);
 
     float illuminationDecay = 1;
 
@@ -28,7 +28,7 @@ float4 PS(float4 color    : COLOR0,
     {
         texCoord -= deltaTexCoord;
 
-        float3 sample = SceneMap.Sample(SceneMapSampler, texCoord);
+        float3 sample = Texture.Sample(TextureSampler, texCoord);
 
         sample *= illuminationDecay * Weight;
         sceneColor += sample;

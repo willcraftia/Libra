@@ -54,7 +54,7 @@
     <Compile Include="Edge.cs" />
     <Compile Include="GaussianBlur.cs" />
     <Compile Include="IPostprocessor.cs" />
-    <Compile Include="LightScatteringEffect.cs" />
+    <Compile Include="LightScattering.cs" />
     <Compile Include="Monochrome.cs" />
     <Compile Include="PostprocessorChain.cs" />
     <Compile Include="Scanline.cs" />

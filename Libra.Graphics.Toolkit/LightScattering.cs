@@ -8,7 +8,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class LightScatteringEffect : IDisposable
+    public sealed class LightScattering : IPostprocessor, IDisposable
     {
         #region SharedDeviceResource
 
@@ -149,15 +149,17 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        public ShaderResourceView SceneMap { get; set; }
+        public bool Enabled { get; set; }
 
-        public LightScatteringEffect(Device device)
+        public ShaderResourceView Texture { get; set; }
+
+        public LightScattering(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 
             this.device = device;
 
-            sharedDeviceResource = device.GetSharedResource<LightScatteringEffect, SharedDeviceResource>();
+            sharedDeviceResource = device.GetSharedResource<LightScattering, SharedDeviceResource>();
 
             constantBuffer = device.CreateConstantBuffer();
             constantBuffer.Initialize<Constants>();
@@ -168,6 +170,10 @@ namespace Libra.Graphics.Toolkit
             constants.Decay = 0.9f;
             constants.Weight = 0.5f;
             constants.Exposure = 1.0f;
+
+            Enabled = true;
+
+            dirtyFlags |= DirtyFlags.Constants;
         }
 
         public void Apply(DeviceContext context)
@@ -182,7 +188,7 @@ namespace Libra.Graphics.Toolkit
             context.PixelShaderConstantBuffers[0] = constantBuffer;
             context.PixelShader = sharedDeviceResource.PixelShader;
 
-            context.PixelShaderResources[0] = SceneMap;
+            context.PixelShaderResources[0] = Texture;
             context.PixelShaderSamplers[0] = SamplerState.LinearClamp;
         }
 
@@ -190,7 +196,7 @@ namespace Libra.Graphics.Toolkit
 
         bool disposed;
 
-        ~LightScatteringEffect()
+        ~LightScattering()
         {
             Dispose(false);
         }
