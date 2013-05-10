@@ -19,7 +19,7 @@ namespace Samples.BloomPostprocess
 
         Bloom bloom;
 
-        GaussianBlurEffect gaussianBlurEffect;
+        GaussianBlurCore gaussianBlur;
 
         RenderTarget sceneRenderTarget;
 
@@ -64,7 +64,7 @@ namespace Samples.BloomPostprocess
 
             bloomExtract = new BloomExtract(Device);
             bloom = new Bloom(Device);
-            gaussianBlurEffect = new GaussianBlurEffect(Device);
+            gaussianBlur = new GaussianBlurCore(Device);
 
             var backBuffer = Device.BackBuffer;
             var width = backBuffer.Width;
@@ -129,20 +129,21 @@ namespace Samples.BloomPostprocess
                 return;
             }
 
-            // GaussianBlurEffect の設定。
+            // ガウシアン ブラーの設定。
             // XNA の BlurAamount はガウス関数の sigma そのものに一致。
             // Libra の amount は一般的に用いられる例のごとく sigma = radius / amount。
             // 一般的には amount を減らす程にぼかしを強くし、amount を増やす程にぼかしを弱くする。
             // しかし、amount を減らす程にぼかしが強くなるという設定は混乱を招きやすいため、
             // XNA では amount を増やす程にぼかしが強くなる設定にしていると思われる。
-            gaussianBlurEffect.Width = bloomMapRenderTarget.Width;
-            gaussianBlurEffect.Height = bloomMapRenderTarget.Height;
-            gaussianBlurEffect.Amount = 1.0f / Settings.BlurAmount;
+            gaussianBlur.Amount = 1.0f / Settings.BlurAmount;
 
-            // GaussianBlurEffect Horizon パス。
-            gaussianBlurEffect.Pass = GaussianBlurEffectPass.Horizon;
+            // ガウシアン ブラーの水平パス。
+            // SpriteBatch でビューはスロット #0 に設定されるが、
+            // FullscreenQuad との互換性のために明示的に設定する必要がある。
+            gaussianBlur.Texture = bloomMapRenderTarget.GetShaderResourceView();
+            gaussianBlur.Pass = GaussianBlurPass.Horizon;
             context.SetRenderTarget(interBlurRenderTarget.GetRenderTargetView());
-            DrawFullscreenQuad(bloomMapRenderTarget, interBlurRenderTarget.Width, interBlurRenderTarget.Height, gaussianBlurEffect.Apply);
+            DrawFullscreenQuad(bloomMapRenderTarget, interBlurRenderTarget.Width, interBlurRenderTarget.Height, gaussianBlur.Apply);
             context.SetRenderTarget(null);
 
             if (showBuffer < IntermediateBuffer.BlurredBothWays)
@@ -151,10 +152,13 @@ namespace Samples.BloomPostprocess
                 return;
             }
 
-            // GaussianBlurEffect Vertical パス。
-            gaussianBlurEffect.Pass = GaussianBlurEffectPass.Vertical;
+            // ガウシアン ブラーの垂直パス。
+            // SpriteBatch でビューはスロット #0 に設定されるが、
+            // FullscreenQuad との互換性のために明示的に設定する必要がある。
+            gaussianBlur.Texture = interBlurRenderTarget.GetShaderResourceView();
+            gaussianBlur.Pass = GaussianBlurPass.Vertical;
             context.SetRenderTarget(bloomMapRenderTarget.GetRenderTargetView());
-            DrawFullscreenQuad(interBlurRenderTarget, bloomMapRenderTarget.Width, bloomMapRenderTarget.Height, gaussianBlurEffect.Apply);
+            DrawFullscreenQuad(interBlurRenderTarget, bloomMapRenderTarget.Width, bloomMapRenderTarget.Height, gaussianBlur.Apply);
             context.SetRenderTarget(null);
 
             if (showBuffer < IntermediateBuffer.FinalResult)

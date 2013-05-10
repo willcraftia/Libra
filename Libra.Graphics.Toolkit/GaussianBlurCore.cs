@@ -9,13 +9,12 @@ using Libra.Graphics.Toolkit.Properties;
 namespace Libra.Graphics.Toolkit
 {
     /// <summary>
-    /// ガウシアン ブラーを適用するシェーダです。
+    /// ガウシアン ブラーのピクセル シェーダを管理するクラスです。
     /// </summary>
     /// <remarks>
-    /// このシェーダは SpriteBatch と共に利用する事を前提としており、
-    /// 頂点シェーダには SpriteBatch の頂点シェーダを用います。
+    /// このクラスは、SpriteBatch あるいは FullscreenQuad の頂点シェーダの利用を前提としています。
     /// </remarks>
-    public sealed class GaussianBlurEffect : IDisposable
+    public sealed class GaussianBlurCore : IDisposable
     {
         #region SharedDeviceResource
 
@@ -105,7 +104,7 @@ namespace Libra.Graphics.Toolkit
 
         DirtyFlags dirtyFlags;
 
-        public GaussianBlurEffectPass Pass { get; set; }
+        public GaussianBlurPass Pass { get; set; }
 
         public int Radius
         {
@@ -137,43 +136,17 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        public int Width
-        {
-            get { return width; }
-            set
-            {
-                if (value < 1) throw new ArgumentOutOfRangeException("value");
+        public ShaderResourceView Texture { get; set; }
 
-                if (width == value) return;
+        public SamplerState TextureSampler { get; set; }
 
-                width = value;
-
-                dirtyFlags |= DirtyFlags.KernelOffsets;
-            }
-        }
-
-        public int Height
-        {
-            get { return height; }
-            set
-            {
-                if (value < 1) throw new ArgumentOutOfRangeException("value");
-
-                if (height == value) return;
-
-                height = value;
-
-                dirtyFlags |= DirtyFlags.KernelOffsets;
-            }
-        }
-
-        public GaussianBlurEffect(Device device)
+        public GaussianBlurCore(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 
             this.device = device;
 
-            sharedDeviceResource = device.GetSharedResource<GaussianBlurEffect, SharedDeviceResource>();
+            sharedDeviceResource = device.GetSharedResource<GaussianBlurCore, SharedDeviceResource>();
 
             horizontalConstantBuffer = device.CreateConstantBuffer();
             horizontalConstantBuffer.Initialize<Constants>();
@@ -196,6 +169,18 @@ namespace Libra.Graphics.Toolkit
         {
             if (context == null) throw new ArgumentNullException("context");
 
+            int w;
+            int h;
+            GetTextureSize(out w, out h);
+
+            if (w != width || h != height)
+            {
+                width = w;
+                height = h;
+
+                dirtyFlags |= DirtyFlags.KernelOffsets;
+            }
+
             SetKernelSize();
             SetKernelOffsets();
             SetKernelWeights();
@@ -214,15 +199,19 @@ namespace Libra.Graphics.Toolkit
             // 定数バッファの設定。
             switch (Pass)
             {
-                case GaussianBlurEffectPass.Horizon:
+                case GaussianBlurPass.Horizon:
                     context.PixelShaderConstantBuffers[0] = horizontalConstantBuffer;
                     break;
-                case GaussianBlurEffectPass.Vertical:
+                case GaussianBlurPass.Vertical:
                     context.PixelShaderConstantBuffers[0] = verticalConstantBufffer;
                     break;
                 default:
                     throw new InvalidOperationException("Unknown direction: " + Pass);
             }
+
+            // テクスチャの設定。
+            context.PixelShaderResources[0] = Texture;
+            context.PixelShaderSamplers[0] = TextureSampler;
 
             // ピクセル シェーダの設定。
             context.PixelShader = sharedDeviceResource.PixelShader;
@@ -316,11 +305,24 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
+        void GetTextureSize(out int width, out int height)
+        {
+            if (Texture == null)
+                throw new InvalidOperationException("Texture is null.");
+
+            var texture2D = Texture.Resource as Texture2D;
+            if (texture2D == null)
+                throw new InvalidOperationException("Texture is not a view for Texture2D.");
+
+            width = texture2D.Width;
+            height = texture2D.Height;
+        }
+
         #region IDisposable
 
         bool disposed;
 
-        ~GaussianBlurEffect()
+        ~GaussianBlurCore()
         {
             Dispose(false);
         }

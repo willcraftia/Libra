@@ -87,7 +87,7 @@ namespace Samples.SceneDepthOfField
         /// <summary>
         /// シーンに適用するブラー。
         /// </summary>
-        GaussianBlur gaussianBlur;
+        GaussianBlurSuite gaussianBlur;
 
         /// <summary>
         /// FullScreenQuad。
@@ -170,7 +170,7 @@ namespace Samples.SceneDepthOfField
 
             depthMapEffect = new DepthMapEffect(Device);
 
-            gaussianBlur = new GaussianBlur(
+            gaussianBlur = new GaussianBlurSuite(
                 Device, bluredSceneRenderTarget.Width, bluredSceneRenderTarget.Height, bluredSceneRenderTarget.Format);
 
             depthOfField = new DepthOfField(Device);

@@ -52,6 +52,7 @@
     <Compile Include="DepthOfField.cs" />
     <Compile Include="DirectTextureDraw.cs" />
     <Compile Include="Edge.cs" />
+    <Compile Include="GaussianBlur.cs" />
     <Compile Include="IPostprocessor.cs" />
     <Compile Include="LightScatteringEffect.cs" />
     <Compile Include="Monochrome.cs" />
@@ -65,9 +66,9 @@
     <Compile Include="LightCameraBuilder.cs" />
     <Compile Include="ConvexBody.cs" />
     <Compile Include="FullScreenQuad.cs" />
-    <Compile Include="GaussianBlurEffectPass.cs" />
-    <Compile Include="GaussianBlur.cs" />
-    <Compile Include="GaussianBlurEffect.cs" />
+    <Compile Include="GaussianBlurPass.cs" />
+    <Compile Include="GaussianBlurSuite.cs" />
+    <Compile Include="GaussianBlurCore.cs" />
     <Compile Include="LiSPSMLightCameraBuilder.cs" />
     <Compile Include="ProjectionType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

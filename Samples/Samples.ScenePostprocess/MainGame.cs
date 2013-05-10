@@ -104,6 +104,21 @@ namespace Samples.ScenePostprocess
         /// </summary>
         Edge edge;
 
+        /// <summary>
+        /// ガウシアン ブラー シェーダ。
+        /// </summary>
+        GaussianBlurCore gaussianBlurCore;
+
+        /// <summary>
+        /// ガウシアン ブラー ポストプロセス (水平パス)。
+        /// </summary>
+        GaussianBlur gaussianBlurH;
+
+        /// <summary>
+        /// ガウシアン ブラー ポストプロセス (垂直パス)。
+        /// </summary>
+        GaussianBlur gaussianBlurV;
+
         bool depthNormalMapEnabled;
 
         /// <summary>
@@ -191,6 +206,14 @@ namespace Samples.ScenePostprocess
             edge = new Edge(Device);
             edge.Enabled = false;
             postprocessorChain.Postprocessors.Add(edge);
+
+            gaussianBlurCore = new GaussianBlurCore(Device);
+            gaussianBlurH = new GaussianBlur(gaussianBlurCore, GaussianBlurPass.Horizon);
+            gaussianBlurV = new GaussianBlur(gaussianBlurCore, GaussianBlurPass.Vertical);
+            gaussianBlurH.Enabled = false;
+            gaussianBlurV.Enabled = false;
+            postprocessorChain.Postprocessors.Add(gaussianBlurH);
+            postprocessorChain.Postprocessors.Add(gaussianBlurV);
 
             depthNormalMapEffect = new DepthNormalMapEffect(Device);
 
@@ -359,7 +382,8 @@ namespace Samples.ScenePostprocess
             var text =
                 "1: Monochrome (" + monochrome.Enabled + ")\n" +
                 "2: Scanline (" + scanline.Enabled + ")\n" +
-                "3: Edge (" + edge.Enabled + ")";
+                "3: Edge (" + edge.Enabled + ")\n" +
+                "4: Gaussian blur (" + gaussianBlurH.Enabled + ")";
 
             spriteBatch.Begin();
 
@@ -384,6 +408,12 @@ namespace Samples.ScenePostprocess
 
             if (currentKeyboardState.IsKeyUp(Keys.D3) && lastKeyboardState.IsKeyDown(Keys.D3))
                 edge.Enabled = !edge.Enabled;
+
+            if (currentKeyboardState.IsKeyUp(Keys.D4) && lastKeyboardState.IsKeyDown(Keys.D4))
+            {
+                gaussianBlurH.Enabled = !gaussianBlurH.Enabled;
+                gaussianBlurV.Enabled = !gaussianBlurV.Enabled;
+            }
 
             if (currentKeyboardState.IsKeyDown(Keys.Escape))
                 Exit();
