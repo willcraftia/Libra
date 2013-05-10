@@ -60,7 +60,7 @@ namespace Samples.SceneDepthOfField
         KeyboardState currentKeyboardState;
 
         /// <summary>
-        /// 深度マップ、および、ブラー済みシーンのスケール。
+        /// ブラー済みシーンのスケール。
         /// </summary>
         float mapScale = 0.5f;
 
@@ -95,14 +95,29 @@ namespace Samples.SceneDepthOfField
         DepthOfField depthOfField;
 
         /// <summary>
-        /// グリッド モデル (格子状の床)。
+        /// メッシュ描画のための基礎エフェクト。
         /// </summary>
-        Model gridModel;
+        BasicEffect basicEffect;
 
         /// <summary>
-        /// デュード モデル (人)。
+        /// 立方体メッシュ。
         /// </summary>
-        Model dudeModel;
+        CubeMesh cubeMesh;
+
+        /// <summary>
+        /// 球メッシュ。
+        /// </summary>
+        SphereMesh sphereMesh;
+
+        /// <summary>
+        /// 円柱メッシュ。
+        /// </summary>
+        CylinderMesh cylinderMesh;
+
+        /// <summary>
+        /// 正方形メッシュ。
+        /// </summary>
+        SquareMesh squareMesh;
 
         public MainGame()
         {
@@ -156,17 +171,15 @@ namespace Samples.SceneDepthOfField
             depthOfField = new DepthOfField(Device);
             depthOfField.Projection = camera.Projection;
 
-            gridModel = content.Load<Model>("grid");
-            dudeModel = content.Load<Model>("dude");
+            basicEffect = new BasicEffect(Device);
+            basicEffect.AmbientLightColor = new Vector3(0.15f, 0.15f, 0.15f);
+            basicEffect.PerPixelLighting = true;
+            basicEffect.EnableDefaultLighting();
 
-            foreach (var mesh in dudeModel.Meshes)
-            {
-                foreach (BasicEffect effect in mesh.Effects)
-                {
-                    effect.AmbientLightColor = new Vector3(0.15f, 0.15f, 0.15f);
-                    effect.EnableDefaultLighting();
-                }
-            }
+            cubeMesh = new CubeMesh(Device, 20);
+            sphereMesh = new SphereMesh(Device, 20, 32);
+            cylinderMesh = new CylinderMesh(Device, 80, 20, 32);
+            squareMesh = new SquareMesh(Device, 400);
         }
 
         protected override void Update(GameTime gameTime)
@@ -217,8 +230,13 @@ namespace Samples.SceneDepthOfField
             context.SetRenderTarget(depthMapRenderTarget.GetRenderTargetView());
             context.Clear(Color.White);
 
-            gridModel.Draw(context, depthMapEffect, Matrix.Identity);
-            dudeModel.Draw(context, depthMapEffect, Matrix.Identity);
+            DrawPrimitiveMeshDepth(context, cubeMesh, Matrix.CreateTranslation(-40, 10, 0));
+            DrawPrimitiveMeshDepth(context, sphereMesh, Matrix.CreateTranslation(0, 10, -40));
+            for (float z = -180; z <= 180; z += 40)
+            {
+                DrawPrimitiveMeshDepth(context, cylinderMesh, Matrix.CreateTranslation(-180, 40, z));
+            }
+            DrawPrimitiveMeshDepth(context, squareMesh, Matrix.Identity);
 
             context.SetRenderTarget(null);
         }
@@ -228,10 +246,33 @@ namespace Samples.SceneDepthOfField
             context.SetRenderTarget(normalSceneRenderTarget.GetRenderTargetView());
             context.Clear(Color.CornflowerBlue);
 
-            gridModel.Draw(context, Matrix.Identity, camera.View, camera.Projection);
-            dudeModel.Draw(context, Matrix.Identity, camera.View, camera.Projection);
+            basicEffect.View = camera.View;
+            basicEffect.Projection = camera.Projection;
+
+            DrawPrimitiveMesh(context, cubeMesh, new Vector3(1, 0, 0), Matrix.CreateTranslation(-40, 10, 0));
+            DrawPrimitiveMesh(context, sphereMesh, new Vector3(0, 1, 0), Matrix.CreateTranslation(0, 10, -40));
+            for (float z = -180; z <= 180; z += 40)
+            {
+                DrawPrimitiveMesh(context, cylinderMesh, new Vector3(0, 0, 1), Matrix.CreateTranslation(-180, 40, z));
+            }
+            DrawPrimitiveMesh(context, squareMesh, new Vector3(0.5f), Matrix.Identity);
 
             context.SetRenderTarget(null);
+        }
+
+        void DrawPrimitiveMeshDepth(DeviceContext context, PrimitiveMesh mesh, Matrix world)
+        {
+            depthMapEffect.World = world;
+            depthMapEffect.Apply(context);
+            mesh.Draw(context);
+        }
+
+        void DrawPrimitiveMesh(DeviceContext context, PrimitiveMesh mesh, Vector3 color, Matrix world)
+        {
+            basicEffect.DiffuseColor = color;
+            basicEffect.World = world;
+            basicEffect.Apply(context);
+            mesh.Draw(context);
         }
 
         void CreateBluredSceneMap(DeviceContext context)
@@ -289,8 +330,8 @@ namespace Samples.SceneDepthOfField
 
             spriteBatch.Begin();
 
-            spriteBatch.DrawString(spriteFont, text, new Vector2(65, 350), Color.Black);
-            spriteBatch.DrawString(spriteFont, text, new Vector2(64, 350 - 1), Color.Yellow);
+            spriteBatch.DrawString(spriteFont, text, new Vector2(65, 380), Color.Black);
+            spriteBatch.DrawString(spriteFont, text, new Vector2(64, 380 - 1), Color.Yellow);
 
             spriteBatch.End();
         }

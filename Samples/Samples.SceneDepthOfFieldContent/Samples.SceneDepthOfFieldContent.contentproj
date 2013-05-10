@@ -36,28 +36,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="dude.fbx">
-      <Name>dude</Name>
-      <Importer>FbxImporter</Importer>
-      <Processor>ModelProcessor</Processor>
-      <ProcessorParameters_Scale>0.75</ProcessorParameters_Scale>
-    </Compile>
-    <Compile Include="grid.fbx">
-      <Name>grid</Name>
-      <Importer>FbxImporter</Importer>
-      <Processor>ModelProcessor</Processor>
-      <ProcessorParameters_Scale>2</ProcessorParameters_Scale>
-    </Compile>
     <Compile Include="hudFont.spritefont">
       <Name>hudFont</Name>
       <Importer>FontDescriptionImporter</Importer>
       <Processor>FontDescriptionProcessor</Processor>
     </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="README.txt">
-      <Name>README</Name>
-    </None>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\XNA Game Studio\$(XnaFrameworkVersion)\Microsoft.Xna.GameStudio.ContentPipeline.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
