@@ -105,7 +105,7 @@ namespace Libra.Graphics.Toolkit
                 if (!postprocessor.Enabled)
                     continue;
 
-                if (0 < i)
+                if (0 < processCount)
                 {
                     currentTexture = currentRenderTarget.GetShaderResourceView();
                 }
