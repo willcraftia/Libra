@@ -105,6 +105,11 @@ namespace Samples.ScenePostprocess
         Edge edge;
 
         /// <summary>
+        /// ネガティブ フィルタ ポストプロセス。
+        /// </summary>
+        NegativeFilter negativeFilter;
+
+        /// <summary>
         /// ガウシアン ブラー シェーダ。
         /// </summary>
         GaussianBlurCore gaussianBlurCore;
@@ -206,6 +211,10 @@ namespace Samples.ScenePostprocess
             edge = new Edge(Device);
             edge.Enabled = false;
             postprocessorChain.Postprocessors.Add(edge);
+
+            negativeFilter = new NegativeFilter(Device);
+            negativeFilter.Enabled = false;
+            postprocessorChain.Postprocessors.Add(negativeFilter);
 
             gaussianBlurCore = new GaussianBlurCore(Device);
             gaussianBlurH = new GaussianBlur(gaussianBlurCore, GaussianBlurPass.Horizon);
@@ -383,7 +392,8 @@ namespace Samples.ScenePostprocess
                 "1: Monochrome (" + monochrome.Enabled + ")\n" +
                 "2: Scanline (" + scanline.Enabled + ")\n" +
                 "3: Edge (" + edge.Enabled + ")\n" +
-                "4: Gaussian blur (" + gaussianBlurH.Enabled + ")";
+                "4: Negative filter (" + negativeFilter.Enabled + ")\n" +
+                "5: Gaussian blur (" + gaussianBlurH.Enabled + ")";
 
             spriteBatch.Begin();
 
@@ -410,6 +420,9 @@ namespace Samples.ScenePostprocess
                 edge.Enabled = !edge.Enabled;
 
             if (currentKeyboardState.IsKeyUp(Keys.D4) && lastKeyboardState.IsKeyDown(Keys.D4))
+                negativeFilter.Enabled = !negativeFilter.Enabled;
+
+            if (currentKeyboardState.IsKeyUp(Keys.D5) && lastKeyboardState.IsKeyDown(Keys.D5))
             {
                 gaussianBlurH.Enabled = !gaussianBlurH.Enabled;
                 gaussianBlurV.Enabled = !gaussianBlurV.Enabled;

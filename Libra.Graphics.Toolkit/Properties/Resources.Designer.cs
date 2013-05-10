@@ -151,6 +151,13 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
+        internal static byte[] NegativeFilterPS {
+            get {
+                object obj = ResourceManager.GetObject("NegativeFilterPS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
         internal static byte[] ScanlinePS {
             get {
                 object obj = ResourceManager.GetObject("ScanlinePS", resourceCulture);

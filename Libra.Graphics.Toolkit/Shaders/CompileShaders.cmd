@@ -6,6 +6,31 @@ set vs_profile=vs_5_0
 set ps_profile=ps_5_0
 
 ::
+:: ShadowMap VS/PS
+::
+call :CompileShader ShadowMap VS %vs_profile%
+call :CompileShader ShadowMap BasicPS %ps_profile%
+call :CompileShader ShadowMap VariancePS %ps_profile%
+
+::
+:: DepthMap VS/PS
+::
+call :CompileShader DepthMap VS %vs_profile%
+call :CompileShader DepthMap PS %ps_profile%
+
+::
+:: DepthNormalMap VS/PS
+::
+call :CompileShader DepthNormalMap VS %vs_profile%
+call :CompileShader DepthNormalMap PS %ps_profile%
+
+::
+:: SingleColorObject VS/PS
+::
+call :CompileShader SingleColorObject VS %vs_profile%
+call :CompileShader SingleColorObject PS %ps_profile%
+
+::
 :: FullScreenQuad VS
 ::
 call :CompileShader FullScreenQuad VS %vs_profile%
@@ -26,34 +51,9 @@ call :CompileShader Bloom PS %ps_profile%
 call :CompileShader GaussianBlur PS %ps_profile%
 
 ::
-:: ShadowMap VS/PS
-::
-call :CompileShader ShadowMap VS %vs_profile%
-call :CompileShader ShadowMap BasicPS %ps_profile%
-call :CompileShader ShadowMap VariancePS %ps_profile%
-
-::
-:: DepthMap VS/PS
-::
-call :CompileShader DepthMap VS %vs_profile%
-call :CompileShader DepthMap PS %ps_profile%
-
-::
-:: DepthNormalMap VS/PS
-::
-call :CompileShader DepthNormalMap VS %vs_profile%
-call :CompileShader DepthNormalMap PS %ps_profile%
-
-::
 :: DepthOfField PS
 ::
 call :CompileShader DepthOfField PS %ps_profile%
-
-::
-:: SingleColorObject VS/PS
-::
-call :CompileShader SingleColorObject VS %vs_profile%
-call :CompileShader SingleColorObject PS %ps_profile%
 
 ::
 :: LightScattering PS
@@ -79,6 +79,11 @@ call :CompileShader Scanline PS %ps_profile%
 :: Edge PS
 ::
 call :CompileShader Edge PS %ps_profile%
+
+::
+:: NegativeFilter PS
+::
+call :CompileShader NegativeFilter PS %ps_profile%
 
 echo.
 

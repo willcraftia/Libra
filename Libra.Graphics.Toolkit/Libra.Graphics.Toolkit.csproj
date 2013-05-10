@@ -56,6 +56,7 @@
     <Compile Include="IPostprocessor.cs" />
     <Compile Include="LightScattering.cs" />
     <Compile Include="Monochrome.cs" />
+    <Compile Include="NegativeFilter.cs" />
     <Compile Include="PostprocessorChain.cs" />
     <Compile Include="Scanline.cs" />
     <Compile Include="SingleColorObjectEffect.cs" />
@@ -126,6 +127,7 @@
     <None Include="Shaders\Compiled\GaussianBlurPS.bin" />
     <None Include="Shaders\Compiled\LightScatteringPS.bin" />
     <None Include="Shaders\Compiled\MonochromePS.bin" />
+    <None Include="Shaders\Compiled\NegativeFilterPS.bin" />
     <None Include="Shaders\Compiled\ScanlinePS.bin" />
     <None Include="Shaders\Compiled\ShadowMapBasicPS.bin" />
     <None Include="Shaders\Compiled\ShadowMapVariancePS.bin" />
@@ -142,6 +144,7 @@
     <None Include="Shaders\GaussianBlur.hlsl" />
     <None Include="Shaders\LightScattering.hlsl" />
     <None Include="Shaders\Monochrome.hlsl" />
+    <None Include="Shaders\NegativeFilter.hlsl" />
     <None Include="Shaders\Scanline.hlsl" />
     <None Include="Shaders\SingleColorObject.hlsl" />
     <None Include="Shaders\ShadowMap.hlsl" />
