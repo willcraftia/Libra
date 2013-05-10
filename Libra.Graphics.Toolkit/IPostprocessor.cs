@@ -6,10 +6,12 @@ using System;
 
 namespace Libra.Graphics.Toolkit
 {
-    public interface IPostprocessor : IEffect
+    public interface IPostprocessor
     {
         bool Enabled { get; }
 
         ShaderResourceView Texture { set; }
+
+        void Apply(DeviceContext context);
     }
 }
