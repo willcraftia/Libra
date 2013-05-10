@@ -55,19 +55,9 @@ namespace Samples.SceneDepthOfField
         KeyboardState lastKeyboardState;
 
         /// <summary>
-        /// 前回の更新処理におけるジョイスティック状態。
-        /// </summary>
-        JoystickState lastJoystickState;
-
-        /// <summary>
         /// 現在の更新処理におけるキーボード状態。
         /// </summary>
         KeyboardState currentKeyboardState;
-
-        /// <summary>
-        /// 現在の更新処理におけるジョイスティック状態。
-        /// </summary>
-        JoystickState currentJoystickState;
 
         /// <summary>
         /// 深度マップ、および、ブラー済みシーンのスケール。
@@ -341,61 +331,50 @@ namespace Samples.SceneDepthOfField
             float time = (float) gameTime.ElapsedGameTime.TotalMilliseconds;
 
             lastKeyboardState = currentKeyboardState;
-            lastJoystickState = currentJoystickState;
 
             currentKeyboardState = Keyboard.GetState();
-            currentJoystickState = Joystick.GetState();
-
-            rotateDude += currentJoystickState.Triggers.Right * time * 0.2f;
-            rotateDude -= currentJoystickState.Triggers.Left * time * 0.2f;
 
             if (currentKeyboardState.IsKeyDown(Keys.Q))
                 rotateDude -= time * 0.2f;
             if (currentKeyboardState.IsKeyDown(Keys.E))
                 rotateDude += time * 0.2f;
 
-            if (currentKeyboardState.IsKeyDown(Keys.PageUp) ||
-                currentJoystickState.IsButtonDown(Buttons.DPadUp))
+            if (currentKeyboardState.IsKeyDown(Keys.PageUp))
             {
                 depthOfField.FocusDistance += 1;
                 if (camera.FarClipDistance < depthOfField.FocusDistance)
                     depthOfField.FocusDistance = camera.FarClipDistance;
             }
 
-            if (currentKeyboardState.IsKeyDown(Keys.PageDown) ||
-                currentJoystickState.IsButtonDown(Buttons.DPadDown))
+            if (currentKeyboardState.IsKeyDown(Keys.PageDown))
             {
                 depthOfField.FocusDistance -= 1;
                 if (depthOfField.FocusDistance < camera.NearClipDistance)
                     depthOfField.FocusDistance = camera.NearClipDistance;
             }
 
-            if (currentKeyboardState.IsKeyDown(Keys.Home) ||
-                currentJoystickState.IsButtonDown(Buttons.DPadRight))
+            if (currentKeyboardState.IsKeyDown(Keys.Home))
             {
                 depthOfField.FocusRange += 1;
                 if (500.0f < depthOfField.FocusRange)
                     depthOfField.FocusRange = 500.0f;
             }
 
-            if (currentJoystickState.Buttons.RightStick == ButtonState.Pressed ||
-                currentKeyboardState.IsKeyDown(Keys.R))
+            if (currentKeyboardState.IsKeyDown(Keys.R))
             {
                 // カメラ位置と同じ操作で焦点もリセット。
                 depthOfField.FocusDistance = 10;
                 depthOfField.FocusRange = 200;
             }
 
-            if (currentKeyboardState.IsKeyDown(Keys.End) ||
-                currentJoystickState.IsButtonDown(Buttons.DPadLeft))
+            if (currentKeyboardState.IsKeyDown(Keys.End))
             {
                 depthOfField.FocusRange -= 1;
                 if (depthOfField.FocusRange < 10.0f)
                     depthOfField.FocusRange = 10.0f;
             }
 
-            if (currentKeyboardState.IsKeyDown(Keys.Escape) ||
-                currentJoystickState.Buttons.Back == ButtonState.Pressed)
+            if (currentKeyboardState.IsKeyDown(Keys.Escape))
             {
                 Exit();
             }
@@ -405,8 +384,8 @@ namespace Samples.SceneDepthOfField
         {
             float time = (float) gameTime.ElapsedGameTime.TotalMilliseconds;
 
-            float pitch = -currentJoystickState.ThumbSticks.Right.Y * time * 0.001f;
-            float yaw = -currentJoystickState.ThumbSticks.Right.X * time * 0.001f;
+            float pitch = 0.0f;
+            float yaw = 0.0f;
 
             if (currentKeyboardState.IsKeyDown(Keys.Up))
                 pitch += time * 0.001f;
@@ -437,13 +416,9 @@ namespace Samples.SceneDepthOfField
             if (currentKeyboardState.IsKeyDown(Keys.D))
                 movement.X += time * 0.1f;
 
-            movement.Z -= currentJoystickState.ThumbSticks.Left.Y * time * 0.1f;
-            movement.X += currentJoystickState.ThumbSticks.Left.X * time * 0.1f;
-
             camera.MoveRelative(ref movement);
 
-            if (currentJoystickState.Buttons.RightStick == ButtonState.Pressed ||
-                currentKeyboardState.IsKeyDown(Keys.R))
+            if (currentKeyboardState.IsKeyDown(Keys.R))
             {
                 camera.Position = new Vector3(0, 50, 50);
                 camera.Direction = Vector3.Forward;
