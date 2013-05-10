@@ -18,6 +18,8 @@ namespace Libra.Graphics
 
         public void Draw(DeviceContext context, Matrix world, Matrix view, Matrix projection)
         {
+            if (context == null) throw new ArgumentNullException("context");
+
             if (boneTransforms == null)
             {
                 boneTransforms = new Matrix[Bones.Count];
@@ -46,6 +48,35 @@ namespace Libra.Graphics
                 }
 
                 mesh.Draw(context);
+            }
+        }
+
+        public void Draw(DeviceContext context, Matrix world, IEffect effect)
+        {
+            if (context == null) throw new ArgumentNullException("context");
+            if (effect == null) throw new ArgumentNullException("effect");
+
+            if (boneTransforms == null)
+            {
+                boneTransforms = new Matrix[Bones.Count];
+            }
+
+            CopyAbsoluteBoneTransformsTo(boneTransforms);
+
+            for (int i = 0; i < Meshes.Count; i++)
+            {
+                var mesh = Meshes[i];
+
+                var effectMatrices = effect as IEffectMatrices;
+                if (effectMatrices != null)
+                {
+                    Matrix finalWorld;
+                    Matrix.Multiply(ref boneTransforms[mesh.ParentBone.Index], ref world, out finalWorld);
+
+                    effectMatrices.World = finalWorld;
+                }
+
+                mesh.Draw(context, effect);
             }
         }
 

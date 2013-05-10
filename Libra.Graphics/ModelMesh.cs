@@ -24,19 +24,41 @@ namespace Libra.Graphics
 
             for (int i = 0; i < MeshParts.Count; i++)
             {
-                var part = MeshParts[i];
+                var meshPart = MeshParts[i];
 
-                if (part.IndexCount != 0)
+                if (meshPart.IndexCount != 0)
                 {
-                    context.PrimitiveTopology = PrimitiveTopology.TriangleList;
-                    context.SetVertexBuffer(part.VertexBuffer);
-                    context.IndexBuffer = part.IndexBuffer;
-
-                    part.Effect.Apply(context);
-
-                    context.DrawIndexed(part.IndexCount, part.StartIndexLocation, part.BaseVertexLocation);
+                    meshPart.Effect.Apply(context);
+                    DrawMeshPart(context, meshPart);
                 }
             }
+        }
+
+        public void Draw(DeviceContext context, IEffect effect)
+        {
+            if (context == null) throw new ArgumentNullException("context");
+            if (effect == null) throw new ArgumentNullException("effect");
+
+            effect.Apply(context);
+
+            for (int i = 0; i < MeshParts.Count; i++)
+            {
+                var meshPart = MeshParts[i];
+
+                if (meshPart.IndexCount != 0)
+                {
+                    DrawMeshPart(context, meshPart);
+                }
+            }
+        }
+
+        void DrawMeshPart(DeviceContext context, ModelMeshPart meshPart)
+        {
+            context.PrimitiveTopology = PrimitiveTopology.TriangleList;
+            context.SetVertexBuffer(meshPart.VertexBuffer);
+            context.IndexBuffer = meshPart.IndexBuffer;
+
+            context.DrawIndexed(meshPart.IndexCount, meshPart.StartIndexLocation, meshPart.BaseVertexLocation);
         }
     }
 }
