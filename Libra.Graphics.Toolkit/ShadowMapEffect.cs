@@ -7,7 +7,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class ShadowMapEffect : IEffectMatrices, IDisposable
+    public sealed class ShadowMapEffect : IEffect, IEffectMatrices, IDisposable
     {
         #region SharedDeviceResource
 
@@ -38,9 +38,7 @@ namespace Libra.Graphics.Toolkit
 
         public struct Constants
         {
-            public Matrix World;
-
-            public Matrix ViewProjection;
+            public Matrix WorldViewProjection;
         }
 
         #endregion
@@ -50,9 +48,9 @@ namespace Libra.Graphics.Toolkit
         [Flags]
         enum DirtyFlags
         {
-            World           = (1 << 0),
-            ViewProjection  = (1 << 1),
-            Constants       = (1 << 2)
+            ViewProjection      = (1 << 0),
+            WorldViewProjection = (1 << 1),
+            Constants           = (1 << 2)
         }
 
         #endregion
@@ -71,6 +69,8 @@ namespace Libra.Graphics.Toolkit
 
         Matrix projection;
 
+        Matrix viewProjection;
+
         DirtyFlags dirtyFlags;
 
         public Matrix World
@@ -80,7 +80,7 @@ namespace Libra.Graphics.Toolkit
             {
                 world = value;
 
-                dirtyFlags |= DirtyFlags.World;
+                dirtyFlags |= DirtyFlags.WorldViewProjection;
             }
         }
 
@@ -122,30 +122,32 @@ namespace Libra.Graphics.Toolkit
             world = Matrix.Identity;
             view = Matrix.Identity;
             projection = Matrix.Identity;
+            viewProjection = Matrix.Identity;
+            constants.WorldViewProjection = Matrix.Identity;
 
             Form = ShadowMapForm.Basic;
 
-            dirtyFlags = DirtyFlags.World | DirtyFlags.ViewProjection;
+            dirtyFlags = DirtyFlags.Constants;
         }
 
         public void Apply(DeviceContext context)
         {
-            if ((dirtyFlags & DirtyFlags.World) != 0)
-            {
-                Matrix.Transpose(ref world, out constants.World);
-
-                dirtyFlags &= ~DirtyFlags.World;
-                dirtyFlags |= DirtyFlags.Constants;
-            }
-
             if ((dirtyFlags & DirtyFlags.ViewProjection) != 0)
             {
-                Matrix viewProjection;
                 Matrix.Multiply(ref view, ref projection, out viewProjection);
 
-                Matrix.Transpose(ref viewProjection, out constants.ViewProjection);
-
                 dirtyFlags &= ~DirtyFlags.ViewProjection;
+                dirtyFlags |= DirtyFlags.WorldViewProjection;
+            }
+
+            if ((dirtyFlags & DirtyFlags.WorldViewProjection) != 0)
+            {
+                Matrix worldViewProjection;
+                Matrix.Multiply(ref world, ref viewProjection, out worldViewProjection);
+
+                Matrix.Transpose(ref worldViewProjection, out constants.WorldViewProjection);
+
+                dirtyFlags &= ~DirtyFlags.WorldViewProjection;
                 dirtyFlags |= DirtyFlags.Constants;
             }
 
