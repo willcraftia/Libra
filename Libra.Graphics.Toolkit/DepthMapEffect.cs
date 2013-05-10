@@ -115,8 +115,10 @@ namespace Libra.Graphics.Toolkit
             world = Matrix.Identity;
             view = Matrix.Identity;
             projection = Matrix.Identity;
+            viewProjection = Matrix.Identity;
+            constants.WorldViewProjection = Matrix.Identity;
 
-            dirtyFlags = DirtyFlags.WorldViewProjection | DirtyFlags.ViewProjection;
+            dirtyFlags = DirtyFlags.Constants;
         }
 
         public void Apply(DeviceContext context)
@@ -126,7 +128,7 @@ namespace Libra.Graphics.Toolkit
                 Matrix.Multiply(ref view, ref projection, out viewProjection);
 
                 dirtyFlags &= ~DirtyFlags.ViewProjection;
-                dirtyFlags |= DirtyFlags.Constants;
+                dirtyFlags |= DirtyFlags.WorldViewProjection;
             }
 
             if ((dirtyFlags & DirtyFlags.WorldViewProjection) != 0)
