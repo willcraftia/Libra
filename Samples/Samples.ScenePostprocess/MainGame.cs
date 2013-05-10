@@ -70,6 +70,8 @@ namespace Samples.ScenePostprocess
 
         Monochrome monochrome;
 
+        Scanline scanline;
+
         /// <summary>
         /// メッシュ描画のための基礎エフェクト。
         /// </summary>
@@ -133,6 +135,10 @@ namespace Samples.ScenePostprocess
 
             monochrome = new Monochrome(Device);
             postprocessorChain.Postprocessors.Add(monochrome);
+
+            scanline = new Scanline(Device);
+            scanline.Density = WindowHeight * MathHelper.PiOver2;
+            postprocessorChain.Postprocessors.Add(scanline);
 
             basicEffect = new BasicEffect(Device);
             basicEffect.AmbientLightColor = new Vector3(0.15f, 0.15f, 0.15f);

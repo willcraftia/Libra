@@ -94,7 +94,41 @@ namespace Libra.Graphics.Toolkit
             if (context == null) throw new ArgumentNullException("context");
             if (texture == null) throw new ArgumentNullException("texture");
 
-            if (Postprocessors.Count == 0)
+            var currentTexture = texture;
+
+            int processCount = 0;
+
+            for (int i = 0; i < Postprocessors.Count; i++)
+            {
+                var postprocessor = Postprocessors[i];
+
+                if (!postprocessor.Enabled)
+                    continue;
+
+                if (0 < i)
+                {
+                    currentTexture = currentRenderTarget.GetShaderResourceView();
+                }
+
+                var temp = currentRenderTarget;
+                currentRenderTarget = freeRenderTarget;
+                freeRenderTarget = temp;
+
+                EnsureCurrentRenderTarget();
+
+                context.SetRenderTarget(currentRenderTarget.GetRenderTargetView());
+
+                postprocessor.Texture = currentTexture;
+                postprocessor.Apply(context);
+
+                fullScreenQuad.Draw(context);
+
+                context.SetRenderTarget(null);
+
+                processCount++;
+            }
+
+            if (processCount == 0)
             {
                 if (directTextureDraw == null)
                     directTextureDraw = new DirectTextureDraw(Device);
@@ -109,35 +143,6 @@ namespace Libra.Graphics.Toolkit
                 fullScreenQuad.Draw(context);
 
                 context.SetRenderTarget(null);
-            }
-            else
-            {
-                var currentTexture = texture;
-
-                for (int i = 0; i < Postprocessors.Count; i++)
-                {
-                    var postprocessor = Postprocessors[i];
-
-                    if (0 < i)
-                    {
-                        currentTexture = currentRenderTarget.GetShaderResourceView();
-                    }
-
-                    var temp = currentRenderTarget;
-                    currentRenderTarget = freeRenderTarget;
-                    freeRenderTarget = temp;
-
-                    EnsureCurrentRenderTarget();
-
-                    context.SetRenderTarget(currentRenderTarget.GetRenderTargetView());
-
-                    postprocessor.Texture = currentTexture;
-                    postprocessor.Apply(context);
-
-                    fullScreenQuad.Draw(context);
-
-                    context.SetRenderTarget(null);
-                }
             }
 
             return currentRenderTarget.GetShaderResourceView();

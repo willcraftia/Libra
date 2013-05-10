@@ -130,6 +130,13 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
+        internal static byte[] ScanlinePS {
+            get {
+                object obj = ResourceManager.GetObject("ScanlinePS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
         internal static byte[] ShadowMapBasicPS {
             get {
                 object obj = ResourceManager.GetObject("ShadowMapBasicPS", resourceCulture);

@@ -54,6 +54,7 @@
     <Compile Include="LightScatteringEffect.cs" />
     <Compile Include="Monochrome.cs" />
     <Compile Include="PostprocessorChain.cs" />
+    <Compile Include="Scanline.cs" />
     <Compile Include="SingleColorObjectEffect.cs" />
     <Compile Include="PrimitiveMesh.cs" />
     <Compile Include="SphereMesh.cs" />
@@ -120,6 +121,7 @@
     <None Include="Shaders\Compiled\GaussianBlurPS.bin" />
     <None Include="Shaders\Compiled\LightScatteringPS.bin" />
     <None Include="Shaders\Compiled\MonochromePS.bin" />
+    <None Include="Shaders\Compiled\ScanlinePS.bin" />
     <None Include="Shaders\Compiled\ShadowMapBasicPS.bin" />
     <None Include="Shaders\Compiled\ShadowMapVariancePS.bin" />
     <None Include="Shaders\Compiled\ShadowMapVS.bin" />

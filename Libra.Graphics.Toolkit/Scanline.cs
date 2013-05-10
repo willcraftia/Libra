@@ -8,7 +8,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class Monochrome : IPostprocessor, IDisposable
+    public sealed class Scanline : IPostprocessor, IDisposable
     {
         #region SharedDeviceResource
 
@@ -19,7 +19,7 @@ namespace Libra.Graphics.Toolkit
             public SharedDeviceResource(Device device)
             {
                 PixelShader = device.CreatePixelShader();
-                PixelShader.Initialize(Resources.MonochromePS);
+                PixelShader.Initialize(Resources.ScanlinePS);
             }
         }
 
@@ -30,9 +30,9 @@ namespace Libra.Graphics.Toolkit
         [StructLayout(LayoutKind.Sequential, Size = 16)]
         public struct Constants
         {
-            public float Cb;
+            public float Density;
 
-            public float Cr;
+            public float Brightness;
         }
 
         #endregion
@@ -57,27 +57,25 @@ namespace Libra.Graphics.Toolkit
 
         DirtyFlags dirtyFlags;
 
-        public float Cb
+        public float Density
         {
-            get { return constants.Cb; }
+            get { return constants.Density; }
             set
             {
-                if (value < -1.0f || 1.0f < value) throw new ArgumentOutOfRangeException("value");
-
-                constants.Cb = value;
+                constants.Density = value;
 
                 dirtyFlags |= DirtyFlags.Constants;
             }
         }
 
-        public float Cr
+        public float Brightness
         {
-            get { return constants.Cr; }
+            get { return constants.Brightness; }
             set
             {
-                if (value < -1.0f || 1.0f < value) throw new ArgumentOutOfRangeException("value");
+                if (value < 0.0f || 1.0f < value) throw new ArgumentOutOfRangeException("value");
 
-                constants.Cr = value;
+                constants.Brightness = value;
 
                 dirtyFlags |= DirtyFlags.Constants;
             }
@@ -87,36 +85,23 @@ namespace Libra.Graphics.Toolkit
 
         public ShaderResourceView Texture { get; set; }
 
-        public Monochrome(Device device)
+        public Scanline(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 
             this.device = device;
 
-            sharedDeviceResource = device.GetSharedResource<Monochrome, SharedDeviceResource>();
+            sharedDeviceResource = device.GetSharedResource<Scanline, SharedDeviceResource>();
 
             constantBuffer = device.CreateConstantBuffer();
             constantBuffer.Initialize<Constants>();
 
-            // グレー スケール。
-            constants.Cb = 0.0f;
-            constants.Cr = 0.0f;
+            constants.Density = MathHelper.PiOver2;
+            constants.Brightness = 0.75f;
 
             Enabled = true;
 
             dirtyFlags = DirtyFlags.Constants;
-        }
-
-        public void SetupGrayscale()
-        {
-            Cb = 0.0f;
-            Cr = 0.0f;
-        }
-
-        public void SetupSepiaTone()
-        {
-            Cb = -0.1f;
-            Cr = 0.1f;
         }
 
         public void Apply(DeviceContext context)
@@ -140,7 +125,7 @@ namespace Libra.Graphics.Toolkit
 
         bool disposed;
 
-        ~Monochrome()
+        ~Scanline()
         {
             Dispose(false);
         }

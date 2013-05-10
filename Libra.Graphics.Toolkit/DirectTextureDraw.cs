@@ -28,6 +28,8 @@ namespace Libra.Graphics.Toolkit
 
         SharedDeviceResource sharedDeviceResource;
 
+        public bool Enabled { get; set; }
+
         public ShaderResourceView Texture { get; set; }
 
         public DirectTextureDraw(Device device)
@@ -36,7 +38,9 @@ namespace Libra.Graphics.Toolkit
 
             this.device = device;
 
-            sharedDeviceResource = device.GetSharedResource<Monochrome, SharedDeviceResource>();
+            sharedDeviceResource = device.GetSharedResource<DirectTextureDraw, SharedDeviceResource>();
+
+            Enabled = true;
         }
 
         public void Apply(DeviceContext context)

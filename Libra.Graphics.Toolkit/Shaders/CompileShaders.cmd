@@ -51,14 +51,19 @@ call :CompileShader SingleColorObject PS %ps_profile%
 call :CompileShader LightScattering PS %ps_profile%
 
 ::
+:: DirectTextureDraw PS
+::
+call :CompileShader DirectTextureDraw PS %ps_profile%
+
+::
 :: Monochrome PS
 ::
 call :CompileShader Monochrome PS %ps_profile%
 
 ::
-:: DirectTextureDraw PS
+:: Scanline PS
 ::
-call :CompileShader DirectTextureDraw PS %ps_profile%
+call :CompileShader Scanline PS %ps_profile%
 
 echo.
 
