@@ -46,9 +46,19 @@ call :CompileShader SingleColorObject VS %vs_profile%
 call :CompileShader SingleColorObject PS %ps_profile%
 
 ::
-:: LightScattering VS/PS
+:: LightScattering PS
 ::
 call :CompileShader LightScattering PS %ps_profile%
+
+::
+:: Monochrome PS
+::
+call :CompileShader Monochrome PS %ps_profile%
+
+::
+:: DirectTextureDraw PS
+::
+call :CompileShader DirectTextureDraw PS %ps_profile%
 
 echo.
 

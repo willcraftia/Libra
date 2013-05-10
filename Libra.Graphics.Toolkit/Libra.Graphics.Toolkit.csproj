@@ -49,7 +49,11 @@
     <Compile Include="DepthMapEffect.cs" />
     <Compile Include="DepthOfField.cs" />
     <Compile Include="DepthOfFieldEffect.cs" />
+    <Compile Include="DirectTextureDraw.cs" />
+    <Compile Include="IPostprocessor.cs" />
     <Compile Include="LightScatteringEffect.cs" />
+    <Compile Include="Monochrome.cs" />
+    <Compile Include="PostprocessorChain.cs" />
     <Compile Include="SingleColorObjectEffect.cs" />
     <Compile Include="PrimitiveMesh.cs" />
     <Compile Include="SphereMesh.cs" />
@@ -111,9 +115,11 @@
     <None Include="Shaders\Compiled\DepthMapPS.bin" />
     <None Include="Shaders\Compiled\DepthMapVS.bin" />
     <None Include="Shaders\Compiled\DepthOfFieldPS.bin" />
+    <None Include="Shaders\Compiled\DirectTextureDrawPS.bin" />
     <None Include="Shaders\Compiled\FullScreenQuadVS.bin" />
     <None Include="Shaders\Compiled\GaussianBlurPS.bin" />
     <None Include="Shaders\Compiled\LightScatteringPS.bin" />
+    <None Include="Shaders\Compiled\MonochromePS.bin" />
     <None Include="Shaders\Compiled\ShadowMapBasicPS.bin" />
     <None Include="Shaders\Compiled\ShadowMapVariancePS.bin" />
     <None Include="Shaders\Compiled\ShadowMapVS.bin" />
@@ -122,9 +128,11 @@
     <None Include="Shaders\CompileShaders.cmd" />
     <None Include="Shaders\DepthMap.hlsl" />
     <None Include="Shaders\DepthOfField.hlsl" />
+    <None Include="Shaders\DirectTextureDraw.hlsl" />
     <None Include="Shaders\FullScreenQuad.hlsl" />
     <None Include="Shaders\GaussianBlur.hlsl" />
     <None Include="Shaders\LightScattering.hlsl" />
+    <None Include="Shaders\Monochrome.hlsl" />
     <None Include="Shaders\SingleColorObject.hlsl" />
     <None Include="Shaders\ShadowMap.hlsl" />
   </ItemGroup>

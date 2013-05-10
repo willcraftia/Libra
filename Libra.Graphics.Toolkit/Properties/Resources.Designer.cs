@@ -95,6 +95,13 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
+        internal static byte[] DirectTextureDrawPS {
+            get {
+                object obj = ResourceManager.GetObject("DirectTextureDrawPS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
         internal static byte[] FullScreenQuadVS {
             get {
                 object obj = ResourceManager.GetObject("FullScreenQuadVS", resourceCulture);
@@ -112,6 +119,13 @@ namespace Libra.Graphics.Toolkit.Properties {
         internal static byte[] LightScatteringPS {
             get {
                 object obj = ResourceManager.GetObject("LightScatteringPS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] MonochromePS {
+            get {
+                object obj = ResourceManager.GetObject("MonochromePS", resourceCulture);
                 return ((byte[])(obj));
             }
         }

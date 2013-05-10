@@ -60,6 +60,17 @@ namespace Samples.ScenePostprocess
         KeyboardState currentKeyboardState;
 
         /// <summary>
+        /// 通常シーンの描画先レンダ ターゲット。
+        /// </summary>
+        RenderTarget normalSceneRenderTarget;
+
+        ShaderResourceView finalSceneTexture;
+
+        PostprocessorChain postprocessorChain;
+
+        Monochrome monochrome;
+
+        /// <summary>
         /// メッシュ描画のための基礎エフェクト。
         /// </summary>
         BasicEffect basicEffect;
@@ -110,6 +121,19 @@ namespace Samples.ScenePostprocess
             spriteBatch = new SpriteBatch(Device.ImmediateContext);
             spriteFont = content.Load<SpriteFont>("hudFont");
 
+            normalSceneRenderTarget = Device.CreateRenderTarget();
+            normalSceneRenderTarget.Width = WindowWidth;
+            normalSceneRenderTarget.Height = WindowHeight;
+            normalSceneRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
+            normalSceneRenderTarget.Initialize();
+
+            postprocessorChain = new PostprocessorChain(Device);
+            postprocessorChain.Width = WindowWidth;
+            postprocessorChain.Height = WindowHeight;
+
+            monochrome = new Monochrome(Device);
+            postprocessorChain.Postprocessors.Add(monochrome);
+
             basicEffect = new BasicEffect(Device);
             basicEffect.AmbientLightColor = new Vector3(0.15f, 0.15f, 0.15f);
             basicEffect.PerPixelLighting = true;
@@ -140,10 +164,52 @@ namespace Samples.ScenePostprocess
             context.BlendState = BlendState.Opaque;
             context.DepthStencilState = DepthStencilState.Default;
 
+            // 通常シーンを描画。
+            CreateNormalSceneMap(context);
+
+            finalSceneTexture = postprocessorChain.Draw(context, normalSceneRenderTarget.GetShaderResourceView());
+
+            // 最終的なシーンをバック バッファへ描画。
+            CreateFinalSceneMap(context);
+
             // HUD のテキストを描画。
             DrawOverlayText();
 
             base.Draw(gameTime);
+        }
+
+        void CreateNormalSceneMap(DeviceContext context)
+        {
+            context.SetRenderTarget(normalSceneRenderTarget.GetRenderTargetView());
+            context.Clear(Color.CornflowerBlue);
+
+            basicEffect.View = camera.View;
+            basicEffect.Projection = camera.Projection;
+
+            DrawPrimitiveMesh(context, cubeMesh, new Vector3(1, 0, 0), Matrix.CreateTranslation(-40, 10, 0));
+            DrawPrimitiveMesh(context, sphereMesh, new Vector3(0, 1, 0), Matrix.CreateTranslation(0, 10, -40));
+            for (float z = -180; z <= 180; z += 40)
+            {
+                DrawPrimitiveMesh(context, cylinderMesh, new Vector3(0, 0, 1), Matrix.CreateTranslation(-180, 40, z));
+            }
+            DrawPrimitiveMesh(context, squareMesh, new Vector3(0.5f), Matrix.Identity);
+
+            context.SetRenderTarget(null);
+        }
+
+        void DrawPrimitiveMesh(DeviceContext context, PrimitiveMesh mesh, Vector3 color, Matrix world)
+        {
+            basicEffect.DiffuseColor = color;
+            basicEffect.World = world;
+            basicEffect.Apply(context);
+            mesh.Draw(context);
+        }
+
+        void CreateFinalSceneMap(DeviceContext context)
+        {
+            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
+            spriteBatch.Draw(finalSceneTexture, Vector2.Zero, Color.White);
+            spriteBatch.End();
         }
 
         void DrawOverlayText()
