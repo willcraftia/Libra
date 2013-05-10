@@ -65,9 +65,9 @@ namespace Samples.SceneDepthOfField
         float mapScale = 0.5f;
 
         /// <summary>
-        /// 深度マップ。
+        /// 深度マップの描画先レンダ ターゲット。
         /// </summary>
-        DepthMap depthMap;
+        RenderTarget depthMapRenderTarget;
 
         /// <summary>
         /// 通常シーンの描画先レンダ ターゲット。
@@ -78,6 +78,11 @@ namespace Samples.SceneDepthOfField
         /// ブラー済みシーンの描画先レンダ ターゲット。
         /// </summary>
         RenderTarget bluredSceneRenderTarget;
+
+        /// <summary>
+        /// 深度マップ エフェクト。
+        /// </summary>
+        DepthMapEffect depthMapEffect;
 
         /// <summary>
         /// シーンに適用するブラー。
@@ -130,7 +135,12 @@ namespace Samples.SceneDepthOfField
             spriteBatch = new SpriteBatch(Device.ImmediateContext);
             spriteFont = content.Load<SpriteFont>("hudFont");
 
-            depthMap = new DepthMap(Device);
+            depthMapRenderTarget = Device.CreateRenderTarget();
+            depthMapRenderTarget.Width = WindowWidth;
+            depthMapRenderTarget.Height = WindowWidth;
+            depthMapRenderTarget.Format = SurfaceFormat.Single;
+            depthMapRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
+            depthMapRenderTarget.Initialize();
 
             normalSceneRenderTarget = Device.CreateRenderTarget();
             normalSceneRenderTarget.Width = WindowWidth;
@@ -143,6 +153,8 @@ namespace Samples.SceneDepthOfField
             bluredSceneRenderTarget.Height = (int) (WindowWidth * mapScale);
             bluredSceneRenderTarget.Initialize();
 
+            depthMapEffect = new DepthMapEffect(Device);
+
             gaussianBlur = new GaussianBlur(
                 Device, bluredSceneRenderTarget.Width, bluredSceneRenderTarget.Height, bluredSceneRenderTarget.Format);
 
@@ -151,6 +163,15 @@ namespace Samples.SceneDepthOfField
 
             gridModel = content.Load<Model>("grid");
             dudeModel = content.Load<Model>("dude");
+
+            foreach (var mesh in dudeModel.Meshes)
+            {
+                foreach (BasicEffect effect in mesh.Effects)
+                {
+                    effect.AmbientLightColor = new Vector3(0.15f, 0.15f, 0.15f);
+                    effect.EnableDefaultLighting();
+                }
+            }
         }
 
         protected override void Update(GameTime gameTime)
@@ -173,16 +194,16 @@ namespace Samples.SceneDepthOfField
             context.DepthStencilState = DepthStencilState.Default;
 
             // 深度マップを作成。
-            CreateDepthMap();
+            CreateDepthMap(context);
 
             // 通常シーンを描画。
-            CreateNormalSceneMap();
+            CreateNormalSceneMap(context);
 
             // ブラー済みシーンを作成。
-            CreateBluredSceneMap();
+            CreateBluredSceneMap(context);
 
             // 最終的なシーンをバック バッファへ描画。
-            CreateFinalSceneMap();
+            CreateFinalSceneMap(context);
 
             // 中間マップを描画。
             DrawInterMapsToScreen();
@@ -193,94 +214,56 @@ namespace Samples.SceneDepthOfField
             base.Draw(gameTime);
         }
 
-        void CreateDepthMap()
+        void CreateDepthMap(DeviceContext context)
         {
-            var context = Device.ImmediateContext;
+            depthMapEffect.View = camera.View;
+            depthMapEffect.Projection = camera.Projection;
 
-            depthMap.Width = (int) (WindowWidth * mapScale);
-            depthMap.Height = (int) (WindowHeight * mapScale);
+            context.SetRenderTarget(depthMapRenderTarget.GetRenderTargetView());
+            context.Clear(Color.White);
 
-            depthMap.Draw(context, camera.View, camera.Projection, DrawDepthMapObjects);
-        }
+            Matrix world;
 
-        void DrawDepthMapObjects(Matrix view, Matrix projection, DepthMapEffect effect)
-        {
-            DrawModel(gridModel, Matrix.Identity, effect);
-            DrawModel(dudeModel, Matrix.CreateRotationY(MathHelper.ToRadians(rotateDude)), effect);
-        }
+            world = Matrix.Identity;
+            gridModel.Draw(context, depthMapEffect, world);
 
-        void DrawModel(Model model, Matrix world, DepthMapEffect effect)
-        {
-            var context = Device.ImmediateContext;
-
-            // 深度マップ エフェクトの準備。
-            effect.World = world;
-            effect.Apply(context);
-
-            context.PrimitiveTopology = PrimitiveTopology.TriangleList;
-
-            foreach (var mesh in model.Meshes)
-            {
-                foreach (var meshPart in mesh.MeshParts)
-                {
-                    context.SetVertexBuffer(0, meshPart.VertexBuffer);
-                    context.IndexBuffer = meshPart.IndexBuffer;
-                    context.DrawIndexed(meshPart.IndexCount, meshPart.StartIndexLocation, meshPart.BaseVertexLocation);
-                }
-            }
-        }
-
-        void CreateNormalSceneMap()
-        {
-            var context = Device.ImmediateContext;
-
-            context.SetRenderTarget(normalSceneRenderTarget.GetRenderTargetView());
-
-            context.Clear(Color.CornflowerBlue);
-
-            DrawModel(gridModel, Matrix.Identity);
-            DrawModel(dudeModel, Matrix.CreateRotationY(MathHelper.ToRadians(rotateDude)));
+            world = Matrix.CreateRotationY(MathHelper.ToRadians(rotateDude));
+            dudeModel.Draw(context, depthMapEffect, world);
 
             context.SetRenderTarget(null);
         }
 
-        void DrawModel(Model model, Matrix world)
+        void CreateNormalSceneMap(DeviceContext context)
         {
-            var context = Device.ImmediateContext;
+            context.SetRenderTarget(normalSceneRenderTarget.GetRenderTargetView());
+            context.Clear(Color.CornflowerBlue);
 
-            foreach (var mesh in model.Meshes)
-            {
-                foreach (BasicEffect effect in mesh.Effects)
-                {
-                    effect.World = world;
-                    effect.View = camera.View;
-                    effect.Projection = camera.Projection;
-                    effect.EnableDefaultLighting();
-                }
+            Matrix world;
+            
+            world = Matrix.Identity;
+            gridModel.Draw(context, world, camera.View, camera.Projection);
+            
+            world = Matrix.CreateRotationY(MathHelper.ToRadians(rotateDude));
+            dudeModel.Draw(context, world, camera.View, camera.Projection);
 
-                mesh.Draw(context);
-            }
+            context.SetRenderTarget(null);
         }
 
-        void CreateBluredSceneMap()
+        void CreateBluredSceneMap(DeviceContext context)
         {
-            var context = Device.ImmediateContext;
-
             gaussianBlur.Filter(
                 context,
                 normalSceneRenderTarget.GetShaderResourceView(),
                 bluredSceneRenderTarget.GetRenderTargetView());
         }
 
-        void CreateFinalSceneMap()
+        void CreateFinalSceneMap(DeviceContext context)
         {
-            var context = Device.ImmediateContext;
-
             depthOfField.Draw(
                 context,
                 normalSceneRenderTarget.GetShaderResourceView(),
                 bluredSceneRenderTarget.GetShaderResourceView(),
-                depthMap.RenderTarget.GetShaderResourceView());
+                depthMapRenderTarget.GetShaderResourceView());
         }
 
         void DrawInterMapsToScreen()
@@ -299,7 +282,7 @@ namespace Samples.SceneDepthOfField
 
             index = 0;
             x = index * w;
-            spriteBatch.Draw(depthMap.RenderTarget.GetShaderResourceView(), new Rectangle(x, 0, w, h), Color.White);
+            spriteBatch.Draw(depthMapRenderTarget.GetShaderResourceView(), new Rectangle(x, 0, w, h), Color.White);
 
             index = 1;
             x = index * w;
