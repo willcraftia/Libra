@@ -45,6 +45,7 @@
     <Compile Include="BloomEffect.cs" />
     <Compile Include="Camera.cs" />
     <Compile Include="CubeMesh.cs" />
+    <Compile Include="CylinderMesh.cs" />
     <Compile Include="DepthMapEffect.cs" />
     <Compile Include="DepthOfField.cs" />
     <Compile Include="DepthOfFieldEffect.cs" />
