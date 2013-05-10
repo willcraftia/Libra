@@ -95,7 +95,7 @@ namespace Libra.Graphics.Toolkit
             context.BlendState = BlendState.Opaque;
             context.DepthStencilState = DepthStencilState.None;
             context.RasterizerState = RasterizerState.CullBack;
-            context.PixelShaderSamplers[0] = SamplerState.LinearClamp;
+            context.PixelShaderSamplers[0] = SamplerState.PointClamp;
             context.PixelShaderSamplers[1] = SamplerState.LinearClamp;
             context.PixelShaderSamplers[2] = SamplerState.PointClamp;
 
