@@ -33,9 +33,7 @@ namespace Libra.Graphics.Toolkit
 
         public struct Constants
         {
-            public Matrix World;
-
-            public Matrix ViewProjection;
+            public Matrix WorldViewProjection;
         }
 
         #endregion
@@ -45,9 +43,9 @@ namespace Libra.Graphics.Toolkit
         [Flags]
         enum DirtyFlags
         {
-            World           = (1 << 0),
-            ViewProjection  = (1 << 1),
-            Constants       = (1 << 2)
+            ViewProjection      = (1 << 0),
+            WorldViewProjection = (1 << 1),
+            Constants           = (1 << 2)
         }
 
         #endregion
@@ -66,6 +64,8 @@ namespace Libra.Graphics.Toolkit
 
         Matrix projection;
 
+        Matrix viewProjection;
+
         DirtyFlags dirtyFlags;
 
         public Matrix World
@@ -75,7 +75,7 @@ namespace Libra.Graphics.Toolkit
             {
                 world = value;
 
-                dirtyFlags |= DirtyFlags.World;
+                dirtyFlags |= DirtyFlags.WorldViewProjection;
             }
         }
 
@@ -116,27 +116,27 @@ namespace Libra.Graphics.Toolkit
             view = Matrix.Identity;
             projection = Matrix.Identity;
 
-            dirtyFlags = DirtyFlags.World | DirtyFlags.ViewProjection;
+            dirtyFlags = DirtyFlags.WorldViewProjection | DirtyFlags.ViewProjection;
         }
 
         public void Apply(DeviceContext context)
         {
-            if ((dirtyFlags & DirtyFlags.World) != 0)
+            if ((dirtyFlags & DirtyFlags.ViewProjection) != 0)
             {
-                Matrix.Transpose(ref world, out constants.World);
+                Matrix.Multiply(ref view, ref projection, out viewProjection);
 
-                dirtyFlags &= ~DirtyFlags.World;
+                dirtyFlags &= ~DirtyFlags.ViewProjection;
                 dirtyFlags |= DirtyFlags.Constants;
             }
 
-            if ((dirtyFlags & DirtyFlags.ViewProjection) != 0)
+            if ((dirtyFlags & DirtyFlags.WorldViewProjection) != 0)
             {
-                Matrix viewProjection;
-                Matrix.Multiply(ref view, ref projection, out viewProjection);
+                Matrix worldViewProjection;
+                Matrix.Multiply(ref world, ref viewProjection, out worldViewProjection);
 
-                Matrix.Transpose(ref viewProjection, out constants.ViewProjection);
+                Matrix.Transpose(ref worldViewProjection, out constants.WorldViewProjection);
 
-                dirtyFlags &= ~DirtyFlags.ViewProjection;
+                dirtyFlags &= ~DirtyFlags.WorldViewProjection;
                 dirtyFlags |= DirtyFlags.Constants;
             }
 
