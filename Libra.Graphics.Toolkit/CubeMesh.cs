@@ -18,14 +18,11 @@ namespace Libra.Graphics.Toolkit
             Vector3.Right
         };
 
-        public CubeMesh(Device device)
-            : this(device, 1)
-        {
-        }
-
-        public CubeMesh(Device device, float size)
+        public CubeMesh(Device device, float size = 1.0f)
             : base(device)
         {
+            if (size < 0.0f) throw new ArgumentOutOfRangeException("size");
+
             var vertexCount = 6 * 4;
             var indexCount = 6 * 6;
             Allocate(vertexCount, indexCount);

@@ -8,14 +8,10 @@ namespace Libra.Graphics.Toolkit
 {
     public sealed class SphereMesh : PrimitiveMesh
     {
-        public SphereMesh(Device device)
-            : this(device, 1, 16)
-        {
-        }
-
-        public SphereMesh(Device device, float diameter, int tessellation)
+        public SphereMesh(Device device, float diameter = 1.0f, int tessellation = 16)
             : base(device)
         {
+            if (diameter < 0.0f) throw new ArgumentOutOfRangeException("diameter");
             if (tessellation < 3) throw new ArgumentOutOfRangeException("tessellation");
 
             var verticalSegments = tessellation;
