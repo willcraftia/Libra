@@ -7,7 +7,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class DepthMapEffect : IEffectMatrices, IDisposable
+    public sealed class DepthMapEffect : IEffect, IEffectMatrices, IDisposable
     {
         #region SharedDeviceResource
 
