@@ -104,11 +104,6 @@ namespace Samples.SceneDepthOfField
         /// </summary>
         Model dudeModel;
 
-        /// <summary>
-        /// デュード モデルの回転量。
-        /// </summary>
-        float rotateDude;
-
         public MainGame()
         {
             graphicsManager = new GraphicsManager(this);
@@ -222,13 +217,8 @@ namespace Samples.SceneDepthOfField
             context.SetRenderTarget(depthMapRenderTarget.GetRenderTargetView());
             context.Clear(Color.White);
 
-            Matrix world;
-
-            world = Matrix.Identity;
-            gridModel.Draw(context, depthMapEffect, world);
-
-            world = Matrix.CreateRotationY(MathHelper.ToRadians(rotateDude));
-            dudeModel.Draw(context, depthMapEffect, world);
+            gridModel.Draw(context, depthMapEffect, Matrix.Identity);
+            dudeModel.Draw(context, depthMapEffect, Matrix.Identity);
 
             context.SetRenderTarget(null);
         }
@@ -238,13 +228,8 @@ namespace Samples.SceneDepthOfField
             context.SetRenderTarget(normalSceneRenderTarget.GetRenderTargetView());
             context.Clear(Color.CornflowerBlue);
 
-            Matrix world;
-            
-            world = Matrix.Identity;
-            gridModel.Draw(context, world, camera.View, camera.Projection);
-            
-            world = Matrix.CreateRotationY(MathHelper.ToRadians(rotateDude));
-            dudeModel.Draw(context, world, camera.View, camera.Projection);
+            gridModel.Draw(context, Matrix.Identity, camera.View, camera.Projection);
+            dudeModel.Draw(context, Matrix.Identity, camera.View, camera.Projection);
 
             context.SetRenderTarget(null);
         }
@@ -317,11 +302,6 @@ namespace Samples.SceneDepthOfField
             lastKeyboardState = currentKeyboardState;
 
             currentKeyboardState = Keyboard.GetState();
-
-            if (currentKeyboardState.IsKeyDown(Keys.Q))
-                rotateDude -= time * 0.2f;
-            if (currentKeyboardState.IsKeyDown(Keys.E))
-                rotateDude += time * 0.2f;
 
             if (currentKeyboardState.IsKeyDown(Keys.PageUp))
             {
