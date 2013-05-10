@@ -25,6 +25,16 @@ namespace Samples.ScenePostprocess
         const int WindowHeight = 480;
 
         /// <summary>
+        /// 表示カメラの初期位置。
+        /// </summary>
+        static readonly Vector3 initialCameraPosition = new Vector3(0, 70, 100);
+
+        /// <summary>
+        /// 表示カメラの初期注視点。
+        /// </summary>
+        static readonly Vector3 initialCameraLookAt = Vector3.Zero;
+
+        /// <summary>
         /// Libra のグラフィックス マネージャ。
         /// </summary>
         GraphicsManager graphicsManager;
@@ -59,6 +69,9 @@ namespace Samples.ScenePostprocess
         /// </summary>
         KeyboardState currentKeyboardState;
 
+        /// <summary>
+        /// 深度法線マップの描画先レンダ ターゲット。
+        /// </summary>
         RenderTarget depthNormalRenderTarget;
 
         /// <summary>
@@ -66,16 +79,36 @@ namespace Samples.ScenePostprocess
         /// </summary>
         RenderTarget normalSceneRenderTarget;
 
+        /// <summary>
+        /// ポストプロセス適用後の最終シーン。
+        /// </summary>
         ShaderResourceView finalSceneTexture;
 
+        /// <summary>
+        /// ポストプロセス チェーン。
+        /// </summary>
         PostprocessorChain postprocessorChain;
 
+        /// <summary>
+        /// モノクローム ポストプロセス。
+        /// </summary>
         Monochrome monochrome;
 
+        /// <summary>
+        /// 走査線ポストプロセス。
+        /// </summary>
         Scanline scanline;
 
+        /// <summary>
+        /// エッジ強調ポストプロセス。
+        /// </summary>
         Edge edge;
 
+        bool depthNormalMapEnabled;
+
+        /// <summary>
+        /// 深度法線マップ エフェクト。
+        /// </summary>
         DepthNormalMapEffect depthNormalMapEffect;
 
         /// <summary>
@@ -114,13 +147,13 @@ namespace Samples.ScenePostprocess
 
             camera = new BasicCamera
             {
-                Position = new Vector3(0, 70, 100),
-                Direction = new Vector3(0, -0.4472136f, -0.8944272f),
+                Position = initialCameraPosition,
                 Fov = MathHelper.PiOver4,
                 AspectRatio = (float) WindowWidth / (float) WindowHeight,
                 NearClipDistance = 1.0f,
                 FarClipDistance = 1000.0f
             };
+            camera.LookAt(initialCameraLookAt);
             camera.Update();
         }
 
@@ -147,13 +180,16 @@ namespace Samples.ScenePostprocess
             postprocessorChain.Height = WindowHeight;
 
             monochrome = new Monochrome(Device);
+            monochrome.Enabled = false;
             postprocessorChain.Postprocessors.Add(monochrome);
 
             scanline = new Scanline(Device);
+            scanline.Enabled = false;
             scanline.Density = WindowHeight * MathHelper.PiOver2;
             postprocessorChain.Postprocessors.Add(scanline);
 
             edge = new Edge(Device);
+            edge.Enabled = false;
             postprocessorChain.Postprocessors.Add(edge);
 
             depthNormalMapEffect = new DepthNormalMapEffect(Device);
@@ -211,6 +247,11 @@ namespace Samples.ScenePostprocess
 
         void CreateDepthNormalMap(DeviceContext context)
         {
+            depthNormalMapEnabled = false;
+
+            if (!edge.Enabled)
+                return;
+
             context.SetRenderTarget(depthNormalRenderTarget.GetRenderTargetView());
             context.Clear(Vector4.One);
 
@@ -220,6 +261,8 @@ namespace Samples.ScenePostprocess
 
             // エッジ強調エフェクトへ深度法線マップを設定。
             edge.DepthNormalMap = depthNormalRenderTarget.GetShaderResourceView();
+
+            depthNormalMapEnabled = true;
         }
 
         void CreateNormalSceneMap(DeviceContext context)
@@ -293,16 +336,19 @@ namespace Samples.ScenePostprocess
 
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque, SamplerState.PointClamp);
 
-            int index;
+            int index = 0;
             int x;
 
-            index = 0;
-            x = index * w;
-            spriteBatch.Draw(depthNormalRenderTarget.GetShaderResourceView(), new Rectangle(x, 0, w, h), Color.White);
+            if (depthNormalMapEnabled)
+            {
+                x = index * w;
+                spriteBatch.Draw(depthNormalRenderTarget.GetShaderResourceView(), new Rectangle(x, 0, w, h), Color.White);
+                index++;
+            }
 
-            index = 1;
             x = index * w;
             spriteBatch.Draw(normalSceneRenderTarget.GetShaderResourceView(), new Rectangle(x, 0, w, h), Color.White);
+            index++;
 
             spriteBatch.End();
         }
@@ -310,7 +356,10 @@ namespace Samples.ScenePostprocess
         void DrawOverlayText()
         {
             // HUD のテキストを表示。
-            var text = "";
+            var text =
+                "1: Monochrome (" + monochrome.Enabled + ")\n" +
+                "2: Scanline (" + scanline.Enabled + ")\n" +
+                "3: Edge (" + edge.Enabled + ")";
 
             spriteBatch.Begin();
 
@@ -325,13 +374,19 @@ namespace Samples.ScenePostprocess
             float time = (float) gameTime.ElapsedGameTime.TotalMilliseconds;
 
             lastKeyboardState = currentKeyboardState;
-
             currentKeyboardState = Keyboard.GetState();
 
+            if (currentKeyboardState.IsKeyUp(Keys.D1) && lastKeyboardState.IsKeyDown(Keys.D1))
+                monochrome.Enabled = !monochrome.Enabled;
+
+            if (currentKeyboardState.IsKeyUp(Keys.D2) && lastKeyboardState.IsKeyDown(Keys.D2))
+                scanline.Enabled = !scanline.Enabled;
+
+            if (currentKeyboardState.IsKeyUp(Keys.D3) && lastKeyboardState.IsKeyDown(Keys.D3))
+                edge.Enabled = !edge.Enabled;
+
             if (currentKeyboardState.IsKeyDown(Keys.Escape))
-            {
                 Exit();
-            }
         }
 
         void UpdateCamera(GameTime gameTime)
@@ -374,8 +429,8 @@ namespace Samples.ScenePostprocess
 
             if (currentKeyboardState.IsKeyDown(Keys.R))
             {
-                camera.Position = new Vector3(0, 50, 50);
-                camera.Direction = Vector3.Forward;
+                camera.Position = initialCameraPosition;
+                camera.LookAt(initialCameraLookAt);
             }
 
             camera.Update();
