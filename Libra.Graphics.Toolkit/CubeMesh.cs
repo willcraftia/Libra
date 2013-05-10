@@ -23,8 +23,9 @@ namespace Libra.Graphics.Toolkit
         {
             if (size < 0.0f) throw new ArgumentOutOfRangeException("size");
 
-            var vertexCount = 6 * 4;
-            var indexCount = 6 * 6;
+            const int vertexCount = 6 * 4;
+            const int indexCount = 6 * 6;
+            
             Allocate(vertexCount, indexCount);
 
             foreach (Vector3 normal in normals)
