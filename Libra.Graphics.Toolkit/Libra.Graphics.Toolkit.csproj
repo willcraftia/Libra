@@ -49,7 +49,6 @@
     <Compile Include="DepthMapEffect.cs" />
     <Compile Include="DepthNormalMapEffect.cs" />
     <Compile Include="DepthOfField.cs" />
-    <Compile Include="DepthOfFieldEffect.cs" />
     <Compile Include="DirectTextureDraw.cs" />
     <Compile Include="Edge.cs" />
     <Compile Include="IPostprocessor.cs" />

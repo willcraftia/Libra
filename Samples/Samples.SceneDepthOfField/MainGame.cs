@@ -90,7 +90,12 @@ namespace Samples.SceneDepthOfField
         GaussianBlur gaussianBlur;
 
         /// <summary>
-        /// 被写界深度。
+        /// FullScreenQuad。
+        /// </summary>
+        FullScreenQuad fullScreenQuad;
+
+        /// <summary>
+        /// 被写界深度ポストプロセス。
         /// </summary>
         DepthOfField depthOfField;
 
@@ -171,6 +176,8 @@ namespace Samples.SceneDepthOfField
             depthOfField = new DepthOfField(Device);
             depthOfField.Projection = camera.Projection;
 
+            fullScreenQuad = new FullScreenQuad(Device);
+
             basicEffect = new BasicEffect(Device);
             basicEffect.AmbientLightColor = new Vector3(0.15f, 0.15f, 0.15f);
             basicEffect.PerPixelLighting = true;
@@ -224,21 +231,15 @@ namespace Samples.SceneDepthOfField
 
         void CreateDepthMap(DeviceContext context)
         {
-            depthMapEffect.View = camera.View;
-            depthMapEffect.Projection = camera.Projection;
-
             context.SetRenderTarget(depthMapRenderTarget.GetRenderTargetView());
-            context.Clear(Color.White);
+            context.Clear(Vector4.One);
 
-            DrawPrimitiveMeshDepth(context, cubeMesh, Matrix.CreateTranslation(-40, 10, 0));
-            DrawPrimitiveMeshDepth(context, sphereMesh, Matrix.CreateTranslation(0, 10, -40));
-            for (float z = -180; z <= 180; z += 40)
-            {
-                DrawPrimitiveMeshDepth(context, cylinderMesh, Matrix.CreateTranslation(-180, 40, z));
-            }
-            DrawPrimitiveMeshDepth(context, squareMesh, Matrix.Identity);
+            DrawScene(context, depthMapEffect);
 
             context.SetRenderTarget(null);
+
+            // 被写界深度エフェクトへ深度マップを設定。
+            depthOfField.DepthMap = depthMapRenderTarget.GetShaderResourceView();
         }
 
         void CreateNormalSceneMap(DeviceContext context)
@@ -246,32 +247,47 @@ namespace Samples.SceneDepthOfField
             context.SetRenderTarget(normalSceneRenderTarget.GetRenderTargetView());
             context.Clear(Color.CornflowerBlue);
 
-            basicEffect.View = camera.View;
-            basicEffect.Projection = camera.Projection;
-
-            DrawPrimitiveMesh(context, cubeMesh, new Vector3(1, 0, 0), Matrix.CreateTranslation(-40, 10, 0));
-            DrawPrimitiveMesh(context, sphereMesh, new Vector3(0, 1, 0), Matrix.CreateTranslation(0, 10, -40));
-            for (float z = -180; z <= 180; z += 40)
-            {
-                DrawPrimitiveMesh(context, cylinderMesh, new Vector3(0, 0, 1), Matrix.CreateTranslation(-180, 40, z));
-            }
-            DrawPrimitiveMesh(context, squareMesh, new Vector3(0.5f), Matrix.Identity);
+            DrawScene(context, basicEffect);
 
             context.SetRenderTarget(null);
+
+            // 被写界深度エフェクトへ通常シーンを設定。
+            depthOfField.Texture = normalSceneRenderTarget.GetShaderResourceView();
         }
 
-        void DrawPrimitiveMeshDepth(DeviceContext context, PrimitiveMesh mesh, Matrix world)
+        void DrawScene(DeviceContext context, IEffect effect)
         {
-            depthMapEffect.World = world;
-            depthMapEffect.Apply(context);
-            mesh.Draw(context);
+            var effectMatrices = effect as IEffectMatrices;
+            if (effectMatrices != null)
+            {
+                effectMatrices.View = camera.View;
+                effectMatrices.Projection = camera.Projection;
+            }
+
+            DrawPrimitiveMesh(context, cubeMesh, Matrix.CreateTranslation(-40, 10, 0), new Vector3(1, 0, 0), effect);
+            DrawPrimitiveMesh(context, sphereMesh, Matrix.CreateTranslation(0, 10, -40), new Vector3(0, 1, 0), effect);
+            for (float z = -180; z <= 180; z += 40)
+            {
+                DrawPrimitiveMesh(context, cylinderMesh, Matrix.CreateTranslation(-180, 40, z), new Vector3(0, 0, 1), effect);
+            }
+            DrawPrimitiveMesh(context, squareMesh, Matrix.Identity, new Vector3(0.5f), effect);
         }
 
-        void DrawPrimitiveMesh(DeviceContext context, PrimitiveMesh mesh, Vector3 color, Matrix world)
+        void DrawPrimitiveMesh(DeviceContext context, PrimitiveMesh mesh, Matrix world, Vector3 color, IEffect effect)
         {
-            basicEffect.DiffuseColor = color;
-            basicEffect.World = world;
-            basicEffect.Apply(context);
+            var effectMatrices = effect as IEffectMatrices;
+            if (effectMatrices != null)
+            {
+                effectMatrices.World = world;
+            }
+
+            var basicEffect = effect as BasicEffect;
+            if (basicEffect != null)
+            {
+                basicEffect.DiffuseColor = color;
+            }
+
+            effect.Apply(context);
             mesh.Draw(context);
         }
 
@@ -281,15 +297,15 @@ namespace Samples.SceneDepthOfField
                 context,
                 normalSceneRenderTarget.GetShaderResourceView(),
                 bluredSceneRenderTarget.GetRenderTargetView());
+
+            // 被写界深度エフェクトへブラー済みシーンを設定。
+            depthOfField.BluredTexture = bluredSceneRenderTarget.GetShaderResourceView();
         }
 
         void CreateFinalSceneMap(DeviceContext context)
         {
-            depthOfField.Draw(
-                context,
-                normalSceneRenderTarget.GetShaderResourceView(),
-                bluredSceneRenderTarget.GetShaderResourceView(),
-                depthMapRenderTarget.GetShaderResourceView());
+            depthOfField.Apply(context);
+            fullScreenQuad.Draw(context);
         }
 
         void DrawInterMapsToScreen()

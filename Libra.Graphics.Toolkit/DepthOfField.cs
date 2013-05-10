@@ -1,38 +1,84 @@
 ﻿#region Using
 
 using System;
+using System.Runtime.InteropServices;
+using Libra.Graphics.Toolkit.Properties;
 
 #endregion
 
 namespace Libra.Graphics.Toolkit
 {
     /// <summary>
-    /// 被写界深度を考慮したシーンを描画するクラスです。
+    /// 被写界深度を考慮したシーンの生成を担うエフェクトです。
     /// </summary>
-    public sealed class DepthOfField : IDisposable
+    public sealed class DepthOfField : IPostprocessor, IDisposable
     {
-        /// <summary>
-        /// 被写界深度エフェクト。
-        /// </summary>
-        DepthOfFieldEffect effect;
+        #region SharedDeviceResource
 
-        /// <summary>
-        /// フルスクリーン クアッド。
-        /// </summary>
-        FullScreenQuad fullScreenQuad;
+        sealed class SharedDeviceResource
+        {
+            public PixelShader PixelShader { get; private set; }
 
-        /// <summary>
-        /// デバイス。
-        /// </summary>
-        public Device Device { get; private set; }
+            public SharedDeviceResource(Device device)
+            {
+                PixelShader = device.CreatePixelShader();
+                PixelShader.Initialize(Resources.DepthOfFieldPS);
+            }
+        }
+
+        #endregion
+
+        #region Constants
+
+        struct Constants
+        {
+            // X = scale
+            // Y = distance
+            public Vector4 Focus;
+
+            public Matrix InvertProjection;
+        }
+
+        #endregion
+
+        #region DirtyFlags
+
+        [Flags]
+        enum DirtyFlags
+        {
+            FocusScale          = (1 << 0),
+            InvertProjection    = (1 << 1),
+            Constants           = (1 << 2)
+        }
+
+        #endregion
+
+        Device device;
+
+        SharedDeviceResource sharedDeviceResource;
+
+        ConstantBuffer constantBuffer;
+
+        Constants constants;
+
+        float focusRange;
+
+        Matrix projection;
+
+        DirtyFlags dirtyFlags;
 
         /// <summary>
         /// 焦点距離を取得または設定します。
         /// </summary>
         public float FocusDistance
         {
-            get { return effect.FocusDistance; }
-            set { effect.FocusDistance = value; }
+            get { return constants.Focus.Y; }
+            set
+            {
+                constants.Focus.Y = value;
+
+                dirtyFlags |= DirtyFlags.Constants;
+            }
         }
 
         /// <summary>
@@ -40,8 +86,13 @@ namespace Libra.Graphics.Toolkit
         /// </summary>
         public float FocusRange
         {
-            get { return effect.FocusRange; }
-            set { effect.FocusRange = value; }
+            get { return focusRange; }
+            set
+            {
+                focusRange = value;
+
+                dirtyFlags |= DirtyFlags.FocusScale;
+            }
         }
 
         /// <summary>
@@ -49,72 +100,90 @@ namespace Libra.Graphics.Toolkit
         /// </summary>
         public Matrix Projection
         {
-            get { return effect.Projection; }
-            set { effect.Projection = value; }
+            get { return projection; }
+            set
+            {
+                projection = value;
+
+                dirtyFlags |= DirtyFlags.InvertProjection;
+            }
         }
+
+        /// <summary>
+        /// 通常シーンを取得または設定します。
+        /// </summary>
+        public ShaderResourceView Texture { get; set; }
+
+        /// <summary>
+        /// ブラー済みシーンを取得または設定します。
+        /// </summary>
+        public ShaderResourceView BluredTexture { get; set; }
+
+        /// <summary>
+        /// 深度マップを取得または設定します。
+        /// </summary>
+        public ShaderResourceView DepthMap { get; set; }
+
+        public bool Enabled { get; set; }
 
         public DepthOfField(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 
-            Device = device;
+            this.device = device;
 
-            effect = new DepthOfFieldEffect(device);
+            sharedDeviceResource = device.GetSharedResource<DepthOfField, SharedDeviceResource>();
 
-            fullScreenQuad = new FullScreenQuad(Device);
+            constantBuffer = device.CreateConstantBuffer();
+            constantBuffer.Initialize<Constants>();
+
+            focusRange = 200.0f;
+            projection = Matrix.Identity;
+
+            constants.Focus.Y = 10.0f;
+
+            Enabled = true;
+
+            dirtyFlags = DirtyFlags.FocusScale | DirtyFlags.InvertProjection | DirtyFlags.Constants;
         }
 
-        /// <summary>
-        /// 深度マップを参照して、通常シーンとブラー済みシーンを合成し、
-        /// 現在設定されているレンダ ターゲットへ結果を描画します。
-        /// </summary>
-        /// <param name="context">デバイス コンテキスト。</param>
-        /// <param name="normalSceneMap">通常シーン。</param>
-        /// <param name="bluredSceneMap">ブラー済みシーン。</param>
-        /// <param name="depthMap">深度マップ。</param>
-        public void Draw(
-            DeviceContext context,
-            ShaderResourceView normalSceneMap,
-            ShaderResourceView bluredSceneMap,
-            ShaderResourceView depthMap)
+        public void Apply(DeviceContext context)
         {
-            if (context == null) throw new ArgumentNullException("context");
-            if (normalSceneMap == null) throw new ArgumentNullException("normalSceneMap");
-            if (bluredSceneMap == null) throw new ArgumentNullException("bluredSceneMap");
-            if (depthMap == null) throw new ArgumentNullException("depthMap");
+            if ((dirtyFlags & DirtyFlags.FocusScale) != 0)
+            {
+                constants.Focus.X = 1.0f / focusRange;
 
-            // ステートの記録。
-            var previousBlendState = context.BlendState;
-            var previousDepthStencilState = context.DepthStencilState;
-            var previousRasterizerState = context.RasterizerState;
-            var previousSamplerState0 = context.PixelShaderSamplers[0];
-            var previousSamplerState1 = context.PixelShaderSamplers[1];
-            var previousSamplerState2 = context.PixelShaderSamplers[2];
+                dirtyFlags &= ~DirtyFlags.FocusScale;
+                dirtyFlags |= DirtyFlags.Constants;
+            }
+            if ((dirtyFlags & DirtyFlags.InvertProjection) != 0)
+            {
+                Matrix invertProjection;
+                Matrix.Invert(ref projection, out invertProjection);
 
-            // ステートの設定。
-            context.BlendState = BlendState.Opaque;
-            context.DepthStencilState = DepthStencilState.None;
-            context.RasterizerState = RasterizerState.CullBack;
+                Matrix.Transpose(ref invertProjection, out constants.InvertProjection);
+
+                dirtyFlags &= ~DirtyFlags.InvertProjection;
+                dirtyFlags |= DirtyFlags.Constants;
+            }
+
+            if ((dirtyFlags & DirtyFlags.Constants) != 0)
+            {
+                constantBuffer.SetData(context, constants);
+
+                dirtyFlags &= ~DirtyFlags.Constants;
+            }
+
+            context.PixelShaderConstantBuffers[0] = constantBuffer;
+            context.PixelShader = sharedDeviceResource.PixelShader;
+
+            context.PixelShaderResources[0] = Texture;
+            context.PixelShaderResources[1] = BluredTexture;
+            context.PixelShaderResources[2] = DepthMap;
+
             context.PixelShaderSamplers[0] = SamplerState.PointClamp;
             context.PixelShaderSamplers[1] = SamplerState.LinearClamp;
             context.PixelShaderSamplers[2] = SamplerState.PointClamp;
-
-            // エフェクトの設定。
-            effect.NormalSceneMap = normalSceneMap;
-            effect.BluredSceneMap = bluredSceneMap;
-            effect.DepthMap = depthMap;
-            effect.Apply(context);
-
-            // 描画。
-            fullScreenQuad.Draw(context);
-
-            // ステートを以前の状態へ戻す。
-            context.BlendState = previousBlendState;
-            context.DepthStencilState = previousDepthStencilState;
-            context.RasterizerState = previousRasterizerState;
-            context.PixelShaderSamplers[0] = previousSamplerState0;
-            context.PixelShaderSamplers[1] = previousSamplerState1;
-            context.PixelShaderSamplers[2] = previousSamplerState2;
         }
 
         #region IDisposable
@@ -138,8 +207,8 @@ namespace Libra.Graphics.Toolkit
 
             if (disposing)
             {
-                effect.Dispose();
-                fullScreenQuad.Dispose();
+                sharedDeviceResource = null;
+                constantBuffer.Dispose();
             }
 
             disposed = true;

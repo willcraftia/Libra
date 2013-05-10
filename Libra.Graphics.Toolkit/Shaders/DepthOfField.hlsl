@@ -5,19 +5,19 @@ cbuffer Parameters : register(b0)
     float4x4 InvertProjection   : packoffset(c1);
 };
 
-Texture2D<float4> NormalSceneMap    : register(t0);
-Texture2D<float4> BluredSceneMap    : register(t1);
-Texture2D<float>  DepthMap          : register(t2);
+Texture2D<float4> Texture       : register(t0);
+Texture2D<float4> BluredTexture : register(t1);
+Texture2D<float>  DepthMap      : register(t2);
 
-SamplerState SceneMapSampler        : register(s0);
-SamplerState BluredSceneMapSampler  : register(s1);
+SamplerState TextureSampler         : register(s0);
+SamplerState BluredTextureSampler   : register(s1);
 SamplerState DepthMapSampler        : register(s2);
 
 float4 PS(float4 color    : COLOR0,
           float2 texCoord : TEXCOORD0) : SV_Target
 {
-    float4 normalScene = NormalSceneMap.Sample(SceneMapSampler, texCoord);
-    float4 bluredScene = BluredSceneMap.Sample(BluredSceneMapSampler, texCoord);
+    float4 normalScene = Texture.Sample(TextureSampler, texCoord);
+    float4 bluredScene = BluredTexture.Sample(BluredTextureSampler, texCoord);
     float depth = DepthMap.Sample(DepthMapSampler, texCoord);
 
     // Ë‰es—ñ‚Ì‹ts—ñ‚ğŠ|‚¯‚Äƒrƒ…[‹óŠÔ‚É‚¨‚¯‚éÀ•W‚ğZoB
