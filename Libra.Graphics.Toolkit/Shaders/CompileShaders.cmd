@@ -11,10 +11,14 @@ set ps_profile=ps_5_0
 call :CompileShader FullScreenQuad VS %vs_profile%
 
 ::
-:: Bloom PS
+:: BloomExtract PS
 ::
 call :CompileShader BloomExtract PS %ps_profile%
-call :CompileShader BloomCombine PS %ps_profile%
+
+::
+:: Bloom PS
+::
+call :CompileShader Bloom PS %ps_profile%
 
 ::
 :: GaussianBlur PS

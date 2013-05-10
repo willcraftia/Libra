@@ -118,9 +118,6 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="BloomCombinePS" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Shaders\Compiled\BloomCombinePS.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
   <data name="BloomExtractPS" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Shaders\Compiled\BloomExtractPS.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
@@ -174,5 +171,8 @@
   </data>
   <data name="DepthNormalMapVS" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Shaders\Compiled\DepthNormalMapVS.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="BloomPS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Shaders\Compiled\BloomPS.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
 </root>
