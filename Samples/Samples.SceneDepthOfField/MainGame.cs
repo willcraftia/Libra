@@ -298,8 +298,9 @@ namespace Samples.SceneDepthOfField
         void DrawOverlayText()
         {
             // HUD のテキストを表示。
-            var text = "PageUp/Down = Focus distance (" + depthOfField.FocusDistance + ")\n" +
-                "Home/End = Focus range (" + depthOfField.FocusRange + ")";
+            var text =
+                "PageUp/Down: Focus distance (" + depthOfField.FocusDistance + ")\n" +
+                "Home/End: Focus range (" + depthOfField.FocusRange + ")";
 
             spriteBatch.Begin();
 
