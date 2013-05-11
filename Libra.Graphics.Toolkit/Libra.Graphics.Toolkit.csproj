@@ -58,6 +58,7 @@
     <Compile Include="Monochrome.cs" />
     <Compile Include="NegativeFilter.cs" />
     <Compile Include="PostprocessorChain.cs" />
+    <Compile Include="RadialBlur.cs" />
     <Compile Include="Scanline.cs" />
     <Compile Include="SingleColorObjectEffect.cs" />
     <Compile Include="PrimitiveMesh.cs" />
@@ -128,6 +129,7 @@
     <None Include="Shaders\Compiled\LightScatteringPS.bin" />
     <None Include="Shaders\Compiled\MonochromePS.bin" />
     <None Include="Shaders\Compiled\NegativeFilterPS.bin" />
+    <None Include="Shaders\Compiled\RadialBlurPS.bin" />
     <None Include="Shaders\Compiled\ScanlinePS.bin" />
     <None Include="Shaders\Compiled\ShadowMapBasicPS.bin" />
     <None Include="Shaders\Compiled\ShadowMapVariancePS.bin" />

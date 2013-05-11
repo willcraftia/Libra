@@ -51,6 +51,11 @@ call :CompileShader Bloom PS %ps_profile%
 call :CompileShader GaussianBlur PS %ps_profile%
 
 ::
+:: RadialBlur PS
+::
+call :CompileShader RadialBlur PS %ps_profile%
+
+::
 :: DepthOfField PS
 ::
 call :CompileShader DepthOfField PS %ps_profile%

@@ -158,6 +158,13 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
+        internal static byte[] RadialBlurPS {
+            get {
+                object obj = ResourceManager.GetObject("RadialBlurPS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
         internal static byte[] ScanlinePS {
             get {
                 object obj = ResourceManager.GetObject("ScanlinePS", resourceCulture);
