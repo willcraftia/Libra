@@ -124,6 +124,11 @@ namespace Samples.ScenePostprocess
         /// </summary>
         GaussianBlur gaussianBlurV;
 
+        /// <summary>
+        /// 放射ブラー ポストプロセス。
+        /// </summary>
+        RadialBlur radialBlur;
+
         bool depthNormalMapEnabled;
 
         /// <summary>
@@ -223,6 +228,10 @@ namespace Samples.ScenePostprocess
             gaussianBlurV.Enabled = false;
             postprocessorChain.Postprocessors.Add(gaussianBlurH);
             postprocessorChain.Postprocessors.Add(gaussianBlurV);
+
+            radialBlur = new RadialBlur(Device);
+            radialBlur.Enabled = false;
+            postprocessorChain.Postprocessors.Add(radialBlur);
 
             depthNormalMapEffect = new DepthNormalMapEffect(Device);
 
@@ -393,12 +402,13 @@ namespace Samples.ScenePostprocess
                 "2: Scanline (" + scanline.Enabled + ")\n" +
                 "3: Edge (" + edge.Enabled + ")\n" +
                 "4: Negative filter (" + negativeFilter.Enabled + ")\n" +
-                "5: Gaussian blur (" + gaussianBlurH.Enabled + ")";
+                "5: Gaussian blur (" + gaussianBlurH.Enabled + ")\n" +
+                "6: Radial blur (" + radialBlur.Enabled + ")";
 
             spriteBatch.Begin();
 
-            spriteBatch.DrawString(spriteFont, text, new Vector2(65, 380), Color.Black);
-            spriteBatch.DrawString(spriteFont, text, new Vector2(64, 380 - 1), Color.Yellow);
+            spriteBatch.DrawString(spriteFont, text, new Vector2(65, 340), Color.Black);
+            spriteBatch.DrawString(spriteFont, text, new Vector2(64, 340 - 1), Color.Yellow);
 
             spriteBatch.End();
         }
@@ -427,6 +437,9 @@ namespace Samples.ScenePostprocess
                 gaussianBlurH.Enabled = !gaussianBlurH.Enabled;
                 gaussianBlurV.Enabled = !gaussianBlurV.Enabled;
             }
+
+            if (currentKeyboardState.IsKeyUp(Keys.D6) && lastKeyboardState.IsKeyDown(Keys.D6))
+                radialBlur.Enabled = !radialBlur.Enabled;
 
             if (currentKeyboardState.IsKeyDown(Keys.Escape))
                 Exit();
