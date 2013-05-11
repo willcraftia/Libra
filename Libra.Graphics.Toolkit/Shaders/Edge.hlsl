@@ -7,6 +7,7 @@ cbuffer Parameters : register(b0)
     float  NormalThreshold      : packoffset(c1.z);
     float  NormalSensitivity    : packoffset(c1.w);
     float3 EdgeColor            : packoffset(c2);
+    float  EdgeAttenuation      : packoffset(c2.w);
 };
 
 Texture2D<float4> Texture           : register(t0);
@@ -34,11 +35,18 @@ float4 PS(float4 color    : COLOR0,
     float deltaNormal = dot(deltaSample.yzw, 1);
     deltaNormal = saturate((deltaNormal - NormalThreshold) * NormalSensitivity);
 
-    float amount = saturate(deltaDepth + deltaNormal);
+    // 参考にした XNA サンプルでは saturate(deltaDepth + deltaNormal)。
+    // 度合いの和とする意味がないと判断し、最大値抽出へ変更。
+    float amount = saturate(max(deltaDepth, deltaNormal));
 
-    // XNA サンプルとは異なり、遠方に行く程に影響を少なくする。
-    // これにより、遠クリップ面での不正なエッジ描画が無くなる。
-    amount *= EdgeIntensity * (1 - s.w);
+    // EdgeAttenuation を越える深度から減衰を始める。
+    // EdgeAttenuation < 1 ならば深度 1 で amount = 0。
+    // すなわち、遠クリップ面に近づく程にエッジなしに近づく。
+    // 1 <= EdgeAttenuation ならば減衰なし。
+    // なお、XNA サンプルでは減衰処理なし。
+    float attenuation = 1 - s.x * (EdgeAttenuation < s.x);
+
+    amount *= EdgeIntensity * attenuation;
 
     source.rgb = lerp(source.rgb, source.rgb * EdgeColor, saturate(amount));
 

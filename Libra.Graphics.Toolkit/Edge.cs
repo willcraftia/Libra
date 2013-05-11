@@ -50,6 +50,9 @@ namespace Libra.Graphics.Toolkit
 
             [FieldOffset(32)]
             public Vector3 EdgeColor;
+
+            [FieldOffset(44)]
+            public float EdgeAttenuation;
         }
 
         #endregion
@@ -170,6 +173,19 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
+        public float EdgeAttenuation
+        {
+            get { return constants.EdgeAttenuation; }
+            set
+            {
+                if (value < 0.0f || 1.0f < value) throw new ArgumentOutOfRangeException("value");
+
+                constants.EdgeAttenuation = value;
+
+                dirtyFlags |= DirtyFlags.Constants;
+            }
+        }
+
         public bool Enabled { get; set; }
 
         public ShaderResourceView Texture { get; set; }
@@ -195,6 +211,7 @@ namespace Libra.Graphics.Toolkit
             constants.NormalThreshold = 0.5f;
             constants.NormalSensitivity = 1.0f;
             constants.EdgeColor = Vector3.Zero;
+            constants.EdgeAttenuation = 0.9f;
 
             Enabled = true;
 
