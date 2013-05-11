@@ -16,6 +16,7 @@ float4 PS(float4 color    : COLOR0,
           float2 texCoord : TEXCOORD0) : SV_Target0
 {
     float4 c = 0;
+
     for (int i = 0; i < KernelSize; i++)
     {
         float3 kernel = Kernels[i];
@@ -23,5 +24,6 @@ float4 PS(float4 color    : COLOR0,
         float weight = kernel.z;
         c += Texture.Sample(TextureSampler, texCoord + offset) * weight;
     }
+
     return c;
 }
