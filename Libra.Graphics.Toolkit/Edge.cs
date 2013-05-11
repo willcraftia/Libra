@@ -206,7 +206,7 @@ namespace Libra.Graphics.Toolkit
             edgeWidth = 1;
             constants.EdgeOffset = Vector2.Zero;
             constants.EdgeIntensity = 200.0f;
-            constants.DepthThreshold = 0.0f;
+            constants.DepthThreshold = 0.5f;
             constants.DepthSensitivity = 1.0f;
             constants.NormalThreshold = 0.5f;
             constants.NormalSensitivity = 1.0f;
