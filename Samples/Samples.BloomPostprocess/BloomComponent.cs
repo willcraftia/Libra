@@ -174,11 +174,13 @@ namespace Samples.BloomPostprocess
             bloom.BloomSaturation = Settings.BloomSaturation;
             bloom.BloomTexture = bloomMapRenderTarget.GetShaderResourceView();
 
-            // XNA サンプルでは、中間レンダ ターゲットを表示するために、
-            // シーンのテクスチャをレジスタ #0 ではなく #1 に設定していると思われる。
-            // しかし、このサンプルに限定せずに考えた場合、
-            // ポストプロセス毎に対象とする通常シーンの設定先が異なることは混乱を招きやすい。
-            // Libra ではポストプロセスの対象となる通常シーンのテクスチャを #0 に統一して設定する。
+            // XNA サンプルはブルーム マップを主体としているため、
+            // ブルーム マップに対するポストプロセスとしてブラーと合成が処理されている。
+            // このため、通常シーンのテクスチャはレジスタ #0 ではなく #1。
+            // #0 はブルーム マップ。
+            // Libra では通常シーンのテクスチャを主体としているため、
+            // 通常シーンのテクスチャはレジスタ #0。
+            // #1 はブルーム マップ。
             DrawFullscreenQuad(sceneRenderTarget, (int) viewport.Width, (int) viewport.Height, bloom.Apply);
         }
 
