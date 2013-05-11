@@ -23,7 +23,6 @@ float4 PS(float4 color    : COLOR0,
 
     float illuminationDecay = 1;
 
-    [unroll(MAX_SAMPLE_COUNT)]
     for (int i = 0; i < SampleCount; i++)
     {
         texCoord -= deltaTexCoord;
