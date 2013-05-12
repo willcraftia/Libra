@@ -7,7 +7,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class BloomExtract : IPostprocess, IDisposable
+    public sealed class BloomExtract : IPostprocessPass, IDisposable
     {
         #region SharedDeviceResource
 

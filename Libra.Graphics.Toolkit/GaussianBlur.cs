@@ -7,9 +7,9 @@ using System;
 namespace Libra.Graphics.Toolkit
 {
     /// <summary>
-    /// ガウシアン ブラー シェーダをポストプロセスとして構築するアダプタ クラスです。
+    /// ガウシアン ブラー シェーダをポストプロセス パスとして構築するアダプタ クラスです。
     /// </summary>
-    public sealed class GaussianBlur : IPostprocess
+    public sealed class GaussianBlur : IPostprocessPass
     {
         public GaussianBlurCore Core { get; private set; }
 

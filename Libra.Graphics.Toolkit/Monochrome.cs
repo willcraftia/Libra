@@ -8,7 +8,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class Monochrome : IPostprocess, IDisposable
+    public sealed class Monochrome : IPostprocessPass, IDisposable
     {
         #region SharedDeviceResource
 

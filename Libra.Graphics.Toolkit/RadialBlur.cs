@@ -8,7 +8,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class RadialBlur : IPostprocess, IDisposable
+    public sealed class RadialBlur : IPostprocessPass, IDisposable
     {
         #region SharedDeviceResource
 

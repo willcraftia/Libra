@@ -6,7 +6,7 @@ using System;
 
 namespace Libra.Graphics.Toolkit
 {
-    public interface IPostprocess
+    public interface IPostprocessPass
     {
         bool Enabled { get; }
 

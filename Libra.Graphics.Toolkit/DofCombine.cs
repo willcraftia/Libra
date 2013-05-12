@@ -11,7 +11,7 @@ namespace Libra.Graphics.Toolkit
     /// <summary>
     /// 被写界深度を考慮してシーンを合成するポストプロセスです。
     /// </summary>
-    public sealed class DofCombine : IPostprocess, IDisposable
+    public sealed class DofCombine : IPostprocessPass, IDisposable
     {
         #region SharedDeviceResource
 

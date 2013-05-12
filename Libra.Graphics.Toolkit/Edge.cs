@@ -8,7 +8,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class Edge : IPostprocess, IDisposable
+    public sealed class Edge : IPostprocessPass, IDisposable
     {
         #region SharedDeviceResource
 

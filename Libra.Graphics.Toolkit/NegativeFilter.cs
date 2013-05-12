@@ -7,7 +7,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class NegativeFilter : IPostprocess, IDisposable
+    public sealed class NegativeFilter : IPostprocessPass, IDisposable
     {
         #region SharedDeviceResource
 

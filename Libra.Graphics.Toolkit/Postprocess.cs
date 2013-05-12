@@ -7,13 +7,13 @@ using System.Collections.ObjectModel;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class PostprocessChain : IDisposable
+    public sealed class Postprocess : IDisposable
     {
-        #region PostprocessCollection
+        #region PassCollection
 
-        public sealed class PostprocessCollection : Collection<IPostprocess>
+        public sealed class PassCollection : Collection<IPostprocessPass>
         {
-            internal PostprocessCollection() { }
+            internal PassCollection() { }
         }
 
         #endregion
@@ -32,7 +32,7 @@ namespace Libra.Graphics.Toolkit
 
         SpriteBatch spriteBatch;
 
-        public PostprocessCollection Postprocesses { get; private set; }
+        public PassCollection Passes { get; private set; }
 
         public int Width
         {
@@ -73,13 +73,13 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        public PostprocessChain(DeviceContext context)
+        public Postprocess(DeviceContext context)
         {
             if (context == null) throw new ArgumentNullException("context");
 
             this.context = context;
 
-            Postprocesses = new PostprocessCollection();
+            Passes = new PassCollection();
             spriteBatch = new SpriteBatch(context);
 
             width = 1;
@@ -93,16 +93,16 @@ namespace Libra.Graphics.Toolkit
 
             var currentTexture = texture;
 
-            int processCount = 0;
+            int passCount = 0;
 
-            for (int i = 0; i < Postprocesses.Count; i++)
+            for (int i = 0; i < Passes.Count; i++)
             {
-                var postprocess = Postprocesses[i];
+                var pass = Passes[i];
 
-                if (!postprocess.Enabled)
+                if (!pass.Enabled)
                     continue;
 
-                if (0 < processCount)
+                if (0 < passCount)
                 {
                     currentTexture = currentRenderTarget.GetShaderResourceView();
                 }
@@ -122,16 +122,16 @@ namespace Libra.Graphics.Toolkit
 
                 context.SetRenderTarget(currentRenderTarget.GetRenderTargetView());
 
-                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque, null, null, null, postprocess.Apply);
+                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque, null, null, null, pass.Apply);
                 spriteBatch.Draw(currentTexture, Vector2.Zero, Color.White);
                 spriteBatch.End();
 
                 context.SetRenderTarget(null);
 
-                processCount++;
+                passCount++;
             }
 
-            if (processCount == 0)
+            if (passCount == 0)
                 return texture;
 
             return currentRenderTarget.GetShaderResourceView();
@@ -155,7 +155,7 @@ namespace Libra.Graphics.Toolkit
 
         bool disposed;
 
-        ~PostprocessChain()
+        ~Postprocess()
         {
             Dispose(false);
         }
@@ -174,9 +174,9 @@ namespace Libra.Graphics.Toolkit
             {
                 ReleaseRenderTargets();
 
-                foreach (var postprocessor in Postprocesses)
+                foreach (var pass in Passes)
                 {
-                    var disposable = postprocessor as IDisposable;
+                    var disposable = pass as IDisposable;
                     if (disposable != null)
                         disposable.Dispose();
                 }

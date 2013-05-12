@@ -53,11 +53,11 @@
     <Compile Include="DirectTextureDraw.cs" />
     <Compile Include="Edge.cs" />
     <Compile Include="GaussianBlur.cs" />
-    <Compile Include="IPostprocess.cs" />
+    <Compile Include="IPostprocessPass.cs" />
     <Compile Include="LightScattering.cs" />
     <Compile Include="Monochrome.cs" />
     <Compile Include="NegativeFilter.cs" />
-    <Compile Include="PostprocessChain.cs" />
+    <Compile Include="Postprocess.cs" />
     <Compile Include="RadialBlur.cs" />
     <Compile Include="Scanline.cs" />
     <Compile Include="SingleColorObjectEffect.cs" />
