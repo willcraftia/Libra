@@ -6,11 +6,11 @@ cbuffer Parameters : register(b0)
     float BloomSaturation   : packoffset(c0.w);
 };
 
-Texture2D Texture   : register(t0);
-Texture2D BloomMap  : register(t1);
+Texture2D Texture  : register(t0);
+Texture2D BaseTexture   : register(t1);
 
-sampler TextureSampler  : register(s0);
-sampler BloomMapSampler : register(s1);
+SamplerState TextureSampler : register(s0);
+SamplerState BaseTextureSampler  : register(s1);
 
 float4 AdjustSaturation(float4 color, float saturation)
 {
@@ -22,11 +22,11 @@ float4 AdjustSaturation(float4 color, float saturation)
 float4 PS(float4 color    : COLOR0,
           float2 texCoord : TEXCOORD0) : SV_Target
 {
-    float4 base = Texture.Sample(TextureSampler, texCoord);
-    float4 bloom = BloomMap.Sample(BloomMapSampler, texCoord);
+    float4 bloom = Texture.Sample(TextureSampler, texCoord);
+    float4 base = BaseTexture.Sample(BaseTextureSampler, texCoord);
 
-    base = AdjustSaturation(base, BaseSaturation) * BaseIntensity;
     bloom = AdjustSaturation(bloom, BloomSaturation) * BloomIntensity;
+    base = AdjustSaturation(base, BaseSaturation) * BaseIntensity;
 
     base *= (1 - saturate(bloom));
 

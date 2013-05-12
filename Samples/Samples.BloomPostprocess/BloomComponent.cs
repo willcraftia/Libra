@@ -27,13 +27,13 @@ namespace Samples.BloomPostprocess
         
         RenderTarget interBlurRenderTarget;
 
+        BloomSettings settings = BloomSettings.PresetSettings[0];
+
         public BloomSettings Settings
         {
             get { return settings; }
             set { settings = value; }
         }
-
-        BloomSettings settings = BloomSettings.PresetSettings[0];
 
         public enum IntermediateBuffer
         {
@@ -119,15 +119,7 @@ namespace Samples.BloomPostprocess
 
             // ブルーム マップの生成。
             bloomExtract.Threshold = Settings.BloomThreshold;
-            context.SetRenderTarget(bloomMapRenderTarget.GetRenderTargetView());
-            DrawFullscreenQuad(sceneRenderTarget, bloomMapRenderTarget.Width, bloomMapRenderTarget.Height, bloomExtract.Apply);
-            context.SetRenderTarget(null);
-
-            if (showBuffer < IntermediateBuffer.BlurredHorizontally)
-            {
-                DrawFullscreenQuad(bloomMapRenderTarget, (int) viewport.Width, (int) viewport.Height, null);
-                return;
-            }
+            DrawFullscreenQuad(sceneRenderTarget, bloomMapRenderTarget, bloomExtract.Apply, IntermediateBuffer.PreBloom);
 
             // ガウシアン ブラーの設定。
             // XNA の BlurAamount はガウス関数の sigma そのものに一致。
@@ -138,54 +130,40 @@ namespace Samples.BloomPostprocess
             gaussianBlur.Amount = 1.0f / Settings.BlurAmount;
 
             // ガウシアン ブラーの水平パス。
-            // SpriteBatch でビューはスロット #0 に設定されるが、
-            // FullscreenQuad との互換性のために明示的に設定する必要がある。
             gaussianBlur.Pass = GaussianBlurPass.Horizon;
-            context.SetRenderTarget(interBlurRenderTarget.GetRenderTargetView());
-            context.PixelShaderResources[0] = bloomMapRenderTarget.GetShaderResourceView();
-            DrawFullscreenQuad(bloomMapRenderTarget, interBlurRenderTarget.Width, interBlurRenderTarget.Height, gaussianBlur.Apply);
-            context.SetRenderTarget(null);
-
-            if (showBuffer < IntermediateBuffer.BlurredBothWays)
-            {
-                DrawFullscreenQuad(interBlurRenderTarget, (int) viewport.Width, (int) viewport.Height, null);
-                return;
-            }
+            DrawFullscreenQuad(bloomMapRenderTarget, interBlurRenderTarget, gaussianBlur.Apply, IntermediateBuffer.BlurredHorizontally);
 
             // ガウシアン ブラーの垂直パス。
-            // SpriteBatch でビューはスロット #0 に設定されるが、
-            // FullscreenQuad との互換性のために明示的に設定する必要がある。
             gaussianBlur.Pass = GaussianBlurPass.Vertical;
-            context.SetRenderTarget(bloomMapRenderTarget.GetRenderTargetView());
-            context.PixelShaderResources[0] = interBlurRenderTarget.GetShaderResourceView();
-            DrawFullscreenQuad(interBlurRenderTarget, bloomMapRenderTarget.Width, bloomMapRenderTarget.Height, gaussianBlur.Apply);
+            DrawFullscreenQuad(interBlurRenderTarget, bloomMapRenderTarget, gaussianBlur.Apply, IntermediateBuffer.BlurredBothWays);
+            
             context.SetRenderTarget(null);
-
-            if (showBuffer < IntermediateBuffer.FinalResult)
-            {
-                DrawFullscreenQuad(bloomMapRenderTarget, (int) viewport.Width, (int) viewport.Height, null);
-                return;
-            }
 
             // ブルーム マップとシーンを合成。
             bloom.BaseIntensity = Settings.BaseIntensity;
             bloom.BaseSaturation = Settings.BaseSaturation;
             bloom.BloomIntensity = Settings.BloomIntensity;
             bloom.BloomSaturation = Settings.BloomSaturation;
-            bloom.BloomTexture = bloomMapRenderTarget.GetShaderResourceView();
-
-            // XNA サンプルはブルーム マップを主体としているため、
-            // ブルーム マップに対するポストプロセスとしてブラーと合成が処理されている。
-            // このため、通常シーンのテクスチャはレジスタ #0 ではなく #1。
-            // #0 はブルーム マップ。
-            // Libra では通常シーンのテクスチャを主体としているため、
-            // 通常シーンのテクスチャはレジスタ #0。
-            // #1 はブルーム マップ。
-            DrawFullscreenQuad(sceneRenderTarget, (int) viewport.Width, (int) viewport.Height, bloom.Apply);
+            bloom.BaseTexture = sceneRenderTarget.GetShaderResourceView();
+            DrawFullscreenQuad(bloomMapRenderTarget, (int) viewport.Width, (int) viewport.Height, bloom.Apply, IntermediateBuffer.FinalResult);
         }
 
-        void DrawFullscreenQuad(Texture2D texture, int width, int height, Action<DeviceContext> applyShader)
+        void DrawFullscreenQuad(Texture2D texture, RenderTarget renderTarget,
+            Action<DeviceContext> applyShader, IntermediateBuffer currentBuffer)
         {
+            Device.ImmediateContext.SetRenderTarget(renderTarget.GetRenderTargetView());
+
+            DrawFullscreenQuad(texture, renderTarget.Width, renderTarget.Height, applyShader, currentBuffer);
+        }
+
+        void DrawFullscreenQuad(Texture2D texture, int width, int height,
+            Action<DeviceContext> applyShader, IntermediateBuffer currentBuffer)
+        {
+            if (showBuffer < currentBuffer)
+            {
+                applyShader = null;
+            }
+
             spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Opaque, null, null, null, applyShader);
             spriteBatch.Draw(texture.GetShaderResourceView(), new Rectangle(0, 0, width, height), Color.White);
             spriteBatch.End();

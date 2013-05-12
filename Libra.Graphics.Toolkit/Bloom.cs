@@ -100,11 +100,11 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
+        public ShaderResourceView BaseTexture { get; set; }
+
+        public SamplerState BaseTextureSampler { get; set; }
+
         public bool Enabled { get; set; }
-
-        public ShaderResourceView Texture { get; set; }
-
-        public ShaderResourceView BloomTexture { get; set; }
 
         public Bloom(Device device)
         {
@@ -116,6 +116,8 @@ namespace Libra.Graphics.Toolkit
 
             constantBuffer = device.CreateConstantBuffer();
             constantBuffer.Initialize(16);
+
+            BaseTextureSampler = SamplerState.LinearClamp;
         }
 
         public void Apply(DeviceContext context)
@@ -131,10 +133,8 @@ namespace Libra.Graphics.Toolkit
             }
 
             context.PixelShaderConstantBuffers[0] = constantBuffer;
-            context.PixelShaderResources[0] = Texture;
-            context.PixelShaderResources[1] = BloomTexture;
-            context.PixelShaderSamplers[0] = SamplerState.PointClamp;
-            context.PixelShaderSamplers[1] = SamplerState.PointClamp;
+            context.PixelShaderResources[1] = BaseTexture;
+            context.PixelShaderSamplers[1] = BaseTextureSampler;
             context.PixelShader = sharedDeviceResource.PixelShader;
         }
 
