@@ -215,10 +215,6 @@ namespace Libra.Graphics.SharpDX
 
                 // バック バッファのレンダ ターゲットと深度ステンシルの設定。
                 D3D11DeviceContext.OutputMerger.SetTargets(d3d11DepthStencilView, d3d11RenderTargetView);
-
-                // ビューポートの更新。
-                var renderTarget = renderTargetView.RenderTarget;
-                Viewport = new Viewport(0, 0, renderTarget.Width, renderTarget.Height);
             }
             else
             {
@@ -254,10 +250,6 @@ namespace Libra.Graphics.SharpDX
 
                 // 参照を残さないために作業配列をクリア。
                 Array.Clear(d3d11RenderTargetViews, 0, renderTargetCount);
-
-                // ビューポートの更新。
-                var renderTarget = renderTargetViews[0].RenderTarget;
-                Viewport = new Viewport(0, 0, renderTarget.Width, renderTarget.Height);
             }
         }
 

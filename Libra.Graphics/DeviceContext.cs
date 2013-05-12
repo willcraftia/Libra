@@ -688,6 +688,10 @@ namespace Libra.Graphics
                     ClearRenderTarget(renderTargetView, DiscardColor);
                 }
             }
+
+            // #0 に設定されたレンダ ターゲットのサイズでビューポートを更新。
+            var renderTarget = activeRenderTargetViews[0].RenderTarget;
+            Viewport = new Viewport(0, 0, renderTarget.Width, renderTarget.Height);
         }
 
         public void SetRenderTargets(params RenderTargetView[] renderTargetViews)
