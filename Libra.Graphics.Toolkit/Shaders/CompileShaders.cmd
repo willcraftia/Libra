@@ -56,9 +56,9 @@ call :CompileShader GaussianBlur PS %ps_profile%
 call :CompileShader RadialBlur PS %ps_profile%
 
 ::
-:: DepthOfField PS
+:: DofCombine PS
 ::
-call :CompileShader DepthOfField PS %ps_profile%
+call :CompileShader DofCombine PS %ps_profile%
 
 ::
 :: LightScattering PS

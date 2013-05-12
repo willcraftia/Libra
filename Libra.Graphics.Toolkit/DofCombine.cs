@@ -9,9 +9,9 @@ using Libra.Graphics.Toolkit.Properties;
 namespace Libra.Graphics.Toolkit
 {
     /// <summary>
-    /// 被写界深度を考慮したシーンの生成を担うエフェクトです。
+    /// 被写界深度を考慮してシーンを合成するポストプロセスです。
     /// </summary>
-    public sealed class DepthOfField : IPostprocess, IDisposable
+    public sealed class DofCombine : IPostprocess, IDisposable
     {
         #region SharedDeviceResource
 
@@ -22,7 +22,7 @@ namespace Libra.Graphics.Toolkit
             public SharedDeviceResource(Device device)
             {
                 PixelShader = device.CreatePixelShader();
-                PixelShader.Initialize(Resources.DepthOfFieldPS);
+                PixelShader.Initialize(Resources.DofCombinePS);
             }
         }
 
@@ -112,27 +112,26 @@ namespace Libra.Graphics.Toolkit
         /// <summary>
         /// 通常シーンを取得または設定します。
         /// </summary>
-        public ShaderResourceView Texture { get; set; }
-
-        /// <summary>
-        /// ブラー済みシーンを取得または設定します。
-        /// </summary>
-        public ShaderResourceView BluredTexture { get; set; }
+        public ShaderResourceView BaseTexture { get; set; }
 
         /// <summary>
         /// 深度マップを取得または設定します。
         /// </summary>
         public ShaderResourceView DepthMap { get; set; }
 
+        public SamplerState BaseTextureSampler { get; set; }
+
+        public SamplerState DepthMapSampler { get; set; }
+
         public bool Enabled { get; set; }
 
-        public DepthOfField(Device device)
+        public DofCombine(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 
             this.device = device;
 
-            sharedDeviceResource = device.GetSharedResource<DepthOfField, SharedDeviceResource>();
+            sharedDeviceResource = device.GetSharedResource<DofCombine, SharedDeviceResource>();
 
             constantBuffer = device.CreateConstantBuffer();
             constantBuffer.Initialize<Constants>();
@@ -141,6 +140,9 @@ namespace Libra.Graphics.Toolkit
             projection = Matrix.Identity;
 
             constants.Focus.Y = 10.0f;
+
+            BaseTextureSampler = SamplerState.LinearClamp;
+            DepthMapSampler = SamplerState.LinearClamp;
 
             Enabled = true;
 
@@ -177,20 +179,18 @@ namespace Libra.Graphics.Toolkit
             context.PixelShaderConstantBuffers[0] = constantBuffer;
             context.PixelShader = sharedDeviceResource.PixelShader;
 
-            context.PixelShaderResources[0] = Texture;
-            context.PixelShaderResources[1] = BluredTexture;
+            context.PixelShaderResources[1] = BaseTexture;
             context.PixelShaderResources[2] = DepthMap;
 
-            context.PixelShaderSamplers[0] = SamplerState.PointClamp;
-            context.PixelShaderSamplers[1] = SamplerState.LinearClamp;
-            context.PixelShaderSamplers[2] = SamplerState.PointClamp;
+            context.PixelShaderSamplers[1] = BaseTextureSampler;
+            context.PixelShaderSamplers[2] = DepthMapSampler;
         }
 
         #region IDisposable
 
         bool disposed;
 
-        ~DepthOfField()
+        ~DofCombine()
         {
             Dispose(false);
         }

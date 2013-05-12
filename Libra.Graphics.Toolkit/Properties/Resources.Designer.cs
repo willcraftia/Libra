@@ -102,16 +102,16 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
-        internal static byte[] DepthOfFieldPS {
+        internal static byte[] DirectTextureDrawPS {
             get {
-                object obj = ResourceManager.GetObject("DepthOfFieldPS", resourceCulture);
+                object obj = ResourceManager.GetObject("DirectTextureDrawPS", resourceCulture);
                 return ((byte[])(obj));
             }
         }
         
-        internal static byte[] DirectTextureDrawPS {
+        internal static byte[] DofCombinePS {
             get {
-                object obj = ResourceManager.GetObject("DirectTextureDrawPS", resourceCulture);
+                object obj = ResourceManager.GetObject("DofCombinePS", resourceCulture);
                 return ((byte[])(obj));
             }
         }

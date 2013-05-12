@@ -95,9 +95,9 @@ namespace Samples.SceneDepthOfField
         FullScreenQuad fullScreenQuad;
 
         /// <summary>
-        /// 被写界深度ポストプロセス。
+        /// 被写界深度合成ポストプロセス。
         /// </summary>
-        DepthOfField depthOfField;
+        DofCombine dofCombine;
 
         /// <summary>
         /// メッシュ描画のための基礎エフェクト。
@@ -173,8 +173,8 @@ namespace Samples.SceneDepthOfField
             gaussianBlur = new GaussianBlurSuite(
                 Device, bluredSceneRenderTarget.Width, bluredSceneRenderTarget.Height, bluredSceneRenderTarget.Format);
 
-            depthOfField = new DepthOfField(Device);
-            depthOfField.Projection = camera.Projection;
+            dofCombine = new DofCombine(Device);
+            dofCombine.Projection = camera.Projection;
 
             fullScreenQuad = new FullScreenQuad(Device);
 
@@ -238,8 +238,8 @@ namespace Samples.SceneDepthOfField
 
             context.SetRenderTarget(null);
 
-            // 被写界深度エフェクトへ深度マップを設定。
-            depthOfField.DepthMap = depthMapRenderTarget.GetShaderResourceView();
+            // 被写界深度合成ポストプロセスへ深度マップを設定。
+            dofCombine.DepthMap = depthMapRenderTarget.GetShaderResourceView();
         }
 
         void CreateNormalSceneMap(DeviceContext context)
@@ -251,8 +251,8 @@ namespace Samples.SceneDepthOfField
 
             context.SetRenderTarget(null);
 
-            // 被写界深度エフェクトへ通常シーンを設定。
-            depthOfField.Texture = normalSceneRenderTarget.GetShaderResourceView();
+            // 被写界深度合成ポストプロセスへ通常シーンを設定。
+            dofCombine.BaseTexture = normalSceneRenderTarget.GetShaderResourceView();
         }
 
         void DrawScene(DeviceContext context, IEffect effect)
@@ -297,14 +297,12 @@ namespace Samples.SceneDepthOfField
                 context,
                 normalSceneRenderTarget.GetShaderResourceView(),
                 bluredSceneRenderTarget.GetRenderTargetView());
-
-            // 被写界深度エフェクトへブラー済みシーンを設定。
-            depthOfField.BluredTexture = bluredSceneRenderTarget.GetShaderResourceView();
         }
 
         void CreateFinalSceneMap(DeviceContext context)
         {
-            depthOfField.Apply(context);
+            context.PixelShaderResources[0] = bluredSceneRenderTarget.GetShaderResourceView();
+            dofCombine.Apply(context);
             fullScreenQuad.Draw(context);
         }
 
@@ -341,8 +339,8 @@ namespace Samples.SceneDepthOfField
         {
             // HUD のテキストを表示。
             var text =
-                "PageUp/Down: Focus distance (" + depthOfField.FocusDistance + ")\n" +
-                "Home/End: Focus range (" + depthOfField.FocusRange + ")";
+                "PageUp/Down: Focus distance (" + dofCombine.FocusDistance + ")\n" +
+                "Home/End: Focus range (" + dofCombine.FocusRange + ")";
 
             spriteBatch.Begin();
 
@@ -362,37 +360,37 @@ namespace Samples.SceneDepthOfField
 
             if (currentKeyboardState.IsKeyDown(Keys.PageUp))
             {
-                depthOfField.FocusDistance += 1;
-                if (camera.FarClipDistance < depthOfField.FocusDistance)
-                    depthOfField.FocusDistance = camera.FarClipDistance;
+                dofCombine.FocusDistance += 1;
+                if (camera.FarClipDistance < dofCombine.FocusDistance)
+                    dofCombine.FocusDistance = camera.FarClipDistance;
             }
 
             if (currentKeyboardState.IsKeyDown(Keys.PageDown))
             {
-                depthOfField.FocusDistance -= 1;
-                if (depthOfField.FocusDistance < camera.NearClipDistance)
-                    depthOfField.FocusDistance = camera.NearClipDistance;
+                dofCombine.FocusDistance -= 1;
+                if (dofCombine.FocusDistance < camera.NearClipDistance)
+                    dofCombine.FocusDistance = camera.NearClipDistance;
             }
 
             if (currentKeyboardState.IsKeyDown(Keys.Home))
             {
-                depthOfField.FocusRange += 1;
-                if (500.0f < depthOfField.FocusRange)
-                    depthOfField.FocusRange = 500.0f;
+                dofCombine.FocusRange += 1;
+                if (500.0f < dofCombine.FocusRange)
+                    dofCombine.FocusRange = 500.0f;
             }
 
             if (currentKeyboardState.IsKeyDown(Keys.R))
             {
                 // カメラ位置と同じ操作で焦点もリセット。
-                depthOfField.FocusDistance = 10;
-                depthOfField.FocusRange = 200;
+                dofCombine.FocusDistance = 10;
+                dofCombine.FocusRange = 200;
             }
 
             if (currentKeyboardState.IsKeyDown(Keys.End))
             {
-                depthOfField.FocusRange -= 1;
-                if (depthOfField.FocusRange < 10.0f)
-                    depthOfField.FocusRange = 10.0f;
+                dofCombine.FocusRange -= 1;
+                if (dofCombine.FocusRange < 10.0f)
+                    dofCombine.FocusRange = 10.0f;
             }
 
             if (currentKeyboardState.IsKeyDown(Keys.Escape))

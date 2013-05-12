@@ -49,7 +49,7 @@
     <Compile Include="CylinderMesh.cs" />
     <Compile Include="DepthMapEffect.cs" />
     <Compile Include="DepthNormalMapEffect.cs" />
-    <Compile Include="DepthOfField.cs" />
+    <Compile Include="DofCombine.cs" />
     <Compile Include="DirectTextureDraw.cs" />
     <Compile Include="Edge.cs" />
     <Compile Include="GaussianBlur.cs" />
@@ -121,8 +121,8 @@
     <None Include="Shaders\Compiled\DepthMapVS.bin" />
     <None Include="Shaders\Compiled\DepthNormalMapPS.bin" />
     <None Include="Shaders\Compiled\DepthNormalMapVS.bin" />
-    <None Include="Shaders\Compiled\DepthOfFieldPS.bin" />
     <None Include="Shaders\Compiled\DirectTextureDrawPS.bin" />
+    <None Include="Shaders\Compiled\DofCombinePS.bin" />
     <None Include="Shaders\Compiled\EdgePS.bin" />
     <None Include="Shaders\Compiled\FullScreenQuadVS.bin" />
     <None Include="Shaders\Compiled\GaussianBlurPS.bin" />
@@ -139,7 +139,7 @@
     <None Include="Shaders\CompileShaders.cmd" />
     <None Include="Shaders\DepthMap.hlsl" />
     <None Include="Shaders\DepthNormalMap.hlsl" />
-    <None Include="Shaders\DepthOfField.hlsl" />
+    <None Include="Shaders\DofCombine.hlsl" />
     <None Include="Shaders\DirectTextureDraw.hlsl" />
     <None Include="Shaders\Edge.hlsl" />
     <None Include="Shaders\FullScreenQuad.hlsl" />

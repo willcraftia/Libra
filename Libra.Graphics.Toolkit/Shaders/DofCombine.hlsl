@@ -6,18 +6,18 @@ cbuffer Parameters : register(b0)
 };
 
 Texture2D<float4> Texture       : register(t0);
-Texture2D<float4> BluredTexture : register(t1);
+Texture2D<float4> BaseTexture   : register(t1);
 Texture2D<float>  DepthMap      : register(t2);
 
-SamplerState TextureSampler         : register(s0);
-SamplerState BluredTextureSampler   : register(s1);
-SamplerState DepthMapSampler        : register(s2);
+SamplerState TextureSampler     : register(s0);
+SamplerState BaseTextureSampler : register(s1);
+SamplerState DepthMapSampler    : register(s2);
 
 float4 PS(float4 color    : COLOR0,
           float2 texCoord : TEXCOORD0) : SV_Target
 {
-    float4 normalScene = Texture.Sample(TextureSampler, texCoord);
-    float4 bluredScene = BluredTexture.Sample(BluredTextureSampler, texCoord);
+    float4 bluredScene = Texture.Sample(TextureSampler, texCoord);
+    float4 normalScene = BaseTexture.Sample(BaseTextureSampler, texCoord);
     float depth = DepthMap.Sample(DepthMapSampler, texCoord);
 
     // Ë‰es—ñ‚Ì‹ts—ñ‚ğŠ|‚¯‚Äƒrƒ…[‹óŠÔ‚É‚¨‚¯‚éÀ•W‚ğZoB
