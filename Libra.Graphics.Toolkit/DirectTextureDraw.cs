@@ -7,7 +7,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class DirectTextureDraw : IPostprocessor, IDisposable
+    public sealed class DirectTextureDraw : IPostprocess, IDisposable
     {
         #region SharedDeviceResource
 

@@ -11,7 +11,7 @@ namespace Libra.Graphics.Toolkit
     /// <summary>
     /// 被写界深度を考慮したシーンの生成を担うエフェクトです。
     /// </summary>
-    public sealed class DepthOfField : IPostprocessor, IDisposable
+    public sealed class DepthOfField : IPostprocess, IDisposable
     {
         #region SharedDeviceResource
 

@@ -9,17 +9,13 @@ namespace Libra.Graphics.Toolkit
     /// <summary>
     /// ガウシアン ブラー シェーダをポストプロセスとして構築するアダプタ クラスです。
     /// </summary>
-    public sealed class GaussianBlur : IPostprocessor
+    public sealed class GaussianBlur : IPostprocess
     {
         public GaussianBlurCore Core { get; private set; }
 
         public GaussianBlurPass Pass { get; private set; }
 
         public bool Enabled { get; set; }
-
-        public ShaderResourceView Texture { get; set; }
-
-        public SamplerState TextureSampler { get; set; }
 
         public GaussianBlur(GaussianBlurCore core, GaussianBlurPass pass)
         {
@@ -28,8 +24,6 @@ namespace Libra.Graphics.Toolkit
             Core = core;
             Pass = pass;
 
-            TextureSampler = SamplerState.PointClamp;
-
             Enabled = true;
         }
 
@@ -37,8 +31,6 @@ namespace Libra.Graphics.Toolkit
         {
             if (context == null) throw new ArgumentNullException("context");
 
-            Core.Texture = Texture;
-            Core.TextureSampler = TextureSampler;
             Core.Pass = Pass;
             Core.Apply(context);
         }

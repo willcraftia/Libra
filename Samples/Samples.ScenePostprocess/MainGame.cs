@@ -87,7 +87,7 @@ namespace Samples.ScenePostprocess
         /// <summary>
         /// ポストプロセス チェーン。
         /// </summary>
-        PostprocessorChain postprocessorChain;
+        PostprocessChain postprocessorChain;
 
         /// <summary>
         /// モノクローム ポストプロセス。
@@ -200,38 +200,38 @@ namespace Samples.ScenePostprocess
             normalSceneRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
             normalSceneRenderTarget.Initialize();
 
-            postprocessorChain = new PostprocessorChain(Device);
+            postprocessorChain = new PostprocessChain(Device.ImmediateContext);
             postprocessorChain.Width = WindowWidth;
             postprocessorChain.Height = WindowHeight;
 
             monochrome = new Monochrome(Device);
             monochrome.Enabled = false;
-            postprocessorChain.Postprocessors.Add(monochrome);
+            postprocessorChain.Postprocesses.Add(monochrome);
 
             scanline = new Scanline(Device);
             scanline.Enabled = false;
             scanline.Density = WindowHeight * MathHelper.PiOver2;
-            postprocessorChain.Postprocessors.Add(scanline);
+            postprocessorChain.Postprocesses.Add(scanline);
 
             edge = new Edge(Device);
             edge.Enabled = false;
-            postprocessorChain.Postprocessors.Add(edge);
+            postprocessorChain.Postprocesses.Add(edge);
 
             negativeFilter = new NegativeFilter(Device);
             negativeFilter.Enabled = false;
-            postprocessorChain.Postprocessors.Add(negativeFilter);
+            postprocessorChain.Postprocesses.Add(negativeFilter);
 
             gaussianBlurCore = new GaussianBlurCore(Device);
             gaussianBlurH = new GaussianBlur(gaussianBlurCore, GaussianBlurPass.Horizon);
             gaussianBlurV = new GaussianBlur(gaussianBlurCore, GaussianBlurPass.Vertical);
             gaussianBlurH.Enabled = false;
             gaussianBlurV.Enabled = false;
-            postprocessorChain.Postprocessors.Add(gaussianBlurH);
-            postprocessorChain.Postprocessors.Add(gaussianBlurV);
+            postprocessorChain.Postprocesses.Add(gaussianBlurH);
+            postprocessorChain.Postprocesses.Add(gaussianBlurV);
 
             radialBlur = new RadialBlur(Device);
             radialBlur.Enabled = false;
-            postprocessorChain.Postprocessors.Add(radialBlur);
+            postprocessorChain.Postprocesses.Add(radialBlur);
 
             depthNormalMapEffect = new DepthNormalMapEffect(Device);
 
@@ -272,7 +272,7 @@ namespace Samples.ScenePostprocess
             CreateNormalSceneMap(context);
 
             // ポストプロセスを適用。
-            finalSceneTexture = postprocessorChain.Draw(context, normalSceneRenderTarget.GetShaderResourceView());
+            finalSceneTexture = postprocessorChain.Draw(normalSceneRenderTarget.GetShaderResourceView());
 
             // 最終的なシーンをバック バッファへ描画。
             CreateFinalSceneMap(context);

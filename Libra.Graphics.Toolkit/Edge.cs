@@ -8,7 +8,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class Edge : IPostprocessor, IDisposable
+    public sealed class Edge : IPostprocess, IDisposable
     {
         #region SharedDeviceResource
 
@@ -78,9 +78,9 @@ namespace Libra.Graphics.Toolkit
 
         float edgeWidth;
 
-        int lastTextureWidth;
+        int width;
 
-        int lastTextureHeight;
+        int height;
 
         DirtyFlags dirtyFlags;
 
@@ -186,11 +186,9 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        public bool Enabled { get; set; }
-
-        public ShaderResourceView Texture { get; set; }
-
         public ShaderResourceView DepthNormalMap { get; set; }
+
+        public bool Enabled { get; set; }
 
         public Edge(Device device)
         {
@@ -222,14 +220,14 @@ namespace Libra.Graphics.Toolkit
         {
             if (context == null) throw new ArgumentNullException("context");
 
-            int textureWidth;
-            int textureHeight;
-            GetTextureSize(out textureWidth, out textureHeight);
+            var viewport = context.Viewport;
+            int currentWidth = (int) viewport.Width;
+            int currentHeight = (int) viewport.Height;
 
-            if (textureWidth != lastTextureWidth || textureHeight != lastTextureHeight)
+            if (currentWidth != width || currentHeight != height)
             {
-                lastTextureWidth = textureWidth;
-                lastTextureHeight = textureHeight;
+                width = currentWidth;
+                height = currentHeight;
 
                 dirtyFlags |= DirtyFlags.EdgeOffset;
             }
@@ -237,8 +235,8 @@ namespace Libra.Graphics.Toolkit
             if ((dirtyFlags & DirtyFlags.EdgeOffset) != 0)
             {
                 var offset = new Vector2(edgeWidth, edgeWidth);
-                offset.X /= (float) textureWidth;
-                offset.Y /= (float) textureHeight;
+                offset.X /= (float) width;
+                offset.Y /= (float) height;
 
                 constants.EdgeOffset = offset;
 
@@ -254,24 +252,10 @@ namespace Libra.Graphics.Toolkit
             }
 
             context.PixelShaderConstantBuffers[0] = constantBuffer;
-            context.PixelShaderResources[0] = Texture;
-            context.PixelShaderResources[1] = DepthNormalMap;
-            context.PixelShaderSamplers[0] = SamplerState.PointClamp;
-            context.PixelShaderSamplers[1] = SamplerState.PointClamp;
             context.PixelShader = sharedDeviceResource.PixelShader;
-        }
 
-        void GetTextureSize(out int width, out int height)
-        {
-            if (Texture == null)
-                throw new InvalidOperationException("Texture is null.");
-
-            var texture2D = Texture.Resource as Texture2D;
-            if (texture2D == null)
-                throw new InvalidOperationException("Texture is not a view for Texture2D.");
-
-            width = texture2D.Width;
-            height = texture2D.Height;
+            context.PixelShaderResources[1] = DepthNormalMap;
+            context.PixelShaderSamplers[1] = SamplerState.PointClamp;
         }
 
         #region IDisposable

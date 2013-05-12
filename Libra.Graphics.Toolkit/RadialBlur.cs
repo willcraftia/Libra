@@ -8,7 +8,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class RadialBlur : IPostprocessor, IDisposable
+    public sealed class RadialBlur : IPostprocess, IDisposable
     {
         #region SharedDeviceResource
 
@@ -139,8 +139,6 @@ namespace Libra.Graphics.Toolkit
 
         public bool Enabled { get; set; }
 
-        public ShaderResourceView Texture { get; set; }
-
         public RadialBlur(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
@@ -167,14 +165,15 @@ namespace Libra.Graphics.Toolkit
         {
             if (context == null) throw new ArgumentNullException("context");
 
-            int w;
-            int h;
-            GetTextureSize(out w, out h);
 
-            if (w != width || h != height)
+            var viewport = context.Viewport;
+            int currentWidth = (int) viewport.Width;
+            int currentHeight = (int) viewport.Height;
+
+            if (currentWidth != width || currentHeight != height)
             {
-                width = w;
-                height = h;
+                width = currentWidth;
+                height = currentHeight;
 
                 dirtyFlags |= DirtyFlags.KernelOffsets;
             }
@@ -190,8 +189,6 @@ namespace Libra.Graphics.Toolkit
             }
 
             context.PixelShaderConstantBuffers[0] = constantBuffer;
-            context.PixelShaderResources[0] = Texture;
-            context.PixelShaderSamplers[0] = SamplerState.PointClamp;
             context.PixelShader = sharedDeviceResource.PixelShader;
         }
 
@@ -240,19 +237,6 @@ namespace Libra.Graphics.Toolkit
                 dirtyFlags &= ~DirtyFlags.KernelWeights;
                 dirtyFlags |= DirtyFlags.Constants;
             }
-        }
-
-        void GetTextureSize(out int width, out int height)
-        {
-            if (Texture == null)
-                throw new InvalidOperationException("Texture is null.");
-
-            var texture2D = Texture.Resource as Texture2D;
-            if (texture2D == null)
-                throw new InvalidOperationException("Texture is not a view for Texture2D.");
-
-            width = texture2D.Width;
-            height = texture2D.Height;
         }
 
         #region IDisposable

@@ -140,9 +140,9 @@ namespace Samples.BloomPostprocess
             // ガウシアン ブラーの水平パス。
             // SpriteBatch でビューはスロット #0 に設定されるが、
             // FullscreenQuad との互換性のために明示的に設定する必要がある。
-            gaussianBlur.Texture = bloomMapRenderTarget.GetShaderResourceView();
             gaussianBlur.Pass = GaussianBlurPass.Horizon;
             context.SetRenderTarget(interBlurRenderTarget.GetRenderTargetView());
+            context.PixelShaderResources[0] = bloomMapRenderTarget.GetShaderResourceView();
             DrawFullscreenQuad(bloomMapRenderTarget, interBlurRenderTarget.Width, interBlurRenderTarget.Height, gaussianBlur.Apply);
             context.SetRenderTarget(null);
 
@@ -155,9 +155,9 @@ namespace Samples.BloomPostprocess
             // ガウシアン ブラーの垂直パス。
             // SpriteBatch でビューはスロット #0 に設定されるが、
             // FullscreenQuad との互換性のために明示的に設定する必要がある。
-            gaussianBlur.Texture = interBlurRenderTarget.GetShaderResourceView();
             gaussianBlur.Pass = GaussianBlurPass.Vertical;
             context.SetRenderTarget(bloomMapRenderTarget.GetRenderTargetView());
+            context.PixelShaderResources[0] = interBlurRenderTarget.GetShaderResourceView();
             DrawFullscreenQuad(interBlurRenderTarget, bloomMapRenderTarget.Width, bloomMapRenderTarget.Height, gaussianBlur.Apply);
             context.SetRenderTarget(null);
 

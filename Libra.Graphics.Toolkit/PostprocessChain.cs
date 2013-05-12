@@ -7,16 +7,18 @@ using System.Collections.ObjectModel;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class PostprocessorChain : IDisposable
+    public sealed class PostprocessChain : IDisposable
     {
         #region PostprocessCollection
 
-        public sealed class PostprocessorCollection : Collection<IPostprocessor>
+        public sealed class PostprocessCollection : Collection<IPostprocess>
         {
-            internal PostprocessorCollection() { }
+            internal PostprocessCollection() { }
         }
 
         #endregion
+
+        DeviceContext context;
 
         int width;
 
@@ -28,13 +30,9 @@ namespace Libra.Graphics.Toolkit
 
         RenderTarget freeRenderTarget;
 
-        FullScreenQuad fullScreenQuad;
+        SpriteBatch spriteBatch;
 
-        DirectTextureDraw directTextureDraw;
-
-        public Device Device { get; private set; }
-
-        public PostprocessorCollection Postprocessors { get; private set; }
+        public PostprocessCollection Postprocesses { get; private set; }
 
         public int Width
         {
@@ -45,7 +43,7 @@ namespace Libra.Graphics.Toolkit
 
                 width = value;
 
-                InvalidateRenderTargets();
+                ReleaseRenderTargets();
             }
         }
 
@@ -58,7 +56,7 @@ namespace Libra.Graphics.Toolkit
 
                 height = value;
 
-                InvalidateRenderTargets();
+                ReleaseRenderTargets();
             }
         }
 
@@ -71,38 +69,37 @@ namespace Libra.Graphics.Toolkit
 
                 format = value;
 
-                InvalidateRenderTargets();
+                ReleaseRenderTargets();
             }
         }
 
-        public PostprocessorChain(Device device)
+        public PostprocessChain(DeviceContext context)
         {
-            if (device == null) throw new ArgumentNullException("device");
+            if (context == null) throw new ArgumentNullException("context");
 
-            Device = device;
+            this.context = context;
+
+            Postprocesses = new PostprocessCollection();
+            spriteBatch = new SpriteBatch(context);
 
             width = 1;
             height = 1;
             format = SurfaceFormat.Color;
-
-            Postprocessors = new PostprocessorCollection();
-            fullScreenQuad = new FullScreenQuad(Device);
         }
 
-        public ShaderResourceView Draw(DeviceContext context, ShaderResourceView texture)
+        public ShaderResourceView Draw(ShaderResourceView texture)
         {
-            if (context == null) throw new ArgumentNullException("context");
             if (texture == null) throw new ArgumentNullException("texture");
 
             var currentTexture = texture;
 
             int processCount = 0;
 
-            for (int i = 0; i < Postprocessors.Count; i++)
+            for (int i = 0; i < Postprocesses.Count; i++)
             {
-                var postprocessor = Postprocessors[i];
+                var postprocess = Postprocesses[i];
 
-                if (!postprocessor.Enabled)
+                if (!postprocess.Enabled)
                     continue;
 
                 if (0 < processCount)
@@ -114,14 +111,20 @@ namespace Libra.Graphics.Toolkit
                 currentRenderTarget = freeRenderTarget;
                 freeRenderTarget = temp;
 
-                EnsureCurrentRenderTarget();
+                if (currentRenderTarget == null)
+                {
+                    currentRenderTarget = context.Device.CreateRenderTarget();
+                    currentRenderTarget.Width = width;
+                    currentRenderTarget.Height = height;
+                    currentRenderTarget.Format = format;
+                    currentRenderTarget.Initialize();
+                }
 
                 context.SetRenderTarget(currentRenderTarget.GetRenderTargetView());
 
-                postprocessor.Texture = currentTexture;
-                postprocessor.Apply(context);
-
-                fullScreenQuad.Draw(context);
+                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque, null, null, null, postprocess.Apply);
+                spriteBatch.Draw(currentTexture, Vector2.Zero, Color.White);
+                spriteBatch.End();
 
                 context.SetRenderTarget(null);
 
@@ -129,38 +132,12 @@ namespace Libra.Graphics.Toolkit
             }
 
             if (processCount == 0)
-            {
-                if (directTextureDraw == null)
-                    directTextureDraw = new DirectTextureDraw(Device);
-
-                EnsureCurrentRenderTarget();
-
-                context.SetRenderTarget(currentRenderTarget.GetRenderTargetView());
-
-                directTextureDraw.Texture = texture;
-                directTextureDraw.Apply(context);
-
-                fullScreenQuad.Draw(context);
-
-                context.SetRenderTarget(null);
-            }
+                return texture;
 
             return currentRenderTarget.GetShaderResourceView();
         }
-
-        void EnsureCurrentRenderTarget()
-        {
-            if (currentRenderTarget == null)
-            {
-                currentRenderTarget = Device.CreateRenderTarget();
-                currentRenderTarget.Width = width;
-                currentRenderTarget.Height = height;
-                currentRenderTarget.Format = format;
-                currentRenderTarget.Initialize();
-            }
-        }
-
-        void InvalidateRenderTargets()
+    
+        void ReleaseRenderTargets()
         {
             if (currentRenderTarget != null)
             {
@@ -178,7 +155,7 @@ namespace Libra.Graphics.Toolkit
 
         bool disposed;
 
-        ~PostprocessorChain()
+        ~PostprocessChain()
         {
             Dispose(false);
         }
@@ -195,15 +172,16 @@ namespace Libra.Graphics.Toolkit
 
             if (disposing)
             {
-                if (directTextureDraw != null)
-                    directTextureDraw.Dispose();
+                ReleaseRenderTargets();
 
-                foreach (var postprocessor in Postprocessors)
+                foreach (var postprocessor in Postprocesses)
                 {
                     var disposable = postprocessor as IDisposable;
                     if (disposable != null)
                         disposable.Dispose();
                 }
+
+                spriteBatch.Dispose();
             }
 
             disposed = true;

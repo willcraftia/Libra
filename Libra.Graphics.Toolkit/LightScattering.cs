@@ -8,7 +8,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class LightScattering : IPostprocessor, IDisposable
+    public sealed class LightScattering : IPostprocess, IDisposable
     {
         #region SharedDeviceResource
 

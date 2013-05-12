@@ -34,12 +34,6 @@ namespace Libra.Graphics.Toolkit
             set { core.Amount = value; }
         }
 
-        public SamplerState TextureSampler
-        {
-            get { return core.TextureSampler; }
-            set { core.TextureSampler = value; }
-        }
-
         public GaussianBlurSuite(Device device, int width, int height, SurfaceFormat format)
         {
             if (device == null) throw new ArgumentNullException("device");
@@ -88,7 +82,6 @@ namespace Libra.Graphics.Toolkit
         {
             context.SetRenderTarget(destination);
 
-            core.Texture = source;
             core.Pass = pass;
             core.Apply(context);
 
