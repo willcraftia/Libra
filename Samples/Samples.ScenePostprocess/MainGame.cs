@@ -3,6 +3,7 @@
 using System;
 using Libra;
 using Libra.Games;
+using Libra.Games.Debugging;
 using Libra.Graphics;
 using Libra.Graphics.Toolkit;
 using Libra.Input;
@@ -53,6 +54,11 @@ namespace Samples.ScenePostprocess
         /// フォント。
         /// </summary>
         SpriteFont spriteFont;
+
+        /// <summary>
+        /// 中間マップ表示。
+        /// </summary>
+        TextureDisplay textureDisplay;
 
         /// <summary>
         /// 表示カメラ。
@@ -129,8 +135,6 @@ namespace Samples.ScenePostprocess
         /// </summary>
         RadialBlur radialBlur;
 
-        bool depthNormalMapEnabled;
-
         /// <summary>
         /// 深度法線マップ エフェクト。
         /// </summary>
@@ -180,6 +184,9 @@ namespace Samples.ScenePostprocess
             };
             camera.LookAt(initialCameraLookAt);
             camera.Update();
+
+            textureDisplay = new TextureDisplay(this);
+            Components.Add(textureDisplay);
         }
 
         protected override void LoadContent()
@@ -254,6 +261,10 @@ namespace Samples.ScenePostprocess
             // 表示カメラの更新。
             UpdateCamera(gameTime);
 
+            const float scale = 0.2f;
+            textureDisplay.TextureWidth = (int) (WindowWidth * scale);
+            textureDisplay.TextureHeight = (int) (WindowHeight * scale);
+
             base.Update(gameTime);
         }
 
@@ -277,9 +288,6 @@ namespace Samples.ScenePostprocess
             // 最終的なシーンをバック バッファへ描画。
             CreateFinalSceneMap(context);
 
-            // 中間マップを描画。
-            DrawInterMapsToScreen();
-
             // HUD のテキストを描画。
             DrawOverlayText();
 
@@ -288,8 +296,6 @@ namespace Samples.ScenePostprocess
 
         void CreateDepthNormalMap(DeviceContext context)
         {
-            depthNormalMapEnabled = false;
-
             if (!edge.Enabled)
                 return;
 
@@ -303,7 +309,8 @@ namespace Samples.ScenePostprocess
             // エッジ強調エフェクトへ深度法線マップを設定。
             edge.DepthNormalMap = depthNormalRenderTarget.GetShaderResourceView();
 
-            depthNormalMapEnabled = true;
+            // 中間マップ表示。
+            textureDisplay.Textures.Add(depthNormalRenderTarget.GetShaderResourceView());
         }
 
         void CreateNormalSceneMap(DeviceContext context)
@@ -314,6 +321,9 @@ namespace Samples.ScenePostprocess
             DrawScene(context, basicEffect);
 
             context.SetRenderTarget(null);
+
+            // 中間マップ表示。
+            textureDisplay.Textures.Add(normalSceneRenderTarget.GetShaderResourceView());
         }
 
         void DrawPrimitiveMesh(DeviceContext context, PrimitiveMesh mesh, Matrix world, Vector3 color)
@@ -363,34 +373,6 @@ namespace Samples.ScenePostprocess
         {
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
             spriteBatch.Draw(finalSceneTexture, Vector2.Zero, Color.White);
-            spriteBatch.End();
-        }
-
-        void DrawInterMapsToScreen()
-        {
-            // 中間マップを画面左上に表示。
-
-            const float scale = 0.2f;
-
-            int w = (int) (WindowWidth * scale);
-            int h = (int) (WindowHeight * scale);
-
-            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque, SamplerState.PointClamp);
-
-            int index = 0;
-            int x;
-
-            if (depthNormalMapEnabled)
-            {
-                x = index * w;
-                spriteBatch.Draw(depthNormalRenderTarget.GetShaderResourceView(), new Rectangle(x, 0, w, h), Color.White);
-                index++;
-            }
-
-            x = index * w;
-            spriteBatch.Draw(normalSceneRenderTarget.GetShaderResourceView(), new Rectangle(x, 0, w, h), Color.White);
-            index++;
-
             spriteBatch.End();
         }
 
