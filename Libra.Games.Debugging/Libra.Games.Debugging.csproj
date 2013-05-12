@@ -41,12 +41,21 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FrameRateMeasure.cs" />
+    <Compile Include="TextureDisplay.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Libra.Games\Libra.Games.csproj">
       <Project>{5FF1176C-7EA3-49A9-93D0-0868886FB9AF}</Project>
       <Name>Libra.Games</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Libra.Graphics\Libra.Graphics.csproj">
+      <Project>{CDFAB2B9-00DB-4719-B424-C2A973A7BC4C}</Project>
+      <Name>Libra.Graphics</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Libra\Libra.csproj">
+      <Project>{BDCF4398-A4F9-48B0-BB3F-1B98CD3131B2}</Project>
+      <Name>Libra</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
