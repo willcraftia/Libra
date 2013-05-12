@@ -253,6 +253,11 @@ namespace Samples.ShadowMapping
         SpriteFont spriteFont;
 
         /// <summary>
+        /// 中間マップ一覧表示機能。
+        /// </summary>
+        TextureDisplay textureDisplay;
+
+        /// <summary>
         /// 表示カメラ。
         /// </summary>
         BasicCamera camera;
@@ -491,6 +496,11 @@ namespace Samples.ShadowMapping
             frameRateMeasure = new FrameRateMeasure(this);
             Components.Add(frameRateMeasure);
 
+            textureDisplay = new TextureDisplay(this);
+            textureDisplay.TextureWidth = 96;
+            textureDisplay.TextureHeight = 96;
+            Components.Add(textureDisplay);
+
             stringBuilder = new StringBuilder();
         }
 
@@ -545,9 +555,6 @@ namespace Samples.ShadowMapping
 
             // シャドウ マップを用いたシーンの描画。
             DrawWithShadowMap();
-
-            // シャドウ マップを画面左上に表示。
-            DrawShadowMapToScreen();
 
             // HUD のテキストを描画。
             DrawOverlayText();
@@ -653,6 +660,9 @@ namespace Samples.ShadowMapping
                         shadowMaps[i].RenderTarget.GetShaderResourceView(),
                         shadowMaps[i].RenderTarget.GetRenderTargetView());
                 }
+
+                // 生成されたシャドウ マップを一覧表示機能へ追加。
+                textureDisplay.Textures.Add(shadowMaps[i].RenderTarget.GetShaderResourceView());
             }
         }
 
@@ -749,20 +759,6 @@ namespace Samples.ShadowMapping
                     context.DrawIndexed(meshPart.IndexCount, meshPart.StartIndexLocation, meshPart.BaseVertexLocation);
                 }
             }
-        }
-
-        void DrawShadowMapToScreen()
-        {
-            const int mapSize = 96;
-
-            // 現在のフレームで生成したシャドウ マップを画面左上に表示。
-            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Opaque, SamplerState.PointClamp);
-            for (int i = 0; i < splitCount; i++)
-            {
-                var x = i * mapSize;
-                spriteBatch.Draw(shadowMaps[i].RenderTarget.GetShaderResourceView(), new Rectangle(x, 0, mapSize, mapSize), Color.White);
-            }
-            spriteBatch.End();
         }
 
         void DrawOverlayText()
