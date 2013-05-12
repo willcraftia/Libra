@@ -42,7 +42,7 @@
   <ItemGroup>
     <Compile Include="BasicCamera.cs" />
     <Compile Include="BasicLightCameraBuilder.cs" />
-    <Compile Include="Bloom.cs" />
+    <Compile Include="BloomCombine.cs" />
     <Compile Include="BloomExtract.cs" />
     <Compile Include="Camera.cs" />
     <Compile Include="CubeMesh.cs" />
@@ -113,10 +113,10 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\Bloom.hlsl" />
+    <None Include="Shaders\BloomCombine.hlsl" />
     <None Include="Shaders\BloomExtract.hlsl" />
+    <None Include="Shaders\Compiled\BloomCombinePS.bin" />
     <None Include="Shaders\Compiled\BloomExtractPS.bin" />
-    <None Include="Shaders\Compiled\BloomPS.bin" />
     <None Include="Shaders\Compiled\DepthMapPS.bin" />
     <None Include="Shaders\Compiled\DepthMapVS.bin" />
     <None Include="Shaders\Compiled\DepthNormalMapPS.bin" />

@@ -17,7 +17,7 @@ namespace Samples.BloomPostprocess
 
         BloomExtract bloomExtract;
 
-        Bloom bloom;
+        BloomCombine bloomCombine;
 
         GaussianBlurCore gaussianBlur;
 
@@ -63,7 +63,7 @@ namespace Samples.BloomPostprocess
             spriteBatch = new SpriteBatch(Device.ImmediateContext);
 
             bloomExtract = new BloomExtract(Device);
-            bloom = new Bloom(Device);
+            bloomCombine = new BloomCombine(Device);
             gaussianBlur = new GaussianBlurCore(Device);
 
             var backBuffer = Device.BackBuffer;
@@ -115,11 +115,13 @@ namespace Samples.BloomPostprocess
             var context = Device.ImmediateContext;
             var viewport = context.Viewport;
 
-            context.PixelShaderSamplers[0] = SamplerState.LinearClamp;
-
             // ブルーム マップの生成。
             bloomExtract.Threshold = Settings.BloomThreshold;
-            DrawFullscreenQuad(sceneRenderTarget, bloomMapRenderTarget, bloomExtract.Apply, IntermediateBuffer.PreBloom);
+            DrawFullscreenQuad(
+                sceneRenderTarget,
+                bloomMapRenderTarget,
+                bloomExtract.Apply,
+                IntermediateBuffer.PreBloom);
 
             // ガウシアン ブラーの設定。
             // XNA の BlurAamount はガウス関数の sigma そのものに一致。
@@ -131,21 +133,34 @@ namespace Samples.BloomPostprocess
 
             // ガウシアン ブラーの水平パス。
             gaussianBlur.Pass = GaussianBlurPass.Horizon;
-            DrawFullscreenQuad(bloomMapRenderTarget, interBlurRenderTarget, gaussianBlur.Apply, IntermediateBuffer.BlurredHorizontally);
+            DrawFullscreenQuad(
+                bloomMapRenderTarget,
+                interBlurRenderTarget,
+                gaussianBlur.Apply,
+                IntermediateBuffer.BlurredHorizontally);
 
             // ガウシアン ブラーの垂直パス。
             gaussianBlur.Pass = GaussianBlurPass.Vertical;
-            DrawFullscreenQuad(interBlurRenderTarget, bloomMapRenderTarget, gaussianBlur.Apply, IntermediateBuffer.BlurredBothWays);
+            DrawFullscreenQuad(
+                interBlurRenderTarget,
+                bloomMapRenderTarget,
+                gaussianBlur.Apply,
+                IntermediateBuffer.BlurredBothWays);
             
             context.SetRenderTarget(null);
 
             // ブルーム マップとシーンを合成。
-            bloom.BaseIntensity = Settings.BaseIntensity;
-            bloom.BaseSaturation = Settings.BaseSaturation;
-            bloom.BloomIntensity = Settings.BloomIntensity;
-            bloom.BloomSaturation = Settings.BloomSaturation;
-            bloom.BaseTexture = sceneRenderTarget.GetShaderResourceView();
-            DrawFullscreenQuad(bloomMapRenderTarget, (int) viewport.Width, (int) viewport.Height, bloom.Apply, IntermediateBuffer.FinalResult);
+            bloomCombine.BaseIntensity = Settings.BaseIntensity;
+            bloomCombine.BaseSaturation = Settings.BaseSaturation;
+            bloomCombine.BloomIntensity = Settings.BloomIntensity;
+            bloomCombine.BloomSaturation = Settings.BloomSaturation;
+            bloomCombine.BaseTexture = sceneRenderTarget.GetShaderResourceView();
+            DrawFullscreenQuad(
+                bloomMapRenderTarget,
+                (int) viewport.Width,
+                (int) viewport.Height,
+                bloomCombine.Apply,
+                IntermediateBuffer.FinalResult);
         }
 
         void DrawFullscreenQuad(Texture2D texture, RenderTarget renderTarget,

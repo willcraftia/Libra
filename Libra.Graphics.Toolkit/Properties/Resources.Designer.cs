@@ -60,16 +60,16 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
-        internal static byte[] BloomExtractPS {
+        internal static byte[] BloomCombinePS {
             get {
-                object obj = ResourceManager.GetObject("BloomExtractPS", resourceCulture);
+                object obj = ResourceManager.GetObject("BloomCombinePS", resourceCulture);
                 return ((byte[])(obj));
             }
         }
         
-        internal static byte[] BloomPS {
+        internal static byte[] BloomExtractPS {
             get {
-                object obj = ResourceManager.GetObject("BloomPS", resourceCulture);
+                object obj = ResourceManager.GetObject("BloomExtractPS", resourceCulture);
                 return ((byte[])(obj));
             }
         }

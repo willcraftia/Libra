@@ -41,9 +41,9 @@ call :CompileShader FullScreenQuad VS %vs_profile%
 call :CompileShader BloomExtract PS %ps_profile%
 
 ::
-:: Bloom PS
+:: BloomCombine PS
 ::
-call :CompileShader Bloom PS %ps_profile%
+call :CompileShader BloomCombine PS %ps_profile%
 
 ::
 :: GaussianBlur PS

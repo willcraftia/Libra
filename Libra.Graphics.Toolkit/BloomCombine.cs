@@ -7,7 +7,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class Bloom : IPostprocess, IDisposable
+    public sealed class BloomCombine : IPostprocess, IDisposable
     {
         #region SharedDeviceResource
 
@@ -18,7 +18,7 @@ namespace Libra.Graphics.Toolkit
             public SharedDeviceResource(Device device)
             {
                 PixelShader = device.CreatePixelShader();
-                PixelShader.Initialize(Resources.BloomPS);
+                PixelShader.Initialize(Resources.BloomCombinePS);
             }
         }
 
@@ -106,13 +106,13 @@ namespace Libra.Graphics.Toolkit
 
         public bool Enabled { get; set; }
 
-        public Bloom(Device device)
+        public BloomCombine(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 
             this.device = device;
 
-            sharedDeviceResource = device.GetSharedResource<Bloom, SharedDeviceResource>();
+            sharedDeviceResource = device.GetSharedResource<BloomCombine, SharedDeviceResource>();
 
             constantBuffer = device.CreateConstantBuffer();
             constantBuffer.Initialize(16);
@@ -142,7 +142,7 @@ namespace Libra.Graphics.Toolkit
 
         bool disposed;
 
-        ~Bloom()
+        ~BloomCombine()
         {
             Dispose(false);
         }
