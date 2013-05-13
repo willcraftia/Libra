@@ -21,7 +21,8 @@ namespace Samples.ScenePostprocess
         {
             None,
             DepthOfField,
-            Bloom
+            Bloom,
+            Blur
         }
 
         #endregion
@@ -85,6 +86,11 @@ namespace Samples.ScenePostprocess
         /// 現在の更新処理におけるキーボード状態。
         /// </summary>
         KeyboardState currentKeyboardState;
+
+        /// <summary>
+        /// 法線マップの描画先レンダ ターゲット。
+        /// </summary>
+        RenderTarget normalRenderTarget;
 
         /// <summary>
         /// 深度法線マップの描画先レンダ ターゲット。
@@ -172,6 +178,16 @@ namespace Samples.ScenePostprocess
         RadialBlur radialBlur;
 
         /// <summary>
+        /// 法線エッジ検出パス。
+        /// </summary>
+        NormalEdgeDetect normalEdgeDetect;
+
+        /// <summary>
+        /// 法線マップ エフェクト。
+        /// </summary>
+        NormalMapEffect normalMapEffect;
+
+        /// <summary>
         /// 深度法線マップ エフェクト。
         /// </summary>
         DepthNormalMapEffect depthNormalMapEffect;
@@ -237,6 +253,13 @@ namespace Samples.ScenePostprocess
             spriteBatch = new SpriteBatch(Device.ImmediateContext);
             spriteFont = content.Load<SpriteFont>("hudFont");
 
+            normalRenderTarget = Device.CreateRenderTarget();
+            normalRenderTarget.Width = WindowWidth;
+            normalRenderTarget.Height = WindowHeight;
+            normalRenderTarget.Format = SurfaceFormat.Vector4;
+            normalRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
+            normalRenderTarget.Initialize();
+
             depthNormalRenderTarget = Device.CreateRenderTarget();
             depthNormalRenderTarget.Width = WindowWidth;
             depthNormalRenderTarget.Height = WindowHeight;
@@ -283,6 +306,10 @@ namespace Samples.ScenePostprocess
             radialBlur = new RadialBlur(Device);
             radialBlur.Enabled = false;
 
+            normalEdgeDetect = new NormalEdgeDetect(Device);
+            normalEdgeDetect.Enabled = false;
+
+            normalMapEffect = new NormalMapEffect(Device);
             depthNormalMapEffect = new DepthNormalMapEffect(Device);
 
             basicEffect = new BasicEffect(Device);
@@ -322,6 +349,9 @@ namespace Samples.ScenePostprocess
             context.BlendState = BlendState.Opaque;
             context.DepthStencilState = DepthStencilState.Default;
 
+            // 法線マップを描画。
+            CreateNormalMap(context);
+
             // 深度法線マップを描画。
             CreateDepthNormalMap(context);
 
@@ -338,6 +368,27 @@ namespace Samples.ScenePostprocess
             DrawOverlayText();
 
             base.Draw(gameTime);
+        }
+
+        void CreateNormalMap(DeviceContext context)
+        {
+            context.SetRenderTarget(normalRenderTarget.GetRenderTargetView());
+            context.Clear(Vector4.One);
+
+            DrawScene(context, normalMapEffect);
+
+            context.SetRenderTarget(null);
+
+            // 法線エッジ検出パスへ法線マップを設定。
+            normalEdgeDetect.NormalMap = normalRenderTarget.GetShaderResourceView();
+
+            //// 被写界深度合成パスへ深度法線マップを設定。
+            //dofCombine.DepthMap = depthNormalRenderTarget.GetShaderResourceView();
+            //// エッジ強調パスへ深度法線マップを設定。
+            //edge.DepthNormalMap = depthNormalRenderTarget.GetShaderResourceView();
+
+            // 中間マップ表示。
+            textureDisplay.Textures.Add(normalRenderTarget.GetShaderResourceView());
         }
 
         void CreateDepthNormalMap(DeviceContext context)
@@ -431,12 +482,13 @@ namespace Samples.ScenePostprocess
             // HUD のテキストを表示。
             var text =
                 "Current postprocess: " + postprocessType + "\n" +
-                "[F1] None [F2] Depth of Field [F3] Bloom\n" +
+                "[F1] None [F2] Depth of Field [F3] Bloom [F4] Blur\n" +
                 "[1] Monochrome (" + monochrome.Enabled + ")\n" +
                 "[2] Scanline (" + scanline.Enabled + ")\n" +
                 "[3] Edge (" + edge.Enabled + ")\n" +
-                "[4] Negative filter (" + negativeFilter.Enabled + ")\n" +
-                "[5] Radial blur (" + radialBlur.Enabled + ")";
+                "[4] Negative Filter (" + negativeFilter.Enabled + ")\n" +
+                "[5] Radial Blur (" + radialBlur.Enabled + ")\n" +
+                "[6] Normal Edge Detect (" + normalEdgeDetect.Enabled + ")";
 
             spriteBatch.Begin();
 
@@ -456,6 +508,9 @@ namespace Samples.ScenePostprocess
                 case PostprocessType.Bloom:
                     SetupBloom();
                     break;
+                case PostprocessType.Blur:
+                    SetupBlur();
+                    break;
                 case PostprocessType.None:
                 default:
                     SetupNone();
@@ -466,6 +521,13 @@ namespace Samples.ScenePostprocess
         void SetupNone()
         {
             postprocess.Passes.Clear();
+
+            postprocess.Passes.Add(monochrome);
+            postprocess.Passes.Add(scanline);
+            postprocess.Passes.Add(negativeFilter);
+            postprocess.Passes.Add(edge);
+            postprocess.Passes.Add(radialBlur);
+            postprocess.Passes.Add(normalEdgeDetect);
         }
 
         void SetupDepthOfField()
@@ -483,12 +545,7 @@ namespace Samples.ScenePostprocess
             postprocess.Passes.Add(negativeFilter);
             postprocess.Passes.Add(edge);
             postprocess.Passes.Add(radialBlur);
-
-            downFilter.Enabled = true;
-            gaussianBlurH.Enabled = true;
-            gaussianBlurV.Enabled = true;
-            upFilter.Enabled = true;
-            dofCombine.Enabled = true;
+            postprocess.Passes.Add(normalEdgeDetect);
         }
 
         void SetupBloom()
@@ -507,13 +564,24 @@ namespace Samples.ScenePostprocess
             postprocess.Passes.Add(negativeFilter);
             postprocess.Passes.Add(edge);
             postprocess.Passes.Add(radialBlur);
+            postprocess.Passes.Add(normalEdgeDetect);
+        }
 
-            bloomExtract.Enabled = true;
-            bloomCombine.Enabled = true;
-            downFilter.Enabled = true;
-            gaussianBlurH.Enabled = true;
-            gaussianBlurV.Enabled = true;
-            upFilter.Enabled = true;
+        void SetupBlur()
+        {
+            postprocess.Passes.Clear();
+
+            postprocess.Passes.Add(downFilter);
+            postprocess.Passes.Add(gaussianBlurH);
+            postprocess.Passes.Add(gaussianBlurV);
+            postprocess.Passes.Add(upFilter);
+
+            postprocess.Passes.Add(monochrome);
+            postprocess.Passes.Add(scanline);
+            postprocess.Passes.Add(negativeFilter);
+            postprocess.Passes.Add(edge);
+            postprocess.Passes.Add(radialBlur);
+            postprocess.Passes.Add(normalEdgeDetect);
         }
 
         void HandleInput(GameTime gameTime)
@@ -532,6 +600,9 @@ namespace Samples.ScenePostprocess
             if (currentKeyboardState.IsKeyUp(Keys.F3) && lastKeyboardState.IsKeyDown(Keys.F3))
                 postprocessType = PostprocessType.Bloom;
 
+            if (currentKeyboardState.IsKeyUp(Keys.F4) && lastKeyboardState.IsKeyDown(Keys.F4))
+                postprocessType = PostprocessType.Blur;
+
             if (currentKeyboardState.IsKeyUp(Keys.D1) && lastKeyboardState.IsKeyDown(Keys.D1))
                 monochrome.Enabled = !monochrome.Enabled;
 
@@ -546,6 +617,9 @@ namespace Samples.ScenePostprocess
 
             if (currentKeyboardState.IsKeyUp(Keys.D5) && lastKeyboardState.IsKeyDown(Keys.D5))
                 radialBlur.Enabled = !radialBlur.Enabled;
+
+            if (currentKeyboardState.IsKeyUp(Keys.D6) && lastKeyboardState.IsKeyDown(Keys.D6))
+                normalEdgeDetect.Enabled = !normalEdgeDetect.Enabled;
 
             if (currentKeyboardState.IsKeyDown(Keys.Escape))
                 Exit();
