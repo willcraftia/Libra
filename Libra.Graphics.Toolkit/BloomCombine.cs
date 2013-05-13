@@ -118,6 +118,13 @@ namespace Libra.Graphics.Toolkit
             constantBuffer.Initialize(16);
 
             BaseTextureSampler = SamplerState.LinearClamp;
+
+            baseIntensity = 1.0f;
+            baseSaturation = 1.0f;
+            bloomIntensity = 1.0f;
+            bloomSaturation = 1.0f;
+
+            constantsDirty = true;
         }
 
         public void Apply(DeviceContext context)

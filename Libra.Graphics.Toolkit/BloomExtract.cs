@@ -61,6 +61,10 @@ namespace Libra.Graphics.Toolkit
 
             constantBuffer = device.CreateConstantBuffer();
             constantBuffer.Initialize(16);
+
+            threshold = 0.25f;
+
+            constantsDirty = true;
         }
 
         public void Apply(DeviceContext context)
