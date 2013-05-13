@@ -88,14 +88,14 @@ namespace Samples.ScenePostprocess
         KeyboardState currentKeyboardState;
 
         /// <summary>
-        /// 法線マップの描画先レンダ ターゲット。
+        /// 深度マップの描画先レンダ ターゲット。
         /// </summary>
-        RenderTarget normalRenderTarget;
+        RenderTarget depthMapRenderTarget;
 
         /// <summary>
-        /// 深度法線マップの描画先レンダ ターゲット。
+        /// 法線マップの描画先レンダ ターゲット。
         /// </summary>
-        RenderTarget depthNormalRenderTarget;
+        RenderTarget normalMapRenderTarget;
 
         /// <summary>
         /// 通常シーンの描画先レンダ ターゲット。
@@ -183,6 +183,11 @@ namespace Samples.ScenePostprocess
         NormalEdgeDetect normalEdgeDetect;
 
         /// <summary>
+        /// 深度マップ エフェクト。
+        /// </summary>
+        DepthMapEffect depthMapEffect;
+
+        /// <summary>
         /// 法線マップ エフェクト。
         /// </summary>
         NormalMapEffect normalMapEffect;
@@ -253,19 +258,19 @@ namespace Samples.ScenePostprocess
             spriteBatch = new SpriteBatch(Device.ImmediateContext);
             spriteFont = content.Load<SpriteFont>("hudFont");
 
-            normalRenderTarget = Device.CreateRenderTarget();
-            normalRenderTarget.Width = WindowWidth;
-            normalRenderTarget.Height = WindowHeight;
-            normalRenderTarget.Format = SurfaceFormat.Vector4;
-            normalRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
-            normalRenderTarget.Initialize();
+            depthMapRenderTarget = Device.CreateRenderTarget();
+            depthMapRenderTarget.Width = WindowWidth;
+            depthMapRenderTarget.Height = WindowHeight;
+            depthMapRenderTarget.Format = SurfaceFormat.Single;
+            depthMapRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
+            depthMapRenderTarget.Initialize();
 
-            depthNormalRenderTarget = Device.CreateRenderTarget();
-            depthNormalRenderTarget.Width = WindowWidth;
-            depthNormalRenderTarget.Height = WindowHeight;
-            depthNormalRenderTarget.Format = SurfaceFormat.Vector4;
-            depthNormalRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
-            depthNormalRenderTarget.Initialize();
+            normalMapRenderTarget = Device.CreateRenderTarget();
+            normalMapRenderTarget.Width = WindowWidth;
+            normalMapRenderTarget.Height = WindowHeight;
+            normalMapRenderTarget.Format = SurfaceFormat.Vector4;
+            normalMapRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
+            normalMapRenderTarget.Initialize();
 
             normalSceneRenderTarget = Device.CreateRenderTarget();
             normalSceneRenderTarget.Width = WindowWidth;
@@ -309,6 +314,7 @@ namespace Samples.ScenePostprocess
             normalEdgeDetect = new NormalEdgeDetect(Device);
             normalEdgeDetect.Enabled = false;
 
+            depthMapEffect = new DepthMapEffect(Device);
             normalMapEffect = new NormalMapEffect(Device);
             depthNormalMapEffect = new DepthNormalMapEffect(Device);
 
@@ -349,11 +355,11 @@ namespace Samples.ScenePostprocess
             context.BlendState = BlendState.Opaque;
             context.DepthStencilState = DepthStencilState.Default;
 
+            // 深度マップを描画。
+            CreateDepthMap(context);
+
             // 法線マップを描画。
             CreateNormalMap(context);
-
-            // 深度法線マップを描画。
-            CreateDepthNormalMap(context);
 
             // 通常シーンを描画。
             CreateNormalSceneMap(context);
@@ -370,9 +376,27 @@ namespace Samples.ScenePostprocess
             base.Draw(gameTime);
         }
 
+        void CreateDepthMap(DeviceContext context)
+        {
+            context.SetRenderTarget(depthMapRenderTarget.GetRenderTargetView());
+            context.Clear(Vector4.One);
+
+            DrawScene(context, depthMapEffect);
+
+            context.SetRenderTarget(null);
+
+            // 被写界深度合成パスへ深度法線マップを設定。
+            dofCombine.DepthMap = depthMapRenderTarget.GetShaderResourceView();
+            // エッジ強調パスへ深度マップを設定。
+            edge.DepthMap = depthMapRenderTarget.GetShaderResourceView();
+
+            // 中間マップ表示。
+            textureDisplay.Textures.Add(depthMapRenderTarget.GetShaderResourceView());
+        }
+
         void CreateNormalMap(DeviceContext context)
         {
-            context.SetRenderTarget(normalRenderTarget.GetRenderTargetView());
+            context.SetRenderTarget(normalMapRenderTarget.GetRenderTargetView());
             context.Clear(Vector4.One);
 
             DrawScene(context, normalMapEffect);
@@ -380,33 +404,12 @@ namespace Samples.ScenePostprocess
             context.SetRenderTarget(null);
 
             // 法線エッジ検出パスへ法線マップを設定。
-            normalEdgeDetect.NormalMap = normalRenderTarget.GetShaderResourceView();
-
-            //// 被写界深度合成パスへ深度法線マップを設定。
-            //dofCombine.DepthMap = depthNormalRenderTarget.GetShaderResourceView();
-            //// エッジ強調パスへ深度法線マップを設定。
-            //edge.DepthNormalMap = depthNormalRenderTarget.GetShaderResourceView();
+            normalEdgeDetect.NormalMap = normalMapRenderTarget.GetShaderResourceView();
+            // エッジ強調パスへ法線マップを設定。
+            edge.NormalMap = normalMapRenderTarget.GetShaderResourceView();
 
             // 中間マップ表示。
-            textureDisplay.Textures.Add(normalRenderTarget.GetShaderResourceView());
-        }
-
-        void CreateDepthNormalMap(DeviceContext context)
-        {
-            context.SetRenderTarget(depthNormalRenderTarget.GetRenderTargetView());
-            context.Clear(Vector4.One);
-
-            DrawScene(context, depthNormalMapEffect);
-
-            context.SetRenderTarget(null);
-
-            // 被写界深度合成パスへ深度法線マップを設定。
-            dofCombine.DepthMap = depthNormalRenderTarget.GetShaderResourceView();
-            // エッジ強調パスへ深度法線マップを設定。
-            edge.DepthNormalMap = depthNormalRenderTarget.GetShaderResourceView();
-
-            // 中間マップ表示。
-            textureDisplay.Textures.Add(depthNormalRenderTarget.GetShaderResourceView());
+            textureDisplay.Textures.Add(normalMapRenderTarget.GetShaderResourceView());
         }
 
         void CreateNormalSceneMap(DeviceContext context)
