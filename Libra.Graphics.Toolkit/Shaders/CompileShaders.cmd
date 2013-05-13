@@ -42,6 +42,11 @@ call :CompileShader SingleColorObject PS %ps_profile%
 call :CompileShader FullScreenQuad VS %vs_profile%
 
 ::
+:: Combine PS
+::
+call :CompileShader Combine PS %ps_profile%
+
+::
 :: DownFilter PS
 ::
 call :CompileShader DownFilter PS %ps_profile%

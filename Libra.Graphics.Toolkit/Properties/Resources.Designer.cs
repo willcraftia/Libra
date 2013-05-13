@@ -74,6 +74,13 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
+        internal static byte[] CombinePS {
+            get {
+                object obj = ResourceManager.GetObject("CombinePS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
         internal static byte[] DepthMapPS {
             get {
                 object obj = ResourceManager.GetObject("DepthMapPS", resourceCulture);

@@ -45,6 +45,7 @@
     <Compile Include="BloomCombine.cs" />
     <Compile Include="BloomExtract.cs" />
     <Compile Include="Camera.cs" />
+    <Compile Include="Combine.cs" />
     <Compile Include="CubeMesh.cs" />
     <Compile Include="CylinderMesh.cs" />
     <Compile Include="DepthMapEffect.cs" />
@@ -120,8 +121,10 @@
   <ItemGroup>
     <None Include="Shaders\BloomCombine.hlsl" />
     <None Include="Shaders\BloomExtract.hlsl" />
+    <None Include="Shaders\Combine.hlsl" />
     <None Include="Shaders\Compiled\BloomCombinePS.bin" />
     <None Include="Shaders\Compiled\BloomExtractPS.bin" />
+    <None Include="Shaders\Compiled\CombinePS.bin" />
     <None Include="Shaders\Compiled\DepthMapPS.bin" />
     <None Include="Shaders\Compiled\DepthMapVS.bin" />
     <None Include="Shaders\Compiled\DepthNormalMapPS.bin" />
