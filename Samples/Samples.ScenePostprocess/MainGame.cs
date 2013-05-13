@@ -15,6 +15,17 @@ namespace Samples.ScenePostprocess
 {
     public sealed class MainGame : Game
     {
+        #region PostprocessType
+
+        enum PostprocessType
+        {
+            None,
+            DepthOfField,
+            Bloom
+        }
+
+        #endregion
+
         /// <summary>
         /// ウィンドウの幅。
         /// </summary>
@@ -96,6 +107,46 @@ namespace Samples.ScenePostprocess
         Postprocess postprocess;
 
         /// <summary>
+        /// ダウン フィルタ パス。
+        /// </summary>
+        DownFilter downFilter;
+
+        /// <summary>
+        /// アップ フィルタ パス。
+        /// </summary>
+        UpFilter upFilter;
+
+        /// <summary>
+        /// ガウシアン ブラー シェーダ。
+        /// </summary>
+        GaussianBlurCore gaussianBlurCore;
+
+        /// <summary>
+        /// ガウシアン ブラー パス (水平)。
+        /// </summary>
+        GaussianBlur gaussianBlurH;
+
+        /// <summary>
+        /// ガウシアン ブラー パス (垂直)。
+        /// </summary>
+        GaussianBlur gaussianBlurV;
+
+        /// <summary>
+        /// ブルーム抽出パス。
+        /// </summary>
+        BloomExtract bloomExtract;
+
+        /// <summary>
+        /// ブルーム合成パス。
+        /// </summary>
+        BloomCombine bloomCombine;
+
+        /// <summary>
+        /// 被写界深度合成パス。
+        /// </summary>
+        DofCombine dofCombine;
+
+        /// <summary>
         /// モノクローム パス。
         /// </summary>
         Monochrome monochrome;
@@ -114,21 +165,6 @@ namespace Samples.ScenePostprocess
         /// ネガティブ フィルタ パス。
         /// </summary>
         NegativeFilter negativeFilter;
-
-        /// <summary>
-        /// ガウシアン ブラー シェーダ。
-        /// </summary>
-        GaussianBlurCore gaussianBlurCore;
-
-        /// <summary>
-        /// ガウシアン ブラー パス (水平)。
-        /// </summary>
-        GaussianBlur gaussianBlurH;
-
-        /// <summary>
-        /// ガウシアン ブラー パス (垂直)。
-        /// </summary>
-        GaussianBlur gaussianBlurV;
 
         /// <summary>
         /// 放射ブラー パス。
@@ -165,6 +201,11 @@ namespace Samples.ScenePostprocess
         /// </summary>
         SquareMesh squareMesh;
 
+        /// <summary>
+        /// 選択されているポストプロセスの種類。
+        /// </summary>
+        PostprocessType postprocessType;
+
         public MainGame()
         {
             graphicsManager = new GraphicsManager(this);
@@ -187,6 +228,8 @@ namespace Samples.ScenePostprocess
 
             textureDisplay = new TextureDisplay(this);
             Components.Add(textureDisplay);
+
+            postprocessType = PostprocessType.None;
         }
 
         protected override void LoadContent()
@@ -211,34 +254,34 @@ namespace Samples.ScenePostprocess
             postprocess.Width = WindowWidth;
             postprocess.Height = WindowHeight;
 
-            monochrome = new Monochrome(Device);
-            monochrome.Enabled = false;
-            postprocess.Passes.Add(monochrome);
-
-            scanline = new Scanline(Device);
-            scanline.Enabled = false;
-            scanline.Density = WindowHeight * MathHelper.PiOver2;
-            postprocess.Passes.Add(scanline);
-
-            edge = new Edge(Device);
-            edge.Enabled = false;
-            postprocess.Passes.Add(edge);
-
-            negativeFilter = new NegativeFilter(Device);
-            negativeFilter.Enabled = false;
-            postprocess.Passes.Add(negativeFilter);
+            downFilter = new DownFilter(Device);
+            upFilter = new UpFilter(Device);
 
             gaussianBlurCore = new GaussianBlurCore(Device);
             gaussianBlurH = new GaussianBlur(gaussianBlurCore, GaussianBlurPass.Horizon);
             gaussianBlurV = new GaussianBlur(gaussianBlurCore, GaussianBlurPass.Vertical);
-            gaussianBlurH.Enabled = false;
-            gaussianBlurV.Enabled = false;
-            postprocess.Passes.Add(gaussianBlurH);
-            postprocess.Passes.Add(gaussianBlurV);
+
+            bloomExtract = new BloomExtract(Device);
+            bloomCombine = new BloomCombine(Device);
+
+            dofCombine = new DofCombine(Device);
+            dofCombine.Projection = camera.Projection;
+
+            monochrome = new Monochrome(Device);
+            monochrome.Enabled = false;
+
+            scanline = new Scanline(Device);
+            scanline.Enabled = false;
+            scanline.Density = WindowHeight * MathHelper.PiOver2;
+
+            edge = new Edge(Device);
+            edge.Enabled = false;
+
+            negativeFilter = new NegativeFilter(Device);
+            negativeFilter.Enabled = false;
 
             radialBlur = new RadialBlur(Device);
             radialBlur.Enabled = false;
-            postprocess.Passes.Add(radialBlur);
 
             depthNormalMapEffect = new DepthNormalMapEffect(Device);
 
@@ -257,6 +300,9 @@ namespace Samples.ScenePostprocess
         {
             // キーボード状態およびジョイスティック状態のハンドリング。
             HandleInput(gameTime);
+
+            // ポストプロセスの更新。
+            UpdatePostprocess();
 
             // 表示カメラの更新。
             UpdateCamera(gameTime);
@@ -296,9 +342,6 @@ namespace Samples.ScenePostprocess
 
         void CreateDepthNormalMap(DeviceContext context)
         {
-            if (!edge.Enabled)
-                return;
-
             context.SetRenderTarget(depthNormalRenderTarget.GetRenderTargetView());
             context.Clear(Vector4.One);
 
@@ -306,7 +349,9 @@ namespace Samples.ScenePostprocess
 
             context.SetRenderTarget(null);
 
-            // エッジ強調エフェクトへ深度法線マップを設定。
+            // 被写界深度合成パスへ深度法線マップを設定。
+            dofCombine.DepthMap = depthNormalRenderTarget.GetShaderResourceView();
+            // エッジ強調パスへ深度法線マップを設定。
             edge.DepthNormalMap = depthNormalRenderTarget.GetShaderResourceView();
 
             // 中間マップ表示。
@@ -321,6 +366,11 @@ namespace Samples.ScenePostprocess
             DrawScene(context, basicEffect);
 
             context.SetRenderTarget(null);
+
+            // ブルーム合成パスへ通常シーンを設定。
+            bloomCombine.BaseTexture = normalSceneRenderTarget.GetShaderResourceView();
+            // 被写界深度合成パスへ通常シーンを設定。
+            dofCombine.BaseTexture = normalSceneRenderTarget.GetShaderResourceView();
 
             // 中間マップ表示。
             textureDisplay.Textures.Add(normalSceneRenderTarget.GetShaderResourceView());
@@ -380,19 +430,90 @@ namespace Samples.ScenePostprocess
         {
             // HUD のテキストを表示。
             var text =
-                "1: Monochrome (" + monochrome.Enabled + ")\n" +
-                "2: Scanline (" + scanline.Enabled + ")\n" +
-                "3: Edge (" + edge.Enabled + ")\n" +
-                "4: Negative filter (" + negativeFilter.Enabled + ")\n" +
-                "5: Gaussian blur (" + gaussianBlurH.Enabled + ")\n" +
-                "6: Radial blur (" + radialBlur.Enabled + ")";
+                "Current postprocess: " + postprocessType + "\n" +
+                "[F1] None [F2] Depth of Field [F3] Bloom\n" +
+                "[1] Monochrome (" + monochrome.Enabled + ")\n" +
+                "[2] Scanline (" + scanline.Enabled + ")\n" +
+                "[3] Edge (" + edge.Enabled + ")\n" +
+                "[4] Negative filter (" + negativeFilter.Enabled + ")\n" +
+                "[5] Radial blur (" + radialBlur.Enabled + ")";
 
             spriteBatch.Begin();
 
-            spriteBatch.DrawString(spriteFont, text, new Vector2(65, 340), Color.Black);
-            spriteBatch.DrawString(spriteFont, text, new Vector2(64, 340 - 1), Color.Yellow);
+            spriteBatch.DrawString(spriteFont, text, new Vector2(65, 320), Color.Black);
+            spriteBatch.DrawString(spriteFont, text, new Vector2(64, 320 - 1), Color.Yellow);
 
             spriteBatch.End();
+        }
+
+        void UpdatePostprocess()
+        {
+            switch (postprocessType)
+            {
+                case PostprocessType.DepthOfField:
+                    SetupDepthOfField();
+                    break;
+                case PostprocessType.Bloom:
+                    SetupBloom();
+                    break;
+                case PostprocessType.None:
+                default:
+                    SetupNone();
+                    break;
+            }
+        }
+
+        void SetupNone()
+        {
+            postprocess.Passes.Clear();
+        }
+
+        void SetupDepthOfField()
+        {
+            postprocess.Passes.Clear();
+
+            postprocess.Passes.Add(downFilter);
+            postprocess.Passes.Add(gaussianBlurH);
+            postprocess.Passes.Add(gaussianBlurV);
+            postprocess.Passes.Add(upFilter);
+            postprocess.Passes.Add(dofCombine);
+            
+            postprocess.Passes.Add(monochrome);
+            postprocess.Passes.Add(scanline);
+            postprocess.Passes.Add(negativeFilter);
+            postprocess.Passes.Add(edge);
+            postprocess.Passes.Add(radialBlur);
+
+            downFilter.Enabled = true;
+            gaussianBlurH.Enabled = true;
+            gaussianBlurV.Enabled = true;
+            upFilter.Enabled = true;
+            dofCombine.Enabled = true;
+        }
+
+        void SetupBloom()
+        {
+            postprocess.Passes.Clear();
+
+            postprocess.Passes.Add(bloomExtract);
+            postprocess.Passes.Add(downFilter);
+            postprocess.Passes.Add(gaussianBlurH);
+            postprocess.Passes.Add(gaussianBlurV);
+            postprocess.Passes.Add(upFilter);
+            postprocess.Passes.Add(bloomCombine);
+
+            postprocess.Passes.Add(monochrome);
+            postprocess.Passes.Add(scanline);
+            postprocess.Passes.Add(negativeFilter);
+            postprocess.Passes.Add(edge);
+            postprocess.Passes.Add(radialBlur);
+
+            bloomExtract.Enabled = true;
+            bloomCombine.Enabled = true;
+            downFilter.Enabled = true;
+            gaussianBlurH.Enabled = true;
+            gaussianBlurV.Enabled = true;
+            upFilter.Enabled = true;
         }
 
         void HandleInput(GameTime gameTime)
@@ -401,6 +522,15 @@ namespace Samples.ScenePostprocess
 
             lastKeyboardState = currentKeyboardState;
             currentKeyboardState = Keyboard.GetState();
+
+            if (currentKeyboardState.IsKeyUp(Keys.F1) && lastKeyboardState.IsKeyDown(Keys.F1))
+                postprocessType = PostprocessType.None;
+
+            if (currentKeyboardState.IsKeyUp(Keys.F2) && lastKeyboardState.IsKeyDown(Keys.F2))
+                postprocessType = PostprocessType.DepthOfField;
+
+            if (currentKeyboardState.IsKeyUp(Keys.F3) && lastKeyboardState.IsKeyDown(Keys.F3))
+                postprocessType = PostprocessType.Bloom;
 
             if (currentKeyboardState.IsKeyUp(Keys.D1) && lastKeyboardState.IsKeyDown(Keys.D1))
                 monochrome.Enabled = !monochrome.Enabled;
@@ -415,12 +545,6 @@ namespace Samples.ScenePostprocess
                 negativeFilter.Enabled = !negativeFilter.Enabled;
 
             if (currentKeyboardState.IsKeyUp(Keys.D5) && lastKeyboardState.IsKeyDown(Keys.D5))
-            {
-                gaussianBlurH.Enabled = !gaussianBlurH.Enabled;
-                gaussianBlurV.Enabled = !gaussianBlurV.Enabled;
-            }
-
-            if (currentKeyboardState.IsKeyUp(Keys.D6) && lastKeyboardState.IsKeyDown(Keys.D6))
                 radialBlur.Enabled = !radialBlur.Enabled;
 
             if (currentKeyboardState.IsKeyDown(Keys.Escape))
