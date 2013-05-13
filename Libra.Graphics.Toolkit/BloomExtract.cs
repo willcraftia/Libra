@@ -51,8 +51,6 @@ namespace Libra.Graphics.Toolkit
 
         public bool Enabled { get; set; }
 
-        public ShaderResourceView Texture { get; set; }
-
         public BloomExtract(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
@@ -77,8 +75,6 @@ namespace Libra.Graphics.Toolkit
             }
 
             context.PixelShaderConstantBuffers[0] = constantBuffer;
-            context.PixelShaderResources[0] = Texture;
-            context.PixelShaderSamplers[0] = SamplerState.PointClamp;
             context.PixelShader = sharedDeviceResource.PixelShader;
         }
 
