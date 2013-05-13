@@ -23,7 +23,7 @@ VSOutput VS(VSInput input)
 
     output.Position = mul(input.Position, WorldViewProjection);
     output.PositionWVP = output.Position;
-    output.Normal = mul(float4(input.Normal, 1), World).xyz;
+    output.Normal = mul(float4(input.Normal, 0), World).xyz;
 
     return output;
 }
