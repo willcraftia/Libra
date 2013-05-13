@@ -110,7 +110,7 @@ namespace Libra.Graphics.Toolkit
 
             this.device = device;
 
-            sharedDeviceResource = device.GetSharedResource<ShadowMapEffect, SharedDeviceResource>();
+            sharedDeviceResource = device.GetSharedResource<DepthNormalMapEffect, SharedDeviceResource>();
 
             constantBuffer = device.CreateConstantBuffer();
             constantBuffer.Initialize<Constants>();
