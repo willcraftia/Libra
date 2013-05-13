@@ -125,6 +125,8 @@ namespace Libra.Graphics.Toolkit
             bloomSaturation = 1.0f;
 
             constantsDirty = true;
+
+            Enabled = true;
         }
 
         public void Apply(DeviceContext context)

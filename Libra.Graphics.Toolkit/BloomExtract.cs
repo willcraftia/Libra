@@ -65,6 +65,8 @@ namespace Libra.Graphics.Toolkit
             threshold = 0.25f;
 
             constantsDirty = true;
+
+            Enabled = true;
         }
 
         public void Apply(DeviceContext context)
