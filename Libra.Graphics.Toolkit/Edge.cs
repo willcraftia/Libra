@@ -27,7 +27,7 @@ namespace Libra.Graphics.Toolkit
 
         #region Constants
 
-        [StructLayout(LayoutKind.Explicit, Size = 48)]
+        [StructLayout(LayoutKind.Explicit, Size = 64)]
         public struct Constants
         {
             [FieldOffset(0)]
@@ -53,6 +53,9 @@ namespace Libra.Graphics.Toolkit
 
             [FieldOffset(44)]
             public float EdgeAttenuation;
+
+            [FieldOffset(48)]
+            public bool DepthNormalMapEnabled;
         }
 
         #endregion
@@ -186,7 +189,17 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
+        public ShaderResourceView DepthMap { get; set; }
+
+        public ShaderResourceView NormalMap { get; set; }
+        
         public ShaderResourceView DepthNormalMap { get; set; }
+
+        public SamplerState DepthMapSampler { get; set; }
+
+        public SamplerState NormalMapSampler { get; set; }
+
+        public SamplerState DepthNormalMapSampler { get; set; }
 
         public bool Enabled { get; set; }
 
@@ -210,6 +223,11 @@ namespace Libra.Graphics.Toolkit
             constants.NormalSensitivity = 1.0f;
             constants.EdgeColor = Vector3.Zero;
             constants.EdgeAttenuation = 0.9f;
+            constants.DepthNormalMapEnabled = false;
+
+            DepthMapSampler = SamplerState.LinearClamp;
+            NormalMapSampler = SamplerState.LinearClamp;
+            DepthNormalMapSampler = SamplerState.LinearClamp;
 
             Enabled = true;
 
@@ -244,6 +262,19 @@ namespace Libra.Graphics.Toolkit
                 dirtyFlags |= DirtyFlags.Constants;
             }
 
+            if (DepthNormalMap != null && !constants.DepthNormalMapEnabled)
+            {
+                constants.DepthNormalMapEnabled = true;
+
+                dirtyFlags |= DirtyFlags.Constants;
+            }
+            else if (DepthNormalMap == null && constants.DepthNormalMapEnabled)
+            {
+                constants.DepthNormalMapEnabled = false;
+
+                dirtyFlags |= DirtyFlags.Constants;
+            }
+
             if ((dirtyFlags & DirtyFlags.Constants) != 0)
             {
                 constantBuffer.SetData(context, constants);
@@ -254,8 +285,12 @@ namespace Libra.Graphics.Toolkit
             context.PixelShaderConstantBuffers[0] = constantBuffer;
             context.PixelShader = sharedDeviceResource.PixelShader;
 
-            context.PixelShaderResources[1] = DepthNormalMap;
-            context.PixelShaderSamplers[1] = SamplerState.PointClamp;
+            context.PixelShaderResources[1] = DepthMap;
+            context.PixelShaderResources[2] = NormalMap;
+            context.PixelShaderResources[3] = DepthNormalMap;
+            context.PixelShaderSamplers[1] = DepthMapSampler;
+            context.PixelShaderSamplers[2] = NormalMapSampler;
+            context.PixelShaderSamplers[3] = DepthNormalMapSampler;
         }
 
         #region IDisposable

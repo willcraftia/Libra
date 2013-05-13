@@ -1,31 +1,50 @@
 cbuffer Parameters : register(b0)
 {
-    float2 EdgeOffset           : packoffset(c0);
-    float  EdgeIntensity        : packoffset(c0.z);
-    float  DepthThreshold       : packoffset(c1.x);
-    float  DepthSensitivity     : packoffset(c1.y);
-    float  NormalThreshold      : packoffset(c1.z);
-    float  NormalSensitivity    : packoffset(c1.w);
-    float3 EdgeColor            : packoffset(c2);
-    float  EdgeAttenuation      : packoffset(c2.w);
+    float2 EdgeOffset               : packoffset(c0);
+    float  EdgeIntensity            : packoffset(c0.z);
+    float  DepthThreshold           : packoffset(c1.x);
+    float  DepthSensitivity         : packoffset(c1.y);
+    float  NormalThreshold          : packoffset(c1.z);
+    float  NormalSensitivity        : packoffset(c1.w);
+    float3 EdgeColor                : packoffset(c2);
+    float  EdgeAttenuation          : packoffset(c2.w);
+    bool   DepthNormalMapEnabled    : packoffset(c3);
 };
 
 Texture2D<float4> Texture           : register(t0);
-Texture2D<float4> DepthNormalMap    : register(t1);
+Texture2D<float>  DepthMap          : register(t1);
+Texture2D<float3> NormalMap         : register(t2);
+Texture2D<float4> DepthNormalMap    : register(t3);
 
 SamplerState TextureSampler         : register(s0);
-SamplerState DepthNormalMapSampler  : register(s1);
+SamplerState DepthMapSampler        : register(s1);
+SamplerState NormalMapSampler       : register(s2);
+SamplerState DepthNormalMapSampler  : register(s3);
+
+float4 SampleDepthNormal(float2 texCoord)
+{
+    if (DepthNormalMapEnabled)
+    {
+        return DepthNormalMap.Sample(DepthNormalMapSampler, texCoord);
+    }
+    else
+    {
+        float depth = DepthMap.Sample(DepthMapSampler, texCoord);
+        float3 normal = NormalMap.Sample(NormalMapSampler, texCoord);
+        return float4(depth, normal);
+    }
+}
 
 float4 PS(float4 color    : COLOR0,
           float2 texCoord : TEXCOORD0) : SV_Target
 {
     float4 source = Texture.Sample(TextureSampler, texCoord);
 
-    float4 s  = DepthNormalMap.Sample(DepthNormalMapSampler, texCoord);
-    float4 s1 = DepthNormalMap.Sample(DepthNormalMapSampler, texCoord + float2(-1, -1) * EdgeOffset);
-    float4 s2 = DepthNormalMap.Sample(DepthNormalMapSampler, texCoord + float2( 1,  1) * EdgeOffset);
-    float4 s3 = DepthNormalMap.Sample(DepthNormalMapSampler, texCoord + float2(-1,  1) * EdgeOffset);
-    float4 s4 = DepthNormalMap.Sample(DepthNormalMapSampler, texCoord + float2( 1, -1) * EdgeOffset);
+    float4 s  = SampleDepthNormal(texCoord);
+    float4 s1 = SampleDepthNormal(texCoord + float2(-1, -1) * EdgeOffset);
+    float4 s2 = SampleDepthNormal(texCoord + float2( 1,  1) * EdgeOffset);
+    float4 s3 = SampleDepthNormal(texCoord + float2(-1,  1) * EdgeOffset);
+    float4 s4 = SampleDepthNormal(texCoord + float2( 1, -1) * EdgeOffset);
 
     float4 deltaSample = abs(s1 - s2) + abs(s3 - s4);
 
