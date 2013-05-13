@@ -165,6 +165,27 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
+        internal static byte[] NormalEdgeDetectPS {
+            get {
+                object obj = ResourceManager.GetObject("NormalEdgeDetectPS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] NormalMapPS {
+            get {
+                object obj = ResourceManager.GetObject("NormalMapPS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] NormalMapVS {
+            get {
+                object obj = ResourceManager.GetObject("NormalMapVS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
         internal static byte[] RadialBlurPS {
             get {
                 object obj = ResourceManager.GetObject("RadialBlurPS", resourceCulture);

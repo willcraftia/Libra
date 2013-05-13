@@ -59,6 +59,8 @@
     <Compile Include="LightScattering.cs" />
     <Compile Include="Monochrome.cs" />
     <Compile Include="NegativeFilter.cs" />
+    <Compile Include="NormalEdgeDetect.cs" />
+    <Compile Include="NormalMapEffect.cs" />
     <Compile Include="Postprocess.cs" />
     <Compile Include="RadialBlur.cs" />
     <Compile Include="Scanline.cs" />
@@ -133,6 +135,9 @@
     <None Include="Shaders\Compiled\LightScatteringPS.bin" />
     <None Include="Shaders\Compiled\MonochromePS.bin" />
     <None Include="Shaders\Compiled\NegativeFilterPS.bin" />
+    <None Include="Shaders\Compiled\NormalEdgeDetectPS.bin" />
+    <None Include="Shaders\Compiled\NormalMapPS.bin" />
+    <None Include="Shaders\Compiled\NormalMapVS.bin" />
     <None Include="Shaders\Compiled\RadialBlurPS.bin" />
     <None Include="Shaders\Compiled\ScanlinePS.bin" />
     <None Include="Shaders\Compiled\ShadowMapBasicPS.bin" />
@@ -153,10 +158,13 @@
     <None Include="Shaders\LightScattering.hlsl" />
     <None Include="Shaders\Monochrome.hlsl" />
     <None Include="Shaders\NegativeFilter.hlsl" />
+    <None Include="Shaders\NormalEdgeDetect.hlsl" />
+    <None Include="Shaders\NormalMap.hlsl" />
     <None Include="Shaders\RadialBlur.hlsl" />
     <None Include="Shaders\Scanline.hlsl" />
     <None Include="Shaders\SingleColorObject.hlsl" />
     <None Include="Shaders\ShadowMap.hlsl" />
+    <None Include="Shaders\UpFilter.hlsl" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

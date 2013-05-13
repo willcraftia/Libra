@@ -19,6 +19,12 @@ call :CompileShader DepthMap VS %vs_profile%
 call :CompileShader DepthMap PS %ps_profile%
 
 ::
+:: NormalMap VS/PS
+::
+call :CompileShader NormalMap VS %vs_profile%
+call :CompileShader NormalMap PS %ps_profile%
+
+::
 :: DepthNormalMap VS/PS
 ::
 call :CompileShader DepthNormalMap VS %vs_profile%
@@ -99,6 +105,11 @@ call :CompileShader Edge PS %ps_profile%
 :: NegativeFilter PS
 ::
 call :CompileShader NegativeFilter PS %ps_profile%
+
+::
+:: NormalEdgeDetect PS
+::
+call :CompileShader NormalEdgeDetect PS %ps_profile%
 
 echo.
 
