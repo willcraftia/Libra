@@ -228,7 +228,7 @@ namespace Libra.Graphics.Toolkit
 
                     if (!renderTargetChains.TryGetValue(key, out renderTargetChain))
                     {
-                        renderTargetChain = new RenderTargetChain(context.Device, currentWidth, currentHeight, format, 1);
+                        renderTargetChain = new RenderTargetChain(context.Device, currentWidth, currentHeight, format, multisampleCount);
                         renderTargetChains[key] = renderTargetChain;
                     }
                 }
