@@ -51,9 +51,11 @@
     <Compile Include="DepthNormalMapEffect.cs" />
     <Compile Include="DofCombine.cs" />
     <Compile Include="DirectTextureDraw.cs" />
+    <Compile Include="DownFilter.cs" />
     <Compile Include="Edge.cs" />
     <Compile Include="GaussianBlur.cs" />
     <Compile Include="IPostprocessPass.cs" />
+    <Compile Include="IPostprocessPassScale.cs" />
     <Compile Include="LightScattering.cs" />
     <Compile Include="Monochrome.cs" />
     <Compile Include="NegativeFilter.cs" />
@@ -83,6 +85,7 @@
     <Compile Include="ShadowMapForm.cs" />
     <Compile Include="ShadowMapEffect.cs" />
     <Compile Include="PSSM.cs" />
+    <Compile Include="UpFilter.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Libra.Collections\Libra.Collections.csproj">
@@ -123,6 +126,7 @@
     <None Include="Shaders\Compiled\DepthNormalMapVS.bin" />
     <None Include="Shaders\Compiled\DirectTextureDrawPS.bin" />
     <None Include="Shaders\Compiled\DofCombinePS.bin" />
+    <None Include="Shaders\Compiled\DownFilterPS.bin" />
     <None Include="Shaders\Compiled\EdgePS.bin" />
     <None Include="Shaders\Compiled\FullScreenQuadVS.bin" />
     <None Include="Shaders\Compiled\GaussianBlurPS.bin" />
@@ -136,17 +140,20 @@
     <None Include="Shaders\Compiled\ShadowMapVS.bin" />
     <None Include="Shaders\Compiled\SingleColorObjectPS.bin" />
     <None Include="Shaders\Compiled\SingleColorObjectVS.bin" />
+    <None Include="Shaders\Compiled\UpFilterPS.bin" />
     <None Include="Shaders\CompileShaders.cmd" />
     <None Include="Shaders\DepthMap.hlsl" />
     <None Include="Shaders\DepthNormalMap.hlsl" />
     <None Include="Shaders\DofCombine.hlsl" />
     <None Include="Shaders\DirectTextureDraw.hlsl" />
+    <None Include="Shaders\DownFilter.hlsl" />
     <None Include="Shaders\Edge.hlsl" />
     <None Include="Shaders\FullScreenQuad.hlsl" />
     <None Include="Shaders\GaussianBlur.hlsl" />
     <None Include="Shaders\LightScattering.hlsl" />
     <None Include="Shaders\Monochrome.hlsl" />
     <None Include="Shaders\NegativeFilter.hlsl" />
+    <None Include="Shaders\RadialBlur.hlsl" />
     <None Include="Shaders\Scanline.hlsl" />
     <None Include="Shaders\SingleColorObject.hlsl" />
     <None Include="Shaders\ShadowMap.hlsl" />

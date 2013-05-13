@@ -36,14 +36,14 @@ call :CompileShader SingleColorObject PS %ps_profile%
 call :CompileShader FullScreenQuad VS %vs_profile%
 
 ::
-:: BloomExtract PS
+:: DownFilter PS
 ::
-call :CompileShader BloomExtract PS %ps_profile%
+call :CompileShader DownFilter PS %ps_profile%
 
 ::
-:: BloomCombine PS
+:: UpFilter PS
 ::
-call :CompileShader BloomCombine PS %ps_profile%
+call :CompileShader UpFilter PS %ps_profile%
 
 ::
 :: GaussianBlur PS
@@ -54,6 +54,16 @@ call :CompileShader GaussianBlur PS %ps_profile%
 :: RadialBlur PS
 ::
 call :CompileShader RadialBlur PS %ps_profile%
+
+::
+:: BloomExtract PS
+::
+call :CompileShader BloomExtract PS %ps_profile%
+
+::
+:: BloomCombine PS
+::
+call :CompileShader BloomCombine PS %ps_profile%
 
 ::
 :: DofCombine PS

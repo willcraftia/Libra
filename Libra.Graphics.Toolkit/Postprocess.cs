@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
 #endregion
@@ -18,6 +19,91 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
+        #region RenderTargetChain
+
+        class RenderTargetChain : IDisposable
+        {
+            Device device;
+
+            int width;
+
+            int height;
+
+            SurfaceFormat format;
+
+            int multisampleCount;
+
+            RenderTarget current;
+
+            RenderTarget reserve;
+
+            public RenderTarget Current
+            {
+                get
+                {
+                    if (current == null)
+                    {
+                        current = device.CreateRenderTarget();
+                        current.Width = width;
+                        current.Height = height;
+                        current.Format = format;
+                        current.MultisampleCount = multisampleCount;
+                        current.Initialize();
+                    }
+
+                    return current;
+                }
+            }
+
+            internal RenderTargetChain(Device device, int width, int height, SurfaceFormat format, int multisampleCount)
+            {
+                this.device = device;
+                this.width = width;
+                this.height = height;
+                this.format = format;
+                this.multisampleCount = multisampleCount;
+            }
+
+            internal void Swap()
+            {
+                var temp = current;
+                current = reserve;
+                reserve = temp;
+            }
+
+            #region IDisposable
+
+            bool disposed;
+
+            ~RenderTargetChain()
+            {
+                Dispose(false);
+            }
+
+            public void Dispose()
+            {
+                Dispose(true);
+                GC.SuppressFinalize(this);
+            }
+
+            void Dispose(bool disposing)
+            {
+                if (disposed) return;
+
+                if (disposing)
+                {
+                    if (current != null) current.Dispose();
+                    if (reserve != null) reserve.Dispose();
+                }
+
+                disposed = true;
+            }
+
+            #endregion
+        }
+
+        #endregion
+
         DeviceContext context;
 
         int width;
@@ -26,9 +112,9 @@ namespace Libra.Graphics.Toolkit
 
         SurfaceFormat format;
 
-        RenderTarget currentRenderTarget;
+        int multisampleCount;
 
-        RenderTarget freeRenderTarget;
+        Dictionary<ulong, RenderTargetChain> renderTargetChains;
 
         SpriteBatch spriteBatch;
 
@@ -39,7 +125,7 @@ namespace Libra.Graphics.Toolkit
             get { return width; }
             set
             {
-                if (value <= 0) throw new ArgumentOutOfRangeException("value");
+                if (value < 1) throw new ArgumentOutOfRangeException("value");
 
                 width = value;
 
@@ -52,7 +138,7 @@ namespace Libra.Graphics.Toolkit
             get { return height; }
             set
             {
-                if (value <= 0) throw new ArgumentOutOfRangeException("value");
+                if (value < 1) throw new ArgumentOutOfRangeException("value");
 
                 height = value;
 
@@ -65,9 +151,20 @@ namespace Libra.Graphics.Toolkit
             get { return format; }
             set
             {
-                if (value <= 0) throw new ArgumentOutOfRangeException("value");
-
                 format = value;
+
+                ReleaseRenderTargets();
+            }
+        }
+
+        public int MultisampleCount
+        {
+            get { return multisampleCount; }
+            set
+            {
+                if (value < 1) throw new ArgumentOutOfRangeException("value");
+
+                multisampleCount = value;
 
                 ReleaseRenderTargets();
             }
@@ -79,12 +176,14 @@ namespace Libra.Graphics.Toolkit
 
             this.context = context;
 
+            renderTargetChains = new Dictionary<ulong, RenderTargetChain>(4);
             Passes = new PassCollection();
             spriteBatch = new SpriteBatch(context);
 
             width = 1;
             height = 1;
             format = SurfaceFormat.Color;
+            multisampleCount = 1;
         }
 
         public ShaderResourceView Draw(ShaderResourceView texture)
@@ -93,7 +192,13 @@ namespace Libra.Graphics.Toolkit
 
             var currentTexture = texture;
 
-            int passCount = 0;
+            int currentWidth = width;
+            int currentHeight = height;
+
+            int lastWidth = width;
+            int lastHeight = height;
+
+            RenderTargetChain renderTargetChain = null;
 
             for (int i = 0; i < Passes.Count; i++)
             {
@@ -102,53 +207,65 @@ namespace Libra.Graphics.Toolkit
                 if (!pass.Enabled)
                     continue;
 
-                if (0 < passCount)
+                lastWidth = currentWidth;
+                lastHeight = currentHeight;
+
+                var passScale = pass as IPostprocessPassScale;
+                if (passScale != null)
                 {
-                    currentTexture = currentRenderTarget.GetShaderResourceView();
+                    currentWidth = (int) (currentWidth * passScale.WidthScale);
+                    currentHeight = (int) (currentHeight * passScale.HeightScale);
+
+                    if (currentWidth != lastWidth && currentHeight != lastHeight)
+                    {
+                        renderTargetChain = null;
+                    }
                 }
 
-                var temp = currentRenderTarget;
-                currentRenderTarget = freeRenderTarget;
-                freeRenderTarget = temp;
-
-                if (currentRenderTarget == null)
+                if (renderTargetChain == null)
                 {
-                    currentRenderTarget = context.Device.CreateRenderTarget();
-                    currentRenderTarget.Width = width;
-                    currentRenderTarget.Height = height;
-                    currentRenderTarget.Format = format;
-                    currentRenderTarget.Initialize();
+                    var key = CreateRenderTargeChainKey(currentWidth, currentHeight);
+
+                    if (!renderTargetChains.TryGetValue(key, out renderTargetChain))
+                    {
+                        renderTargetChain = new RenderTargetChain(context.Device, currentWidth, currentHeight, format, 1);
+                        renderTargetChains[key] = renderTargetChain;
+                    }
+                }
+                else
+                {
+                    renderTargetChain.Swap();
                 }
 
-                context.SetRenderTarget(currentRenderTarget.GetRenderTargetView());
+                context.SetRenderTarget(renderTargetChain.Current.GetRenderTargetView());
 
                 spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque, null, null, null, pass.Apply);
-                spriteBatch.Draw(currentTexture, Vector2.Zero, Color.White);
+                spriteBatch.Draw(currentTexture, new Rectangle(0, 0, currentWidth, currentHeight), Color.White);
                 spriteBatch.End();
 
                 context.SetRenderTarget(null);
 
-                passCount++;
+                currentTexture = renderTargetChain.Current.GetShaderResourceView();
             }
 
-            if (passCount == 0)
-                return texture;
-
-            return currentRenderTarget.GetShaderResourceView();
+            return currentTexture;
         }
-    
+
+        ulong CreateRenderTargeChainKey(int width, int height)
+        {
+            uint upper = (uint) width;
+            uint lower = (uint) height;
+            return (((ulong) upper) << 32) | lower;
+        }
+
         void ReleaseRenderTargets()
         {
-            if (currentRenderTarget != null)
+            foreach (var renderTargetChain in renderTargetChains.Values)
             {
-                currentRenderTarget.Dispose();
-                currentRenderTarget = null;
+                renderTargetChain.Dispose();
             }
-            if (freeRenderTarget != null)
-            {
-                freeRenderTarget.Dispose();
-                freeRenderTarget = null;
-            }
+
+            renderTargetChains.Clear();
         }
 
         #region IDisposable

@@ -116,6 +116,13 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
+        internal static byte[] DownFilterPS {
+            get {
+                object obj = ResourceManager.GetObject("DownFilterPS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
         internal static byte[] EdgePS {
             get {
                 object obj = ResourceManager.GetObject("EdgePS", resourceCulture);
@@ -203,6 +210,13 @@ namespace Libra.Graphics.Toolkit.Properties {
         internal static byte[] SingleColorObjectVS {
             get {
                 object obj = ResourceManager.GetObject("SingleColorObjectVS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] UpFilterPS {
+            get {
+                object obj = ResourceManager.GetObject("UpFilterPS", resourceCulture);
                 return ((byte[])(obj));
             }
         }
