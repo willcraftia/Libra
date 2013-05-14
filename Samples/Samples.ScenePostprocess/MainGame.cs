@@ -385,9 +385,9 @@ namespace Samples.ScenePostprocess
 
             context.SetRenderTarget(null);
 
-            // 被写界深度合成パスへ深度法線マップを設定。
+            // 被写界深度合成パスへ設定。
             dofCombine.DepthMap = depthMapRenderTarget.GetShaderResourceView();
-            // エッジ強調パスへ深度マップを設定。
+            // エッジ強調パスへ設定。
             edge.DepthMap = depthMapRenderTarget.GetShaderResourceView();
 
             // 中間マップ表示。
@@ -403,9 +403,9 @@ namespace Samples.ScenePostprocess
 
             context.SetRenderTarget(null);
 
-            // 法線エッジ検出パスへ法線マップを設定。
+            // 法線エッジ検出パスへ設定。
             normalEdgeDetect.NormalMap = normalMapRenderTarget.GetShaderResourceView();
-            // エッジ強調パスへ法線マップを設定。
+            // エッジ強調パスへ設定。
             edge.NormalMap = normalMapRenderTarget.GetShaderResourceView();
 
             // 中間マップ表示。
@@ -421,9 +421,9 @@ namespace Samples.ScenePostprocess
 
             context.SetRenderTarget(null);
 
-            // ブルーム合成パスへ通常シーンを設定。
+            // ブルーム合成パスへ設定。
             bloomCombine.BaseTexture = normalSceneRenderTarget.GetShaderResourceView();
-            // 被写界深度合成パスへ通常シーンを設定。
+            // 被写界深度合成パスへ設定。
             dofCombine.BaseTexture = normalSceneRenderTarget.GetShaderResourceView();
 
             // 中間マップ表示。
@@ -503,6 +503,8 @@ namespace Samples.ScenePostprocess
 
         void UpdatePostprocess()
         {
+            postprocess.Passes.Clear();
+
             switch (postprocessType)
             {
                 case PostprocessType.DepthOfField:
@@ -523,38 +525,22 @@ namespace Samples.ScenePostprocess
 
         void SetupNone()
         {
-            postprocess.Passes.Clear();
-
-            postprocess.Passes.Add(monochrome);
-            postprocess.Passes.Add(scanline);
-            postprocess.Passes.Add(negativeFilter);
-            postprocess.Passes.Add(edge);
-            postprocess.Passes.Add(radialBlur);
-            postprocess.Passes.Add(normalEdgeDetect);
+            AddCommonPasses();
         }
 
         void SetupDepthOfField()
         {
-            postprocess.Passes.Clear();
-
             postprocess.Passes.Add(downFilter);
             postprocess.Passes.Add(gaussianBlurH);
             postprocess.Passes.Add(gaussianBlurV);
             postprocess.Passes.Add(upFilter);
             postprocess.Passes.Add(dofCombine);
-            
-            postprocess.Passes.Add(monochrome);
-            postprocess.Passes.Add(scanline);
-            postprocess.Passes.Add(negativeFilter);
-            postprocess.Passes.Add(edge);
-            postprocess.Passes.Add(radialBlur);
-            postprocess.Passes.Add(normalEdgeDetect);
+
+            AddCommonPasses();
         }
 
         void SetupBloom()
         {
-            postprocess.Passes.Clear();
-
             postprocess.Passes.Add(bloomExtract);
             postprocess.Passes.Add(downFilter);
             postprocess.Passes.Add(gaussianBlurH);
@@ -562,23 +548,21 @@ namespace Samples.ScenePostprocess
             postprocess.Passes.Add(upFilter);
             postprocess.Passes.Add(bloomCombine);
 
-            postprocess.Passes.Add(monochrome);
-            postprocess.Passes.Add(scanline);
-            postprocess.Passes.Add(negativeFilter);
-            postprocess.Passes.Add(edge);
-            postprocess.Passes.Add(radialBlur);
-            postprocess.Passes.Add(normalEdgeDetect);
+            AddCommonPasses();
         }
 
         void SetupBlur()
         {
-            postprocess.Passes.Clear();
-
             postprocess.Passes.Add(downFilter);
             postprocess.Passes.Add(gaussianBlurH);
             postprocess.Passes.Add(gaussianBlurV);
             postprocess.Passes.Add(upFilter);
 
+            AddCommonPasses();
+        }
+
+        void AddCommonPasses()
+        {
             postprocess.Passes.Add(monochrome);
             postprocess.Passes.Add(scanline);
             postprocess.Passes.Add(negativeFilter);
