@@ -6,7 +6,7 @@ using System;
 
 namespace Libra.Graphics
 {
-    public interface IEffect : IDisposable
+    public interface IEffect
     {
         void Apply(DeviceContext context);
     }
