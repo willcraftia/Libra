@@ -23,16 +23,19 @@ SamplerState DepthNormalMapSampler  : register(s3);
 
 float4 SampleDepthNormal(float2 texCoord)
 {
+    float4 depthNormal;
+
     if (DepthNormalMapEnabled)
     {
-        return DepthNormalMap.Sample(DepthNormalMapSampler, texCoord);
+        depthNormal = DepthNormalMap.Sample(DepthNormalMapSampler, texCoord);
     }
     else
     {
-        float depth = DepthMap.Sample(DepthMapSampler, texCoord);
-        float3 normal = NormalMap.Sample(NormalMapSampler, texCoord);
-        return float4(depth, normal);
+        depthNormal.x = DepthMap.Sample(DepthMapSampler, texCoord);
+        depthNormal.yzw = NormalMap.Sample(NormalMapSampler, texCoord);
     }
+
+    return depthNormal;
 }
 
 float4 PS(float4 color    : COLOR0,
