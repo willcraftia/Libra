@@ -60,6 +60,13 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
+        internal static byte[] AmbientOcclusionMapPS {
+            get {
+                object obj = ResourceManager.GetObject("AmbientOcclusionMapPS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
         internal static byte[] BloomCombinePS {
             get {
                 object obj = ResourceManager.GetObject("BloomCombinePS", resourceCulture);

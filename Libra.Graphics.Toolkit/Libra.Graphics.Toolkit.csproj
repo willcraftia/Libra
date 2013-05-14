@@ -40,6 +40,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AmbientOcclusionMap.cs" />
     <Compile Include="BasicCamera.cs" />
     <Compile Include="BasicLightCameraBuilder.cs" />
     <Compile Include="BloomCombine.cs" />
@@ -64,6 +65,7 @@
     <Compile Include="NormalMapEffect.cs" />
     <Compile Include="Postprocess.cs" />
     <Compile Include="RadialBlur.cs" />
+    <Compile Include="RandomNormalMap.cs" />
     <Compile Include="Scanline.cs" />
     <Compile Include="SingleColorObjectEffect.cs" />
     <Compile Include="PrimitiveMesh.cs" />
@@ -119,9 +121,11 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Shaders\AmbientOcclusionMap.hlsl" />
     <None Include="Shaders\BloomCombine.hlsl" />
     <None Include="Shaders\BloomExtract.hlsl" />
     <None Include="Shaders\Combine.hlsl" />
+    <None Include="Shaders\Compiled\AmbientOcclusionMapPS.bin" />
     <None Include="Shaders\Compiled\BloomCombinePS.bin" />
     <None Include="Shaders\Compiled\BloomExtractPS.bin" />
     <None Include="Shaders\Compiled\CombinePS.bin" />
