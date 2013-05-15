@@ -6,7 +6,7 @@ using System;
 
 namespace Libra.PackedVector
 {
-    public sealed class NormalizedByte4 : IPackedVector<uint>, IEquatable<NormalizedByte4>
+    public struct NormalizedByte4 : IPackedVector<uint>, IEquatable<NormalizedByte4>
     {
         const uint Mask = byte.MaxValue;
 
