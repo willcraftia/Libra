@@ -62,9 +62,10 @@ namespace Libra.Graphics.Toolkit
         [Flags]
         enum DirtyFlags
         {
-            Random          = (1 << 0),
-            SampleSphere    = (1 << 1),
-            Constants       = (1 << 2)
+            Random              = (1 << 0),
+            RandomNormalOffset  = (1 << 1),
+            SampleSphere        = (1 << 2),
+            Constants           = (1 << 3)
         }
 
         #endregion
@@ -82,6 +83,10 @@ namespace Libra.Graphics.Toolkit
         int seed;
 
         Random random;
+
+        int width;
+
+        int height;
 
         DirtyFlags dirtyFlags;
 
@@ -148,17 +153,6 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        public Vector2 RandomOffset
-        {
-            get { return constants.RandomOffset; }
-            set
-            {
-                constants.RandomOffset = value;
-
-                dirtyFlags |= DirtyFlags.Constants;
-            }
-        }
-
         public int SampleCount
         {
             get { return constants.SampleCount; }
@@ -169,6 +163,32 @@ namespace Libra.Graphics.Toolkit
                 constants.SampleCount = value;
 
                 dirtyFlags |= DirtyFlags.Constants;
+            }
+        }
+
+        public int Width
+        {
+            get { return width; }
+            set
+            {
+                if (value < 1) throw new ArgumentOutOfRangeException("value");
+
+                width = value;
+
+                dirtyFlags |= DirtyFlags.RandomNormalOffset;
+            }
+        }
+
+        public int Height
+        {
+            get { return height; }
+            set
+            {
+                if (value < 1) throw new ArgumentOutOfRangeException("value");
+
+                height = value;
+
+                dirtyFlags |= DirtyFlags.RandomNormalOffset;
             }
         }
 
@@ -202,24 +222,26 @@ namespace Libra.Graphics.Toolkit
             constantBuffer.Initialize<Constants>();
 
             seed = 0;
+            width = 1;
+            height = 1;
 
-            constants.TotalStrength = 5.0f;
-            constants.Strength = 0.01f;
-            constants.Falloff = 0.001f;
-            constants.Radius = 2.0f;
-            constants.RandomOffset = Vector2.Zero;
+            constants.TotalStrength = 10.00f;
+            constants.Strength = 0.04f;
+            constants.Falloff = 0.0f;
+            constants.Radius = 0.03f;
+            constants.RandomOffset = Vector2.One;
             constants.SampleCount = 32;
             constants.DepthNormalMapEnabled = false;
             constants.SampleSphere = new Vector3[MaxSampleCount];
 
-            DepthMapSampler = SamplerState.LinearClamp;
-            NormalMapSampler = SamplerState.LinearClamp;
+            DepthMapSampler = SamplerState.PointClamp;
+            NormalMapSampler = SamplerState.PointClamp;
             RandomNormalMapSampler = SamplerState.PointWrap;
-            DepthNormalMapSampler = SamplerState.LinearClamp;
+            DepthNormalMapSampler = SamplerState.PointClamp;
 
             Enabled = true;
 
-            dirtyFlags = DirtyFlags.Random | DirtyFlags.SampleSphere | DirtyFlags.Constants;
+            dirtyFlags = DirtyFlags.Random | DirtyFlags.RandomNormalOffset | DirtyFlags.SampleSphere | DirtyFlags.Constants;
         }
 
         public void Apply(DeviceContext context)
@@ -227,6 +249,7 @@ namespace Libra.Graphics.Toolkit
             if (context == null) throw new ArgumentNullException("context");
 
             SetSampleSphere();
+            SetRandomNormalOffset();
 
             if (DepthNormalMap != null && !constants.DepthNormalMapEnabled)
             {
@@ -293,6 +316,31 @@ namespace Libra.Graphics.Toolkit
                 dirtyFlags &= ~DirtyFlags.SampleSphere;
                 dirtyFlags |= DirtyFlags.Constants;
             }
+        }
+
+        void SetRandomNormalOffset()
+        {
+            if ((dirtyFlags & DirtyFlags.RandomNormalOffset) != 0)
+            {
+                int w;
+                int h;
+                GetTextureSize(RandomNormalMap, out w, out h);
+
+                constants.RandomOffset.X = (float) width / (float) w;
+                constants.RandomOffset.Y = (float) height / (float) h;
+
+                dirtyFlags |= DirtyFlags.Constants;
+            }
+        }
+
+        static void GetTextureSize(ShaderResourceView shaderResourceView, out int width, out int height)
+        {
+            var texture = shaderResourceView.Resource as Texture2D;
+            if (texture == null)
+                throw new ArgumentException("ShaderResourceView is not for Texture2D.", "shaderResourceView");
+
+            width = texture.Width;
+            height = texture.Height;
         }
 
         #region IDisposable

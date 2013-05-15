@@ -86,6 +86,11 @@ namespace Samples.SceneAmbientOcclusion
         RenderTarget normalMapRenderTarget;
 
         /// <summary>
+        /// 環境光閉塞マップの描画先レンダ ターゲット。
+        /// </summary>
+        RenderTarget ambientOcclusionMapRenderTarget;
+
+        /// <summary>
         /// 通常シーンの描画先レンダ ターゲット。
         /// </summary>
         RenderTarget normalSceneRenderTarget;
@@ -94,6 +99,16 @@ namespace Samples.SceneAmbientOcclusion
         /// ポストプロセス適用後の最終シーン。
         /// </summary>
         ShaderResourceView finalSceneTexture;
+
+        /// <summary>
+        /// ランダム法線マップ。
+        /// </summary>
+        Texture2D randomNormalMap;
+
+        /// <summary>
+        /// 環境光閉塞マップ シェーダ。
+        /// </summary>
+        AmbientOcclusionMap ambientOcclusionMap;
 
         /// <summary>
         /// ポストプロセス。
@@ -208,15 +223,30 @@ namespace Samples.SceneAmbientOcclusion
             normalMapRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
             normalMapRenderTarget.Initialize();
 
+            ambientOcclusionMapRenderTarget = Device.CreateRenderTarget();
+            ambientOcclusionMapRenderTarget.Width = WindowWidth;
+            ambientOcclusionMapRenderTarget.Height = WindowHeight;
+            ambientOcclusionMapRenderTarget.Format = SurfaceFormat.Single;
+            ambientOcclusionMapRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
+            ambientOcclusionMapRenderTarget.Initialize();
+
             normalSceneRenderTarget = Device.CreateRenderTarget();
             normalSceneRenderTarget.Width = WindowWidth;
             normalSceneRenderTarget.Height = WindowHeight;
             normalSceneRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
             normalSceneRenderTarget.Initialize();
 
+            randomNormalMap = RandomNormalMap.Create(Device.ImmediateContext, new Random(0), 64, 64);
+
+            ambientOcclusionMap = new AmbientOcclusionMap(Device);
+            ambientOcclusionMap.Width = WindowWidth;
+            ambientOcclusionMap.Height = WindowHeight;
+            ambientOcclusionMap.RandomNormalMap = randomNormalMap.GetShaderResourceView();
+
             postprocess = new Postprocess(Device.ImmediateContext);
             postprocess.Width = WindowWidth;
             postprocess.Height = WindowHeight;
+            postprocess.Format = SurfaceFormat.Single;
 
             downFilter = new DownFilter(Device);
             upFilter = new UpFilter(Device);
@@ -224,6 +254,11 @@ namespace Samples.SceneAmbientOcclusion
             gaussianBlurCore = new GaussianBlurCore(Device);
             gaussianBlurH = new GaussianBlur(gaussianBlurCore, GaussianBlurPass.Horizon);
             gaussianBlurV = new GaussianBlur(gaussianBlurCore, GaussianBlurPass.Vertical);
+
+            //postprocess.Passes.Add(downFilter);
+            //postprocess.Passes.Add(gaussianBlurH);
+            //postprocess.Passes.Add(gaussianBlurV);
+            //postprocess.Passes.Add(upFilter);
 
             depthMapEffect = new DepthMapEffect(Device);
             normalMapEffect = new NormalMapEffect(Device);
@@ -269,11 +304,15 @@ namespace Samples.SceneAmbientOcclusion
             // 法線マップを描画。
             CreateNormalMap(context);
 
+            // 環境光閉塞マップを描画。
+            CreateAmbientOcclusionMap(context);
+
             // 通常シーンを描画。
-            CreateNormalSceneMap(context);
+            //CreateNormalSceneMap(context);
 
             // ポストプロセスを適用。
-            finalSceneTexture = postprocess.Draw(normalSceneRenderTarget.GetShaderResourceView());
+            //finalSceneTexture = postprocess.Draw(normalSceneRenderTarget.GetShaderResourceView());
+            finalSceneTexture = postprocess.Draw(ambientOcclusionMapRenderTarget.GetShaderResourceView());
 
             // 最終的なシーンをバック バッファへ描画。
             CreateFinalSceneMap(context);
@@ -293,6 +332,9 @@ namespace Samples.SceneAmbientOcclusion
 
             context.SetRenderTarget(null);
 
+            // 環境光閉塞マップ シェーダへ設定。
+            ambientOcclusionMap.DepthMap = depthMapRenderTarget.GetShaderResourceView();
+
             // 中間マップ表示。
             textureDisplay.Textures.Add(depthMapRenderTarget.GetShaderResourceView());
         }
@@ -306,8 +348,26 @@ namespace Samples.SceneAmbientOcclusion
 
             context.SetRenderTarget(null);
 
+            // 環境光閉塞マップ シェーダへ設定。
+            ambientOcclusionMap.NormalMap = normalMapRenderTarget.GetShaderResourceView();
+
             // 中間マップ表示。
             textureDisplay.Textures.Add(normalMapRenderTarget.GetShaderResourceView());
+        }
+
+        void CreateAmbientOcclusionMap(DeviceContext context)
+        {
+            context.SetRenderTarget(ambientOcclusionMapRenderTarget.GetRenderTargetView());
+            context.Clear(Vector4.One);
+
+            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque, null, null, null, ambientOcclusionMap.Apply);
+            spriteBatch.Draw(depthMapRenderTarget.GetShaderResourceView(), Vector2.Zero, Color.White);
+            spriteBatch.End();
+
+            context.SetRenderTarget(null);
+
+            // 中間マップ表示。
+            textureDisplay.Textures.Add(ambientOcclusionMapRenderTarget.GetShaderResourceView());
         }
 
         void CreateNormalSceneMap(DeviceContext context)
@@ -339,7 +399,10 @@ namespace Samples.SceneAmbientOcclusion
                 effectMatrices.Projection = camera.Projection;
             }
 
+            DrawPrimitiveMesh(context, cubeMesh, Matrix.CreateTranslation(-85, 10, -20), new Vector3(1, 0, 0), effect);
+            DrawPrimitiveMesh(context, cubeMesh, Matrix.CreateTranslation(-60, 10, -20), new Vector3(1, 0, 0), effect);
             DrawPrimitiveMesh(context, cubeMesh, Matrix.CreateTranslation(-40, 10, 0), new Vector3(1, 0, 0), effect);
+            DrawPrimitiveMesh(context, sphereMesh, Matrix.CreateTranslation(10, 10, -60), new Vector3(0, 1, 0), effect);
             DrawPrimitiveMesh(context, sphereMesh, Matrix.CreateTranslation(0, 10, -40), new Vector3(0, 1, 0), effect);
             for (float z = -180; z <= 180; z += 40)
             {
