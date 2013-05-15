@@ -48,9 +48,6 @@ namespace Libra.Graphics.Toolkit
             [FieldOffset(24)]
             public int SampleCount;
 
-            [FieldOffset(28)]
-            public bool DepthNormalMapEnabled;
-
             [FieldOffset(32), MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxSampleCount)]
             public Vector3[] SampleSphere;
         }
@@ -198,15 +195,11 @@ namespace Libra.Graphics.Toolkit
 
         public ShaderResourceView RandomNormalMap { get; set; }
 
-        public ShaderResourceView DepthNormalMap { get; set; }
-
         public SamplerState DepthMapSampler { get; set; }
 
         public SamplerState NormalMapSampler { get; set; }
 
         public SamplerState RandomNormalMapSampler { get; private set; }
-
-        public SamplerState DepthNormalMapSampler { get; set; }
 
         public bool Enabled { get; set; }
 
@@ -231,13 +224,11 @@ namespace Libra.Graphics.Toolkit
             constants.Radius = 0.03f;
             constants.RandomOffset = Vector2.One;
             constants.SampleCount = 32;
-            constants.DepthNormalMapEnabled = false;
             constants.SampleSphere = new Vector3[MaxSampleCount];
 
             DepthMapSampler = SamplerState.PointClamp;
             NormalMapSampler = SamplerState.PointClamp;
             RandomNormalMapSampler = SamplerState.PointWrap;
-            DepthNormalMapSampler = SamplerState.PointClamp;
 
             Enabled = true;
 
@@ -250,19 +241,6 @@ namespace Libra.Graphics.Toolkit
 
             SetSampleSphere();
             SetRandomNormalOffset();
-
-            if (DepthNormalMap != null && !constants.DepthNormalMapEnabled)
-            {
-                constants.DepthNormalMapEnabled = true;
-
-                dirtyFlags |= DirtyFlags.Constants;
-            }
-            else if (DepthNormalMap == null && constants.DepthNormalMapEnabled)
-            {
-                constants.DepthNormalMapEnabled = false;
-
-                dirtyFlags |= DirtyFlags.Constants;
-            }
 
             if ((dirtyFlags & DirtyFlags.Constants) != 0)
             {
@@ -277,11 +255,9 @@ namespace Libra.Graphics.Toolkit
             context.PixelShaderResources[1] = DepthMap;
             context.PixelShaderResources[2] = NormalMap;
             context.PixelShaderResources[3] = RandomNormalMap;
-            context.PixelShaderResources[4] = DepthNormalMap;
             context.PixelShaderSamplers[1] = DepthMapSampler;
             context.PixelShaderSamplers[2] = NormalMapSampler;
             context.PixelShaderSamplers[3] = RandomNormalMapSampler;
-            context.PixelShaderSamplers[4] = DepthNormalMapSampler;
         }
 
         void SetSampleSphere()

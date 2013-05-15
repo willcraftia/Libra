@@ -12,7 +12,6 @@ cbuffer Parameters : register(b0)
 
     float2 RandomOffset             : packoffset(c1);
     int    SampleCount              : packoffset(c1.z);
-    bool   DepthNormalMapEnabled    : packoffset(c1.w);
 
     float3 SampleSphere             : packoffset(c2);
 };
@@ -39,16 +38,8 @@ float4 SampleDepthNormal(float2 texCoord)
 {
     float4 depthNormal;
 
-    if (DepthNormalMapEnabled)
-    {
-        depthNormal = DepthNormalMap.SampleLevel(DepthNormalMapSampler, texCoord, 0);
-    }
-    else
-    {
-        depthNormal.x = DepthMap.SampleLevel(DepthMapSampler, texCoord, 0);
-        depthNormal.yzw = NormalMap.SampleLevel(NormalMapSampler, texCoord, 0);
-    }
-
+    depthNormal.x = DepthMap.SampleLevel(DepthMapSampler, texCoord, 0);
+    depthNormal.yzw = NormalMap.SampleLevel(NormalMapSampler, texCoord, 0);
     depthNormal.yzw = normalize(depthNormal.yzw);
 
     return depthNormal;

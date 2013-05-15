@@ -50,7 +50,6 @@
     <Compile Include="CubeMesh.cs" />
     <Compile Include="CylinderMesh.cs" />
     <Compile Include="DepthMapEffect.cs" />
-    <Compile Include="DepthNormalMapEffect.cs" />
     <Compile Include="DofCombine.cs" />
     <Compile Include="DirectTextureDraw.cs" />
     <Compile Include="DownFilter.cs" />
@@ -131,8 +130,6 @@
     <None Include="Shaders\Compiled\CombinePS.bin" />
     <None Include="Shaders\Compiled\DepthMapPS.bin" />
     <None Include="Shaders\Compiled\DepthMapVS.bin" />
-    <None Include="Shaders\Compiled\DepthNormalMapPS.bin" />
-    <None Include="Shaders\Compiled\DepthNormalMapVS.bin" />
     <None Include="Shaders\Compiled\DirectTextureDrawPS.bin" />
     <None Include="Shaders\Compiled\DofCombinePS.bin" />
     <None Include="Shaders\Compiled\DownFilterPS.bin" />
@@ -155,7 +152,6 @@
     <None Include="Shaders\Compiled\UpFilterPS.bin" />
     <None Include="Shaders\CompileShaders.cmd" />
     <None Include="Shaders\DepthMap.hlsl" />
-    <None Include="Shaders\DepthNormalMap.hlsl" />
     <None Include="Shaders\DofCombine.hlsl" />
     <None Include="Shaders\DirectTextureDraw.hlsl" />
     <None Include="Shaders\DownFilter.hlsl" />

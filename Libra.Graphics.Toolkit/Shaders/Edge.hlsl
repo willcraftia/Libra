@@ -8,33 +8,23 @@ cbuffer Parameters : register(b0)
     float  NormalSensitivity        : packoffset(c1.w);
     float3 EdgeColor                : packoffset(c2);
     float  EdgeAttenuation          : packoffset(c2.w);
-    bool   DepthNormalMapEnabled    : packoffset(c3);
 };
 
 // 法線マップは _SNORM フォーマット。
 Texture2D<float4> Texture           : register(t0);
 Texture2D<float>  DepthMap          : register(t1);
 Texture2D<float3> NormalMap         : register(t2);
-Texture2D<float4> DepthNormalMap    : register(t3);
 
 SamplerState TextureSampler         : register(s0);
 SamplerState DepthMapSampler        : register(s1);
 SamplerState NormalMapSampler       : register(s2);
-SamplerState DepthNormalMapSampler  : register(s3);
 
 float4 SampleDepthNormal(float2 texCoord)
 {
     float4 depthNormal;
 
-    if (DepthNormalMapEnabled)
-    {
-        depthNormal = DepthNormalMap.SampleLevel(DepthNormalMapSampler, texCoord, 0);
-    }
-    else
-    {
-        depthNormal.x = DepthMap.SampleLevel(DepthMapSampler, texCoord, 0);
-        depthNormal.yzw = NormalMap.SampleLevel(NormalMapSampler, texCoord, 0);
-    }
+    depthNormal.x = DepthMap.SampleLevel(DepthMapSampler, texCoord, 0);
+    depthNormal.yzw = NormalMap.SampleLevel(NormalMapSampler, texCoord, 0);
 
     return depthNormal;
 }

@@ -193,11 +193,6 @@ namespace Samples.ScenePostprocess
         NormalMapEffect normalMapEffect;
 
         /// <summary>
-        /// 深度法線マップ エフェクト。
-        /// </summary>
-        DepthNormalMapEffect depthNormalMapEffect;
-
-        /// <summary>
         /// メッシュ描画のための基礎エフェクト。
         /// </summary>
         BasicEffect basicEffect;
@@ -316,7 +311,6 @@ namespace Samples.ScenePostprocess
 
             depthMapEffect = new DepthMapEffect(Device);
             normalMapEffect = new NormalMapEffect(Device);
-            depthNormalMapEffect = new DepthNormalMapEffect(Device);
 
             basicEffect = new BasicEffect(Device);
             basicEffect.AmbientLightColor = new Vector3(0.15f, 0.15f, 0.15f);

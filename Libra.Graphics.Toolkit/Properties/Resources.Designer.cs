@@ -102,20 +102,6 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
-        internal static byte[] DepthNormalMapPS {
-            get {
-                object obj = ResourceManager.GetObject("DepthNormalMapPS", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        internal static byte[] DepthNormalMapVS {
-            get {
-                object obj = ResourceManager.GetObject("DepthNormalMapVS", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
         internal static byte[] DirectTextureDrawPS {
             get {
                 object obj = ResourceManager.GetObject("DirectTextureDrawPS", resourceCulture);
