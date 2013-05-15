@@ -268,7 +268,7 @@ namespace Samples.ScenePostprocess
             normalMapRenderTarget = Device.CreateRenderTarget();
             normalMapRenderTarget.Width = WindowWidth;
             normalMapRenderTarget.Height = WindowHeight;
-            normalMapRenderTarget.Format = SurfaceFormat.Vector4;
+            normalMapRenderTarget.Format = SurfaceFormat.NormalizedByte4;
             normalMapRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
             normalMapRenderTarget.Initialize();
 

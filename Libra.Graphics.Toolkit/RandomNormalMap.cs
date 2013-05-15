@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using Libra.PackedVector;
 
 #endregion
 
@@ -8,10 +9,9 @@ namespace Libra.Graphics.Toolkit
 {
     public sealed class RandomNormalMap
     {
-        public static Texture2D Create(
-            DeviceContext context, Random random, int width, int height, SurfaceFormat format = SurfaceFormat.Vector4)
+        public static Texture2D CreateAsR8G8B8A8SNorm(DeviceContext context, Random random, int width, int height)
         {
-            var normals = new Vector4[width * height];
+            var normals = new NormalizedByte4[width * height];
             for (int i = 0; i < normals.Length; i++)
             {
                 var normal = new Vector4
@@ -23,17 +23,13 @@ namespace Libra.Graphics.Toolkit
                 };
                 normal.Normalize();
 
-                normal.X = normal.X * 0.5f + 0.5f;
-                normal.Y = normal.Y * 0.5f + 0.5f;
-                normal.Z = normal.Z * 0.5f + 0.5f;
-
-                normals[i] = normal;
+                normals[i] = new NormalizedByte4(normal);
             }
 
             var texture = context.Device.CreateTexture2D();
             texture.Width = width;
             texture.Height = height;
-            texture.Format = format;
+            texture.Format = SurfaceFormat.NormalizedByte4;
             texture.Initialize();
             texture.SetData(context, normals);
 

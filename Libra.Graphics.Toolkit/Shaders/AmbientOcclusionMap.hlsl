@@ -24,6 +24,7 @@ cbuffer Parameters : register(b0)
 Texture2D<float4> Texture           : register(t0);
 SamplerState TextureSampler         : register(s0);
 
+// 法線マップは _SNORM フォーマット。
 Texture2D<float>  DepthMap          : register(t1);
 Texture2D<float3> NormalMap         : register(t2);
 Texture2D<float3> RandomNormalMap   : register(t3);
@@ -48,7 +49,7 @@ float4 SampleDepthNormal(float2 texCoord)
         depthNormal.yzw = NormalMap.SampleLevel(NormalMapSampler, texCoord, 0);
     }
 
-    depthNormal.yzw = normalize(depthNormal.yzw * 2.0f - 1.0f);
+    depthNormal.yzw = normalize(depthNormal.yzw);
 
     return depthNormal;
 }
@@ -57,8 +58,8 @@ float4 PS(float4 color    : COLOR0,
           float2 texCoord : TEXCOORD0) : SV_Target
 {
     // ランダムなレイを算出するための法線。
-    float3 randomNormal = RandomNormalMap.Sample(RandomNormalMapSampler, texCoord * RandomOffset);
-    randomNormal = normalize(randomNormal * 2.0f - 1.0f);
+    float3 randomNormal = RandomNormalMap.SampleLevel(RandomNormalMapSampler, texCoord * RandomOffset, 0);
+    randomNormal = normalize(randomNormal);
 
     // 現在対象とする位置での法線と深度。
     float4 depthNormal = SampleDepthNormal(texCoord);

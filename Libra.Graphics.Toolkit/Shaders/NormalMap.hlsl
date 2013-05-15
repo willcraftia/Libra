@@ -28,8 +28,5 @@ VSOutput VS(VSInput input)
 
 float4 PS(VSOutput input) : SV_Target0
 {
-    // –@ü: [-1, 1] ‚©‚ç [0, 1] ‚Ö•ÏŠ·‚µ‚Äİ’èB
-    float3 normal = normalize(input.Normal) * 0.5f + 0.5f;
-
-    return float4(normal, 1);
+    return float4(normalize(input.Normal), 1);
 }

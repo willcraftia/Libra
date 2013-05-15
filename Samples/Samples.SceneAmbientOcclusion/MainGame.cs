@@ -219,7 +219,7 @@ namespace Samples.SceneAmbientOcclusion
             normalMapRenderTarget = Device.CreateRenderTarget();
             normalMapRenderTarget.Width = WindowWidth;
             normalMapRenderTarget.Height = WindowHeight;
-            normalMapRenderTarget.Format = SurfaceFormat.Vector4;
+            normalMapRenderTarget.Format = SurfaceFormat.NormalizedByte4;
             normalMapRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
             normalMapRenderTarget.Initialize();
 
@@ -236,7 +236,7 @@ namespace Samples.SceneAmbientOcclusion
             normalSceneRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
             normalSceneRenderTarget.Initialize();
 
-            randomNormalMap = RandomNormalMap.Create(Device.ImmediateContext, new Random(0), 64, 64);
+            randomNormalMap = RandomNormalMap.CreateAsR8G8B8A8SNorm(Device.ImmediateContext, new Random(0), 64, 64);
 
             ambientOcclusionMap = new AmbientOcclusionMap(Device);
             ambientOcclusionMap.Width = WindowWidth;
@@ -297,6 +297,8 @@ namespace Samples.SceneAmbientOcclusion
             // 念のため状態を初期状態へ。
             context.BlendState = BlendState.Opaque;
             context.DepthStencilState = DepthStencilState.Default;
+
+            textureDisplay.Textures.Add(randomNormalMap.GetShaderResourceView());
 
             // 深度マップを描画。
             CreateDepthMap(context);
