@@ -27,7 +27,7 @@ namespace Libra.Graphics.Toolkit
 
         #region Constants
 
-        [StructLayout(LayoutKind.Explicit, Size = 48)]
+        [StructLayout(LayoutKind.Explicit, Size = 64)]
         public struct Constants
         {
             [FieldOffset(0)]
@@ -36,23 +36,29 @@ namespace Libra.Graphics.Toolkit
             [FieldOffset(8)]
             public float EdgeIntensity;
 
+            [FieldOffset(12)]
+            public float EdgeAttenuation;
+
             [FieldOffset(16)]
-            public float DepthThreshold;
-
-            [FieldOffset(20)]
-            public float DepthSensitivity;
-
-            [FieldOffset(24)]
-            public float NormalThreshold;
-
-            [FieldOffset(28)]
-            public float NormalSensitivity;
-
-            [FieldOffset(32)]
             public Vector3 EdgeColor;
 
+            [FieldOffset(32)]
+            public float DepthThreshold;
+
+            [FieldOffset(36)]
+            public float DepthSensitivity;
+
+            [FieldOffset(40)]
+            public float NormalThreshold;
+
             [FieldOffset(44)]
-            public float EdgeAttenuation;
+            public float NormalSensitivity;
+
+            [FieldOffset(48)]
+            public float NearClipDistance;
+
+            [FieldOffset(52)]
+            public float FarClipDistance;
         }
 
         #endregion
@@ -110,6 +116,19 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
+        public float EdgeAttenuation
+        {
+            get { return constants.EdgeAttenuation; }
+            set
+            {
+                if (value < 0.0f || 1.0f < value) throw new ArgumentOutOfRangeException("value");
+
+                constants.EdgeAttenuation = value;
+
+                dirtyFlags |= DirtyFlags.Constants;
+            }
+        }
+
         public float NormalThreshold
         {
             get { return constants.NormalThreshold; }
@@ -162,35 +181,37 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        public Vector3 EdgeOffset
+        public float NearClipDistance
         {
-            get { return constants.EdgeColor; }
+            get { return constants.NearClipDistance; }
             set
             {
-                constants.EdgeColor = value;
+                if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
+
+                constants.NearClipDistance = value;
 
                 dirtyFlags |= DirtyFlags.Constants;
             }
         }
 
-        public float EdgeAttenuation
+        public float FarClipDistance
         {
-            get { return constants.EdgeAttenuation; }
+            get { return constants.FarClipDistance; }
             set
             {
-                if (value < 0.0f || 1.0f < value) throw new ArgumentOutOfRangeException("value");
+                if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
 
-                constants.EdgeAttenuation = value;
+                constants.FarClipDistance = value;
 
                 dirtyFlags |= DirtyFlags.Constants;
             }
         }
 
-        public ShaderResourceView DepthMap { get; set; }
+        public ShaderResourceView LinearDepthMap { get; set; }
 
         public ShaderResourceView NormalMap { get; set; }
 
-        public SamplerState DepthMapSampler { get; set; }
+        public SamplerState LinearDepthMapSampler { get; set; }
 
         public SamplerState NormalMapSampler { get; set; }
 
@@ -209,15 +230,15 @@ namespace Libra.Graphics.Toolkit
 
             edgeWidth = 1;
             constants.EdgeOffset = Vector2.Zero;
-            constants.EdgeIntensity = 200.0f;
-            constants.DepthThreshold = 0.5f;
-            constants.DepthSensitivity = 1.0f;
-            constants.NormalThreshold = 0.5f;
-            constants.NormalSensitivity = 1.0f;
+            constants.EdgeIntensity = 3.0f;
+            constants.EdgeAttenuation = 0.8f;
             constants.EdgeColor = Vector3.Zero;
-            constants.EdgeAttenuation = 0.9f;
+            constants.DepthThreshold = 5.0f;
+            constants.DepthSensitivity = 1.0f;
+            constants.NormalThreshold = 0.2f;
+            constants.NormalSensitivity = 10.0f;
 
-            DepthMapSampler = SamplerState.LinearClamp;
+            LinearDepthMapSampler = SamplerState.LinearClamp;
             NormalMapSampler = SamplerState.LinearClamp;
 
             Enabled = true;
@@ -263,9 +284,9 @@ namespace Libra.Graphics.Toolkit
             context.PixelShaderConstantBuffers[0] = constantBuffer;
             context.PixelShader = sharedDeviceResource.PixelShader;
 
-            context.PixelShaderResources[1] = DepthMap;
+            context.PixelShaderResources[1] = LinearDepthMap;
             context.PixelShaderResources[2] = NormalMap;
-            context.PixelShaderSamplers[1] = DepthMapSampler;
+            context.PixelShaderSamplers[1] = LinearDepthMapSampler;
             context.PixelShaderSamplers[2] = NormalMapSampler;
         }
 

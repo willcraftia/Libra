@@ -35,8 +35,6 @@ namespace Libra.Graphics.Toolkit
             // X = scale
             // Y = distance
             public Vector4 Focus;
-
-            public Matrix InvertProjection;
         }
 
         #endregion
@@ -47,7 +45,6 @@ namespace Libra.Graphics.Toolkit
         enum DirtyFlags
         {
             FocusScale          = (1 << 0),
-            InvertProjection    = (1 << 1),
             Constants           = (1 << 2)
         }
 
@@ -62,8 +59,6 @@ namespace Libra.Graphics.Toolkit
         Constants constants;
 
         float focusRange;
-
-        Matrix projection;
 
         DirtyFlags dirtyFlags;
 
@@ -96,20 +91,6 @@ namespace Libra.Graphics.Toolkit
         }
 
         /// <summary>
-        /// 表示カメラの射影行列を取得または設定します。
-        /// </summary>
-        public Matrix Projection
-        {
-            get { return projection; }
-            set
-            {
-                projection = value;
-
-                dirtyFlags |= DirtyFlags.InvertProjection;
-            }
-        }
-
-        /// <summary>
         /// 通常シーンを取得または設定します。
         /// </summary>
         public ShaderResourceView BaseTexture { get; set; }
@@ -117,11 +98,11 @@ namespace Libra.Graphics.Toolkit
         /// <summary>
         /// 深度マップを取得または設定します。
         /// </summary>
-        public ShaderResourceView DepthMap { get; set; }
+        public ShaderResourceView LinearDepthMap { get; set; }
 
         public SamplerState BaseTextureSampler { get; set; }
 
-        public SamplerState DepthMapSampler { get; set; }
+        public SamplerState LinearDepthMapSampler { get; set; }
 
         public bool Enabled { get; set; }
 
@@ -137,16 +118,15 @@ namespace Libra.Graphics.Toolkit
             constantBuffer.Initialize<Constants>();
 
             focusRange = 200.0f;
-            projection = Matrix.Identity;
 
             constants.Focus.Y = 10.0f;
 
             BaseTextureSampler = SamplerState.LinearClamp;
-            DepthMapSampler = SamplerState.LinearClamp;
+            LinearDepthMapSampler = SamplerState.LinearClamp;
 
             Enabled = true;
 
-            dirtyFlags = DirtyFlags.FocusScale | DirtyFlags.InvertProjection | DirtyFlags.Constants;
+            dirtyFlags = DirtyFlags.FocusScale | DirtyFlags.Constants;
         }
 
         public void Apply(DeviceContext context)
@@ -156,16 +136,6 @@ namespace Libra.Graphics.Toolkit
                 constants.Focus.X = 1.0f / focusRange;
 
                 dirtyFlags &= ~DirtyFlags.FocusScale;
-                dirtyFlags |= DirtyFlags.Constants;
-            }
-            if ((dirtyFlags & DirtyFlags.InvertProjection) != 0)
-            {
-                Matrix invertProjection;
-                Matrix.Invert(ref projection, out invertProjection);
-
-                Matrix.Transpose(ref invertProjection, out constants.InvertProjection);
-
-                dirtyFlags &= ~DirtyFlags.InvertProjection;
                 dirtyFlags |= DirtyFlags.Constants;
             }
 
@@ -180,10 +150,10 @@ namespace Libra.Graphics.Toolkit
             context.PixelShader = sharedDeviceResource.PixelShader;
 
             context.PixelShaderResources[1] = BaseTexture;
-            context.PixelShaderResources[2] = DepthMap;
+            context.PixelShaderResources[2] = LinearDepthMap;
 
             context.PixelShaderSamplers[1] = BaseTextureSampler;
-            context.PixelShaderSamplers[2] = DepthMapSampler;
+            context.PixelShaderSamplers[2] = LinearDepthMapSampler;
         }
 
         #region IDisposable

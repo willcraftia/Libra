@@ -58,6 +58,7 @@
     <Compile Include="IPostprocessPass.cs" />
     <Compile Include="IPostprocessPassScale.cs" />
     <Compile Include="LightScattering.cs" />
+    <Compile Include="LinearDepthMapEffect.cs" />
     <Compile Include="Monochrome.cs" />
     <Compile Include="NegativeFilter.cs" />
     <Compile Include="NormalEdgeDetect.cs" />
@@ -137,6 +138,8 @@
     <None Include="Shaders\Compiled\FullScreenQuadVS.bin" />
     <None Include="Shaders\Compiled\GaussianBlurPS.bin" />
     <None Include="Shaders\Compiled\LightScatteringPS.bin" />
+    <None Include="Shaders\Compiled\LinearDepthMapPS.bin" />
+    <None Include="Shaders\Compiled\LinearDepthMapVS.bin" />
     <None Include="Shaders\Compiled\MonochromePS.bin" />
     <None Include="Shaders\Compiled\NegativeFilterPS.bin" />
     <None Include="Shaders\Compiled\NormalEdgeDetectPS.bin" />
@@ -159,6 +162,7 @@
     <None Include="Shaders\FullScreenQuad.hlsl" />
     <None Include="Shaders\GaussianBlur.hlsl" />
     <None Include="Shaders\LightScattering.hlsl" />
+    <None Include="Shaders\LinearDepthMap.hlsl" />
     <None Include="Shaders\Monochrome.hlsl" />
     <None Include="Shaders\NegativeFilter.hlsl" />
     <None Include="Shaders\NormalEdgeDetect.hlsl" />

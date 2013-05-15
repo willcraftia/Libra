@@ -19,16 +19,16 @@ call :CompileShader DepthMap VS %vs_profile%
 call :CompileShader DepthMap PS %ps_profile%
 
 ::
+:: LinearDepthMap VS/PS
+::
+call :CompileShader LinearDepthMap VS %vs_profile%
+call :CompileShader LinearDepthMap PS %ps_profile%
+
+::
 :: NormalMap VS/PS
 ::
 call :CompileShader NormalMap VS %vs_profile%
 call :CompileShader NormalMap PS %ps_profile%
-
-::
-:: DepthNormalMap VS/PS
-::
-call :CompileShader DepthNormalMap VS %vs_profile%
-call :CompileShader DepthNormalMap PS %ps_profile%
 
 ::
 :: AmbientOcclusionMap PS

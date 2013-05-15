@@ -25,6 +25,16 @@ namespace Samples.SceneDepthOfField
         const int WindowHeight = 480;
 
         /// <summary>
+        /// 表示カメラの初期位置。
+        /// </summary>
+        static readonly Vector3 initialCameraPosition = new Vector3(0, 70, 100);
+
+        /// <summary>
+        /// 表示カメラの初期注視点。
+        /// </summary>
+        static readonly Vector3 initialCameraLookAt = Vector3.Zero;
+
+        /// <summary>
         /// Libra のグラフィックス マネージャ。
         /// </summary>
         GraphicsManager graphicsManager;
@@ -80,9 +90,9 @@ namespace Samples.SceneDepthOfField
         RenderTarget bluredSceneRenderTarget;
 
         /// <summary>
-        /// 深度マップ エフェクト。
+        /// 線形深度マップ エフェクト。
         /// </summary>
-        DepthMapEffect depthMapEffect;
+        LinearDepthMapEffect depthMapEffect;
 
         /// <summary>
         /// シーンに適用するブラー。
@@ -135,13 +145,13 @@ namespace Samples.SceneDepthOfField
 
             camera = new BasicCamera
             {
-                Position = new Vector3(0, 70, 100),
-                Direction = new Vector3(0, -0.4472136f, -0.8944272f),
+                Position = initialCameraPosition,
                 Fov = MathHelper.PiOver4,
                 AspectRatio = (float) WindowWidth / (float) WindowHeight,
                 NearClipDistance = 1.0f,
                 FarClipDistance = 1000.0f
             };
+            camera.LookAt(initialCameraLookAt);
             camera.Update();
         }
 
@@ -168,13 +178,12 @@ namespace Samples.SceneDepthOfField
             bluredSceneRenderTarget.Height = (int) (WindowWidth * mapScale);
             bluredSceneRenderTarget.Initialize();
 
-            depthMapEffect = new DepthMapEffect(Device);
+            depthMapEffect = new LinearDepthMapEffect(Device);
 
             gaussianBlur = new GaussianBlurSuite(
                 Device, bluredSceneRenderTarget.Width, bluredSceneRenderTarget.Height, bluredSceneRenderTarget.Format);
 
             dofCombine = new DofCombine(Device);
-            dofCombine.Projection = camera.Projection;
 
             fullScreenQuad = new FullScreenQuad(Device);
 
@@ -239,7 +248,7 @@ namespace Samples.SceneDepthOfField
             context.SetRenderTarget(null);
 
             // 被写界深度合成ポストプロセスへ深度マップを設定。
-            dofCombine.DepthMap = depthMapRenderTarget.GetShaderResourceView();
+            dofCombine.LinearDepthMap = depthMapRenderTarget.GetShaderResourceView();
         }
 
         void CreateNormalSceneMap(DeviceContext context)
@@ -439,8 +448,8 @@ namespace Samples.SceneDepthOfField
 
             if (currentKeyboardState.IsKeyDown(Keys.R))
             {
-                camera.Position = new Vector3(0, 50, 50);
-                camera.Direction = Vector3.Forward;
+                camera.Position = initialCameraPosition;
+                camera.LookAt(initialCameraLookAt);
             }
 
             camera.Update();

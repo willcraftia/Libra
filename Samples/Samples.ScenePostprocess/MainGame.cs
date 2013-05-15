@@ -183,9 +183,9 @@ namespace Samples.ScenePostprocess
         NormalEdgeDetect normalEdgeDetect;
 
         /// <summary>
-        /// 深度マップ エフェクト。
+        /// 線形深度マップ エフェクト。
         /// </summary>
-        DepthMapEffect depthMapEffect;
+        LinearDepthMapEffect depthMapEffect;
 
         /// <summary>
         /// 法線マップ エフェクト。
@@ -288,7 +288,6 @@ namespace Samples.ScenePostprocess
             bloomCombine = new BloomCombine(Device);
 
             dofCombine = new DofCombine(Device);
-            dofCombine.Projection = camera.Projection;
 
             monochrome = new Monochrome(Device);
             monochrome.Enabled = false;
@@ -299,6 +298,8 @@ namespace Samples.ScenePostprocess
 
             edge = new Edge(Device);
             edge.Enabled = false;
+            edge.NearClipDistance = camera.NearClipDistance;
+            edge.FarClipDistance = camera.FarClipDistance;
 
             negativeFilter = new NegativeFilter(Device);
             negativeFilter.Enabled = false;
@@ -309,7 +310,7 @@ namespace Samples.ScenePostprocess
             normalEdgeDetect = new NormalEdgeDetect(Device);
             normalEdgeDetect.Enabled = false;
 
-            depthMapEffect = new DepthMapEffect(Device);
+            depthMapEffect = new LinearDepthMapEffect(Device);
             normalMapEffect = new NormalMapEffect(Device);
 
             basicEffect = new BasicEffect(Device);
@@ -373,16 +374,17 @@ namespace Samples.ScenePostprocess
         void CreateDepthMap(DeviceContext context)
         {
             context.SetRenderTarget(depthMapRenderTarget.GetRenderTargetView());
-            context.Clear(Vector4.One);
+            //context.Clear(Vector4.One);
+            context.Clear(new Vector4(float.MaxValue));
 
             DrawScene(context, depthMapEffect);
 
             context.SetRenderTarget(null);
 
             // 被写界深度合成パスへ設定。
-            dofCombine.DepthMap = depthMapRenderTarget.GetShaderResourceView();
+            dofCombine.LinearDepthMap = depthMapRenderTarget.GetShaderResourceView();
             // エッジ強調パスへ設定。
-            edge.DepthMap = depthMapRenderTarget.GetShaderResourceView();
+            edge.LinearDepthMap = depthMapRenderTarget.GetShaderResourceView();
 
             // 中間マップ表示。
             textureDisplay.Textures.Add(depthMapRenderTarget.GetShaderResourceView());

@@ -151,6 +151,20 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
+        internal static byte[] LinearDepthMapPS {
+            get {
+                object obj = ResourceManager.GetObject("LinearDepthMapPS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] LinearDepthMapVS {
+            get {
+                object obj = ResourceManager.GetObject("LinearDepthMapVS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
         internal static byte[] MonochromePS {
             get {
                 object obj = ResourceManager.GetObject("MonochromePS", resourceCulture);
