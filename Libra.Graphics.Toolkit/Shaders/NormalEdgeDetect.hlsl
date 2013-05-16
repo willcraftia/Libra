@@ -2,7 +2,7 @@
 
 cbuffer Parameters : register(b0)
 {
-    float2 Kernels[KERNEL_SIZE];
+    float2 Kernel[KERNEL_SIZE];
 };
 
 // ポストプロセス規約による定義 (シェーダ内未使用)。
@@ -24,7 +24,7 @@ float4 PS(float4 color    : COLOR0,
     [unroll]
     for (int i = 0; i < KERNEL_SIZE; i++)
     {
-        float3 sample = NormalMap.SampleLevel(NormalMapSampler, texCoord + Kernels[i], 0);
+        float3 sample = NormalMap.SampleLevel(NormalMapSampler, texCoord + Kernel[i], 0);
         sample = normalize(sample);
 
         sum += saturate(1 - dot(source, sample));

@@ -25,18 +25,6 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        #region Kernel
-
-        [StructLayout(LayoutKind.Sequential, Size = 16)]
-        struct Kernel
-        {
-            public Vector2 Offset;
-
-            public float Weight;
-        }
-
-        #endregion
-
         #region Constants
 
         [StructLayout(LayoutKind.Explicit, Size = 16 + 16 * MaxKernelSize)]
@@ -51,8 +39,11 @@ namespace Libra.Graphics.Toolkit
             [FieldOffset(12)]
             public int KernelSize;
 
+            // XY: テクセル オフセット
+            // Z:  重み
+            // W:  整列用ダミー
             [FieldOffset(16), MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxKernelSize)]
-            public Kernel[] Kernels;
+            public Vector4[] Kernel;
         }
 
         #endregion
@@ -154,7 +145,7 @@ namespace Libra.Graphics.Toolkit
             constants.Center = new Vector2(0.5f);
             constants.Strength = 10;
             constants.KernelSize = 10;
-            constants.Kernels = new Kernel[MaxKernelSize];
+            constants.Kernel = new Vector4[MaxKernelSize];
 
             Enabled = true;
 
@@ -199,13 +190,14 @@ namespace Libra.Graphics.Toolkit
                 var dx = 1.0f / (float) width;
                 var dy = 1.0f / (float) height;
 
-                constants.Kernels[0].Offset = Vector2.Zero;
+                constants.Kernel[0].X = 0.0f;
+                constants.Kernel[0].Y = 0.0f;
 
                 for (int i = 1; i < constants.KernelSize; i++)
                 {
                     float sampleOffset = i + 0.5f;
-                    constants.Kernels[i].Offset.X = dx * sampleOffset;
-                    constants.Kernels[i].Offset.Y = dy * sampleOffset;
+                    constants.Kernel[i].X = dx * sampleOffset;
+                    constants.Kernel[i].Y = dy * sampleOffset;
                 }
 
                 dirtyFlags &= ~DirtyFlags.KernelOffsets;
@@ -225,13 +217,13 @@ namespace Libra.Graphics.Toolkit
                     var weight = MathHelper.CalculateGaussian(sigma, i);
                     
                     totalWeight += weight;
-                    constants.Kernels[i].Weight = weight;
+                    constants.Kernel[i].Z = weight;
                 }
 
                 float invertTotalWeights = 1.0f / totalWeight;
                 for (int i = 0; i < constants.KernelSize; i++)
                 {
-                    constants.Kernels[i].Weight *= invertTotalWeights;
+                    constants.Kernel[i].Z *= invertTotalWeights;
                 }
 
                 dirtyFlags &= ~DirtyFlags.KernelWeights;

@@ -57,7 +57,8 @@ namespace Libra.Graphics.Toolkit
             [FieldOffset(40)]
             public float Attenuation;
 
-            // XY のみ有効 (ZW は整列用ダミー)。
+            // XY: テクセル オフセット
+            // ZW: 整列用ダミー
             [FieldOffset(48), MarshalAs(UnmanagedType.ByValArray, SizeConst = KernelSize)]
             public Vector4[] Kernel;
         }

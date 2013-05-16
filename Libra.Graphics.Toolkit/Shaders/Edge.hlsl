@@ -1,3 +1,5 @@
+#define KERNEL_SIZE 4
+
 cbuffer Parameters : register(b0)
 {
     float3 EdgeColor            : packoffset(c0);
@@ -12,7 +14,7 @@ cbuffer Parameters : register(b0)
     float  FarClipDistance      : packoffset(c2.y);
     float  Attenuation          : packoffset(c2.z);
 
-    float2 Kernel[4]            : packoffset(c3);
+    float2 Kernel[KERNEL_SIZE]  : packoffset(c3);
 };
 
 // 法線マップは _SNORM フォーマット。
@@ -46,7 +48,7 @@ float4 PS(float4 color    : COLOR0,
     float deltaNormal = 0;
 
     [unroll]
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < KERNEL_SIZE; i++)
     {
         float2 sampleTexCoord = texCoord + Kernel[i];
 

@@ -7,7 +7,7 @@ cbuffer Parameters : register(b0)
     int    KernelSize               : packoffset(c0.w);
     // xy = offset
     // z  = weight
-    float3 Kernels[MAX_KERNEL_SIZE] : packoffset(c1);
+    float3 Kernel[MAX_KERNEL_SIZE]  : packoffset(c1);
 };
 
 Texture2D Texture : register(t0);
@@ -32,7 +32,7 @@ float4 PS(float4 color    : COLOR0,
 
     for (int i = 0; i < KernelSize; i++)
     {
-        float3 kernel = Kernels[i];
+        float3 kernel = Kernel[i];
         float2 offset = baseOffset * kernel.xy;
         float weight = kernel.z;
         c += Texture.Sample(TextureSampler, texCoord + offset) * weight;

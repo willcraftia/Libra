@@ -31,18 +31,6 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        #region Kernel
-
-        [StructLayout(LayoutKind.Sequential, Size = 16)]
-        struct Kernel
-        {
-            public Vector2 Offset;
-
-            public float Weight;
-        }
-
-        #endregion
-
         #region Constants
 
         [StructLayout(LayoutKind.Explicit, Size = 16 + 16 * MaxKernelSize)]
@@ -51,8 +39,11 @@ namespace Libra.Graphics.Toolkit
             [FieldOffset(0)]
             public float KernelSize;
 
+            // XY: テクセル オフセット
+            // Z:  重み
+            // W:  整列用ダミー
             [FieldOffset(16), MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxKernelSize)]
-            public Kernel[] Kernels;
+            public Vector4[] Kernel;
         }
 
         #endregion
@@ -90,9 +81,9 @@ namespace Libra.Graphics.Toolkit
 
         int kernelSize;
 
-        Kernel[] horizontalKernels;
+        Vector4[] horizontalKernel;
 
-        Kernel[] verticalKernels;
+        Vector4[] verticalKernel;
 
         int radius;
 
@@ -150,8 +141,8 @@ namespace Libra.Graphics.Toolkit
             verticalConstantBufffer = device.CreateConstantBuffer();
             verticalConstantBufffer.Initialize<Constants>();
 
-            horizontalKernels = new Kernel[MaxKernelSize];
-            verticalKernels = new Kernel[MaxKernelSize];
+            horizontalKernel = new Vector4[MaxKernelSize];
+            verticalKernel = new Vector4[MaxKernelSize];
 
             radius = DefaultRadius;
             amount = DefaultAmount;
@@ -183,10 +174,10 @@ namespace Libra.Graphics.Toolkit
 
             if ((dirtyFlags & DirtyFlags.Constants) != 0)
             {
-                constants.Kernels = horizontalKernels;
+                constants.Kernel = horizontalKernel;
                 horizontalConstantBuffer.SetData(context, constants);
 
-                constants.Kernels = verticalKernels;
+                constants.Kernel = verticalKernel;
                 verticalConstantBufffer.SetData(context, constants);
 
                 dirtyFlags &= ~DirtyFlags.Constants;
@@ -228,8 +219,10 @@ namespace Libra.Graphics.Toolkit
                 var dx = 1.0f / (float) width;
                 var dy = 1.0f / (float) height;
 
-                horizontalKernels[0].Offset = Vector2.Zero;
-                verticalKernels[0].Offset = Vector2.Zero;
+                horizontalKernel[0].X = 0.0f;
+                horizontalKernel[0].Y = 0.0f;
+                verticalKernel[0].X = 0.0f;
+                verticalKernel[0].Y = 0.0f;
 
                 for (int i = 0; i < kernelSize / 2; i++)
                 {
@@ -242,11 +235,11 @@ namespace Libra.Graphics.Toolkit
                     var offsetX = dx * sampleOffset;
                     var offsetY = dy * sampleOffset;
 
-                    horizontalKernels[left].Offset.X = offsetX;
-                    horizontalKernels[right].Offset.X = -offsetX;
+                    horizontalKernel[left].X = offsetX;
+                    horizontalKernel[right].X = -offsetX;
 
-                    verticalKernels[left].Offset.Y = offsetY;
-                    verticalKernels[right].Offset.Y = -offsetY;
+                    verticalKernel[left].Y = offsetY;
+                    verticalKernel[right].Y = -offsetY;
                 }
 
                 dirtyFlags &= ~DirtyFlags.KernelOffsets;
@@ -263,8 +256,8 @@ namespace Libra.Graphics.Toolkit
 
                 var weight = MathHelper.CalculateGaussian(sigma, 0);
 
-                horizontalKernels[0].Weight = weight;
-                verticalKernels[0].Weight = weight;
+                horizontalKernel[0].Z = weight;
+                verticalKernel[0].Z = weight;
 
                 totalWeight += weight;
 
@@ -277,19 +270,18 @@ namespace Libra.Graphics.Toolkit
                     weight = MathHelper.CalculateGaussian(sigma, i + 1);
                     totalWeight += weight * 2;
 
-                    horizontalKernels[left].Weight = weight;
-                    horizontalKernels[right].Weight = weight;
+                    horizontalKernel[left].Z = weight;
+                    horizontalKernel[right].Z = weight;
 
-                    verticalKernels[left].Weight = weight;
-                    verticalKernels[right].Weight = weight;
+                    verticalKernel[left].Z = weight;
+                    verticalKernel[right].Z = weight;
                 }
 
-                // Normalize
                 float inverseTotalWeights = 1.0f / totalWeight;
                 for (int i = 0; i < kernelSize; i++)
                 {
-                    horizontalKernels[i].Weight *= inverseTotalWeights;
-                    verticalKernels[i].Weight *= inverseTotalWeights;
+                    horizontalKernel[i].Z *= inverseTotalWeights;
+                    verticalKernel[i].Z *= inverseTotalWeights;
                 }
 
                 dirtyFlags &= ~DirtyFlags.KernelWeights;

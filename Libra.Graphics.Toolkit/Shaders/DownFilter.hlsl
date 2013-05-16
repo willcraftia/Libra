@@ -2,7 +2,7 @@
 
 cbuffer Parameters : register(b0)
 {
-    float2 Kernels[KERNEL_SIZE];
+    float2 Kernel[KERNEL_SIZE];
 };
 
 Texture2D<float4> Texture : register(t0);
@@ -16,7 +16,7 @@ float4 PS(float4 color    : COLOR0,
     [unroll]
     for (int i = 0; i < KERNEL_SIZE; i++)
     {
-        c += Texture.Sample(TextureSampler, texCoord + Kernels[i]);
+        c += Texture.Sample(TextureSampler, texCoord + Kernel[i]);
     }
 
     return c / KERNEL_SIZE;

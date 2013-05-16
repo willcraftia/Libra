@@ -30,12 +30,10 @@ namespace Libra.Graphics.Toolkit
         [StructLayout(LayoutKind.Sequential, Size = 16 * KernelSize)]
         public struct Constants
         {
-            // X = offset X
-            // Y = offset Y
-            // Z = dummy
-            // W = dummy
+            // XY: テクセル オフセット
+            // ZW: 整列用ダミー
             [MarshalAs(UnmanagedType.ByValArray, SizeConst = KernelSize)]
-            public Vector4[] Kernels;
+            public Vector4[] Kernel;
         }
 
         #endregion
@@ -92,7 +90,7 @@ namespace Libra.Graphics.Toolkit
             constantBuffer = device.CreateConstantBuffer();
             constantBuffer.Initialize<Constants>();
 
-            constants.Kernels = new Vector4[KernelSize];
+            constants.Kernel = new Vector4[KernelSize];
 
             NormalMapSampler = SamplerState.LinearClamp;
 
@@ -121,8 +119,8 @@ namespace Libra.Graphics.Toolkit
             {
                 for (int i = 0; i < KernelSize; i++)
                 {
-                    constants.Kernels[i].X = Offsets[i].X / width;
-                    constants.Kernels[i].Y = Offsets[i].Y / width;
+                    constants.Kernel[i].X = Offsets[i].X / width;
+                    constants.Kernel[i].Y = Offsets[i].Y / width;
 
                     dirtyFlags &= ~DirtyFlags.Kernels;
                     dirtyFlags |= DirtyFlags.Constants;
