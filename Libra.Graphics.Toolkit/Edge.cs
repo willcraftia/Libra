@@ -27,38 +27,39 @@ namespace Libra.Graphics.Toolkit
 
         #region Constants
 
-        [StructLayout(LayoutKind.Explicit, Size = 64)]
+        [StructLayout(LayoutKind.Explicit, Size = 48 + 16 * KernelSize)]
         public struct Constants
         {
             [FieldOffset(0)]
-            public Vector2 EdgeOffset;
-
-            [FieldOffset(8)]
-            public float EdgeIntensity;
-
-            [FieldOffset(12)]
-            public float EdgeAttenuation;
-
-            [FieldOffset(16)]
             public Vector3 EdgeColor;
 
-            [FieldOffset(32)]
+            [FieldOffset(12)]
+            public float EdgeIntensity;
+
+            [FieldOffset(16)]
             public float DepthThreshold;
 
-            [FieldOffset(36)]
+            [FieldOffset(20)]
             public float DepthSensitivity;
 
-            [FieldOffset(40)]
+            [FieldOffset(24)]
             public float NormalThreshold;
 
-            [FieldOffset(44)]
+            [FieldOffset(28)]
             public float NormalSensitivity;
 
-            [FieldOffset(48)]
+            [FieldOffset(32)]
             public float NearClipDistance;
 
-            [FieldOffset(52)]
+            [FieldOffset(36)]
             public float FarClipDistance;
+
+            [FieldOffset(40)]
+            public float Attenuation;
+
+            // XY のみ有効 (ZW は整列用ダミー)。
+            [FieldOffset(48), MarshalAs(UnmanagedType.ByValArray, SizeConst = KernelSize)]
+            public Vector4[] Kernel;
         }
 
         #endregion
@@ -68,11 +69,21 @@ namespace Libra.Graphics.Toolkit
         [Flags]
         enum DirtyFlags
         {
-            EdgeOffset  = (1 << 0),
+            Kernel  = (1 << 0),
             Constants   = (1 << 1)
         }
 
         #endregion
+
+        const int KernelSize = 4;
+
+        static readonly Vector2[] PixelKernel =
+        {
+            new Vector2(-1, -1),
+            new Vector2( 1,  1),
+            new Vector2(-1,  1),
+            new Vector2( 1, -1)
+        };
 
         Device device;
 
@@ -84,9 +95,9 @@ namespace Libra.Graphics.Toolkit
 
         float edgeWidth;
 
-        int width;
+        int viewportWidth;
 
-        int height;
+        int viewportHeight;
 
         DirtyFlags dirtyFlags;
 
@@ -99,7 +110,7 @@ namespace Libra.Graphics.Toolkit
 
                 edgeWidth = value;
 
-                dirtyFlags |= DirtyFlags.EdgeOffset;
+                dirtyFlags |= DirtyFlags.Kernel;
             }
         }
 
@@ -118,12 +129,12 @@ namespace Libra.Graphics.Toolkit
 
         public float EdgeAttenuation
         {
-            get { return constants.EdgeAttenuation; }
+            get { return constants.Attenuation; }
             set
             {
                 if (value < 0.0f || 1.0f < value) throw new ArgumentOutOfRangeException("value");
 
-                constants.EdgeAttenuation = value;
+                constants.Attenuation = value;
 
                 dirtyFlags |= DirtyFlags.Constants;
             }
@@ -229,21 +240,25 @@ namespace Libra.Graphics.Toolkit
             constantBuffer.Initialize<Constants>();
 
             edgeWidth = 1;
-            constants.EdgeOffset = Vector2.Zero;
+            viewportWidth = 1;
+            viewportHeight = 1;
             constants.EdgeIntensity = 3.0f;
-            constants.EdgeAttenuation = 0.8f;
             constants.EdgeColor = Vector3.Zero;
             constants.DepthThreshold = 5.0f;
             constants.DepthSensitivity = 1.0f;
             constants.NormalThreshold = 0.2f;
             constants.NormalSensitivity = 10.0f;
+            constants.NearClipDistance = 1.0f;
+            constants.FarClipDistance = 1000.0f;
+            constants.Attenuation = 0.8f;
+            constants.Kernel = new Vector4[KernelSize];
 
             LinearDepthMapSampler = SamplerState.LinearClamp;
             NormalMapSampler = SamplerState.LinearClamp;
 
             Enabled = true;
 
-            dirtyFlags = DirtyFlags.EdgeOffset | DirtyFlags.Constants;
+            dirtyFlags = DirtyFlags.Kernel | DirtyFlags.Constants;
         }
 
         public void Apply(DeviceContext context)
@@ -251,26 +266,29 @@ namespace Libra.Graphics.Toolkit
             if (context == null) throw new ArgumentNullException("context");
 
             var viewport = context.Viewport;
-            int currentWidth = (int) viewport.Width;
-            int currentHeight = (int) viewport.Height;
+            int w = (int) viewport.Width;
+            int h = (int) viewport.Height;
 
-            if (currentWidth != width || currentHeight != height)
+            if (w != viewportWidth || h != viewportHeight)
             {
-                width = currentWidth;
-                height = currentHeight;
+                viewportWidth = w;
+                viewportHeight = h;
 
-                dirtyFlags |= DirtyFlags.EdgeOffset;
+                dirtyFlags |= DirtyFlags.Kernel;
             }
 
-            if ((dirtyFlags & DirtyFlags.EdgeOffset) != 0)
+            if ((dirtyFlags & DirtyFlags.Kernel) != 0)
             {
-                var offset = new Vector2(edgeWidth, edgeWidth);
-                offset.X /= (float) width;
-                offset.Y /= (float) height;
+                float scaleX = edgeWidth / (float) viewportWidth;
+                float scaleY = edgeWidth / (float) viewportHeight;
 
-                constants.EdgeOffset = offset;
+                for (int i = 0; i < KernelSize; i++)
+                {
+                    constants.Kernel[i].X = PixelKernel[i].X * scaleX;
+                    constants.Kernel[i].Y = PixelKernel[i].Y * scaleY;
+                }
 
-                dirtyFlags &= ~DirtyFlags.EdgeOffset;
+                dirtyFlags &= ~DirtyFlags.Kernel;
                 dirtyFlags |= DirtyFlags.Constants;
             }
 

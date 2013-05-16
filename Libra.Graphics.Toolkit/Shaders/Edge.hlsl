@@ -1,15 +1,18 @@
 cbuffer Parameters : register(b0)
 {
-    float2 EdgeOffset           : packoffset(c0);
-    float  EdgeIntensity        : packoffset(c0.z);
-    float  EdgeAttenuation      : packoffset(c0.w);
-    float3 EdgeColor            : packoffset(c1);
-    float  DepthThreshold       : packoffset(c2.x);
-    float  DepthSensitivity     : packoffset(c2.y);
-    float  NormalThreshold      : packoffset(c2.z);
-    float  NormalSensitivity    : packoffset(c2.w);
-    float  NearClipDistance     : packoffset(c3.x);
-    float  FarClipDistance      : packoffset(c3.y);
+    float3 EdgeColor            : packoffset(c0);
+    float  EdgeIntensity        : packoffset(c0.w);
+
+    float  DepthThreshold       : packoffset(c1.x);
+    float  DepthSensitivity     : packoffset(c1.y);
+    float  NormalThreshold      : packoffset(c1.z);
+    float  NormalSensitivity    : packoffset(c1.w);
+
+    float  NearClipDistance     : packoffset(c2.x);
+    float  FarClipDistance      : packoffset(c2.y);
+    float  Attenuation          : packoffset(c2.z);
+
+    float2 Kernel[4]            : packoffset(c3);
 };
 
 // 法線マップは _SNORM フォーマット。
@@ -31,14 +34,6 @@ float4 SampleDepthNormal(float2 texCoord)
     return depthNormal;
 }
 
-static float2 Kernel[4] =
-{
-    float2(-1, -1),
-    float2( 1,  1),
-    float2(-1,  1),
-    float2( 1, -1)
-};
-
 float4 PS(float4 color    : COLOR0,
           float2 texCoord : TEXCOORD0) : SV_Target
 {
@@ -53,9 +48,7 @@ float4 PS(float4 color    : COLOR0,
     [unroll]
     for (int i = 0; i < 4; i++)
     {
-        // TODO
-        // 定数バッファで事前計算して設定。
-        float2 sampleTexCoord = texCoord + Kernel[i] * EdgeOffset;
+        float2 sampleTexCoord = texCoord + Kernel[i];
 
         float sampleDepth = LinearDepthMap.SampleLevel(LinearDepthMapSampler, sampleTexCoord, 0);
         float3 sampleNormal = NormalMap.SampleLevel(NormalMapSampler, sampleTexCoord, 0);
@@ -81,7 +74,7 @@ float4 PS(float4 color    : COLOR0,
     // EdgeAttenuation < 1 ならば遠クリップ面 で amount = 0。
     // 1 <= EdgeAttenuation ならば減衰なし。
     float projectedDepth = (depth - NearClipDistance) / (FarClipDistance - NearClipDistance);
-    float attenuation = 1 - projectedDepth * step(EdgeAttenuation, projectedDepth);
+    float attenuation = 1 - projectedDepth * step(Attenuation, projectedDepth);
     amount *= attenuation;
 
     source.rgb = lerp(source.rgb, source.rgb * EdgeColor, saturate(amount));
