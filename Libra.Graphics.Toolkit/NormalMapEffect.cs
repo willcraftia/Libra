@@ -35,7 +35,7 @@ namespace Libra.Graphics.Toolkit
         {
             public Matrix WorldViewProjection;
 
-            public Matrix World;
+            public Matrix WorldView;
         }
 
         #endregion
@@ -47,7 +47,7 @@ namespace Libra.Graphics.Toolkit
         {
             ViewProjection      = (1 << 0),
             WorldViewProjection = (1 << 1),
-            World               = (1 << 2),
+            WorldView               = (1 << 2),
             Constants           = (1 << 3)
         }
 
@@ -78,7 +78,7 @@ namespace Libra.Graphics.Toolkit
             {
                 world = value;
 
-                dirtyFlags |= DirtyFlags.WorldViewProjection | DirtyFlags.World;
+                dirtyFlags |= DirtyFlags.WorldViewProjection | DirtyFlags.WorldView;
             }
         }
 
@@ -89,7 +89,7 @@ namespace Libra.Graphics.Toolkit
             {
                 view = value;
 
-                dirtyFlags |= DirtyFlags.ViewProjection;
+                dirtyFlags |= DirtyFlags.ViewProjection | DirtyFlags.WorldView;
             }
         }
 
@@ -145,11 +145,14 @@ namespace Libra.Graphics.Toolkit
                 dirtyFlags |= DirtyFlags.Constants;
             }
 
-            if ((dirtyFlags & DirtyFlags.World) != 0)
+            if ((dirtyFlags & DirtyFlags.WorldView) != 0)
             {
-                Matrix.Transpose(ref world, out constants.World);
+                Matrix worldView;
+                Matrix.Multiply(ref world, ref view, out worldView);
 
-                dirtyFlags &= ~DirtyFlags.World;
+                Matrix.Transpose(ref worldView, out constants.WorldView);
+
+                dirtyFlags &= ~DirtyFlags.WorldView;
                 dirtyFlags |= DirtyFlags.Constants;
             }
 

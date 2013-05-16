@@ -1,7 +1,7 @@
 cbuffer Parameters : register(b0)
 {
     float4x4 WorldViewProjection;
-    float4x4 World;
+    float4x4 WorldView;
 };
 
 struct VSInput
@@ -21,7 +21,7 @@ VSOutput VS(VSInput input)
     VSOutput output;
 
     output.Position = mul(input.Position, WorldViewProjection);
-    output.Normal = mul(float4(input.Normal, 0), World).xyz;
+    output.Normal = mul(float4(input.Normal, 0), WorldView).xyz;
 
     return output;
 }
