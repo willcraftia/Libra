@@ -31,22 +31,19 @@ namespace Libra.Graphics.Toolkit
         public struct Constants
         {
             [FieldOffset(0)]
-            public float TotalStrength;
-
-            [FieldOffset(4)]
             public float Strength;
 
-            [FieldOffset(8)]
-            public float Falloff;
+            [FieldOffset(4)]
+            public float Attenuation;
 
-            [FieldOffset(12)]
+            [FieldOffset(8)]
             public float Radius;
 
             [FieldOffset(16)]
             public Vector2 RandomOffset;
 
             [FieldOffset(24)]
-            public int SampleCount;
+            public float SampleCount;
 
             [FieldOffset(32), MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxSampleCount)]
             public Vector3[] SampleSphere;
@@ -98,19 +95,6 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        public float TotalStrength
-        {
-            get { return constants.TotalStrength; }
-            set
-            {
-                if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
-
-                constants.TotalStrength = value;
-
-                dirtyFlags |= DirtyFlags.Constants;
-            }
-        }
-
         public float Strength
         {
             get { return constants.Strength; }
@@ -124,14 +108,14 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        public float Falloff
+        public float Attenuation
         {
-            get { return constants.Falloff; }
+            get { return constants.Attenuation; }
             set
             {
-                if (value < 0.0f || 1.0f < value) throw new ArgumentOutOfRangeException("value");
+                if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
 
-                constants.Falloff = value;
+                constants.Attenuation = value;
 
                 dirtyFlags |= DirtyFlags.Constants;
             }
@@ -152,7 +136,7 @@ namespace Libra.Graphics.Toolkit
 
         public int SampleCount
         {
-            get { return constants.SampleCount; }
+            get { return (int) constants.SampleCount; }
             set
             {
                 if (value < 1) throw new ArgumentOutOfRangeException("value");
@@ -189,13 +173,13 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        public ShaderResourceView DepthMap { get; set; }
+        public ShaderResourceView LinearDepthMap { get; set; }
 
         public ShaderResourceView NormalMap { get; set; }
 
         public ShaderResourceView RandomNormalMap { get; set; }
 
-        public SamplerState DepthMapSampler { get; set; }
+        public SamplerState LinearDepthMapSampler { get; set; }
 
         public SamplerState NormalMapSampler { get; set; }
 
@@ -218,15 +202,15 @@ namespace Libra.Graphics.Toolkit
             width = 1;
             height = 1;
 
-            constants.TotalStrength = 10.00f;
-            constants.Strength = 0.04f;
-            constants.Falloff = 0.0f;
-            constants.Radius = 0.03f;
+            constants.Strength = 10.0f;
+            constants.Attenuation = 0.5f;
+            constants.Radius = 10.0f;
             constants.RandomOffset = Vector2.One;
-            constants.SampleCount = 32;
+            //constants.SampleCount = 32;
+            constants.SampleCount = 16;
             constants.SampleSphere = new Vector3[MaxSampleCount];
 
-            DepthMapSampler = SamplerState.PointClamp;
+            LinearDepthMapSampler = SamplerState.PointClamp;
             NormalMapSampler = SamplerState.PointClamp;
             RandomNormalMapSampler = SamplerState.PointWrap;
 
@@ -252,10 +236,10 @@ namespace Libra.Graphics.Toolkit
             context.PixelShaderConstantBuffers[0] = constantBuffer;
             context.PixelShader = sharedDeviceResource.PixelShader;
 
-            context.PixelShaderResources[1] = DepthMap;
+            context.PixelShaderResources[1] = LinearDepthMap;
             context.PixelShaderResources[2] = NormalMap;
             context.PixelShaderResources[3] = RandomNormalMap;
-            context.PixelShaderSamplers[1] = DepthMapSampler;
+            context.PixelShaderSamplers[1] = LinearDepthMapSampler;
             context.PixelShaderSamplers[2] = NormalMapSampler;
             context.PixelShaderSamplers[3] = RandomNormalMapSampler;
         }

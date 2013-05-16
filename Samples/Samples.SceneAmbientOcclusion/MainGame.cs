@@ -141,9 +141,9 @@ namespace Samples.SceneAmbientOcclusion
         GaussianBlur gaussianBlurV;
 
         /// <summary>
-        /// 深度マップ エフェクト。
+        /// 線形深度マップ エフェクト。
         /// </summary>
-        DepthMapEffect depthMapEffect;
+        LinearDepthMapEffect depthMapEffect;
 
         /// <summary>
         /// 法線マップ エフェクト。
@@ -255,7 +255,7 @@ namespace Samples.SceneAmbientOcclusion
             //postprocess.Passes.Add(gaussianBlurV);
             //postprocess.Passes.Add(upFilter);
 
-            depthMapEffect = new DepthMapEffect(Device);
+            depthMapEffect = new LinearDepthMapEffect(Device);
             normalMapEffect = new NormalMapEffect(Device);
 
             basicEffect = new BasicEffect(Device);
@@ -322,14 +322,14 @@ namespace Samples.SceneAmbientOcclusion
         void CreateDepthMap(DeviceContext context)
         {
             context.SetRenderTarget(depthMapRenderTarget.GetRenderTargetView());
-            context.Clear(Vector4.One);
+            context.Clear(new Vector4(float.MaxValue));
 
             DrawScene(context, depthMapEffect);
 
             context.SetRenderTarget(null);
 
             // 環境光閉塞マップ シェーダへ設定。
-            ambientOcclusionMap.DepthMap = depthMapRenderTarget.GetShaderResourceView();
+            ambientOcclusionMap.LinearDepthMap = depthMapRenderTarget.GetShaderResourceView();
 
             // 中間マップ表示。
             textureDisplay.Textures.Add(depthMapRenderTarget.GetShaderResourceView());
