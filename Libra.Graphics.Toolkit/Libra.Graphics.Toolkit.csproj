@@ -43,8 +43,8 @@
     <Compile Include="AmbientOcclusionMap.cs" />
     <Compile Include="BasicCamera.cs" />
     <Compile Include="BasicLightCameraBuilder.cs" />
+    <Compile Include="BilateralFilterPass.cs" />
     <Compile Include="BilateralFilter.cs" />
-    <Compile Include="BilateralFilterCore.cs" />
     <Compile Include="BloomCombine.cs" />
     <Compile Include="BloomExtract.cs" />
     <Compile Include="Camera.cs" />
