@@ -59,10 +59,10 @@ namespace Libra.Graphics.Toolkit
         [Flags]
         enum DirtyFlags
         {
-            Random              = (1 << 0),
-            RandomNormalOffset  = (1 << 1),
-            SampleSphere        = (1 << 2),
-            Constants           = (1 << 3)
+            Random          = (1 << 0),
+            RandomOffset    = (1 << 1),
+            SampleSphere    = (1 << 2),
+            Constants       = (1 << 3)
         }
 
         #endregion
@@ -172,7 +172,7 @@ namespace Libra.Graphics.Toolkit
 
                 width = value;
 
-                dirtyFlags |= DirtyFlags.RandomNormalOffset;
+                dirtyFlags |= DirtyFlags.RandomOffset;
             }
         }
 
@@ -185,7 +185,7 @@ namespace Libra.Graphics.Toolkit
 
                 height = value;
 
-                dirtyFlags |= DirtyFlags.RandomNormalOffset;
+                dirtyFlags |= DirtyFlags.RandomOffset;
             }
         }
 
@@ -232,7 +232,7 @@ namespace Libra.Graphics.Toolkit
 
             Enabled = true;
 
-            dirtyFlags = DirtyFlags.Random | DirtyFlags.RandomNormalOffset | DirtyFlags.SampleSphere | DirtyFlags.Constants;
+            dirtyFlags = DirtyFlags.Random | DirtyFlags.RandomOffset | DirtyFlags.SampleSphere | DirtyFlags.Constants;
         }
 
         public void Apply(DeviceContext context)
@@ -240,7 +240,7 @@ namespace Libra.Graphics.Toolkit
             if (context == null) throw new ArgumentNullException("context");
 
             SetSampleSphere();
-            SetRandomNormalOffset();
+            SetRandomOffset();
 
             if ((dirtyFlags & DirtyFlags.Constants) != 0)
             {
@@ -294,9 +294,9 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        void SetRandomNormalOffset()
+        void SetRandomOffset()
         {
-            if ((dirtyFlags & DirtyFlags.RandomNormalOffset) != 0)
+            if ((dirtyFlags & DirtyFlags.RandomOffset) != 0)
             {
                 int w;
                 int h;
