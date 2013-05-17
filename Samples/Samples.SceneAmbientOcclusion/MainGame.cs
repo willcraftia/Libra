@@ -151,6 +151,11 @@ namespace Samples.SceneAmbientOcclusion
         AmbientOcclusionCombine ambientOcclusionCombine;
 
         /// <summary>
+        /// 線形深度マップ可視化フィルタ。
+        /// </summary>
+        LinearDepthMapVisualize linearDepthMapVisualize;
+
+        /// <summary>
         /// 線形深度マップ エフェクト。
         /// </summary>
         LinearDepthMapEffect depthMapEffect;
@@ -272,8 +277,6 @@ namespace Samples.SceneAmbientOcclusion
             ambientOcclusionBlurH = new GaussianFilterPass(ambientOcclusionBlur, GaussianFilterDirection.Horizon);
             ambientOcclusionBlurV = new GaussianFilterPass(ambientOcclusionBlur, GaussianFilterDirection.Vertical);
 
-            ambientOcclusionCombine = new AmbientOcclusionCombine(Device);
-
             const int blurIteration = 4;
             for (int i = 0; i < blurIteration; i++)
             {
@@ -281,7 +284,14 @@ namespace Samples.SceneAmbientOcclusion
                 postprocessAO.Filters.Add(ambientOcclusionBlurV);
             }
 
+            ambientOcclusionCombine = new AmbientOcclusionCombine(Device);
+            linearDepthMapVisualize = new LinearDepthMapVisualize(Device);
+            linearDepthMapVisualize.NearClipDistance = camera.NearClipDistance;
+            linearDepthMapVisualize.FarClipDistance = camera.FarClipDistance;
+            linearDepthMapVisualize.Enabled = false;
+
             postprocess.Filters.Add(ambientOcclusionCombine);
+            postprocess.Filters.Add(linearDepthMapVisualize);
 
             depthMapEffect = new LinearDepthMapEffect(Device);
             normalMapEffect = new NormalMapEffect(Device);
@@ -365,6 +375,8 @@ namespace Samples.SceneAmbientOcclusion
             ambientOcclusionMap.LinearDepthMap = depthMapRenderTarget.GetShaderResourceView();
             // 環境光閉塞マップ ブラー フィルタへ設定。
             ambientOcclusionBlur.LinearDepthMap = depthMapRenderTarget.GetShaderResourceView();
+            // 可視化フィルタへ設定。
+            linearDepthMapVisualize.LinearDepthMap = depthMapRenderTarget.GetShaderResourceView();
 
             // 中間マップ表示。
             textureDisplay.Textures.Add(depthMapRenderTarget.GetShaderResourceView());
@@ -494,7 +506,8 @@ namespace Samples.SceneAmbientOcclusion
 
             string basicText =
                 "[F1] HUD on/off\n" +
-                "[F2] Inter-maps on/off";
+                "[F2] Inter-maps on/off\n" +
+                "[F3] Show/Hide Depth (" + linearDepthMapVisualize.Enabled + ")";
 
             spriteBatch.Begin();
 
@@ -564,6 +577,9 @@ namespace Samples.SceneAmbientOcclusion
 
             if (currentKeyboardState.IsKeyUp(Keys.F2) && lastKeyboardState.IsKeyDown(Keys.F2))
                 textureDisplay.Visible = !textureDisplay.Visible;
+
+            if (currentKeyboardState.IsKeyUp(Keys.F3) && lastKeyboardState.IsKeyDown(Keys.F3))
+                linearDepthMapVisualize.Enabled = !linearDepthMapVisualize.Enabled;
 
             if (currentKeyboardState.IsKeyDown(Keys.Escape))
                 Exit();
