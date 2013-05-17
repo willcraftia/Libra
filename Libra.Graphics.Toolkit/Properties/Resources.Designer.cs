@@ -144,9 +144,9 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
-        internal static byte[] GaussianBlurPS {
+        internal static byte[] GaussianFilterPS {
             get {
-                object obj = ResourceManager.GetObject("GaussianBlurPS", resourceCulture);
+                object obj = ResourceManager.GetObject("GaussianFilterPS", resourceCulture);
                 return ((byte[])(obj));
             }
         }

@@ -397,7 +397,7 @@ namespace Samples.ShadowMapping
         /// <summary>
         /// ガウシアン ブラー。
         /// </summary>
-        GaussianBlurSuite gaussianBlur;
+        GaussianFilterSuite gaussianFilter;
 
         /// <summary>
         /// ライトの進行方向。
@@ -647,15 +647,15 @@ namespace Samples.ShadowMapping
                 // VSM の場合は生成したシャドウ マップへブラーを適用。
                 if (shadowMapForm == ShadowMapForm.Variance)
                 {
-                    if (gaussianBlur == null)
+                    if (gaussianFilter == null)
                     {
                         var shadowMapSize = ShadowMapSizes[currentShadowMapSizeIndex];
-                        gaussianBlur = new GaussianBlurSuite(Device, shadowMapSize, shadowMapSize, SurfaceFormat.Vector2);
-                        gaussianBlur.Radius = 7;
-                        gaussianBlur.Sigma = 7;
+                        gaussianFilter = new GaussianFilterSuite(Device, shadowMapSize, shadowMapSize, SurfaceFormat.Vector2);
+                        gaussianFilter.Radius = 3;
+                        gaussianFilter.Sigma = 1;
                     }
 
-                    gaussianBlur.Filter(
+                    gaussianFilter.Filter(
                         context,
                         shadowMaps[i].RenderTarget.GetShaderResourceView(),
                         shadowMaps[i].RenderTarget.GetRenderTargetView());
@@ -841,10 +841,10 @@ namespace Samples.ShadowMapping
                 if (ShadowMapSizes.Length <= currentShadowMapSizeIndex)
                     currentShadowMapSizeIndex = 0;
 
-                if (gaussianBlur != null)
+                if (gaussianFilter != null)
                 {
-                    gaussianBlur.Dispose();
-                    gaussianBlur = null;
+                    gaussianFilter.Dispose();
+                    gaussianFilter = null;
                 }
             }
 

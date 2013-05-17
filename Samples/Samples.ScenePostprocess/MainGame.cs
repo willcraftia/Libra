@@ -124,19 +124,19 @@ namespace Samples.ScenePostprocess
         UpFilter upFilter;
 
         /// <summary>
-        /// ガウシアン ブラー シェーダ。
+        /// ガウシアン フィルタ シェーダ。
         /// </summary>
-        GaussianBlurCore gaussianBlurCore;
+        GaussianFilterCore gaussianFilterCore;
 
         /// <summary>
-        /// ガウシアン ブラー パス (水平)。
+        /// ガウシアン フィルタ 水平パス。
         /// </summary>
-        GaussianBlur gaussianBlurH;
+        GaussianFilter gaussianFilterH;
 
         /// <summary>
-        /// ガウシアン ブラー パス (垂直)。
+        /// ガウシアン フィルタ 垂直パス。
         /// </summary>
-        GaussianBlur gaussianBlurV;
+        GaussianFilter gaussianFilterV;
 
         /// <summary>
         /// バイラテラル フィルタ シェーダ。
@@ -296,13 +296,13 @@ namespace Samples.ScenePostprocess
             downFilter = new DownFilter(Device);
             upFilter = new UpFilter(Device);
 
-            gaussianBlurCore = new GaussianBlurCore(Device);
-            gaussianBlurH = new GaussianBlur(gaussianBlurCore, GaussianBlurPass.Horizon);
-            gaussianBlurV = new GaussianBlur(gaussianBlurCore, GaussianBlurPass.Vertical);
+            gaussianFilterCore = new GaussianFilterCore(Device);
+            gaussianFilterH = new GaussianFilter(gaussianFilterCore, GaussianFilterPass.Horizon);
+            gaussianFilterV = new GaussianFilter(gaussianFilterCore, GaussianFilterPass.Vertical);
 
             bilateralFilterCore = new BilateralFilterCore(Device);
-            bilateralFilterH = new BilateralFilter(bilateralFilterCore, GaussianBlurPass.Horizon);
-            bilateralFilterV = new BilateralFilter(bilateralFilterCore, GaussianBlurPass.Vertical);
+            bilateralFilterH = new BilateralFilter(bilateralFilterCore, GaussianFilterPass.Horizon);
+            bilateralFilterV = new BilateralFilter(bilateralFilterCore, GaussianFilterPass.Vertical);
 
             bloomExtract = new BloomExtract(Device);
             bloomCombine = new BloomCombine(Device);
@@ -555,8 +555,8 @@ namespace Samples.ScenePostprocess
         void SetupDepthOfField()
         {
             postprocess.Passes.Add(downFilter);
-            postprocess.Passes.Add(gaussianBlurH);
-            postprocess.Passes.Add(gaussianBlurV);
+            postprocess.Passes.Add(gaussianFilterH);
+            postprocess.Passes.Add(gaussianFilterV);
             postprocess.Passes.Add(upFilter);
             postprocess.Passes.Add(dofCombine);
 
@@ -567,8 +567,8 @@ namespace Samples.ScenePostprocess
         {
             postprocess.Passes.Add(bloomExtract);
             postprocess.Passes.Add(downFilter);
-            postprocess.Passes.Add(gaussianBlurH);
-            postprocess.Passes.Add(gaussianBlurV);
+            postprocess.Passes.Add(gaussianFilterH);
+            postprocess.Passes.Add(gaussianFilterV);
             postprocess.Passes.Add(upFilter);
             postprocess.Passes.Add(bloomCombine);
 
@@ -578,8 +578,8 @@ namespace Samples.ScenePostprocess
         void SetupBlur()
         {
             postprocess.Passes.Add(downFilter);
-            postprocess.Passes.Add(gaussianBlurH);
-            postprocess.Passes.Add(gaussianBlurV);
+            postprocess.Passes.Add(gaussianFilterH);
+            postprocess.Passes.Add(gaussianFilterV);
             postprocess.Passes.Add(upFilter);
 
             AddCommonPasses();

@@ -19,7 +19,7 @@ namespace Samples.BloomPostprocess
 
         BloomCombine bloomCombine;
 
-        GaussianBlurCore gaussianBlur;
+        GaussianFilterCore gaussianFilter;
 
         RenderTarget sceneRenderTarget;
 
@@ -64,7 +64,7 @@ namespace Samples.BloomPostprocess
 
             bloomExtract = new BloomExtract(Device);
             bloomCombine = new BloomCombine(Device);
-            gaussianBlur = new GaussianBlurCore(Device);
+            gaussianFilter = new GaussianFilterCore(Device);
 
             var backBuffer = Device.BackBuffer;
             var width = backBuffer.Width;
@@ -125,22 +125,22 @@ namespace Samples.BloomPostprocess
 
             // ガウシアン ブラーの設定。
             // XNA の BlurAamount はガウス関数の sigma そのものに一致。
-            gaussianBlur.Sigma = Settings.BlurAmount;
+            gaussianFilter.Sigma = Settings.BlurAmount;
 
             // ガウシアン ブラーの水平パス。
-            gaussianBlur.Pass = GaussianBlurPass.Horizon;
+            gaussianFilter.Pass = GaussianFilterPass.Horizon;
             DrawFullscreenQuad(
                 bloomMapRenderTarget,
                 interBlurRenderTarget,
-                gaussianBlur.Apply,
+                gaussianFilter.Apply,
                 IntermediateBuffer.BlurredHorizontally);
 
             // ガウシアン ブラーの垂直パス。
-            gaussianBlur.Pass = GaussianBlurPass.Vertical;
+            gaussianFilter.Pass = GaussianFilterPass.Vertical;
             DrawFullscreenQuad(
                 interBlurRenderTarget,
                 bloomMapRenderTarget,
-                gaussianBlur.Apply,
+                gaussianFilter.Apply,
                 IntermediateBuffer.BlurredBothWays);
             
             context.SetRenderTarget(null);

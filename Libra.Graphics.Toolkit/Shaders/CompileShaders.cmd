@@ -62,9 +62,9 @@ call :CompileShader DownFilter PS %ps_profile%
 call :CompileShader UpFilter PS %ps_profile%
 
 ::
-:: GaussianBlur PS
+:: GaussianFilter PS
 ::
-call :CompileShader GaussianBlur PS %ps_profile%
+call :CompileShader GaussianFilter PS %ps_profile%
 
 ::
 :: RadialBlur PS

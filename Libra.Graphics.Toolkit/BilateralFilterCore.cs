@@ -94,7 +94,7 @@ namespace Libra.Graphics.Toolkit
 
         DirtyFlags dirtyFlags;
 
-        public GaussianBlurPass Pass { get; set; }
+        public GaussianFilterPass Pass { get; set; }
 
         public int Radius
         {
@@ -202,10 +202,10 @@ namespace Libra.Graphics.Toolkit
             // 定数バッファの設定。
             switch (Pass)
             {
-                case GaussianBlurPass.Horizon:
+                case GaussianFilterPass.Horizon:
                     context.PixelShaderConstantBuffers[0] = constantBufferH;
                     break;
-                case GaussianBlurPass.Vertical:
+                case GaussianFilterPass.Vertical:
                     context.PixelShaderConstantBuffers[0] = constantBuffferV;
                     break;
                 default:

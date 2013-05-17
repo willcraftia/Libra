@@ -9,15 +9,15 @@ namespace Libra.Graphics.Toolkit
     /// <summary>
     /// ガウシアン ブラー シェーダをポストプロセス パスとして構築するアダプタ クラスです。
     /// </summary>
-    public sealed class GaussianBlur : IPostprocessPass
+    public sealed class GaussianFilter : IPostprocessPass
     {
-        public GaussianBlurCore Core { get; private set; }
+        public GaussianFilterCore Core { get; private set; }
 
-        public GaussianBlurPass Pass { get; private set; }
+        public GaussianFilterPass Pass { get; private set; }
 
         public bool Enabled { get; set; }
 
-        public GaussianBlur(GaussianBlurCore core, GaussianBlurPass pass)
+        public GaussianFilter(GaussianFilterCore core, GaussianFilterPass pass)
         {
             if (core == null) throw new ArgumentNullException("core");
 

@@ -56,7 +56,7 @@
     <Compile Include="DirectTextureDraw.cs" />
     <Compile Include="DownFilter.cs" />
     <Compile Include="Edge.cs" />
-    <Compile Include="GaussianBlur.cs" />
+    <Compile Include="GaussianFilter.cs" />
     <Compile Include="IPostprocessPass.cs" />
     <Compile Include="IPostprocessPassScale.cs" />
     <Compile Include="LightScattering.cs" />
@@ -77,9 +77,9 @@
     <Compile Include="LightCameraBuilder.cs" />
     <Compile Include="ConvexBody.cs" />
     <Compile Include="FullScreenQuad.cs" />
-    <Compile Include="GaussianBlurPass.cs" />
-    <Compile Include="GaussianBlurSuite.cs" />
-    <Compile Include="GaussianBlurCore.cs" />
+    <Compile Include="GaussianFilterPass.cs" />
+    <Compile Include="GaussianFilterSuite.cs" />
+    <Compile Include="GaussianFilterCore.cs" />
     <Compile Include="LiSPSMLightCameraBuilder.cs" />
     <Compile Include="ProjectionType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -140,7 +140,7 @@
     <None Include="Shaders\Compiled\DownFilterPS.bin" />
     <None Include="Shaders\Compiled\EdgePS.bin" />
     <None Include="Shaders\Compiled\FullScreenQuadVS.bin" />
-    <None Include="Shaders\Compiled\GaussianBlurPS.bin" />
+    <None Include="Shaders\Compiled\GaussianFilterPS.bin" />
     <None Include="Shaders\Compiled\LightScatteringPS.bin" />
     <None Include="Shaders\Compiled\LinearDepthMapPS.bin" />
     <None Include="Shaders\Compiled\LinearDepthMapVS.bin" />
@@ -164,7 +164,7 @@
     <None Include="Shaders\DownFilter.hlsl" />
     <None Include="Shaders\Edge.hlsl" />
     <None Include="Shaders\FullScreenQuad.hlsl" />
-    <None Include="Shaders\GaussianBlur.hlsl" />
+    <None Include="Shaders\GaussianFilter.hlsl" />
     <None Include="Shaders\LightScattering.hlsl" />
     <None Include="Shaders\LinearDepthMap.hlsl" />
     <None Include="Shaders\Monochrome.hlsl" />

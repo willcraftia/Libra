@@ -14,7 +14,7 @@ namespace Libra.Graphics.Toolkit
     /// <remarks>
     /// このクラスは、SpriteBatch あるいは FullscreenQuad の頂点シェーダの利用を前提としています。
     /// </remarks>
-    public sealed class GaussianBlurCore : IDisposable
+    public sealed class GaussianFilterCore : IDisposable
     {
         #region SharedDeviceResource
 
@@ -25,7 +25,7 @@ namespace Libra.Graphics.Toolkit
             public SharedDeviceResource(Device device)
             {
                 PixelShader = device.CreatePixelShader();
-                PixelShader.Initialize(Resources.GaussianBlurPS);
+                PixelShader.Initialize(Resources.GaussianFilterPS);
             }
         }
 
@@ -95,7 +95,7 @@ namespace Libra.Graphics.Toolkit
 
         DirtyFlags dirtyFlags;
 
-        public GaussianBlurPass Pass { get; set; }
+        public GaussianFilterPass Pass { get; set; }
 
         public int Radius
         {
@@ -127,13 +127,13 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        public GaussianBlurCore(Device device)
+        public GaussianFilterCore(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 
             this.device = device;
 
-            sharedDeviceResource = device.GetSharedResource<GaussianBlurCore, SharedDeviceResource>();
+            sharedDeviceResource = device.GetSharedResource<GaussianFilterCore, SharedDeviceResource>();
 
             horizontalConstantBuffer = device.CreateConstantBuffer();
             horizontalConstantBuffer.Initialize<Constants>();
@@ -186,10 +186,10 @@ namespace Libra.Graphics.Toolkit
             // 定数バッファの設定。
             switch (Pass)
             {
-                case GaussianBlurPass.Horizon:
+                case GaussianFilterPass.Horizon:
                     context.PixelShaderConstantBuffers[0] = horizontalConstantBuffer;
                     break;
-                case GaussianBlurPass.Vertical:
+                case GaussianFilterPass.Vertical:
                     context.PixelShaderConstantBuffers[0] = verticalConstantBufffer;
                     break;
                 default:
@@ -292,7 +292,7 @@ namespace Libra.Graphics.Toolkit
 
         bool disposed;
 
-        ~GaussianBlurCore()
+        ~GaussianFilterCore()
         {
             Dispose(false);
         }

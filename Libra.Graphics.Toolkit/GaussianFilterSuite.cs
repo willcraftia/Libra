@@ -6,9 +6,9 @@ using System;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class GaussianBlurSuite : IDisposable
+    public sealed class GaussianFilterSuite : IDisposable
     {
-        GaussianBlurCore core;
+        GaussianFilterCore core;
 
         RenderTarget backingRenderTarget;
 
@@ -34,7 +34,7 @@ namespace Libra.Graphics.Toolkit
             set { core.Sigma = value; }
         }
 
-        public GaussianBlurSuite(Device device, int width, int height, SurfaceFormat format)
+        public GaussianFilterSuite(Device device, int width, int height, SurfaceFormat format)
         {
             if (device == null) throw new ArgumentNullException("device");
             if (width < 1) throw new ArgumentOutOfRangeException("width");
@@ -44,7 +44,7 @@ namespace Libra.Graphics.Toolkit
             Width = width;
             Height = height;
 
-            core = new GaussianBlurCore(Device);
+            core = new GaussianFilterCore(Device);
             fullScreenQuad = new FullScreenQuad(Device);
 
             backingRenderTarget = Device.CreateRenderTarget();
@@ -66,8 +66,8 @@ namespace Libra.Graphics.Toolkit
             context.RasterizerState = RasterizerState.CullBack;
             context.PixelShaderSamplers[0] = SamplerState.LinearClamp;
 
-            Filter(context, source, backingRenderTarget.GetRenderTargetView(), GaussianBlurPass.Horizon);
-            Filter(context, backingRenderTarget.GetShaderResourceView(), destination, GaussianBlurPass.Vertical);
+            Filter(context, source, backingRenderTarget.GetRenderTargetView(), GaussianFilterPass.Horizon);
+            Filter(context, backingRenderTarget.GetShaderResourceView(), destination, GaussianFilterPass.Vertical);
 
             context.SetRenderTarget(null);
 
@@ -78,7 +78,7 @@ namespace Libra.Graphics.Toolkit
             context.PixelShaderSamplers[0] = previousSamplerState;
         }
 
-        void Filter(DeviceContext context, ShaderResourceView source, RenderTargetView destination, GaussianBlurPass pass)
+        void Filter(DeviceContext context, ShaderResourceView source, RenderTargetView destination, GaussianFilterPass pass)
         {
             context.SetRenderTarget(destination);
 
@@ -94,7 +94,7 @@ namespace Libra.Graphics.Toolkit
 
         bool disposed;
 
-        ~GaussianBlurSuite()
+        ~GaussianFilterSuite()
         {
             Dispose(false);
         }

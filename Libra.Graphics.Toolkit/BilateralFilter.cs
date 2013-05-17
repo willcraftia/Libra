@@ -10,11 +10,11 @@ namespace Libra.Graphics.Toolkit
     {
         public BilateralFilterCore Core { get; private set; }
 
-        public GaussianBlurPass Pass { get; private set; }
+        public GaussianFilterPass Pass { get; private set; }
 
         public bool Enabled { get; set; }
 
-        public BilateralFilter(BilateralFilterCore core, GaussianBlurPass pass)
+        public BilateralFilter(BilateralFilterCore core, GaussianFilterPass pass)
         {
             if (core == null) throw new ArgumentNullException("core");
 
