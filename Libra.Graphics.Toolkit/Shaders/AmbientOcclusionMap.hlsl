@@ -14,7 +14,7 @@ cbuffer Parameters : register(b0)
 
 // SpriteBatch でスプライト エフェクトとして利用するためのダミー定義。
 // スプライト エフェクトとして用いる場合には、
-// SpriteBatch のソース テクスチャへ LinearDepthMap や DepthNormalMap などを
+// SpriteBatch のソース テクスチャへ LinearDepthMap や NormalMap などを
 // ダミーとして指定する。
 Texture2D<float4> Texture           : register(t0);
 SamplerState TextureSampler         : register(s0);
@@ -23,12 +23,10 @@ SamplerState TextureSampler         : register(s0);
 Texture2D<float>  LinearDepthMap    : register(t1);
 Texture2D<float3> NormalMap         : register(t2);
 Texture2D<float3> RandomNormalMap   : register(t3);
-Texture2D<float4> DepthNormalMap    : register(t4);
 
 SamplerState LinearDepthMapSampler  : register(s1);
 SamplerState NormalMapSampler       : register(s2);
 SamplerState RandomNormalMapSampler : register(s3);
-SamplerState DepthNormalMapSampler  : register(s4);
 
 float4 PS(float4 color    : COLOR0,
           float2 texCoord : TEXCOORD0) : SV_Target

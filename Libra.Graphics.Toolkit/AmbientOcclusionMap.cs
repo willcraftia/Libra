@@ -206,7 +206,6 @@ namespace Libra.Graphics.Toolkit
             constants.Attenuation = 0.5f;
             constants.Radius = 10.0f;
             constants.RandomOffset = Vector2.One;
-            //constants.SampleCount = 32;
             constants.SampleCount = 16;
             constants.SampleSphere = new Vector3[MaxSampleCount];
 
