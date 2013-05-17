@@ -241,7 +241,7 @@ namespace Samples.SceneDepthOfField
         void CreateDepthMap(DeviceContext context)
         {
             context.SetRenderTarget(depthMapRenderTarget.GetRenderTargetView());
-            context.Clear(Vector4.One);
+            context.Clear(new Vector4(float.MaxValue));
 
             DrawScene(context, depthMapEffect);
 

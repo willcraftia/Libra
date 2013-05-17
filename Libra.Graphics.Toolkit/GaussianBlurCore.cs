@@ -67,7 +67,7 @@ namespace Libra.Graphics.Toolkit
 
         public const int DefaultRadius = 7;
 
-        public const float DefaultAmount = 2.0f;
+        public const float DefaultSigma = 4.0f;
 
         Device device;
 
@@ -87,7 +87,7 @@ namespace Libra.Graphics.Toolkit
 
         int radius;
 
-        float amount;
+        float sigma;
 
         int width;
 
@@ -112,16 +112,16 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        public float Amount
+        public float Sigma
         {
-            get { return amount; }
+            get { return sigma; }
             set
             {
                 if (value < float.Epsilon) throw new ArgumentOutOfRangeException("value");
 
-                if (amount == value) return;
+                if (sigma == value) return;
 
-                amount = value;
+                sigma = value;
 
                 dirtyFlags |= DirtyFlags.KernelWeights;
             }
@@ -145,7 +145,7 @@ namespace Libra.Graphics.Toolkit
             verticalKernel = new Vector4[MaxKernelSize];
 
             radius = DefaultRadius;
-            amount = DefaultAmount;
+            sigma = DefaultSigma;
             width = 1;
             height = 1;
 
@@ -252,7 +252,6 @@ namespace Libra.Graphics.Toolkit
             if ((dirtyFlags & DirtyFlags.KernelWeights) != 0)
             {
                 var totalWeight = 0.0f;
-                var sigma = (float) radius / amount;
 
                 var weight = MathHelper.CalculateGaussian(sigma, 0);
 

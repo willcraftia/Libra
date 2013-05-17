@@ -28,10 +28,10 @@ namespace Libra.Graphics.Toolkit
             set { core.Radius = value; }
         }
 
-        public float Amount
+        public float Sigma
         {
-            get { return core.Amount; }
-            set { core.Amount = value; }
+            get { return core.Sigma; }
+            set { core.Sigma = value; }
         }
 
         public GaussianBlurSuite(Device device, int width, int height, SurfaceFormat format)

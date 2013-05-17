@@ -125,11 +125,7 @@ namespace Samples.BloomPostprocess
 
             // ガウシアン ブラーの設定。
             // XNA の BlurAamount はガウス関数の sigma そのものに一致。
-            // Libra の amount は一般的に用いられる例のごとく sigma = radius / amount。
-            // 一般的には amount を減らす程にぼかしを強くし、amount を増やす程にぼかしを弱くする。
-            // しかし、amount を減らす程にぼかしが強くなるという設定は混乱を招きやすいため、
-            // XNA では amount を増やす程にぼかしが強くなる設定にしていると思われる。
-            gaussianBlur.Amount = 1.0f / Settings.BlurAmount;
+            gaussianBlur.Sigma = Settings.BlurAmount;
 
             // ガウシアン ブラーの水平パス。
             gaussianBlur.Pass = GaussianBlurPass.Horizon;

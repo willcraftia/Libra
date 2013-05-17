@@ -652,7 +652,7 @@ namespace Samples.ShadowMapping
                         var shadowMapSize = ShadowMapSizes[currentShadowMapSizeIndex];
                         gaussianBlur = new GaussianBlurSuite(Device, shadowMapSize, shadowMapSize, SurfaceFormat.Vector2);
                         gaussianBlur.Radius = 7;
-                        gaussianBlur.Amount = 7;
+                        gaussianBlur.Sigma = 7;
                     }
 
                     gaussianBlur.Filter(
