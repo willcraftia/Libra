@@ -1,14 +1,3 @@
-//
-// ÉÅÉÇ
-//
-// Y  =  0.29900 * R + 0.58700 * G + 0.11400 * B
-// Cb = -0.16874 * R - 0.33126 * G + 0.50000 * B
-// Cr =  0.50000 * R - 0.41869 * G - 0.08131 * B
-//
-// Y is luminance component
-// Cb is the blue-defference chroma component
-// Cr is the red-difference chroma component
-
 #define MAX_RADIUS 7
 #define MAX_KERNEL_SIZE (MAX_RADIUS * 2 + 1)
 
