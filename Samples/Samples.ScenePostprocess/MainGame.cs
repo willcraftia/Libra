@@ -189,9 +189,9 @@ namespace Samples.ScenePostprocess
         NegativeFilter negativeFilter;
 
         /// <summary>
-        /// 放射ブラー パス。
+        /// 放射フィルタ パス。
         /// </summary>
-        RadialBlur radialBlur;
+        RadialFilter radialFilter;
 
         /// <summary>
         /// 法線エッジ検出パス。
@@ -324,8 +324,8 @@ namespace Samples.ScenePostprocess
             negativeFilter = new NegativeFilter(Device);
             negativeFilter.Enabled = false;
 
-            radialBlur = new RadialBlur(Device);
-            radialBlur.Enabled = false;
+            radialFilter = new RadialFilter(Device);
+            radialFilter.Enabled = false;
 
             normalEdgeDetect = new NormalEdgeDetect(Device);
             normalEdgeDetect.Enabled = false;
@@ -511,7 +511,7 @@ namespace Samples.ScenePostprocess
                 "[2] Scanline (" + scanline.Enabled + ")\n" +
                 "[3] Edge (" + edge.Enabled + ")\n" +
                 "[4] Negative Filter (" + negativeFilter.Enabled + ")\n" +
-                "[5] Radial Blur (" + radialBlur.Enabled + ")\n" +
+                "[5] Radial Blur (" + radialFilter.Enabled + ")\n" +
                 "[6] Normal Edge Detect (" + normalEdgeDetect.Enabled + ")";
 
             spriteBatch.Begin();
@@ -605,7 +605,7 @@ namespace Samples.ScenePostprocess
             postprocess.Passes.Add(scanline);
             postprocess.Passes.Add(negativeFilter);
             postprocess.Passes.Add(edge);
-            postprocess.Passes.Add(radialBlur);
+            postprocess.Passes.Add(radialFilter);
             postprocess.Passes.Add(normalEdgeDetect);
         }
 
@@ -644,7 +644,7 @@ namespace Samples.ScenePostprocess
                 negativeFilter.Enabled = !negativeFilter.Enabled;
 
             if (currentKeyboardState.IsKeyUp(Keys.D5) && lastKeyboardState.IsKeyDown(Keys.D5))
-                radialBlur.Enabled = !radialBlur.Enabled;
+                radialFilter.Enabled = !radialFilter.Enabled;
 
             if (currentKeyboardState.IsKeyUp(Keys.D6) && lastKeyboardState.IsKeyDown(Keys.D6))
                 normalEdgeDetect.Enabled = !normalEdgeDetect.Enabled;

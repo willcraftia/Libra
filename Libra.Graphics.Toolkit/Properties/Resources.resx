@@ -163,9 +163,6 @@
   <data name="NegativeFilterPS" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Shaders\Compiled\NegativeFilterPS.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="RadialBlurPS" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Shaders\Compiled\RadialBlurPS.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
   <data name="BloomCombinePS" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Shaders\Compiled\BloomCombinePS.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
@@ -204,5 +201,8 @@
   </data>
   <data name="GaussianFilterPS" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Shaders\Compiled\GaussianFilterPS.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="RadialFilterPS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Shaders\Compiled\RadialFilterPS.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
 </root>

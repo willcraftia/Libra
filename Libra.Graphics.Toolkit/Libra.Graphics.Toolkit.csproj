@@ -66,7 +66,7 @@
     <Compile Include="NormalEdgeDetect.cs" />
     <Compile Include="NormalMapEffect.cs" />
     <Compile Include="Postprocess.cs" />
-    <Compile Include="RadialBlur.cs" />
+    <Compile Include="RadialFilter.cs" />
     <Compile Include="RandomNormalMap.cs" />
     <Compile Include="Scanline.cs" />
     <Compile Include="SingleColorObjectEffect.cs" />
@@ -149,7 +149,7 @@
     <None Include="Shaders\Compiled\NormalEdgeDetectPS.bin" />
     <None Include="Shaders\Compiled\NormalMapPS.bin" />
     <None Include="Shaders\Compiled\NormalMapVS.bin" />
-    <None Include="Shaders\Compiled\RadialBlurPS.bin" />
+    <None Include="Shaders\Compiled\RadialFilterPS.bin" />
     <None Include="Shaders\Compiled\ScanlinePS.bin" />
     <None Include="Shaders\Compiled\ShadowMapBasicPS.bin" />
     <None Include="Shaders\Compiled\ShadowMapVariancePS.bin" />
@@ -171,7 +171,7 @@
     <None Include="Shaders\NegativeFilter.hlsl" />
     <None Include="Shaders\NormalEdgeDetect.hlsl" />
     <None Include="Shaders\NormalMap.hlsl" />
-    <None Include="Shaders\RadialBlur.hlsl" />
+    <None Include="Shaders\RadialFilter.hlsl" />
     <None Include="Shaders\Scanline.hlsl" />
     <None Include="Shaders\SingleColorObject.hlsl" />
     <None Include="Shaders\ShadowMap.hlsl" />

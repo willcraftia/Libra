@@ -8,7 +8,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class RadialBlur : IPostprocessPass, IDisposable
+    public sealed class RadialFilter : IPostprocessPass, IDisposable
     {
         #region SharedDeviceResource
 
@@ -19,7 +19,7 @@ namespace Libra.Graphics.Toolkit
             public SharedDeviceResource(Device device)
             {
                 PixelShader = device.CreatePixelShader();
-                PixelShader.Initialize(Resources.RadialBlurPS);
+                PixelShader.Initialize(Resources.RadialFilterPS);
             }
         }
 
@@ -130,13 +130,13 @@ namespace Libra.Graphics.Toolkit
 
         public bool Enabled { get; set; }
 
-        public RadialBlur(Device device)
+        public RadialFilter(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 
             this.device = device;
 
-            sharedDeviceResource = device.GetSharedResource<RadialBlur, SharedDeviceResource>();
+            sharedDeviceResource = device.GetSharedResource<RadialFilter, SharedDeviceResource>();
 
             constantBuffer = device.CreateConstantBuffer();
             constantBuffer.Initialize<Constants>();
@@ -235,7 +235,7 @@ namespace Libra.Graphics.Toolkit
 
         bool disposed;
 
-        ~RadialBlur()
+        ~RadialFilter()
         {
             Dispose(false);
         }
