@@ -44,8 +44,8 @@ namespace Libra.Graphics.Toolkit
         [Flags]
         enum DirtyFlags
         {
-            FocusScale          = (1 << 0),
-            Constants           = (1 << 2)
+            FocusScale  = (1 << 0),
+            Constants   = (1 << 2)
         }
 
         #endregion
