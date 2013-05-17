@@ -126,19 +126,19 @@ namespace Samples.SceneAmbientOcclusion
         UpFilter upFilter;
 
         /// <summary>
-        /// ガウシアン フィルタ。
+        /// 環境光閉塞ブラー フィルタ。
         /// </summary>
-        GaussianFilter gaussianFilter;
+        AmbientOcclusionBlur ambientOcclusionBlur;
 
         /// <summary>
-        /// ガウシアン フィルタ 水平パス。
+        /// 環境光閉塞ブラー フィルタ 水平パス。
         /// </summary>
-        GaussianFilterPass gaussianFilterH;
+        GaussianFilterPass ambientOcclusionBlurH;
 
         /// <summary>
-        /// ガウシアン フィルタ 垂直パス。
+        /// 環境光閉塞ブラー フィルタ 垂直パス。
         /// </summary>
-        GaussianFilterPass gaussianFilterV;
+        GaussianFilterPass ambientOcclusionBlurV;
 
         /// <summary>
         /// 線形深度マップ エフェクト。
@@ -219,8 +219,8 @@ namespace Samples.SceneAmbientOcclusion
             normalMapRenderTarget.Initialize();
 
             ambientOcclusionMapRenderTarget = Device.CreateRenderTarget();
-            ambientOcclusionMapRenderTarget.Width = WindowWidth;
-            ambientOcclusionMapRenderTarget.Height = WindowHeight;
+            ambientOcclusionMapRenderTarget.Width = WindowWidth / 2;
+            ambientOcclusionMapRenderTarget.Height = WindowHeight / 2;
             ambientOcclusionMapRenderTarget.Format = SurfaceFormat.Single;
             ambientOcclusionMapRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
             ambientOcclusionMapRenderTarget.Initialize();
@@ -239,21 +239,29 @@ namespace Samples.SceneAmbientOcclusion
             ambientOcclusionMap.RandomNormalMap = randomNormalMap.GetShaderResourceView();
 
             postprocess = new Postprocess(Device.ImmediateContext);
-            postprocess.Width = WindowWidth;
-            postprocess.Height = WindowHeight;
+            postprocess.Width = ambientOcclusionMap.Width;
+            postprocess.Height = ambientOcclusionMap.Height;
             postprocess.Format = SurfaceFormat.Single;
 
             downFilter = new DownFilter(Device);
             upFilter = new UpFilter(Device);
+            //upFilter.WidthScale = 2;
+            //upFilter.HeightScale = 2;
 
-            gaussianFilter = new GaussianFilter(Device);
-            gaussianFilterH = new GaussianFilterPass(gaussianFilter, GaussianFilterDirection.Horizon);
-            gaussianFilterV = new GaussianFilterPass(gaussianFilter, GaussianFilterDirection.Vertical);
+            ambientOcclusionBlur = new AmbientOcclusionBlur(Device);
+            ambientOcclusionBlur.ColorSigma = 0.5f;
+            ambientOcclusionBlurH = new GaussianFilterPass(ambientOcclusionBlur, GaussianFilterDirection.Horizon);
+            ambientOcclusionBlurV = new GaussianFilterPass(ambientOcclusionBlur, GaussianFilterDirection.Vertical);
 
-            //postprocess.Passes.Add(downFilter);
-            //postprocess.Passes.Add(gaussianBlurH);
-            //postprocess.Passes.Add(gaussianBlurV);
-            //postprocess.Passes.Add(upFilter);
+            const int blurIteration = 1;
+
+            postprocess.Filters.Add(downFilter);
+            for (int i = 0; i < blurIteration; i++)
+            {
+                postprocess.Filters.Add(ambientOcclusionBlurH);
+                postprocess.Filters.Add(ambientOcclusionBlurV);
+            }
+            postprocess.Filters.Add(upFilter);
 
             depthMapEffect = new LinearDepthMapEffect(Device);
             normalMapEffect = new NormalMapEffect(Device);
@@ -357,7 +365,7 @@ namespace Samples.SceneAmbientOcclusion
             context.Clear(Vector4.One);
 
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque, null, null, null, ambientOcclusionMap.Apply);
-            spriteBatch.Draw(depthMapRenderTarget.GetShaderResourceView(), Vector2.Zero, Color.White);
+            spriteBatch.Draw(depthMapRenderTarget.GetShaderResourceView(), ambientOcclusionMapRenderTarget.Bounds, Color.White);
             spriteBatch.End();
 
             context.SetRenderTarget(null);

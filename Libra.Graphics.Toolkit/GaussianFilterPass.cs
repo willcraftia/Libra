@@ -11,17 +11,17 @@ namespace Libra.Graphics.Toolkit
     /// </summary>
     public sealed class GaussianFilterPass : IFilterEffect
     {
-        public GaussianFilter GaussianFilter { get; private set; }
+        public IGaussianFilterEffect GaussianFilterEffect { get; private set; }
 
         public GaussianFilterDirection Direction { get; private set; }
 
         public bool Enabled { get; set; }
 
-        public GaussianFilterPass(GaussianFilter gaussianFilter, GaussianFilterDirection direction)
+        public GaussianFilterPass(IGaussianFilterEffect gaussianFilterEffect, GaussianFilterDirection direction)
         {
-            if (gaussianFilter == null) throw new ArgumentNullException("gaussianFilter");
+            if (gaussianFilterEffect == null) throw new ArgumentNullException("gaussianFilterEffect");
 
-            GaussianFilter = gaussianFilter;
+            GaussianFilterEffect = gaussianFilterEffect;
             Direction = direction;
 
             Enabled = true;
@@ -31,8 +31,8 @@ namespace Libra.Graphics.Toolkit
         {
             if (context == null) throw new ArgumentNullException("context");
 
-            GaussianFilter.Direction = Direction;
-            GaussianFilter.Apply(context);
+            GaussianFilterEffect.Direction = Direction;
+            GaussianFilterEffect.Apply(context);
         }
     }
 }

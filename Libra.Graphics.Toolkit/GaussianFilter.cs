@@ -14,7 +14,7 @@ namespace Libra.Graphics.Toolkit
     /// <remarks>
     /// このクラスは、SpriteBatch あるいは FullscreenQuad の頂点シェーダの利用を前提としています。
     /// </remarks>
-    public sealed class GaussianFilter : IDisposable
+    public sealed class GaussianFilter : IGaussianFilterEffect, IDisposable
     {
         #region SharedDeviceResource
 
@@ -127,6 +127,8 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
+        public bool Enabled { get; set; }
+
         public GaussianFilter(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
@@ -148,6 +150,8 @@ namespace Libra.Graphics.Toolkit
             sigma = DefaultSigma;
             width = 1;
             height = 1;
+
+            Enabled = true;
 
             dirtyFlags |= DirtyFlags.KernelSize | DirtyFlags.KernelOffsets | DirtyFlags.KernelWeights;
         }

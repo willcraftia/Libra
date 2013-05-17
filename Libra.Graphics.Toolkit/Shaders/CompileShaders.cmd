@@ -36,6 +36,11 @@ call :CompileShader NormalMap PS %ps_profile%
 call :CompileShader AmbientOcclusionMap PS %ps_profile%
 
 ::
+:: AmbientOcclusionBlur PS
+::
+call :CompileShader AmbientOcclusionBlur PS %ps_profile%
+
+::
 :: SingleColorObject VS/PS
 ::
 call :CompileShader SingleColorObject VS %vs_profile%

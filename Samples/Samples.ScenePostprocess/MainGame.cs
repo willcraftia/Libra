@@ -146,12 +146,12 @@ namespace Samples.ScenePostprocess
         /// <summary>
         /// バイラテラル フィルタ パス (水平)。
         /// </summary>
-        BilateralFilterPass bilateralFilterH;
+        GaussianFilterPass bilateralFilterH;
 
         /// <summary>
         /// バイラテラル フィルタ パス (垂直)。
         /// </summary>
-        BilateralFilterPass bilateralFilterV;
+        GaussianFilterPass bilateralFilterV;
 
         /// <summary>
         /// ブルーム抽出パス。
@@ -301,8 +301,8 @@ namespace Samples.ScenePostprocess
             gaussianFilterV = new GaussianFilterPass(gaussianFilter, GaussianFilterDirection.Vertical);
 
             bilateralFilter = new BilateralFilter(Device);
-            bilateralFilterH = new BilateralFilterPass(bilateralFilter, GaussianFilterDirection.Horizon);
-            bilateralFilterV = new BilateralFilterPass(bilateralFilter, GaussianFilterDirection.Vertical);
+            bilateralFilterH = new GaussianFilterPass(bilateralFilter, GaussianFilterDirection.Horizon);
+            bilateralFilterV = new GaussianFilterPass(bilateralFilter, GaussianFilterDirection.Vertical);
 
             bloomExtract = new BloomExtract(Device);
             bloomCombine = new BloomCombine(Device);

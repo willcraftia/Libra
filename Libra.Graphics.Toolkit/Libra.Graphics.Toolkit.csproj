@@ -40,10 +40,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AmbientOcclusionBlur.cs" />
     <Compile Include="AmbientOcclusionMap.cs" />
     <Compile Include="BasicCamera.cs" />
     <Compile Include="BasicLightCameraBuilder.cs" />
-    <Compile Include="BilateralFilterPass.cs" />
     <Compile Include="BilateralFilter.cs" />
     <Compile Include="BloomCombine.cs" />
     <Compile Include="BloomExtract.cs" />
@@ -59,6 +59,7 @@
     <Compile Include="GaussianFilterPass.cs" />
     <Compile Include="IFilterEffect.cs" />
     <Compile Include="IFilterEffectScale.cs" />
+    <Compile Include="IGaussianFilterEffect.cs" />
     <Compile Include="LightScattering.cs" />
     <Compile Include="LinearDepthMapEffect.cs" />
     <Compile Include="Monochrome.cs" />
@@ -123,11 +124,13 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Shaders\AmbientOcclusionBlur.hlsl" />
     <None Include="Shaders\AmbientOcclusionMap.hlsl" />
     <None Include="Shaders\BilateralFilter.hlsl" />
     <None Include="Shaders\BloomCombine.hlsl" />
     <None Include="Shaders\BloomExtract.hlsl" />
     <None Include="Shaders\Combine.hlsl" />
+    <None Include="Shaders\Compiled\AmbientOcclusionBlurPS.bin" />
     <None Include="Shaders\Compiled\AmbientOcclusionMapPS.bin" />
     <None Include="Shaders\Compiled\BilateralFilterPS.bin" />
     <None Include="Shaders\Compiled\BloomCombinePS.bin" />

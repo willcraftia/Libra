@@ -8,7 +8,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class BilateralFilter : IGaussianFilterEffect, IDisposable
+    public sealed class AmbientOcclusionBlur : IGaussianFilterEffect, IDisposable
     {
         #region SharedDeviceResource
 
@@ -19,7 +19,7 @@ namespace Libra.Graphics.Toolkit
             public SharedDeviceResource(Device device)
             {
                 PixelShader = device.CreatePixelShader();
-                PixelShader.Initialize(Resources.BilateralFilterPS);
+                PixelShader.Initialize(Resources.AmbientOcclusionBlurPS);
             }
         }
 
@@ -31,7 +31,7 @@ namespace Libra.Graphics.Toolkit
         struct Constants
         {
             [FieldOffset(0)]
-            public float ColorSigma;
+            public float DepthSigma;
 
             [FieldOffset(4)]
             public float KernelSize;
@@ -66,7 +66,7 @@ namespace Libra.Graphics.Toolkit
 
         public const float DefaultSpaceSigma = 4.0f;
 
-        public const float DefaultColorSigma = 0.2f;
+        public const float DefaultDepthSigma = 0.2f;
 
         Device device;
 
@@ -128,14 +128,14 @@ namespace Libra.Graphics.Toolkit
 
         public float ColorSigma
         {
-            get { return constants.ColorSigma; }
+            get { return constants.DepthSigma; }
             set
             {
                 if (value < float.Epsilon) throw new ArgumentOutOfRangeException("value");
 
-                if (constants.ColorSigma == value) return;
+                if (constants.DepthSigma == value) return;
 
-                constants.ColorSigma = value;
+                constants.DepthSigma = value;
 
                 dirtyFlags |= DirtyFlags.Constants;
             }
@@ -143,13 +143,13 @@ namespace Libra.Graphics.Toolkit
 
         public bool Enabled { get; set; }
 
-        public BilateralFilter(Device device)
+        public AmbientOcclusionBlur(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 
             this.device = device;
 
-            sharedDeviceResource = device.GetSharedResource<BilateralFilter, SharedDeviceResource>();
+            sharedDeviceResource = device.GetSharedResource<AmbientOcclusionBlur, SharedDeviceResource>();
 
             constantBufferH = device.CreateConstantBuffer();
             constantBufferH.Initialize<Constants>();
@@ -165,7 +165,7 @@ namespace Libra.Graphics.Toolkit
             width = 1;
             height = 1;
 
-            constants.ColorSigma = DefaultColorSigma;
+            constants.DepthSigma = DefaultDepthSigma;
 
             Enabled = true;
 
@@ -304,7 +304,7 @@ namespace Libra.Graphics.Toolkit
 
         bool disposed;
 
-        ~BilateralFilter()
+        ~AmbientOcclusionBlur()
         {
             Dispose(false);
         }
