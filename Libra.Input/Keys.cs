@@ -9,6 +9,8 @@ namespace Libra.Input
     // Microsoft.Xna.Framework.Input.Keys より移植。
     //      XNA の値はウィンドウ メッセージで得られる値と同じ。
     //      Direct Input では値の対応が異なるため注意。
+    //
+    // なお、XNA 未定義のキーも含む (System.Windows.Forms.Keys で定義されたキー)。
 
     public enum Keys
     {
@@ -16,6 +18,10 @@ namespace Libra.Input
         Back = 8,
         Tab = 9,
         Enter = 13,
+        // XNA 未定義
+        ShiftKey = 16,
+        // XNA 未定義
+        ControlKey = 17,
         Pause = 19,
         CapsLock = 20,
         Kana = 21,
