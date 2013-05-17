@@ -72,6 +72,11 @@ call :CompileShader GaussianBlur PS %ps_profile%
 call :CompileShader RadialBlur PS %ps_profile%
 
 ::
+:: BilateralFilter PS
+::
+call :CompileShader BilateralFilter PS %ps_profile%
+
+::
 :: BloomExtract PS
 ::
 call :CompileShader BloomExtract PS %ps_profile%

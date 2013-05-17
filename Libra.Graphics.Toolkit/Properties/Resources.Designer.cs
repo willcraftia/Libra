@@ -67,6 +67,13 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
+        internal static byte[] BilateralFilterPS {
+            get {
+                object obj = ResourceManager.GetObject("BilateralFilterPS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
         internal static byte[] BloomCombinePS {
             get {
                 object obj = ResourceManager.GetObject("BloomCombinePS", resourceCulture);

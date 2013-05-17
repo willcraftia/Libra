@@ -22,7 +22,8 @@ namespace Samples.ScenePostprocess
             None,
             DepthOfField,
             Bloom,
-            Blur
+            Blur,
+            BilateralFilter
         }
 
         #endregion
@@ -136,6 +137,21 @@ namespace Samples.ScenePostprocess
         /// ガウシアン ブラー パス (垂直)。
         /// </summary>
         GaussianBlur gaussianBlurV;
+
+        /// <summary>
+        /// バイラテラル フィルタ シェーダ。
+        /// </summary>
+        BilateralFilterCore bilateralFilterCore;
+
+        /// <summary>
+        /// バイラテラル フィルタ パス (水平)。
+        /// </summary>
+        BilateralFilter bilateralFilterH;
+
+        /// <summary>
+        /// バイラテラル フィルタ パス (垂直)。
+        /// </summary>
+        BilateralFilter bilateralFilterV;
 
         /// <summary>
         /// ブルーム抽出パス。
@@ -283,6 +299,10 @@ namespace Samples.ScenePostprocess
             gaussianBlurCore = new GaussianBlurCore(Device);
             gaussianBlurH = new GaussianBlur(gaussianBlurCore, GaussianBlurPass.Horizon);
             gaussianBlurV = new GaussianBlur(gaussianBlurCore, GaussianBlurPass.Vertical);
+
+            bilateralFilterCore = new BilateralFilterCore(Device);
+            bilateralFilterH = new BilateralFilter(bilateralFilterCore, GaussianBlurPass.Horizon);
+            bilateralFilterV = new BilateralFilter(bilateralFilterCore, GaussianBlurPass.Vertical);
 
             bloomExtract = new BloomExtract(Device);
             bloomCombine = new BloomCombine(Device);
@@ -442,7 +462,11 @@ namespace Samples.ScenePostprocess
                 effectMatrices.Projection = camera.Projection;
             }
 
+            DrawPrimitiveMesh(context, cubeMesh, Matrix.CreateTranslation(-40, 10, 40), new Vector3(0, 0, 0), effect);
+            DrawPrimitiveMesh(context, cubeMesh, Matrix.CreateTranslation(-85, 10, -20), new Vector3(1, 0, 0), effect);
+            DrawPrimitiveMesh(context, cubeMesh, Matrix.CreateTranslation(-60, 10, -20), new Vector3(1, 0, 0), effect);
             DrawPrimitiveMesh(context, cubeMesh, Matrix.CreateTranslation(-40, 10, 0), new Vector3(1, 0, 0), effect);
+            DrawPrimitiveMesh(context, sphereMesh, Matrix.CreateTranslation(10, 10, -60), new Vector3(0, 1, 0), effect);
             DrawPrimitiveMesh(context, sphereMesh, Matrix.CreateTranslation(0, 10, -40), new Vector3(0, 1, 0), effect);
             for (float z = -180; z <= 180; z += 40)
             {
@@ -482,6 +506,7 @@ namespace Samples.ScenePostprocess
             var text =
                 "Current postprocess: " + postprocessType + "\n" +
                 "[F1] None [F2] Depth of Field [F3] Bloom [F4] Blur\n" +
+                "[F5] Bilateral Filter\n" +
                 "[1] Monochrome (" + monochrome.Enabled + ")\n" +
                 "[2] Scanline (" + scanline.Enabled + ")\n" +
                 "[3] Edge (" + edge.Enabled + ")\n" +
@@ -491,8 +516,8 @@ namespace Samples.ScenePostprocess
 
             spriteBatch.Begin();
 
-            spriteBatch.DrawString(spriteFont, text, new Vector2(65, 320), Color.Black);
-            spriteBatch.DrawString(spriteFont, text, new Vector2(64, 320 - 1), Color.Yellow);
+            spriteBatch.DrawString(spriteFont, text, new Vector2(65, 280), Color.Black);
+            spriteBatch.DrawString(spriteFont, text, new Vector2(64, 280 - 1), Color.Yellow);
 
             spriteBatch.End();
         }
@@ -511,6 +536,9 @@ namespace Samples.ScenePostprocess
                     break;
                 case PostprocessType.Blur:
                     SetupBlur();
+                    break;
+                case PostprocessType.BilateralFilter:
+                    SetupBilateralFilter();
                     break;
                 case PostprocessType.None:
                 default:
@@ -557,6 +585,20 @@ namespace Samples.ScenePostprocess
             AddCommonPasses();
         }
 
+        void SetupBilateralFilter()
+        {
+            // ダウン/アップ フィルタは用いない (ぼかしが雑になるのみ)。
+
+            const int iteration = 6;
+            for (int i = 0; i < iteration; i++)
+            {
+                postprocess.Passes.Add(bilateralFilterH);
+                postprocess.Passes.Add(bilateralFilterV);
+            }
+
+            AddCommonPasses();
+        }
+
         void AddCommonPasses()
         {
             postprocess.Passes.Add(monochrome);
@@ -585,6 +627,9 @@ namespace Samples.ScenePostprocess
 
             if (currentKeyboardState.IsKeyUp(Keys.F4) && lastKeyboardState.IsKeyDown(Keys.F4))
                 postprocessType = PostprocessType.Blur;
+
+            if (currentKeyboardState.IsKeyUp(Keys.F5) && lastKeyboardState.IsKeyDown(Keys.F5))
+                postprocessType = PostprocessType.BilateralFilter;
 
             if (currentKeyboardState.IsKeyUp(Keys.D1) && lastKeyboardState.IsKeyDown(Keys.D1))
                 monochrome.Enabled = !monochrome.Enabled;
