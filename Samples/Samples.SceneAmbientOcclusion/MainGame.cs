@@ -111,7 +111,12 @@ namespace Samples.SceneAmbientOcclusion
         AmbientOcclusionMap ambientOcclusionMap;
 
         /// <summary>
-        /// ポストプロセス。
+        /// 環境光閉塞マップ用ポストプロセス。
+        /// </summary>
+        Postprocess postprocessAO;
+
+        /// <summary>
+        /// 表示シーン用ポストプロセス。
         /// </summary>
         Postprocess postprocess;
 
@@ -139,6 +144,11 @@ namespace Samples.SceneAmbientOcclusion
         /// 環境光閉塞ブラー フィルタ 垂直パス。
         /// </summary>
         GaussianFilterPass ambientOcclusionBlurV;
+
+        /// <summary>
+        /// 環境光閉塞マップ合成フィルタ。
+        /// </summary>
+        AmbientOcclusionCombine ambientOcclusionCombine;
 
         /// <summary>
         /// 線形深度マップ エフェクト。
@@ -234,33 +244,36 @@ namespace Samples.SceneAmbientOcclusion
             randomNormalMap = RandomNormalMap.CreateAsR8G8B8A8SNorm(Device.ImmediateContext, new Random(0), 64, 64);
 
             ambientOcclusionMap = new AmbientOcclusionMap(Device);
-            ambientOcclusionMap.Width = WindowWidth;
-            ambientOcclusionMap.Height = WindowHeight;
+            ambientOcclusionMap.Width = WindowWidth / 2;
+            ambientOcclusionMap.Height = WindowHeight / 2;
             ambientOcclusionMap.RandomNormalMap = randomNormalMap.GetShaderResourceView();
 
+            postprocessAO = new Postprocess(Device.ImmediateContext);
+            postprocessAO.Width = ambientOcclusionMap.Width;
+            postprocessAO.Height = ambientOcclusionMap.Height;
+            postprocessAO.Format = SurfaceFormat.Single;
+
             postprocess = new Postprocess(Device.ImmediateContext);
-            postprocess.Width = ambientOcclusionMap.Width;
-            postprocess.Height = ambientOcclusionMap.Height;
-            postprocess.Format = SurfaceFormat.Single;
+            postprocess.Width = WindowWidth;
+            postprocess.Height = WindowHeight;
 
             downFilter = new DownFilter(Device);
             upFilter = new UpFilter(Device);
-            //upFilter.WidthScale = 2;
-            //upFilter.HeightScale = 2;
 
             ambientOcclusionBlur = new AmbientOcclusionBlur(Device);
             ambientOcclusionBlurH = new GaussianFilterPass(ambientOcclusionBlur, GaussianFilterDirection.Horizon);
             ambientOcclusionBlurV = new GaussianFilterPass(ambientOcclusionBlur, GaussianFilterDirection.Vertical);
 
-            const int blurIteration = 4;
+            ambientOcclusionCombine = new AmbientOcclusionCombine(Device);
 
-            //postprocess.Filters.Add(downFilter);
+            const int blurIteration = 4;
             for (int i = 0; i < blurIteration; i++)
             {
-                postprocess.Filters.Add(ambientOcclusionBlurH);
-                postprocess.Filters.Add(ambientOcclusionBlurV);
+                postprocessAO.Filters.Add(ambientOcclusionBlurH);
+                postprocessAO.Filters.Add(ambientOcclusionBlurV);
             }
-            //postprocess.Filters.Add(upFilter);
+
+            postprocess.Filters.Add(ambientOcclusionCombine);
 
             depthMapEffect = new LinearDepthMapEffect(Device);
             normalMapEffect = new NormalMapEffect(Device);
@@ -311,10 +324,17 @@ namespace Samples.SceneAmbientOcclusion
             CreateAmbientOcclusionMap(context);
 
             // 通常シーンを描画。
-            //CreateNormalSceneMap(context);
+            CreateNormalSceneMap(context);
 
-            // ポストプロセスを適用。
-            finalSceneTexture = postprocess.Draw(ambientOcclusionMapRenderTarget.GetShaderResourceView());
+            // 環境光閉塞マップへポストプロセスを適用。
+            var finalAmbientOcclusionMap = postprocessAO.Draw(ambientOcclusionMapRenderTarget.GetShaderResourceView());
+            textureDisplay.Textures.Add(finalAmbientOcclusionMap);
+
+            // 環境光閉塞マップ合成フィルタへ設定。
+            ambientOcclusionCombine.AmbientOcclusionMap = finalAmbientOcclusionMap;
+
+            // 通常シーンへポストプロセスを適用。
+            finalSceneTexture = postprocess.Draw(normalSceneRenderTarget.GetShaderResourceView());
 
             // 最終的なシーンをバック バッファへ描画。
             CreateFinalSceneMap(context);

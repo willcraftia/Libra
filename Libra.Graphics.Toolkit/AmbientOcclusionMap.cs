@@ -202,7 +202,7 @@ namespace Libra.Graphics.Toolkit
             width = 1;
             height = 1;
 
-            constants.Strength = 10.0f;
+            constants.Strength = 20.0f;
             constants.Attenuation = 0.5f;
             constants.Radius = 10.0f;
             constants.RandomOffset = Vector2.One;

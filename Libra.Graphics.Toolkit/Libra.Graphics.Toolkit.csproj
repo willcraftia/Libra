@@ -41,6 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AmbientOcclusionBlur.cs" />
+    <Compile Include="AmbientOcclusionCombine.cs" />
     <Compile Include="AmbientOcclusionMap.cs" />
     <Compile Include="BasicCamera.cs" />
     <Compile Include="BasicLightCameraBuilder.cs" />
@@ -125,12 +126,14 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\AmbientOcclusionBlur.hlsl" />
+    <None Include="Shaders\AmbientOcclusionCombine.hlsl" />
     <None Include="Shaders\AmbientOcclusionMap.hlsl" />
     <None Include="Shaders\BilateralFilter.hlsl" />
     <None Include="Shaders\BloomCombine.hlsl" />
     <None Include="Shaders\BloomExtract.hlsl" />
     <None Include="Shaders\Combine.hlsl" />
     <None Include="Shaders\Compiled\AmbientOcclusionBlurPS.bin" />
+    <None Include="Shaders\Compiled\AmbientOcclusionCombinePS.bin" />
     <None Include="Shaders\Compiled\AmbientOcclusionMapPS.bin" />
     <None Include="Shaders\Compiled\BilateralFilterPS.bin" />
     <None Include="Shaders\Compiled\BloomCombinePS.bin" />

@@ -69,9 +69,9 @@ namespace Libra.Graphics.Toolkit
 
         public const float DefaultSpaceSigma = 4.0f;
 
-        public const float DefaultDepthSigma = 4.0f;
+        public const float DefaultDepthSigma = 1.0f;
 
-        public const float DefaultNormalSigma = 4.0f;
+        public const float DefaultNormalSigma = 1.0f;
 
         Device device;
 
