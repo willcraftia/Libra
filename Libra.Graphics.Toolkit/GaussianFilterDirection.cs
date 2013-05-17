@@ -6,7 +6,7 @@ using System;
 
 namespace Libra.Graphics.Toolkit
 {
-    public enum GaussianFilterPass
+    public enum GaussianFilterDirection
     {
         Horizon,
         Vertical

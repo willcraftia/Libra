@@ -10,16 +10,16 @@ namespace Libra.Graphics.Toolkit
     {
         public BilateralFilterCore Core { get; private set; }
 
-        public GaussianFilterPass Pass { get; private set; }
+        public GaussianFilterDirection Direction { get; private set; }
 
         public bool Enabled { get; set; }
 
-        public BilateralFilter(BilateralFilterCore core, GaussianFilterPass pass)
+        public BilateralFilter(BilateralFilterCore core, GaussianFilterDirection direction)
         {
             if (core == null) throw new ArgumentNullException("core");
 
             Core = core;
-            Pass = pass;
+            Direction = direction;
 
             Enabled = true;
         }
@@ -28,7 +28,7 @@ namespace Libra.Graphics.Toolkit
         {
             if (context == null) throw new ArgumentNullException("context");
 
-            Core.Pass = Pass;
+            Core.Direction = Direction;
             Core.Apply(context);
         }
     }

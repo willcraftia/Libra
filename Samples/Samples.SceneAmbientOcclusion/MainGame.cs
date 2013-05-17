@@ -247,8 +247,8 @@ namespace Samples.SceneAmbientOcclusion
             upFilter = new UpFilter(Device);
 
             gaussianFilterCore = new GaussianFilterCore(Device);
-            gaussianFilterH = new GaussianFilter(gaussianFilterCore, GaussianFilterPass.Horizon);
-            gaussianFilterV = new GaussianFilter(gaussianFilterCore, GaussianFilterPass.Vertical);
+            gaussianFilterH = new GaussianFilter(gaussianFilterCore, GaussianFilterDirection.Horizon);
+            gaussianFilterV = new GaussianFilter(gaussianFilterCore, GaussianFilterDirection.Vertical);
 
             //postprocess.Passes.Add(downFilter);
             //postprocess.Passes.Add(gaussianBlurH);

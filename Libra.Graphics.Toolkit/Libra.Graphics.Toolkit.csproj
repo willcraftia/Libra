@@ -77,7 +77,7 @@
     <Compile Include="LightCameraBuilder.cs" />
     <Compile Include="ConvexBody.cs" />
     <Compile Include="FullScreenQuad.cs" />
-    <Compile Include="GaussianFilterPass.cs" />
+    <Compile Include="GaussianFilterDirection.cs" />
     <Compile Include="GaussianFilterSuite.cs" />
     <Compile Include="GaussianFilterCore.cs" />
     <Compile Include="LiSPSMLightCameraBuilder.cs" />

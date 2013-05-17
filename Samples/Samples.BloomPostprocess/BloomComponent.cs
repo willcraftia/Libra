@@ -128,7 +128,7 @@ namespace Samples.BloomPostprocess
             gaussianFilter.Sigma = Settings.BlurAmount;
 
             // ガウシアン ブラーの水平パス。
-            gaussianFilter.Pass = GaussianFilterPass.Horizon;
+            gaussianFilter.Direction = GaussianFilterDirection.Horizon;
             DrawFullscreenQuad(
                 bloomMapRenderTarget,
                 interBlurRenderTarget,
@@ -136,7 +136,7 @@ namespace Samples.BloomPostprocess
                 IntermediateBuffer.BlurredHorizontally);
 
             // ガウシアン ブラーの垂直パス。
-            gaussianFilter.Pass = GaussianFilterPass.Vertical;
+            gaussianFilter.Direction = GaussianFilterDirection.Vertical;
             DrawFullscreenQuad(
                 interBlurRenderTarget,
                 bloomMapRenderTarget,

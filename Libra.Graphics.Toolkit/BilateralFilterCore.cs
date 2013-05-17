@@ -94,7 +94,7 @@ namespace Libra.Graphics.Toolkit
 
         DirtyFlags dirtyFlags;
 
-        public GaussianFilterPass Pass { get; set; }
+        public GaussianFilterDirection Direction { get; set; }
 
         public int Radius
         {
@@ -200,16 +200,16 @@ namespace Libra.Graphics.Toolkit
             }
 
             // 定数バッファの設定。
-            switch (Pass)
+            switch (Direction)
             {
-                case GaussianFilterPass.Horizon:
+                case GaussianFilterDirection.Horizon:
                     context.PixelShaderConstantBuffers[0] = constantBufferH;
                     break;
-                case GaussianFilterPass.Vertical:
+                case GaussianFilterDirection.Vertical:
                     context.PixelShaderConstantBuffers[0] = constantBuffferV;
                     break;
                 default:
-                    throw new InvalidOperationException("Unknown direction: " + Pass);
+                    throw new InvalidOperationException("Unknown direction: " + Direction);
             }
 
             // ピクセル シェーダの設定。

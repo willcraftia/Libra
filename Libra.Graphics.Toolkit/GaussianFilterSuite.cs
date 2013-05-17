@@ -66,8 +66,8 @@ namespace Libra.Graphics.Toolkit
             context.RasterizerState = RasterizerState.CullBack;
             context.PixelShaderSamplers[0] = SamplerState.LinearClamp;
 
-            Filter(context, source, backingRenderTarget.GetRenderTargetView(), GaussianFilterPass.Horizon);
-            Filter(context, backingRenderTarget.GetShaderResourceView(), destination, GaussianFilterPass.Vertical);
+            Filter(context, source, backingRenderTarget.GetRenderTargetView(), GaussianFilterDirection.Horizon);
+            Filter(context, backingRenderTarget.GetShaderResourceView(), destination, GaussianFilterDirection.Vertical);
 
             context.SetRenderTarget(null);
 
@@ -78,11 +78,11 @@ namespace Libra.Graphics.Toolkit
             context.PixelShaderSamplers[0] = previousSamplerState;
         }
 
-        void Filter(DeviceContext context, ShaderResourceView source, RenderTargetView destination, GaussianFilterPass pass)
+        void Filter(DeviceContext context, ShaderResourceView source, RenderTargetView destination, GaussianFilterDirection direction)
         {
             context.SetRenderTarget(destination);
 
-            core.Pass = pass;
+            core.Direction = direction;
             core.Apply(context);
 
             context.PixelShaderResources[0] = source;

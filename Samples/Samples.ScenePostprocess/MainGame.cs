@@ -297,12 +297,12 @@ namespace Samples.ScenePostprocess
             upFilter = new UpFilter(Device);
 
             gaussianFilterCore = new GaussianFilterCore(Device);
-            gaussianFilterH = new GaussianFilter(gaussianFilterCore, GaussianFilterPass.Horizon);
-            gaussianFilterV = new GaussianFilter(gaussianFilterCore, GaussianFilterPass.Vertical);
+            gaussianFilterH = new GaussianFilter(gaussianFilterCore, GaussianFilterDirection.Horizon);
+            gaussianFilterV = new GaussianFilter(gaussianFilterCore, GaussianFilterDirection.Vertical);
 
             bilateralFilterCore = new BilateralFilterCore(Device);
-            bilateralFilterH = new BilateralFilter(bilateralFilterCore, GaussianFilterPass.Horizon);
-            bilateralFilterV = new BilateralFilter(bilateralFilterCore, GaussianFilterPass.Vertical);
+            bilateralFilterH = new BilateralFilter(bilateralFilterCore, GaussianFilterDirection.Horizon);
+            bilateralFilterV = new BilateralFilter(bilateralFilterCore, GaussianFilterDirection.Vertical);
 
             bloomExtract = new BloomExtract(Device);
             bloomCombine = new BloomCombine(Device);

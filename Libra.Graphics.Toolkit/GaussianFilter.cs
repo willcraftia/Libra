@@ -7,22 +7,22 @@ using System;
 namespace Libra.Graphics.Toolkit
 {
     /// <summary>
-    /// ガウシアン フィルタとパスの組み合わせをフィルタ オブジェクトとするアダプタです。
+    /// ガウシアン フィルタと適用方向の組をフィルタ オブジェクトとするアダプタです。
     /// </summary>
     public sealed class GaussianFilter : IFilterEffect
     {
         public GaussianFilterCore Core { get; private set; }
 
-        public GaussianFilterPass Pass { get; private set; }
+        public GaussianFilterDirection Direction { get; private set; }
 
         public bool Enabled { get; set; }
 
-        public GaussianFilter(GaussianFilterCore core, GaussianFilterPass pass)
+        public GaussianFilter(GaussianFilterCore core, GaussianFilterDirection direction)
         {
             if (core == null) throw new ArgumentNullException("core");
 
             Core = core;
-            Pass = pass;
+            Direction = direction;
 
             Enabled = true;
         }
@@ -31,7 +31,7 @@ namespace Libra.Graphics.Toolkit
         {
             if (context == null) throw new ArgumentNullException("context");
 
-            Core.Pass = Pass;
+            Core.Direction = Direction;
             Core.Apply(context);
         }
     }
