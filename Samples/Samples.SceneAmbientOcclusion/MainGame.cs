@@ -185,6 +185,11 @@ namespace Samples.SceneAmbientOcclusion
         /// </summary>
         SquareMesh squareMesh;
 
+        /// <summary>
+        /// HUD テキストを表示するか否かを示す値。
+        /// </summary>
+        bool hudVisible;
+
         public MainGame()
         {
             graphicsManager = new GraphicsManager(this);
@@ -207,6 +212,8 @@ namespace Samples.SceneAmbientOcclusion
 
             textureDisplay = new TextureDisplay(this);
             Components.Add(textureDisplay);
+
+            hudVisible = true;
         }
 
         protected override void LoadContent()
@@ -313,8 +320,6 @@ namespace Samples.SceneAmbientOcclusion
             context.BlendState = BlendState.Opaque;
             context.DepthStencilState = DepthStencilState.Default;
 
-            textureDisplay.Textures.Add(randomNormalMap.GetShaderResourceView());
-
             // 深度マップを描画。
             CreateDepthMap(context);
 
@@ -341,7 +346,8 @@ namespace Samples.SceneAmbientOcclusion
             CreateFinalSceneMap(context);
 
             // HUD のテキストを描画。
-            DrawOverlayText();
+            if (hudVisible)
+                DrawOverlayText();
 
             base.Draw(gameTime);
         }
@@ -466,12 +472,37 @@ namespace Samples.SceneAmbientOcclusion
         void DrawOverlayText()
         {
             // HUD のテキストを表示。
-            var text = "";
+            string text;
+            if (currentKeyboardState.IsKeyUp(Keys.ControlKey))
+            {
+                text =
+                    "AO Settings ([Control] Blur Settings)\n" +
+                    "[T/G] Strength (" + ambientOcclusionMap.Strength.ToString("F1") + ")\n" +
+                    "[Y/H] Attenuation (" + ambientOcclusionMap.Attenuation.ToString("F2") + ")\n" +
+                    "[U/J] Radius (" + ambientOcclusionMap.Radius.ToString("F1") + ")\n" +
+                    "[I/K] SampleCount (" + ambientOcclusionMap.SampleCount + ")";
+            }
+            else
+            {
+                text =
+                    "Blur Settings\n" +
+                    "[T/G] Radius (" + ambientOcclusionBlur.Radius + ")\n" +
+                    "[Y/H] Space Sigma (" + ambientOcclusionBlur.SpaceSigma.ToString("F1") + ")\n" +
+                    "[U/J] Depth Sigma (" + ambientOcclusionBlur.DepthSigma.ToString("F1") + ")\n" +
+                    "[I/K] Normal Sigma (" + ambientOcclusionBlur.NormalSigma.ToString("F1") + ")";
+            }
+
+            string basicText =
+                "[F1] HUD on/off\n" +
+                "[F2] Inter-maps on/off";
 
             spriteBatch.Begin();
 
-            spriteBatch.DrawString(spriteFont, text, new Vector2(65, 320), Color.Black);
-            spriteBatch.DrawString(spriteFont, text, new Vector2(64, 320 - 1), Color.Yellow);
+            spriteBatch.DrawString(spriteFont, text, new Vector2(65, 340), Color.Black);
+            spriteBatch.DrawString(spriteFont, text, new Vector2(64, 340 - 1), Color.Yellow);
+
+            spriteBatch.DrawString(spriteFont, basicText, new Vector2(449, 340), Color.Black);
+            spriteBatch.DrawString(spriteFont, basicText, new Vector2(448, 340 - 1), Color.Yellow);
 
             spriteBatch.End();
         }
@@ -482,6 +513,57 @@ namespace Samples.SceneAmbientOcclusion
 
             lastKeyboardState = currentKeyboardState;
             currentKeyboardState = Keyboard.GetState();
+
+            if (currentKeyboardState.IsKeyUp(Keys.ControlKey))
+            {
+                if (currentKeyboardState.IsKeyDown(Keys.T))
+                    ambientOcclusionMap.Strength += 0.1f;
+                if (currentKeyboardState.IsKeyDown(Keys.G))
+                    ambientOcclusionMap.Strength = Math.Max(0.0f, ambientOcclusionMap.Strength - 0.1f);
+
+                if (currentKeyboardState.IsKeyDown(Keys.Y))
+                    ambientOcclusionMap.Attenuation += 0.01f;
+                if (currentKeyboardState.IsKeyDown(Keys.H))
+                    ambientOcclusionMap.Attenuation = Math.Max(0.0f, ambientOcclusionMap.Attenuation - 0.01f);
+
+                if (currentKeyboardState.IsKeyDown(Keys.U))
+                    ambientOcclusionMap.Radius += 0.1f;
+                if (currentKeyboardState.IsKeyDown(Keys.J))
+                    ambientOcclusionMap.Radius = Math.Max(0.1f, ambientOcclusionMap.Radius - 0.1f);
+
+                if (currentKeyboardState.IsKeyDown(Keys.I))
+                    ambientOcclusionMap.SampleCount = Math.Min(128, ambientOcclusionMap.SampleCount + 1);
+                if (currentKeyboardState.IsKeyDown(Keys.K))
+                    ambientOcclusionMap.SampleCount = Math.Max(1, ambientOcclusionMap.SampleCount - 1);
+            }
+            else
+            {
+                if (currentKeyboardState.IsKeyDown(Keys.T))
+                    ambientOcclusionBlur.Radius = Math.Min(7, ambientOcclusionBlur.Radius + 1);
+                if (currentKeyboardState.IsKeyDown(Keys.G))
+                    ambientOcclusionBlur.Radius = Math.Max(1, ambientOcclusionBlur.Radius - 1);
+
+                if (currentKeyboardState.IsKeyDown(Keys.Y))
+                    ambientOcclusionBlur.SpaceSigma += 0.1f;
+                if (currentKeyboardState.IsKeyDown(Keys.H))
+                    ambientOcclusionBlur.SpaceSigma = Math.Max(0.1f, ambientOcclusionBlur.SpaceSigma - 0.1f);
+
+                if (currentKeyboardState.IsKeyDown(Keys.U))
+                    ambientOcclusionBlur.DepthSigma += 0.1f;
+                if (currentKeyboardState.IsKeyDown(Keys.J))
+                    ambientOcclusionBlur.DepthSigma = Math.Max(0.1f, ambientOcclusionBlur.DepthSigma - 0.1f);
+
+                if (currentKeyboardState.IsKeyDown(Keys.I))
+                    ambientOcclusionBlur.NormalSigma += 0.1f;
+                if (currentKeyboardState.IsKeyDown(Keys.K))
+                    ambientOcclusionBlur.NormalSigma = Math.Max(0.1f, ambientOcclusionBlur.NormalSigma - 0.1f);
+            }
+
+            if (currentKeyboardState.IsKeyUp(Keys.F1) && lastKeyboardState.IsKeyDown(Keys.F1))
+                hudVisible = !hudVisible;
+
+            if (currentKeyboardState.IsKeyUp(Keys.F2) && lastKeyboardState.IsKeyDown(Keys.F2))
+                textureDisplay.Visible = !textureDisplay.Visible;
 
             if (currentKeyboardState.IsKeyDown(Keys.Escape))
                 Exit();
