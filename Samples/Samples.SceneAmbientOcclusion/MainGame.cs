@@ -246,6 +246,7 @@ namespace Samples.SceneAmbientOcclusion
             ambientOcclusionMap = new AmbientOcclusionMap(Device);
             ambientOcclusionMap.Width = WindowWidth / 2;
             ambientOcclusionMap.Height = WindowHeight / 2;
+            ambientOcclusionMap.FarClipDistance = camera.FarClipDistance;
             ambientOcclusionMap.RandomNormalMap = randomNormalMap.GetShaderResourceView();
 
             postprocessAO = new Postprocess(Device.ImmediateContext);

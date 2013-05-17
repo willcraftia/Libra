@@ -39,6 +39,9 @@ namespace Libra.Graphics.Toolkit
             [FieldOffset(8)]
             public float Radius;
 
+            [FieldOffset(12)]
+            public float FarClipDistance;
+
             [FieldOffset(16)]
             public Vector2 RandomOffset;
 
@@ -134,6 +137,19 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
+        public float FarClipDistance
+        {
+            get { return constants.FarClipDistance; }
+            set
+            {
+                if (value <= 0.0f) throw new ArgumentOutOfRangeException("value");
+
+                constants.FarClipDistance = value;
+
+                dirtyFlags |= DirtyFlags.Constants;
+            }
+        }
+
         public int SampleCount
         {
             get { return (int) constants.SampleCount; }
@@ -205,6 +221,7 @@ namespace Libra.Graphics.Toolkit
             constants.Strength = 20.0f;
             constants.Attenuation = 0.5f;
             constants.Radius = 10.0f;
+            constants.FarClipDistance = 1000.0f;
             constants.RandomOffset = Vector2.One;
             constants.SampleCount = 16;
             constants.SampleSphere = new Vector3[MaxSampleCount];

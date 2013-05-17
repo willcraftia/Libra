@@ -2,14 +2,15 @@
 
 cbuffer Parameters : register(b0)
 {
-    float  Strength     : packoffset(c0.x);
-    float  Attenuation  : packoffset(c0.y);
-    float  Radius       : packoffset(c0.z);
+    float  Strength         : packoffset(c0.x);
+    float  Attenuation      : packoffset(c0.y);
+    float  Radius           : packoffset(c0.z);
+    float  FarClipDistance  : packoffset(c0.w);
 
-    float2 RandomOffset : packoffset(c1);
-    float  SampleCount  : packoffset(c1.z);
+    float2 RandomOffset     : packoffset(c1);
+    float  SampleCount      : packoffset(c1.z);
 
-    float3 SampleSphere : packoffset(c2);
+    float3 SampleSphere     : packoffset(c2);
 };
 
 // SpriteBatch でスプライト エフェクトとして利用するためのダミー定義。
@@ -39,12 +40,11 @@ float4 PS(float4 color    : COLOR0,
     float depth = LinearDepthMap.SampleLevel(LinearDepthMapSampler, texCoord, 0);
     float3 normal = NormalMap.SampleLevel(NormalMapSampler, texCoord, 0);
 
-    // TODO
     // 遠クリップ面の除去。
-/*
-if (1000.0f < depth)
-    return 1;
-*/
+    if (FarClipDistance <= depth)
+    {
+        return float4(1, 0, 0, 0);
+    }
 
     float3 position = float3((texCoord - float2(0.5, 0.5)) * float2(2.0, -2.0) * depth, depth);
 
