@@ -7,9 +7,9 @@ using System;
 namespace Libra.Graphics.Toolkit
 {
     /// <summary>
-    /// ガウシアン ブラー シェーダをポストプロセス パスとして構築するアダプタ クラスです。
+    /// ガウシアン フィルタとパスの組み合わせをフィルタ オブジェクトとするアダプタです。
     /// </summary>
-    public sealed class GaussianFilter : IPostprocessPass
+    public sealed class GaussianFilter : IFilterEffect
     {
         public GaussianFilterCore Core { get; private set; }
 

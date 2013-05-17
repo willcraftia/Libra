@@ -6,7 +6,7 @@ using System;
 
 namespace Libra.Graphics.Toolkit
 {
-    public interface IPostprocessPass
+    public interface IFilterEffect
     {
         bool Enabled { get; }
 

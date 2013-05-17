@@ -8,7 +8,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class Scanline : IPostprocessPass, IDisposable
+    public sealed class Scanline : IFilterEffect, IDisposable
     {
         #region SharedDeviceResource
 

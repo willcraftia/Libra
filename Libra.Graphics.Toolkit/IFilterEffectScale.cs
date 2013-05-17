@@ -6,7 +6,7 @@ using System;
 
 namespace Libra.Graphics.Toolkit
 {
-    public interface IPostprocessPassScale
+    public interface IFilterEffectScale
     {
         float WidthScale { get; }
 

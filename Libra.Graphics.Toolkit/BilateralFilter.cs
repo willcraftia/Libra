@@ -6,7 +6,7 @@ using System;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class BilateralFilter : IPostprocessPass
+    public sealed class BilateralFilter : IFilterEffect
     {
         public BilateralFilterCore Core { get; private set; }
 

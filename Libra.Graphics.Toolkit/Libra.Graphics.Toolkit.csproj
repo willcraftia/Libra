@@ -57,8 +57,8 @@
     <Compile Include="DownFilter.cs" />
     <Compile Include="Edge.cs" />
     <Compile Include="GaussianFilter.cs" />
-    <Compile Include="IPostprocessPass.cs" />
-    <Compile Include="IPostprocessPassScale.cs" />
+    <Compile Include="IFilterEffect.cs" />
+    <Compile Include="IFilterEffectScale.cs" />
     <Compile Include="LightScattering.cs" />
     <Compile Include="LinearDepthMapEffect.cs" />
     <Compile Include="Monochrome.cs" />

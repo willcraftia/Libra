@@ -9,9 +9,9 @@ using Libra.Graphics.Toolkit.Properties;
 namespace Libra.Graphics.Toolkit
 {
     /// <summary>
-    /// 被写界深度を考慮してシーンを合成するポストプロセスです。
+    /// 被写界深度を考慮してシーンを合成するフィルタです。
     /// </summary>
-    public sealed class DofCombine : IPostprocessPass, IDisposable
+    public sealed class DofCombine : IFilterEffect, IDisposable
     {
         #region SharedDeviceResource
 

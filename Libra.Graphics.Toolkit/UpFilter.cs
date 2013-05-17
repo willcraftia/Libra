@@ -7,7 +7,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class UpFilter : IPostprocessPass, IPostprocessPassScale, IDisposable
+    public sealed class UpFilter : IFilterEffect, IFilterEffectScale, IDisposable
     {
         #region SharedDeviceResource
 

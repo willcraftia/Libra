@@ -524,7 +524,7 @@ namespace Samples.ScenePostprocess
 
         void UpdatePostprocess()
         {
-            postprocess.Passes.Clear();
+            postprocess.Filters.Clear();
 
             switch (postprocessType)
             {
@@ -554,33 +554,33 @@ namespace Samples.ScenePostprocess
 
         void SetupDepthOfField()
         {
-            postprocess.Passes.Add(downFilter);
-            postprocess.Passes.Add(gaussianFilterH);
-            postprocess.Passes.Add(gaussianFilterV);
-            postprocess.Passes.Add(upFilter);
-            postprocess.Passes.Add(dofCombine);
+            postprocess.Filters.Add(downFilter);
+            postprocess.Filters.Add(gaussianFilterH);
+            postprocess.Filters.Add(gaussianFilterV);
+            postprocess.Filters.Add(upFilter);
+            postprocess.Filters.Add(dofCombine);
 
             AddCommonPasses();
         }
 
         void SetupBloom()
         {
-            postprocess.Passes.Add(bloomExtract);
-            postprocess.Passes.Add(downFilter);
-            postprocess.Passes.Add(gaussianFilterH);
-            postprocess.Passes.Add(gaussianFilterV);
-            postprocess.Passes.Add(upFilter);
-            postprocess.Passes.Add(bloomCombine);
+            postprocess.Filters.Add(bloomExtract);
+            postprocess.Filters.Add(downFilter);
+            postprocess.Filters.Add(gaussianFilterH);
+            postprocess.Filters.Add(gaussianFilterV);
+            postprocess.Filters.Add(upFilter);
+            postprocess.Filters.Add(bloomCombine);
 
             AddCommonPasses();
         }
 
         void SetupBlur()
         {
-            postprocess.Passes.Add(downFilter);
-            postprocess.Passes.Add(gaussianFilterH);
-            postprocess.Passes.Add(gaussianFilterV);
-            postprocess.Passes.Add(upFilter);
+            postprocess.Filters.Add(downFilter);
+            postprocess.Filters.Add(gaussianFilterH);
+            postprocess.Filters.Add(gaussianFilterV);
+            postprocess.Filters.Add(upFilter);
 
             AddCommonPasses();
         }
@@ -592,8 +592,8 @@ namespace Samples.ScenePostprocess
             const int iteration = 6;
             for (int i = 0; i < iteration; i++)
             {
-                postprocess.Passes.Add(bilateralFilterH);
-                postprocess.Passes.Add(bilateralFilterV);
+                postprocess.Filters.Add(bilateralFilterH);
+                postprocess.Filters.Add(bilateralFilterV);
             }
 
             AddCommonPasses();
@@ -601,12 +601,12 @@ namespace Samples.ScenePostprocess
 
         void AddCommonPasses()
         {
-            postprocess.Passes.Add(monochrome);
-            postprocess.Passes.Add(scanline);
-            postprocess.Passes.Add(negativeFilter);
-            postprocess.Passes.Add(edge);
-            postprocess.Passes.Add(radialFilter);
-            postprocess.Passes.Add(normalEdgeDetect);
+            postprocess.Filters.Add(monochrome);
+            postprocess.Filters.Add(scanline);
+            postprocess.Filters.Add(negativeFilter);
+            postprocess.Filters.Add(edge);
+            postprocess.Filters.Add(radialFilter);
+            postprocess.Filters.Add(normalEdgeDetect);
         }
 
         void HandleInput(GameTime gameTime)

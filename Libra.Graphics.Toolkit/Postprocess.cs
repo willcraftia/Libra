@@ -12,9 +12,9 @@ namespace Libra.Graphics.Toolkit
     {
         #region PassCollection
 
-        public sealed class PassCollection : Collection<IPostprocessPass>
+        public sealed class FilterCollection : Collection<IFilterEffect>
         {
-            internal PassCollection() { }
+            internal FilterCollection() { }
         }
 
         #endregion
@@ -118,7 +118,7 @@ namespace Libra.Graphics.Toolkit
 
         SpriteBatch spriteBatch;
 
-        public PassCollection Passes { get; private set; }
+        public FilterCollection Filters { get; private set; }
 
         public int Width
         {
@@ -177,7 +177,7 @@ namespace Libra.Graphics.Toolkit
             this.context = context;
 
             renderTargetChains = new Dictionary<ulong, RenderTargetChain>(4);
-            Passes = new PassCollection();
+            Filters = new FilterCollection();
             spriteBatch = new SpriteBatch(context);
 
             width = 1;
@@ -200,21 +200,21 @@ namespace Libra.Graphics.Toolkit
 
             RenderTargetChain renderTargetChain = null;
 
-            for (int i = 0; i < Passes.Count; i++)
+            for (int i = 0; i < Filters.Count; i++)
             {
-                var pass = Passes[i];
+                var filter = Filters[i];
 
-                if (!pass.Enabled)
+                if (!filter.Enabled)
                     continue;
 
                 lastWidth = currentWidth;
                 lastHeight = currentHeight;
 
-                var passScale = pass as IPostprocessPassScale;
-                if (passScale != null)
+                var filterEffectScale = filter as IFilterEffectScale;
+                if (filterEffectScale != null)
                 {
-                    currentWidth = (int) (currentWidth * passScale.WidthScale);
-                    currentHeight = (int) (currentHeight * passScale.HeightScale);
+                    currentWidth = (int) (currentWidth * filterEffectScale.WidthScale);
+                    currentHeight = (int) (currentHeight * filterEffectScale.HeightScale);
 
                     if (currentWidth != lastWidth && currentHeight != lastHeight)
                     {
@@ -239,7 +239,7 @@ namespace Libra.Graphics.Toolkit
 
                 context.SetRenderTarget(renderTargetChain.Current.GetRenderTargetView());
 
-                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque, null, null, null, pass.Apply);
+                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque, null, null, null, filter.Apply);
                 spriteBatch.Draw(currentTexture, new Rectangle(0, 0, currentWidth, currentHeight), Color.White);
                 spriteBatch.End();
 
@@ -291,7 +291,7 @@ namespace Libra.Graphics.Toolkit
             {
                 ReleaseRenderTargets();
 
-                foreach (var pass in Passes)
+                foreach (var pass in Filters)
                 {
                     var disposable = pass as IDisposable;
                     if (disposable != null)
