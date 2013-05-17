@@ -136,6 +136,11 @@ call :CompileShader NegativeFilter PS %ps_profile%
 ::
 call :CompileShader NormalEdgeDetect PS %ps_profile%
 
+::
+:: LinearDepthMapVisualize PS
+::
+call :CompileShader LinearDepthMapVisualize PS %ps_profile%
+
 echo.
 
 if %error% == 0 (

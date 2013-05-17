@@ -179,6 +179,13 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
+        internal static byte[] LinearDepthMapVisualizePS {
+            get {
+                object obj = ResourceManager.GetObject("LinearDepthMapVisualizePS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
         internal static byte[] LinearDepthMapVS {
             get {
                 object obj = ResourceManager.GetObject("LinearDepthMapVS", resourceCulture);
