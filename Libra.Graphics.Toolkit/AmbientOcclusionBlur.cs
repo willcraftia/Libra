@@ -34,6 +34,9 @@ namespace Libra.Graphics.Toolkit
             public float DepthSigma;
 
             [FieldOffset(4)]
+            public float NormalSigma;
+
+            [FieldOffset(8)]
             public float KernelSize;
 
             // XY: テクセル オフセット
@@ -66,7 +69,9 @@ namespace Libra.Graphics.Toolkit
 
         public const float DefaultSpaceSigma = 4.0f;
 
-        public const float DefaultDepthSigma = 0.2f;
+        public const float DefaultDepthSigma = 4.0f;
+
+        public const float DefaultNormalSigma = 4.0f;
 
         Device device;
 
@@ -126,7 +131,7 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        public float ColorSigma
+        public float DepthSigma
         {
             get { return constants.DepthSigma; }
             set
@@ -140,6 +145,29 @@ namespace Libra.Graphics.Toolkit
                 dirtyFlags |= DirtyFlags.Constants;
             }
         }
+
+        public float NormalSigma
+        {
+            get { return constants.NormalSigma; }
+            set
+            {
+                if (value < float.Epsilon) throw new ArgumentOutOfRangeException("value");
+
+                if (constants.NormalSigma == value) return;
+
+                constants.NormalSigma = value;
+
+                dirtyFlags |= DirtyFlags.Constants;
+            }
+        }
+
+        public ShaderResourceView LinearDepthMap { get; set; }
+
+        public ShaderResourceView NormalMap { get; set; }
+
+        public SamplerState LinearDepthMapSampler { get; set; }
+
+        public SamplerState NormalMapSampler { get; set; }
 
         public bool Enabled { get; set; }
 
@@ -166,6 +194,10 @@ namespace Libra.Graphics.Toolkit
             height = 1;
 
             constants.DepthSigma = DefaultDepthSigma;
+            constants.NormalSigma = DefaultNormalSigma;
+
+            LinearDepthMapSampler = SamplerState.PointClamp;
+            NormalMapSampler = SamplerState.PointClamp;
 
             Enabled = true;
 
@@ -218,6 +250,11 @@ namespace Libra.Graphics.Toolkit
 
             // ピクセル シェーダの設定。
             context.PixelShader = sharedDeviceResource.PixelShader;
+
+            context.PixelShaderResources[1] = LinearDepthMap;
+            context.PixelShaderResources[2] = NormalMap;
+            context.PixelShaderSamplers[1] = LinearDepthMapSampler;
+            context.PixelShaderSamplers[2] = NormalMapSampler;
         }
 
         void SetKernelSize()

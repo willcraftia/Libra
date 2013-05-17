@@ -5,8 +5,10 @@ cbuffer Parameters : register(b0)
 {
     // 深度の重み
     float DepthSigma                : packoffset(c0);
+    // 法線の重み
+    float NormalSigma               : packoffset(c0.y);
     // カーネル サイズ
-    float KernelSize                : packoffset(c0.y);
+    float KernelSize                : packoffset(c0.z);
     // xy = テクセル オフセット
     // z  = 空間の重み
     float3 Kernel[MAX_KERNEL_SIZE]  : packoffset(c1);
@@ -25,6 +27,7 @@ float4 PS(float4 color    : COLOR0,
           float2 texCoord : TEXCOORD0) : SV_Target0
 {
     float centerDepth = LinearDepthMap.Sample(LinearDepthMapSampler, texCoord);
+    float3 centerNormal = NormalMap.Sample(NormalMapSampler, texCoord);
 
     float4 totalColor = 0;
     float totalWeight = 0;
@@ -40,13 +43,20 @@ float4 PS(float4 color    : COLOR0,
 
         float sampleColor = Texture.Sample(TextureSampler, sampleTexCoord);
         float sampleDepth = LinearDepthMap.Sample(LinearDepthMapSampler, sampleTexCoord);
+        float3 sampleNormal = NormalMap.Sample(NormalMapSampler, sampleTexCoord);
 
         // 深度の差から深度の重みを算出。
         float depthCloseness = abs(centerDepth - sampleDepth);
         float depthWeight = exp(-depthCloseness * depthCloseness / (2 * DepthSigma * DepthSigma));
 
-        // 重み = 空間の重み * 深度の重み
-        float sampleWeight = spaceWeight * depthWeight;
+        // 法線の差から法線の重みを算出。
+        float normalCloseness = saturate(1 - dot(centerNormal, sampleNormal));
+        float normalWeight = exp(-normalCloseness * normalCloseness / (2 * NormalSigma * NormalSigma));
+
+        // 重み = 空間の重み * 深度の重み * 法線の重み。
+        float sampleWeight = spaceWeight;
+        sampleWeight *= depthWeight;
+        sampleWeight *= normalWeight;
 
         totalColor += sampleColor * sampleWeight;
         totalWeight += sampleWeight;

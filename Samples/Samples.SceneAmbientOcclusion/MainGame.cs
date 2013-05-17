@@ -249,19 +249,18 @@ namespace Samples.SceneAmbientOcclusion
             //upFilter.HeightScale = 2;
 
             ambientOcclusionBlur = new AmbientOcclusionBlur(Device);
-            ambientOcclusionBlur.ColorSigma = 0.5f;
             ambientOcclusionBlurH = new GaussianFilterPass(ambientOcclusionBlur, GaussianFilterDirection.Horizon);
             ambientOcclusionBlurV = new GaussianFilterPass(ambientOcclusionBlur, GaussianFilterDirection.Vertical);
 
-            const int blurIteration = 1;
+            const int blurIteration = 4;
 
-            postprocess.Filters.Add(downFilter);
+            //postprocess.Filters.Add(downFilter);
             for (int i = 0; i < blurIteration; i++)
             {
                 postprocess.Filters.Add(ambientOcclusionBlurH);
                 postprocess.Filters.Add(ambientOcclusionBlurV);
             }
-            postprocess.Filters.Add(upFilter);
+            //postprocess.Filters.Add(upFilter);
 
             depthMapEffect = new LinearDepthMapEffect(Device);
             normalMapEffect = new NormalMapEffect(Device);
@@ -315,7 +314,6 @@ namespace Samples.SceneAmbientOcclusion
             //CreateNormalSceneMap(context);
 
             // ポストプロセスを適用。
-            //finalSceneTexture = postprocess.Draw(normalSceneRenderTarget.GetShaderResourceView());
             finalSceneTexture = postprocess.Draw(ambientOcclusionMapRenderTarget.GetShaderResourceView());
 
             // 最終的なシーンをバック バッファへ描画。
@@ -338,6 +336,8 @@ namespace Samples.SceneAmbientOcclusion
 
             // 環境光閉塞マップ シェーダへ設定。
             ambientOcclusionMap.LinearDepthMap = depthMapRenderTarget.GetShaderResourceView();
+            // 環境光閉塞マップ ブラー フィルタへ設定。
+            ambientOcclusionBlur.LinearDepthMap = depthMapRenderTarget.GetShaderResourceView();
 
             // 中間マップ表示。
             textureDisplay.Textures.Add(depthMapRenderTarget.GetShaderResourceView());
@@ -354,6 +354,8 @@ namespace Samples.SceneAmbientOcclusion
 
             // 環境光閉塞マップ シェーダへ設定。
             ambientOcclusionMap.NormalMap = normalMapRenderTarget.GetShaderResourceView();
+            // 環境光閉塞マップ ブラー フィルタへ設定。
+            ambientOcclusionBlur.NormalMap = normalMapRenderTarget.GetShaderResourceView();
 
             // 中間マップ表示。
             textureDisplay.Textures.Add(normalMapRenderTarget.GetShaderResourceView());
