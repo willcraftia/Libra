@@ -124,19 +124,19 @@ namespace Samples.ScenePostprocess
         UpFilter upFilter;
 
         /// <summary>
-        /// ガウシアン フィルタ シェーダ。
+        /// ガウシアン フィルタ。
         /// </summary>
-        GaussianFilterCore gaussianFilterCore;
+        GaussianFilter gaussianFilter;
 
         /// <summary>
         /// ガウシアン フィルタ 水平パス。
         /// </summary>
-        GaussianFilter gaussianFilterH;
+        GaussianFilterPass gaussianFilterH;
 
         /// <summary>
         /// ガウシアン フィルタ 垂直パス。
         /// </summary>
-        GaussianFilter gaussianFilterV;
+        GaussianFilterPass gaussianFilterV;
 
         /// <summary>
         /// バイラテラル フィルタ シェーダ。
@@ -296,9 +296,9 @@ namespace Samples.ScenePostprocess
             downFilter = new DownFilter(Device);
             upFilter = new UpFilter(Device);
 
-            gaussianFilterCore = new GaussianFilterCore(Device);
-            gaussianFilterH = new GaussianFilter(gaussianFilterCore, GaussianFilterDirection.Horizon);
-            gaussianFilterV = new GaussianFilter(gaussianFilterCore, GaussianFilterDirection.Vertical);
+            gaussianFilter = new GaussianFilter(Device);
+            gaussianFilterH = new GaussianFilterPass(gaussianFilter, GaussianFilterDirection.Horizon);
+            gaussianFilterV = new GaussianFilterPass(gaussianFilter, GaussianFilterDirection.Vertical);
 
             bilateralFilterCore = new BilateralFilterCore(Device);
             bilateralFilterH = new BilateralFilter(bilateralFilterCore, GaussianFilterDirection.Horizon);

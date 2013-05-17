@@ -56,7 +56,7 @@
     <Compile Include="DirectTextureDraw.cs" />
     <Compile Include="DownFilter.cs" />
     <Compile Include="Edge.cs" />
-    <Compile Include="GaussianFilter.cs" />
+    <Compile Include="GaussianFilterPass.cs" />
     <Compile Include="IFilterEffect.cs" />
     <Compile Include="IFilterEffectScale.cs" />
     <Compile Include="LightScattering.cs" />
@@ -79,7 +79,7 @@
     <Compile Include="FullScreenQuad.cs" />
     <Compile Include="GaussianFilterDirection.cs" />
     <Compile Include="GaussianFilterSuite.cs" />
-    <Compile Include="GaussianFilterCore.cs" />
+    <Compile Include="GaussianFilter.cs" />
     <Compile Include="LiSPSMLightCameraBuilder.cs" />
     <Compile Include="ProjectionType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -19,7 +19,7 @@ namespace Samples.BloomPostprocess
 
         BloomCombine bloomCombine;
 
-        GaussianFilterCore gaussianFilter;
+        GaussianFilter gaussianFilter;
 
         RenderTarget sceneRenderTarget;
 
@@ -64,7 +64,7 @@ namespace Samples.BloomPostprocess
 
             bloomExtract = new BloomExtract(Device);
             bloomCombine = new BloomCombine(Device);
-            gaussianFilter = new GaussianFilterCore(Device);
+            gaussianFilter = new GaussianFilter(Device);
 
             var backBuffer = Device.BackBuffer;
             var width = backBuffer.Width;

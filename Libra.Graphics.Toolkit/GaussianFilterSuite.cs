@@ -8,7 +8,7 @@ namespace Libra.Graphics.Toolkit
 {
     public sealed class GaussianFilterSuite : IDisposable
     {
-        GaussianFilterCore core;
+        GaussianFilter gaussianFilter;
 
         RenderTarget backingRenderTarget;
 
@@ -24,14 +24,14 @@ namespace Libra.Graphics.Toolkit
 
         public int Radius
         {
-            get { return core.Radius; }
-            set { core.Radius = value; }
+            get { return gaussianFilter.Radius; }
+            set { gaussianFilter.Radius = value; }
         }
 
         public float Sigma
         {
-            get { return core.Sigma; }
-            set { core.Sigma = value; }
+            get { return gaussianFilter.Sigma; }
+            set { gaussianFilter.Sigma = value; }
         }
 
         public GaussianFilterSuite(Device device, int width, int height, SurfaceFormat format)
@@ -44,7 +44,7 @@ namespace Libra.Graphics.Toolkit
             Width = width;
             Height = height;
 
-            core = new GaussianFilterCore(Device);
+            gaussianFilter = new GaussianFilter(Device);
             fullScreenQuad = new FullScreenQuad(Device);
 
             backingRenderTarget = Device.CreateRenderTarget();
@@ -82,8 +82,8 @@ namespace Libra.Graphics.Toolkit
         {
             context.SetRenderTarget(destination);
 
-            core.Direction = direction;
-            core.Apply(context);
+            gaussianFilter.Direction = direction;
+            gaussianFilter.Apply(context);
 
             context.PixelShaderResources[0] = source;
             
@@ -111,7 +111,7 @@ namespace Libra.Graphics.Toolkit
 
             if (disposing)
             {
-                core.Dispose();
+                gaussianFilter.Dispose();
                 backingRenderTarget.Dispose();
                 fullScreenQuad.Dispose();
             }

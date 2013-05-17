@@ -126,19 +126,19 @@ namespace Samples.SceneAmbientOcclusion
         UpFilter upFilter;
 
         /// <summary>
-        /// ガウシアン フィルタ シェーダ。
+        /// ガウシアン フィルタ。
         /// </summary>
-        GaussianFilterCore gaussianFilterCore;
+        GaussianFilter gaussianFilter;
 
         /// <summary>
         /// ガウシアン フィルタ 水平パス。
         /// </summary>
-        GaussianFilter gaussianFilterH;
+        GaussianFilterPass gaussianFilterH;
 
         /// <summary>
         /// ガウシアン フィルタ 垂直パス。
         /// </summary>
-        GaussianFilter gaussianFilterV;
+        GaussianFilterPass gaussianFilterV;
 
         /// <summary>
         /// 線形深度マップ エフェクト。
@@ -246,9 +246,9 @@ namespace Samples.SceneAmbientOcclusion
             downFilter = new DownFilter(Device);
             upFilter = new UpFilter(Device);
 
-            gaussianFilterCore = new GaussianFilterCore(Device);
-            gaussianFilterH = new GaussianFilter(gaussianFilterCore, GaussianFilterDirection.Horizon);
-            gaussianFilterV = new GaussianFilter(gaussianFilterCore, GaussianFilterDirection.Vertical);
+            gaussianFilter = new GaussianFilter(Device);
+            gaussianFilterH = new GaussianFilterPass(gaussianFilter, GaussianFilterDirection.Horizon);
+            gaussianFilterV = new GaussianFilterPass(gaussianFilter, GaussianFilterDirection.Vertical);
 
             //postprocess.Passes.Add(downFilter);
             //postprocess.Passes.Add(gaussianBlurH);
