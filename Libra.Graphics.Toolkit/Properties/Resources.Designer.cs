@@ -81,6 +81,13 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
+        internal static byte[] AmbientOcclusionMapVS {
+            get {
+                object obj = ResourceManager.GetObject("AmbientOcclusionMapVS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
         internal static byte[] BilateralFilterPS {
             get {
                 object obj = ResourceManager.GetObject("BilateralFilterPS", resourceCulture);

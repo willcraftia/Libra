@@ -31,8 +31,9 @@ call :CompileShader NormalMap VS %vs_profile%
 call :CompileShader NormalMap PS %ps_profile%
 
 ::
-:: AmbientOcclusionMap PS
+:: AmbientOcclusionMap VS/PS
 ::
+call :CompileShader AmbientOcclusionMap VS %vs_profile%
 call :CompileShader AmbientOcclusionMap PS %ps_profile%
 
 ::

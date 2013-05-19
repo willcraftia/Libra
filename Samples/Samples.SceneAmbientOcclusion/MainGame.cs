@@ -241,8 +241,8 @@ namespace Samples.SceneAmbientOcclusion
             normalMapRenderTarget.Initialize();
 
             ambientOcclusionMapRenderTarget = Device.CreateRenderTarget();
-            ambientOcclusionMapRenderTarget.Width = WindowWidth / 2;
-            ambientOcclusionMapRenderTarget.Height = WindowHeight / 2;
+            ambientOcclusionMapRenderTarget.Width = WindowWidth / 1;
+            ambientOcclusionMapRenderTarget.Height = WindowHeight / 1;
             ambientOcclusionMapRenderTarget.Format = SurfaceFormat.Single;
             ambientOcclusionMapRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
             ambientOcclusionMapRenderTarget.Initialize();
@@ -256,9 +256,9 @@ namespace Samples.SceneAmbientOcclusion
             randomNormalMap = RandomNormalMap.CreateAsR8G8B8A8SNorm(Device.ImmediateContext, new Random(0), 64, 64);
 
             ambientOcclusionMap = new AmbientOcclusionMap(Device);
-            ambientOcclusionMap.Width = WindowWidth / 2;
-            ambientOcclusionMap.Height = WindowHeight / 2;
-            ambientOcclusionMap.FarClipDistance = camera.FarClipDistance;
+            ambientOcclusionMap.Width = ambientOcclusionMapRenderTarget.Width;
+            ambientOcclusionMap.Height = ambientOcclusionMapRenderTarget.Height;
+            ambientOcclusionMap.Projection = camera.Projection;
             ambientOcclusionMap.RandomNormalMap = randomNormalMap.GetShaderResourceView();
 
             postprocessAO = new Postprocess(Device.ImmediateContext);
@@ -351,6 +351,7 @@ namespace Samples.SceneAmbientOcclusion
 
             // 通常シーンへポストプロセスを適用。
             finalSceneTexture = postprocess.Draw(normalSceneRenderTarget.GetShaderResourceView());
+            //finalSceneTexture = ambientOcclusionMapRenderTarget.GetShaderResourceView();
 
             // 最終的なシーンをバック バッファへ描画。
             CreateFinalSceneMap(context);
@@ -405,9 +406,11 @@ namespace Samples.SceneAmbientOcclusion
             context.SetRenderTarget(ambientOcclusionMapRenderTarget.GetRenderTargetView());
             context.Clear(Vector4.One);
 
-            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque, null, null, null, ambientOcclusionMap.Apply);
-            spriteBatch.Draw(depthMapRenderTarget.GetShaderResourceView(), ambientOcclusionMapRenderTarget.Bounds, Color.White);
-            spriteBatch.End();
+            ambientOcclusionMap.Draw(context);
+
+            //spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque, null, null, null, ambientOcclusionMap.Apply);
+            //spriteBatch.Draw(depthMapRenderTarget.GetShaderResourceView(), ambientOcclusionMapRenderTarget.Bounds, Color.White);
+            //spriteBatch.End();
 
             context.SetRenderTarget(null);
 

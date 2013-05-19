@@ -136,6 +136,7 @@
     <None Include="Shaders\Compiled\AmbientOcclusionBlurPS.bin" />
     <None Include="Shaders\Compiled\AmbientOcclusionCombinePS.bin" />
     <None Include="Shaders\Compiled\AmbientOcclusionMapPS.bin" />
+    <None Include="Shaders\Compiled\AmbientOcclusionMapVS.bin" />
     <None Include="Shaders\Compiled\BilateralFilterPS.bin" />
     <None Include="Shaders\Compiled\BloomCombinePS.bin" />
     <None Include="Shaders\Compiled\BloomExtractPS.bin" />

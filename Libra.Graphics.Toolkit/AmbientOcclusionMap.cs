@@ -14,10 +14,14 @@ namespace Libra.Graphics.Toolkit
 
         sealed class SharedDeviceResource
         {
+            public VertexShader VertexShader { get; private set; }
+
             public PixelShader PixelShader { get; private set; }
 
             public SharedDeviceResource(Device device)
             {
+                VertexShader = device.CreateVertexShader();
+                VertexShader.Initialize(Resources.AmbientOcclusionMapVS);
                 PixelShader = device.CreatePixelShader();
                 PixelShader.Initialize(Resources.AmbientOcclusionMapPS);
             }
@@ -27,29 +31,32 @@ namespace Libra.Graphics.Toolkit
 
         #region Constants
 
-        [StructLayout(LayoutKind.Explicit, Size = 32 + 16 * MaxSampleCount)]
+        [StructLayout(LayoutKind.Explicit, Size = 48 + 16 * MaxSampleCount)]
         public struct Constants
         {
             [FieldOffset(0)]
-            public float Strength;
-
-            [FieldOffset(4)]
-            public float Attenuation;
-
-            [FieldOffset(8)]
-            public float Radius;
-
-            [FieldOffset(12)]
-            public float FarClipDistance;
+            public Vector2 FocalLength;
 
             [FieldOffset(16)]
-            public Vector2 RandomOffset;
+            public float Strength;
+
+            [FieldOffset(20)]
+            public float Attenuation;
 
             [FieldOffset(24)]
+            public float Radius;
+
+            [FieldOffset(28)]
+            public float FarClipDistance;
+
+            [FieldOffset(32)]
+            public Vector2 RandomOffset;
+
+            [FieldOffset(40)]
             public float SampleCount;
 
-            [FieldOffset(32), MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxSampleCount)]
-            public Vector3[] SampleSphere;
+            [FieldOffset(48), MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxSampleCount)]
+            public Vector4[] SampleSphere;
         }
 
         #endregion
@@ -62,7 +69,8 @@ namespace Libra.Graphics.Toolkit
             Random          = (1 << 0),
             RandomOffset    = (1 << 1),
             SampleSphere    = (1 << 2),
-            Constants       = (1 << 3)
+            Projection     = (1 << 3),
+            Constants       = (1 << 4)
         }
 
         #endregion
@@ -84,6 +92,8 @@ namespace Libra.Graphics.Toolkit
         int width;
 
         int height;
+
+        Matrix projection;
 
         DirtyFlags dirtyFlags;
 
@@ -137,19 +147,6 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        public float FarClipDistance
-        {
-            get { return constants.FarClipDistance; }
-            set
-            {
-                if (value <= 0.0f) throw new ArgumentOutOfRangeException("value");
-
-                constants.FarClipDistance = value;
-
-                dirtyFlags |= DirtyFlags.Constants;
-            }
-        }
-
         public int SampleCount
         {
             get { return (int) constants.SampleCount; }
@@ -189,6 +186,17 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
+        public Matrix Projection
+        {
+            get { return projection; }
+            set
+            {
+                projection = value;
+
+                dirtyFlags |= DirtyFlags.Projection;
+            }
+        }
+
         public ShaderResourceView LinearDepthMap { get; set; }
 
         public ShaderResourceView NormalMap { get; set; }
@@ -218,13 +226,14 @@ namespace Libra.Graphics.Toolkit
             width = 1;
             height = 1;
 
-            constants.Strength = 20.0f;
+            constants.Strength = 1.0f;
             constants.Attenuation = 0.5f;
             constants.Radius = 10.0f;
             constants.FarClipDistance = 1000.0f;
             constants.RandomOffset = Vector2.One;
             constants.SampleCount = 16;
-            constants.SampleSphere = new Vector3[MaxSampleCount];
+            constants.FocalLength = Vector2.One;
+            constants.SampleSphere = new Vector4[MaxSampleCount];
 
             LinearDepthMapSampler = SamplerState.PointClamp;
             NormalMapSampler = SamplerState.PointClamp;
@@ -232,15 +241,27 @@ namespace Libra.Graphics.Toolkit
 
             Enabled = true;
 
-            dirtyFlags = DirtyFlags.Random | DirtyFlags.RandomOffset | DirtyFlags.SampleSphere | DirtyFlags.Constants;
+            dirtyFlags = DirtyFlags.Random | DirtyFlags.RandomOffset | DirtyFlags.SampleSphere |
+                DirtyFlags.Projection | DirtyFlags.Constants;
         }
 
-        public void Apply(DeviceContext context)
+        public void Draw(DeviceContext context)
+        {
+            if (context == null) throw new ArgumentNullException("context");
+
+            Apply(context);
+
+            context.PrimitiveTopology = PrimitiveTopology.TriangleList;
+            context.Draw(3);
+        }
+
+        void Apply(DeviceContext context)
         {
             if (context == null) throw new ArgumentNullException("context");
 
             SetSampleSphere();
             SetRandomOffset();
+            SetProjection();
 
             if ((dirtyFlags & DirtyFlags.Constants) != 0)
             {
@@ -249,15 +270,18 @@ namespace Libra.Graphics.Toolkit
                 dirtyFlags &= ~DirtyFlags.Constants;
             }
 
+            context.VertexShaderConstantBuffers[0] = constantBuffer;
+            context.VertexShader = sharedDeviceResource.VertexShader;
+
             context.PixelShaderConstantBuffers[0] = constantBuffer;
             context.PixelShader = sharedDeviceResource.PixelShader;
 
-            context.PixelShaderResources[1] = LinearDepthMap;
-            context.PixelShaderResources[2] = NormalMap;
-            context.PixelShaderResources[3] = RandomNormalMap;
-            context.PixelShaderSamplers[1] = LinearDepthMapSampler;
-            context.PixelShaderSamplers[2] = NormalMapSampler;
-            context.PixelShaderSamplers[3] = RandomNormalMapSampler;
+            context.PixelShaderResources[0] = LinearDepthMap;
+            context.PixelShaderResources[1] = NormalMap;
+            context.PixelShaderResources[2] = RandomNormalMap;
+            context.PixelShaderSamplers[0] = LinearDepthMapSampler;
+            context.PixelShaderSamplers[1] = NormalMapSampler;
+            context.PixelShaderSamplers[2] = RandomNormalMapSampler;
         }
 
         void SetSampleSphere()
@@ -286,7 +310,7 @@ namespace Libra.Graphics.Toolkit
                     // 単位球面内のランダム点。
                     Vector3.Multiply(ref vector, (float) random.NextDouble(), out vector);
 
-                    constants.SampleSphere[i] = vector;
+                    constants.SampleSphere[i] = new Vector4(vector, 0);
                 }
 
                 dirtyFlags &= ~DirtyFlags.SampleSphere;
@@ -305,6 +329,32 @@ namespace Libra.Graphics.Toolkit
                 constants.RandomOffset.X = (float) width / (float) w;
                 constants.RandomOffset.Y = (float) height / (float) h;
 
+                dirtyFlags &= ~DirtyFlags.RandomOffset;
+                dirtyFlags |= DirtyFlags.Constants;
+            }
+        }
+
+        void SetProjection()
+        {
+            if ((dirtyFlags & DirtyFlags.Projection) != 0)
+            {
+                constants.FocalLength.X = projection.M11;
+                constants.FocalLength.Y = projection.M22;
+
+                float fov;
+                float aspectRatio;
+                float left;
+                float right;
+                float bottom;
+                float top;
+                float nearClipDistance;
+                float farClipDistance;
+                projection.ExtractPerspective(
+                    out fov, out aspectRatio, out left, out right, out bottom, out top, out nearClipDistance, out farClipDistance);
+
+                constants.FarClipDistance = farClipDistance;
+
+                dirtyFlags &= ~DirtyFlags.Projection;
                 dirtyFlags |= DirtyFlags.Constants;
             }
         }
