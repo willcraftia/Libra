@@ -1,3 +1,12 @@
+// オリジナルは下記サイト:
+// http://www.gamerendering.com/2009/01/14/ssao/
+//
+// 上記シェーダとの差異は以下:
+// ・深度マップは線形深度マップ (オリジナルは射影深度マップ)。
+// ・球状のランダム点はシェーダ外部で生成 (オリジナルはハードコード)。
+// ・Falloff による深度差異の調整をしない (単純比較で十分と判断)。
+// ・閉塞物までの距離による減衰処理の追加。
+
 #define MAX_SAMPLE_COUNT 128
 
 cbuffer Parameters : register(b0)
@@ -41,31 +50,30 @@ VSOutput VS(uint id : SV_VertexID)
 
 float4 PS(VSOutput input) : SV_Target
 {
-    float2 texCoord = input.TexCoord;
-    float3 viewRay = input.ViewRay;
+    // 深度。
+    float depth = LinearDepthMap.SampleLevel(LinearDepthMapSampler, input.TexCoord, 0);
 
-    // 現在対象とする位置での法線と深度。
-    float depth = LinearDepthMap.SampleLevel(LinearDepthMapSampler, texCoord, 0);
-
-    // 遠クリップ面の除去。
+    // 遠クリップ面以降の除去。
     if (FarClipDistance <= depth)
     {
         return float4(1, 0, 0, 0);
     }
 
-    // ランダム法線の取得。
+    // 座標 (ビュー空間)
+    float3 position = input.ViewRay * depth;
+
+    // 法線。
+    float3 normal = NormalMap.SampleLevel(NormalMapSampler, input.TexCoord, 0);
+
+    // ランダム法線。
     int3 randomLocation = int3((int) input.Position.x & 63, (int) input.Position.y & 63, 0);
     float3 randomNormal = RandomNormalMap.Load(randomLocation);
     randomNormal = normalize(randomNormal);
 
-    float3 normal = NormalMap.SampleLevel(NormalMapSampler, texCoord, 0);
-
-    float3 position = viewRay * depth;
-
     float totalOcclusion = 0;
     for (int i = 0; i < SampleCount; i++)
     {
-        // サンプルの座標を決定するためのレイ。
+        // サンプル点を決定するためのレイ。
         float3 ray = SampleSphere[i].xyz;
 
         // ランダム法線との反射によりランダム化。
@@ -74,17 +82,17 @@ float4 PS(VSOutput input) : SV_Target
         // 面上の半球内に収めるため、面の法線との内積 0 未満は反転。
         ray *= sign(dot(ray, normal));
 
-        // サンプル位置
+        // サンプル点
         float3 samplePosition = position + ray * Radius;
 
         // サンプル テクセル位置
         float2 sampleTexCoord = samplePosition.xy / samplePosition.z;
         sampleTexCoord = sampleTexCoord * FocalLength * float2(0.5, -0.5) + float2(0.5, 0.5);
 
-        // サンプル位置の深度。
+        // サンプル テクセル位置の深度。
         float sampleDepth = LinearDepthMap.SampleLevel(LinearDepthMapSampler, sampleTexCoord, 0);
 
-        // サンプル位置に対応する深度がサンプル点よりも奥にある場合、
+        // サンプル点よりも奥にある場合、
         // 深度が示す物体はサンプル点を遮蔽しないものと見做す。
         if (samplePosition.z < sampleDepth)
             continue;
