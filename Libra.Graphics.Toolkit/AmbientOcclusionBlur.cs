@@ -277,8 +277,6 @@ namespace Libra.Graphics.Toolkit
                 var dy = 1.0f / (float) height;
 
                 kernelH[0].X = 0.0f;
-                kernelH[0].Y = 0.0f;
-                kernelV[0].X = 0.0f;
                 kernelV[0].Y = 0.0f;
 
                 for (int i = 0; i < kernelSize / 2; i++)
@@ -287,7 +285,6 @@ namespace Libra.Graphics.Toolkit
                     int left = baseIndex + 1;
                     int right = baseIndex + 2;
 
-                    // XNA BloomPostprocess サンプルに従ってオフセットを決定。
                     float sampleOffset = i * 2 + 1.5f;
                     var offsetX = dx * sampleOffset;
                     var offsetY = dy * sampleOffset;
