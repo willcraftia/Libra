@@ -304,8 +304,15 @@ namespace Libra.Graphics.Toolkit
                     };
                     vector.Normalize();
 
+                    // 球面内のランダム位置とするためのスケール。
+                    // 均一ではなく中心に偏った分布とするために、
+                    // それらしくスケールを調整。
+                    // http://john-chapman-graphics.blogspot.jp/2013/01/ssao-tutorial.html
+                    float scale = (float) i / (float) MaxSampleCount;
+                    scale = MathHelper.Lerp(0.1f, 1.0f, scale * scale);
+
                     // 単位球面内のランダム点。
-                    Vector3.Multiply(ref vector, (float) random.NextDouble(), out vector);
+                    Vector3.Multiply(ref vector, scale, out vector);
 
                     constants.SampleSphere[i] = new Vector4(vector, 0);
                 }
