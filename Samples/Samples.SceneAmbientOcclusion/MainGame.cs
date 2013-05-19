@@ -293,7 +293,7 @@ namespace Samples.SceneAmbientOcclusion
             ssaoBlurH = new GaussianFilterPass(ssaoBlur, GaussianFilterDirection.Horizon);
             ssaoBlurV = new GaussianFilterPass(ssaoBlur, GaussianFilterDirection.Vertical);
 
-            const int blurIteration = 4;
+            const int blurIteration = 3;
             for (int i = 0; i < blurIteration; i++)
             {
                 postprocessSSAOMap.Filters.Add(ssaoBlurH);
