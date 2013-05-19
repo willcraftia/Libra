@@ -197,7 +197,7 @@ namespace Libra.Graphics.Toolkit
             constants.Attenuation = 0.5f;
             constants.Radius = 10.0f;
             constants.FarClipDistance = 1000.0f;
-            constants.SampleCount = 16;
+            constants.SampleCount = 8;
             constants.SampleSphere = new Vector4[MaxSampleCount];
 
             LinearDepthMapSampler = SamplerState.PointClamp;
