@@ -112,11 +112,6 @@ namespace Samples.SceneAmbientOcclusion
         ShaderResourceView finalSceneTexture;
 
         /// <summary>
-        /// ランダム法線マップ。
-        /// </summary>
-        Texture2D randomNormalMap;
-
-        /// <summary>
         /// 環境光閉塞マップ シェーダ。
         /// </summary>
         AmbientOcclusionMap ambientOcclusionMap;
@@ -269,17 +264,12 @@ namespace Samples.SceneAmbientOcclusion
             normalSceneRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
             normalSceneRenderTarget.Initialize();
 
-            randomNormalMap = RandomNormalMap.CreateAsR8G8B8A8SNorm(Device.ImmediateContext, new Random(0), 64, 64);
-
             ambientOcclusionMap = new AmbientOcclusionMap(Device);
-            ambientOcclusionMap.Width = ambientOcclusionMapRenderTarget.Width;
-            ambientOcclusionMap.Height = ambientOcclusionMapRenderTarget.Height;
             ambientOcclusionMap.Projection = camera.Projection;
-            ambientOcclusionMap.RandomNormalMap = randomNormalMap.GetShaderResourceView();
 
             postprocessAO = new Postprocess(Device.ImmediateContext);
-            postprocessAO.Width = ambientOcclusionMap.Width;
-            postprocessAO.Height = ambientOcclusionMap.Height;
+            postprocessAO.Width = ambientOcclusionMapRenderTarget.Width;
+            postprocessAO.Height = ambientOcclusionMapRenderTarget.Height;
             postprocessAO.Format = SurfaceFormat.Single;
 
             postprocess = new Postprocess(Device.ImmediateContext);

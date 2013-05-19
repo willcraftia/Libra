@@ -3,16 +3,14 @@
 cbuffer Parameters : register(b0)
 {
     float2 FocalLength                      : packoffset(c0);
+    float  SampleCount                      : packoffset(c0.z);
 
     float  Strength                         : packoffset(c1.x);
     float  Attenuation                      : packoffset(c1.y);
     float  Radius                           : packoffset(c1.z);
     float  FarClipDistance                  : packoffset(c1.w);
 
-    float2 RandomOffset                     : packoffset(c2);
-    float  SampleCount                      : packoffset(c2.z);
-
-    float4 SampleSphere[MAX_SAMPLE_COUNT]   : packoffset(c3);
+    float4 SampleSphere[MAX_SAMPLE_COUNT]   : packoffset(c2);
 };
 
 // 法線マップは _SNORM フォーマット。
@@ -22,7 +20,6 @@ Texture2D<float3> RandomNormalMap   : register(t2);
 
 SamplerState LinearDepthMapSampler  : register(s0);
 SamplerState NormalMapSampler       : register(s1);
-SamplerState RandomNormalMapSampler : register(s2);
 
 struct VSOutput
 {
@@ -56,8 +53,9 @@ float4 PS(VSOutput input) : SV_Target
         return float4(1, 0, 0, 0);
     }
 
-    // ランダムなレイを算出するための法線。
-    float3 randomNormal = RandomNormalMap.SampleLevel(RandomNormalMapSampler, texCoord * RandomOffset, 0);
+    // ランダム法線の取得。
+    int3 randomLocation = int3((int) input.Position.x & 63, (int) input.Position.y & 63, 0);
+    float3 randomNormal = RandomNormalMap.Load(randomLocation);
     randomNormal = normalize(randomNormal);
 
     float3 normal = NormalMap.SampleLevel(NormalMapSampler, texCoord, 0);

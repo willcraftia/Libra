@@ -2,6 +2,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using Libra.PackedVector;
 using Libra.Graphics.Toolkit.Properties;
 
 #endregion
@@ -31,11 +32,14 @@ namespace Libra.Graphics.Toolkit
 
         #region Constants
 
-        [StructLayout(LayoutKind.Explicit, Size = 48 + 16 * MaxSampleCount)]
+        [StructLayout(LayoutKind.Explicit, Size = 32 + 16 * MaxSampleCount)]
         public struct Constants
         {
             [FieldOffset(0)]
             public Vector2 FocalLength;
+
+            [FieldOffset(8)]
+            public float SampleCount;
 
             [FieldOffset(16)]
             public float Strength;
@@ -49,13 +53,7 @@ namespace Libra.Graphics.Toolkit
             [FieldOffset(28)]
             public float FarClipDistance;
 
-            [FieldOffset(32)]
-            public Vector2 RandomOffset;
-
-            [FieldOffset(40)]
-            public float SampleCount;
-
-            [FieldOffset(48), MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxSampleCount)]
+            [FieldOffset(32), MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxSampleCount)]
             public Vector4[] SampleSphere;
         }
 
@@ -67,15 +65,17 @@ namespace Libra.Graphics.Toolkit
         enum DirtyFlags
         {
             Random          = (1 << 0),
-            RandomOffset    = (1 << 1),
+            RandomNormals   = (1 << 1),
             SampleSphere    = (1 << 2),
-            Projection     = (1 << 3),
+            Projection      = (1 << 3),
             Constants       = (1 << 4)
         }
 
         #endregion
 
         public const int MaxSampleCount = 128;
+
+        const int RandomNormalMapSize = 64;
 
         Device device;
 
@@ -89,10 +89,8 @@ namespace Libra.Graphics.Toolkit
 
         Random random;
 
-        int width;
-
-        int height;
-
+        Texture2D randomNormalMap;
+        
         Matrix projection;
 
         DirtyFlags dirtyFlags;
@@ -160,32 +158,6 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        public int Width
-        {
-            get { return width; }
-            set
-            {
-                if (value < 1) throw new ArgumentOutOfRangeException("value");
-
-                width = value;
-
-                dirtyFlags |= DirtyFlags.RandomOffset;
-            }
-        }
-
-        public int Height
-        {
-            get { return height; }
-            set
-            {
-                if (value < 1) throw new ArgumentOutOfRangeException("value");
-
-                height = value;
-
-                dirtyFlags |= DirtyFlags.RandomOffset;
-            }
-        }
-
         public Matrix Projection
         {
             get { return projection; }
@@ -201,13 +173,9 @@ namespace Libra.Graphics.Toolkit
 
         public ShaderResourceView NormalMap { get; set; }
 
-        public ShaderResourceView RandomNormalMap { get; set; }
-
         public SamplerState LinearDepthMapSampler { get; set; }
 
         public SamplerState NormalMapSampler { get; set; }
-
-        public SamplerState RandomNormalMapSampler { get; private set; }
 
         public bool Enabled { get; set; }
 
@@ -223,25 +191,21 @@ namespace Libra.Graphics.Toolkit
             constantBuffer.Initialize<Constants>();
 
             seed = 0;
-            width = 1;
-            height = 1;
 
             constants.FocalLength = Vector2.One;
             constants.Strength = 5.0f;
             constants.Attenuation = 0.5f;
             constants.Radius = 10.0f;
             constants.FarClipDistance = 1000.0f;
-            constants.RandomOffset = Vector2.One;
             constants.SampleCount = 16;
             constants.SampleSphere = new Vector4[MaxSampleCount];
 
             LinearDepthMapSampler = SamplerState.PointClamp;
             NormalMapSampler = SamplerState.PointClamp;
-            RandomNormalMapSampler = SamplerState.PointWrap;
 
             Enabled = true;
 
-            dirtyFlags = DirtyFlags.Random | DirtyFlags.RandomOffset | DirtyFlags.SampleSphere |
+            dirtyFlags = DirtyFlags.Random | DirtyFlags.RandomNormals | DirtyFlags.SampleSphere |
                 DirtyFlags.Projection | DirtyFlags.Constants;
         }
 
@@ -259,8 +223,16 @@ namespace Libra.Graphics.Toolkit
         {
             if (context == null) throw new ArgumentNullException("context");
 
+            if ((dirtyFlags & DirtyFlags.Random) != 0)
+            {
+                random = new Random(seed);
+
+                dirtyFlags &= ~DirtyFlags.Random;
+                dirtyFlags |= DirtyFlags.RandomNormals | DirtyFlags.SampleSphere;
+            }
+
+            SetRandomNormals(context);
             SetSampleSphere();
-            SetRandomOffset();
             SetProjection();
 
             if ((dirtyFlags & DirtyFlags.Constants) != 0)
@@ -278,22 +250,47 @@ namespace Libra.Graphics.Toolkit
 
             context.PixelShaderResources[0] = LinearDepthMap;
             context.PixelShaderResources[1] = NormalMap;
-            context.PixelShaderResources[2] = RandomNormalMap;
+            context.PixelShaderResources[2] = randomNormalMap.GetShaderResourceView();
             context.PixelShaderSamplers[0] = LinearDepthMapSampler;
             context.PixelShaderSamplers[1] = NormalMapSampler;
-            context.PixelShaderSamplers[2] = RandomNormalMapSampler;
+        }
+
+        void SetRandomNormals(DeviceContext context)
+        {
+            if ((dirtyFlags & DirtyFlags.RandomNormals) != 0)
+            {
+                if (randomNormalMap != null)
+                    randomNormalMap.Dispose();
+
+                var normals = new NormalizedByte4[RandomNormalMapSize * RandomNormalMapSize];
+                for (int i = 0; i < normals.Length; i++)
+                {
+                    var normal = new Vector4
+                    {
+                        X = (float) random.NextDouble() * 2.0f - 1.0f,
+                        Y = (float) random.NextDouble() * 2.0f - 1.0f,
+                        Z = (float) random.NextDouble() * 2.0f - 1.0f,
+                        W = 0
+                    };
+                    normal.Normalize();
+
+                    normals[i] = new NormalizedByte4(normal);
+                }
+
+                randomNormalMap = context.Device.CreateTexture2D();
+                randomNormalMap.Width = RandomNormalMapSize;
+                randomNormalMap.Height = RandomNormalMapSize;
+                randomNormalMap.Format = SurfaceFormat.NormalizedByte4;
+                randomNormalMap.Initialize();
+                randomNormalMap.SetData(context, normals);
+
+
+                dirtyFlags &= ~DirtyFlags.RandomNormals;
+            }
         }
 
         void SetSampleSphere()
         {
-            if ((dirtyFlags & DirtyFlags.Random) != 0)
-            {
-                random = new Random(seed);
-
-                dirtyFlags &= ~DirtyFlags.Random;
-                dirtyFlags |= DirtyFlags.SampleSphere;
-            }
-
             if ((dirtyFlags & DirtyFlags.SampleSphere) != 0)
             {
                 for (int i = 0; i < MaxSampleCount; i++)
@@ -314,22 +311,6 @@ namespace Libra.Graphics.Toolkit
                 }
 
                 dirtyFlags &= ~DirtyFlags.SampleSphere;
-                dirtyFlags |= DirtyFlags.Constants;
-            }
-        }
-
-        void SetRandomOffset()
-        {
-            if ((dirtyFlags & DirtyFlags.RandomOffset) != 0)
-            {
-                int w;
-                int h;
-                GetTextureSize(RandomNormalMap, out w, out h);
-
-                constants.RandomOffset.X = (float) width / (float) w;
-                constants.RandomOffset.Y = (float) height / (float) h;
-
-                dirtyFlags &= ~DirtyFlags.RandomOffset;
                 dirtyFlags |= DirtyFlags.Constants;
             }
         }
