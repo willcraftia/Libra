@@ -374,13 +374,12 @@ namespace Samples.SceneAmbientOcclusion
             textureDisplay.Textures.Add(finalSSAOMap);
 
             // 環境光閉塞マップ合成フィルタへ設定。
-            ssaoCombine.AmbientOcclusionMap = finalSSAOMap;
+            ssaoCombine.SSAOMap = finalSSAOMap;
             // 最終環境光閉塞マップ可視化フィルタへ設定。
             finalSsaoMapVisualize.SSAOMap = finalSSAOMap;
 
             // 通常シーンへポストプロセスを適用。
             finalSceneTexture = postprocessScene.Draw(normalSceneRenderTarget.GetShaderResourceView());
-            //finalSceneTexture = ambientOcclusionMapRenderTarget.GetShaderResourceView();
 
             // 最終的なシーンをバック バッファへ描画。
             CreateFinalSceneMap(context);
@@ -407,9 +406,6 @@ namespace Samples.SceneAmbientOcclusion
             ssaoBlur.LinearDepthMap = depthMapRenderTarget.GetShaderResourceView();
             // 可視化フィルタへ設定。
             linearDepthMapVisualize.LinearDepthMap = depthMapRenderTarget.GetShaderResourceView();
-
-            // 中間マップ表示。
-            textureDisplay.Textures.Add(depthMapRenderTarget.GetShaderResourceView());
         }
 
         void CreateNormalMap(DeviceContext context)
@@ -538,9 +534,10 @@ namespace Samples.SceneAmbientOcclusion
             string basicText =
                 "[F1] HUD on/off\n" +
                 "[F2] Inter-maps on/off\n" +
-                "[F3] Show/Hide Depth Map (" + linearDepthMapVisualize.Enabled + ")\n" +
-                "[F4] Show/Hide SSAO Map (" + linearDepthMapVisualize.Enabled + ")\n" +
-                "[F5] Show/Hide Final SSAO Map (" + linearDepthMapVisualize.Enabled + ")";
+                "[F3] SSAO on/off\n" +
+                "[F4] Show/Hide Depth Map (" + linearDepthMapVisualize.Enabled + ")\n" +
+                "[F5] Show/Hide SSAO Map (" + linearDepthMapVisualize.Enabled + ")\n" +
+                "[F6] Show/Hide Final SSAO Map (" + linearDepthMapVisualize.Enabled + ")";
 
             spriteBatch.Begin();
 
@@ -612,20 +609,23 @@ namespace Samples.SceneAmbientOcclusion
                 textureDisplay.Visible = !textureDisplay.Visible;
 
             if (currentKeyboardState.IsKeyUp(Keys.F3) && lastKeyboardState.IsKeyDown(Keys.F3))
+                ssaoCombine.Enabled = !ssaoCombine.Enabled;
+
+            if (currentKeyboardState.IsKeyUp(Keys.F4) && lastKeyboardState.IsKeyDown(Keys.F4))
             {
                 linearDepthMapVisualize.Enabled = !linearDepthMapVisualize.Enabled;
                 ssaoMapVisualize.Enabled = false;
                 finalSsaoMapVisualize.Enabled = false;
             }
 
-            if (currentKeyboardState.IsKeyUp(Keys.F4) && lastKeyboardState.IsKeyDown(Keys.F4))
+            if (currentKeyboardState.IsKeyUp(Keys.F5) && lastKeyboardState.IsKeyDown(Keys.F5))
             {
                 ssaoMapVisualize.Enabled = !ssaoMapVisualize.Enabled;
                 linearDepthMapVisualize.Enabled = false;
                 finalSsaoMapVisualize.Enabled = false;
             }
 
-            if (currentKeyboardState.IsKeyUp(Keys.F5) && lastKeyboardState.IsKeyDown(Keys.F5))
+            if (currentKeyboardState.IsKeyUp(Keys.F6) && lastKeyboardState.IsKeyDown(Keys.F6))
             {
                 finalSsaoMapVisualize.Enabled = !finalSsaoMapVisualize.Enabled;
                 linearDepthMapVisualize.Enabled = false;

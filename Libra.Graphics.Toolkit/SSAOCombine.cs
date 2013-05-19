@@ -69,9 +69,9 @@ namespace Libra.Graphics.Toolkit
         /// <summary>
         /// 環境光閉塞マップを取得または設定します。
         /// </summary>
-        public ShaderResourceView AmbientOcclusionMap { get; set; }
+        public ShaderResourceView SSAOMap { get; set; }
 
-        public SamplerState AmbientOcclusionMapSampler { get; set; }
+        public SamplerState SSAOMapSampler { get; set; }
 
         public bool Enabled { get; set; }
 
@@ -88,7 +88,7 @@ namespace Libra.Graphics.Toolkit
 
             constants.ShadowColor = Vector3.Zero;
 
-            AmbientOcclusionMapSampler = SamplerState.LinearClamp;
+            SSAOMapSampler = SamplerState.LinearClamp;
 
             Enabled = true;
 
@@ -107,8 +107,8 @@ namespace Libra.Graphics.Toolkit
             context.PixelShaderConstantBuffers[0] = constantBuffer;
             context.PixelShader = sharedDeviceResource.PixelShader;
 
-            context.PixelShaderResources[1] = AmbientOcclusionMap;
-            context.PixelShaderSamplers[1] = AmbientOcclusionMapSampler;
+            context.PixelShaderResources[1] = SSAOMap;
+            context.PixelShaderSamplers[1] = SSAOMapSampler;
         }
 
         #region IDisposable
