@@ -142,6 +142,11 @@ call :CompileShader NormalEdgeDetect PS %ps_profile%
 ::
 call :CompileShader LinearDepthMapVisualize PS %ps_profile%
 
+::
+:: SSAOMapVisualize PS
+::
+call :CompileShader SSAOMapVisualize PS %ps_profile%
+
 echo.
 
 if %error% == 0 (

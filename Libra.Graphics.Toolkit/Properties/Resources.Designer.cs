@@ -277,6 +277,13 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
+        internal static byte[] SSAOMapVisualizePS {
+            get {
+                object obj = ResourceManager.GetObject("SSAOMapVisualizePS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
         internal static byte[] SSAOMapVS {
             get {
                 object obj = ResourceManager.GetObject("SSAOMapVS", resourceCulture);
