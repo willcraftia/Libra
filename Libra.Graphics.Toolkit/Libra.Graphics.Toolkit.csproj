@@ -70,7 +70,6 @@
     <Compile Include="NormalMapEffect.cs" />
     <Compile Include="Postprocess.cs" />
     <Compile Include="RadialFilter.cs" />
-    <Compile Include="RandomNormalMap.cs" />
     <Compile Include="Scanline.cs" />
     <Compile Include="SingleColorObjectEffect.cs" />
     <Compile Include="PrimitiveMesh.cs" />
