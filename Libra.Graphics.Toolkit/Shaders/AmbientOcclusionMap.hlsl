@@ -107,13 +107,13 @@ float4 PS(VSOutput input) : SV_Target
 
         float occlusion = 1.0;
 
+        // 遮蔽物までの距離に応じて閉塞度を減衰。
+        occlusion *= saturate((Radius - Attenuation * d) / Radius);
+
         // 同一平面である程に閉塞度を下げる。
         float3 occluderNormal = NormalMap.SampleLevel(NormalMapSampler, sampleTexCoord, 0);
         occluderNormal = normalize(occluderNormal);
         occlusion = 1.0f - (dot(occluderNormal, normal) + 1) * 0.5;
-
-        // 遮蔽物までの距離に応じて閉塞度を減衰。
-        occlusion *= saturate((Radius - Attenuation * d) / Radius);
 
         // 対象とした閉塞物における遮蔽度を足す。
         totalOcclusion += occlusion;
