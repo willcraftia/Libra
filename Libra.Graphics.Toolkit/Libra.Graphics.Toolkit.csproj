@@ -40,9 +40,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AmbientOcclusionBlur.cs" />
-    <Compile Include="AmbientOcclusionCombine.cs" />
-    <Compile Include="AmbientOcclusionMap.cs" />
+    <Compile Include="SSAOBlur.cs" />
+    <Compile Include="SSAOCombine.cs" />
+    <Compile Include="SSAOMap.cs" />
     <Compile Include="BasicCamera.cs" />
     <Compile Include="BasicLightCameraBuilder.cs" />
     <Compile Include="BilateralFilter.cs" />
@@ -125,17 +125,17 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\AmbientOcclusionBlur.hlsl" />
-    <None Include="Shaders\AmbientOcclusionCombine.hlsl" />
-    <None Include="Shaders\AmbientOcclusionMap.hlsl" />
+    <None Include="Shaders\Compiled\SSAOBlurPS.bin" />
+    <None Include="Shaders\Compiled\SSAOCombinePS.bin" />
+    <None Include="Shaders\Compiled\SSAOMapPS.bin" />
+    <None Include="Shaders\Compiled\SSAOMapVS.bin" />
+    <None Include="Shaders\SSAOBlur.hlsl" />
+    <None Include="Shaders\SSAOCombine.hlsl" />
+    <None Include="Shaders\SSAOMap.hlsl" />
     <None Include="Shaders\BilateralFilter.hlsl" />
     <None Include="Shaders\BloomCombine.hlsl" />
     <None Include="Shaders\BloomExtract.hlsl" />
     <None Include="Shaders\Combine.hlsl" />
-    <None Include="Shaders\Compiled\AmbientOcclusionBlurPS.bin" />
-    <None Include="Shaders\Compiled\AmbientOcclusionCombinePS.bin" />
-    <None Include="Shaders\Compiled\AmbientOcclusionMapPS.bin" />
-    <None Include="Shaders\Compiled\AmbientOcclusionMapVS.bin" />
     <None Include="Shaders\Compiled\BilateralFilterPS.bin" />
     <None Include="Shaders\Compiled\BloomCombinePS.bin" />
     <None Include="Shaders\Compiled\BloomExtractPS.bin" />

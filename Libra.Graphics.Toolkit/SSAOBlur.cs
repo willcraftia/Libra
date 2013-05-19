@@ -8,7 +8,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class AmbientOcclusionBlur : IGaussianFilterEffect, IDisposable
+    public sealed class SSAOBlur : IGaussianFilterEffect, IDisposable
     {
         #region SharedDeviceResource
 
@@ -19,7 +19,7 @@ namespace Libra.Graphics.Toolkit
             public SharedDeviceResource(Device device)
             {
                 PixelShader = device.CreatePixelShader();
-                PixelShader.Initialize(Resources.AmbientOcclusionBlurPS);
+                PixelShader.Initialize(Resources.SSAOBlurPS);
             }
         }
 
@@ -171,13 +171,13 @@ namespace Libra.Graphics.Toolkit
 
         public bool Enabled { get; set; }
 
-        public AmbientOcclusionBlur(Device device)
+        public SSAOBlur(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 
             this.device = device;
 
-            sharedDeviceResource = device.GetSharedResource<AmbientOcclusionBlur, SharedDeviceResource>();
+            sharedDeviceResource = device.GetSharedResource<SSAOBlur, SharedDeviceResource>();
 
             constantBufferH = device.CreateConstantBuffer();
             constantBufferH.Initialize<Constants>();
@@ -338,7 +338,7 @@ namespace Libra.Graphics.Toolkit
 
         bool disposed;
 
-        ~AmbientOcclusionBlur()
+        ~SSAOBlur()
         {
             Dispose(false);
         }

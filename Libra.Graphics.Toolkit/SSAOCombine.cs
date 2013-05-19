@@ -8,7 +8,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class AmbientOcclusionCombine : IFilterEffect, IDisposable
+    public sealed class SSAOCombine : IFilterEffect, IDisposable
     {
         #region SharedDeviceResource
 
@@ -19,7 +19,7 @@ namespace Libra.Graphics.Toolkit
             public SharedDeviceResource(Device device)
             {
                 PixelShader = device.CreatePixelShader();
-                PixelShader.Initialize(Resources.AmbientOcclusionCombinePS);
+                PixelShader.Initialize(Resources.SSAOCombinePS);
             }
         }
 
@@ -75,13 +75,13 @@ namespace Libra.Graphics.Toolkit
 
         public bool Enabled { get; set; }
 
-        public AmbientOcclusionCombine(Device device)
+        public SSAOCombine(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 
             this.device = device;
 
-            sharedDeviceResource = device.GetSharedResource<AmbientOcclusionCombine, SharedDeviceResource>();
+            sharedDeviceResource = device.GetSharedResource<SSAOCombine, SharedDeviceResource>();
 
             constantBuffer = device.CreateConstantBuffer();
             constantBuffer.Initialize<Constants>();
@@ -115,7 +115,7 @@ namespace Libra.Graphics.Toolkit
 
         bool disposed;
 
-        ~AmbientOcclusionCombine()
+        ~SSAOCombine()
         {
             Dispose(false);
         }

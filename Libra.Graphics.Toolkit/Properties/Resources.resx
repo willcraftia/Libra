@@ -187,9 +187,6 @@
   <data name="CombinePS" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Shaders\Compiled\CombinePS.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="AmbientOcclusionMapPS" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Shaders\Compiled\AmbientOcclusionMapPS.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
   <data name="LinearDepthMapPS" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Shaders\Compiled\LinearDepthMapPS.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
@@ -205,16 +202,19 @@
   <data name="RadialFilterPS" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Shaders\Compiled\RadialFilterPS.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="AmbientOcclusionBlurPS" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Shaders\Compiled\AmbientOcclusionBlurPS.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="AmbientOcclusionCombinePS" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Shaders\Compiled\AmbientOcclusionCombinePS.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
   <data name="LinearDepthMapVisualizePS" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Shaders\Compiled\LinearDepthMapVisualizePS.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="AmbientOcclusionMapVS" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Shaders\Compiled\AmbientOcclusionMapVS.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  <data name="SSAOBlurPS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Shaders\Compiled\SSAOBlurPS.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="SSAOCombinePS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Shaders\Compiled\SSAOCombinePS.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="SSAOMapPS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Shaders\Compiled\SSAOMapPS.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="SSAOMapVS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Shaders\Compiled\SSAOMapVS.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
 </root>

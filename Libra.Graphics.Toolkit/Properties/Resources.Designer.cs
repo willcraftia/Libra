@@ -60,34 +60,6 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
-        internal static byte[] AmbientOcclusionBlurPS {
-            get {
-                object obj = ResourceManager.GetObject("AmbientOcclusionBlurPS", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        internal static byte[] AmbientOcclusionCombinePS {
-            get {
-                object obj = ResourceManager.GetObject("AmbientOcclusionCombinePS", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        internal static byte[] AmbientOcclusionMapPS {
-            get {
-                object obj = ResourceManager.GetObject("AmbientOcclusionMapPS", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        internal static byte[] AmbientOcclusionMapVS {
-            get {
-                object obj = ResourceManager.GetObject("AmbientOcclusionMapVS", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
         internal static byte[] BilateralFilterPS {
             get {
                 object obj = ResourceManager.GetObject("BilateralFilterPS", resourceCulture);
@@ -280,6 +252,34 @@ namespace Libra.Graphics.Toolkit.Properties {
         internal static byte[] SingleColorObjectVS {
             get {
                 object obj = ResourceManager.GetObject("SingleColorObjectVS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] SSAOBlurPS {
+            get {
+                object obj = ResourceManager.GetObject("SSAOBlurPS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] SSAOCombinePS {
+            get {
+                object obj = ResourceManager.GetObject("SSAOCombinePS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] SSAOMapPS {
+            get {
+                object obj = ResourceManager.GetObject("SSAOMapPS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] SSAOMapVS {
+            get {
+                object obj = ResourceManager.GetObject("SSAOMapVS", resourceCulture);
                 return ((byte[])(obj));
             }
         }

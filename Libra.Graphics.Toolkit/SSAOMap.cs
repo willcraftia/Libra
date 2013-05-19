@@ -9,7 +9,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class AmbientOcclusionMap : IDisposable
+    public sealed class SSAOMap : IDisposable
     {
         #region SharedDeviceResource
 
@@ -22,9 +22,9 @@ namespace Libra.Graphics.Toolkit
             public SharedDeviceResource(Device device)
             {
                 VertexShader = device.CreateVertexShader();
-                VertexShader.Initialize(Resources.AmbientOcclusionMapVS);
+                VertexShader.Initialize(Resources.SSAOMapVS);
                 PixelShader = device.CreatePixelShader();
-                PixelShader.Initialize(Resources.AmbientOcclusionMapPS);
+                PixelShader.Initialize(Resources.SSAOMapPS);
             }
         }
 
@@ -179,13 +179,13 @@ namespace Libra.Graphics.Toolkit
 
         public bool Enabled { get; set; }
 
-        public AmbientOcclusionMap(Device device)
+        public SSAOMap(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 
             this.device = device;
 
-            sharedDeviceResource = device.GetSharedResource<AmbientOcclusionMap, SharedDeviceResource>();
+            sharedDeviceResource = device.GetSharedResource<SSAOMap, SharedDeviceResource>();
 
             constantBuffer = device.CreateConstantBuffer();
             constantBuffer.Initialize<Constants>();
@@ -361,7 +361,7 @@ namespace Libra.Graphics.Toolkit
 
         bool disposed;
 
-        ~AmbientOcclusionMap()
+        ~SSAOMap()
         {
             Dispose(false);
         }

@@ -31,20 +31,20 @@ call :CompileShader NormalMap VS %vs_profile%
 call :CompileShader NormalMap PS %ps_profile%
 
 ::
-:: AmbientOcclusionMap VS/PS
+:: SSAOMap VS/PS
 ::
-call :CompileShader AmbientOcclusionMap VS %vs_profile%
-call :CompileShader AmbientOcclusionMap PS %ps_profile%
+call :CompileShader SSAOMap VS %vs_profile%
+call :CompileShader SSAOMap PS %ps_profile%
 
 ::
-:: AmbientOcclusionBlur PS
+:: SSAOBlur PS
 ::
-call :CompileShader AmbientOcclusionBlur PS %ps_profile%
+call :CompileShader SSAOBlur PS %ps_profile%
 
 ::
-:: AmbientOcclusionCombine PS
+:: SSAOCombine PS
 ::
-call :CompileShader AmbientOcclusionCombine PS %ps_profile%
+call :CompileShader SSAOCombine PS %ps_profile%
 
 ::
 :: SingleColorObject VS/PS
