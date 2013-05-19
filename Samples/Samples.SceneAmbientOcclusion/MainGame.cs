@@ -510,8 +510,8 @@ namespace Samples.SceneAmbientOcclusion
                     "Blur Settings\n" +
                     "[T/G] Radius (" + ambientOcclusionBlur.Radius + ")\n" +
                     "[Y/H] Space Sigma (" + ambientOcclusionBlur.SpaceSigma.ToString("F1") + ")\n" +
-                    "[U/J] Depth Sigma (" + ambientOcclusionBlur.DepthSigma.ToString("F1") + ")\n" +
-                    "[I/K] Normal Sigma (" + ambientOcclusionBlur.NormalSigma.ToString("F1") + ")";
+                    "[U/J] Depth Sigma (" + ambientOcclusionBlur.DepthSigma.ToString("F2") + ")\n" +
+                    "[I/K] Normal Sigma (" + ambientOcclusionBlur.NormalSigma.ToString("F2") + ")";
             }
 
             string basicText =
@@ -572,14 +572,14 @@ namespace Samples.SceneAmbientOcclusion
                     ambientOcclusionBlur.SpaceSigma = Math.Max(0.1f, ambientOcclusionBlur.SpaceSigma - 0.1f);
 
                 if (currentKeyboardState.IsKeyDown(Keys.U))
-                    ambientOcclusionBlur.DepthSigma += 0.1f;
+                    ambientOcclusionBlur.DepthSigma += 0.01f;
                 if (currentKeyboardState.IsKeyDown(Keys.J))
-                    ambientOcclusionBlur.DepthSigma = Math.Max(0.1f, ambientOcclusionBlur.DepthSigma - 0.1f);
+                    ambientOcclusionBlur.DepthSigma = Math.Max(0.1f, ambientOcclusionBlur.DepthSigma - 0.01f);
 
                 if (currentKeyboardState.IsKeyDown(Keys.I))
-                    ambientOcclusionBlur.NormalSigma += 0.1f;
+                    ambientOcclusionBlur.NormalSigma += 0.01f;
                 if (currentKeyboardState.IsKeyDown(Keys.K))
-                    ambientOcclusionBlur.NormalSigma = Math.Max(0.1f, ambientOcclusionBlur.NormalSigma - 0.1f);
+                    ambientOcclusionBlur.NormalSigma = Math.Max(0.1f, ambientOcclusionBlur.NormalSigma - 0.01f);
             }
 
             if (currentKeyboardState.IsKeyUp(Keys.F1) && lastKeyboardState.IsKeyDown(Keys.F1))
