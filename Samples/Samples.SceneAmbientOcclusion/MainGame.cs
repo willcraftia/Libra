@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Text;
 using Libra;
 using Libra.Games;
 using Libra.Games.Debugging;
@@ -59,6 +60,16 @@ namespace Samples.SceneAmbientOcclusion
         /// 中間マップ表示。
         /// </summary>
         TextureDisplay textureDisplay;
+
+        /// <summary>
+        /// フレーム レート計測器。
+        /// </summary>
+        FrameRateMeasure frameRateMeasure;
+
+        /// <summary>
+        /// ウィンドウ タイトル文字列ビルダ。
+        /// </summary>
+        StringBuilder titleBuilder = new StringBuilder();
 
         /// <summary>
         /// 表示カメラ。
@@ -218,6 +229,11 @@ namespace Samples.SceneAmbientOcclusion
             textureDisplay = new TextureDisplay(this);
             Components.Add(textureDisplay);
 
+            frameRateMeasure = new FrameRateMeasure(this);
+            Components.Add(frameRateMeasure);
+
+            //IsFixedTimeStep = false;
+
             hudVisible = true;
         }
 
@@ -319,6 +335,11 @@ namespace Samples.SceneAmbientOcclusion
             textureDisplay.TextureWidth = (int) (WindowWidth * scale);
             textureDisplay.TextureHeight = (int) (WindowHeight * scale);
 
+            titleBuilder.Length = 0;
+            titleBuilder.Append("FPS: ");
+            titleBuilder.AppendNumber(frameRateMeasure.FrameRate);
+            Window.Title = titleBuilder.ToString();
+
             base.Update(gameTime);
         }
 
@@ -407,10 +428,6 @@ namespace Samples.SceneAmbientOcclusion
             context.Clear(Vector4.One);
 
             ambientOcclusionMap.Draw(context);
-
-            //spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque, null, null, null, ambientOcclusionMap.Apply);
-            //spriteBatch.Draw(depthMapRenderTarget.GetShaderResourceView(), ambientOcclusionMapRenderTarget.Bounds, Color.White);
-            //spriteBatch.End();
 
             context.SetRenderTarget(null);
 
