@@ -150,7 +150,7 @@ namespace Libra.Graphics.Toolkit
             get { return (int) constants.SampleCount; }
             set
             {
-                if (value < 1) throw new ArgumentOutOfRangeException("value");
+                if (value < 1 || MaxSampleCount < value) throw new ArgumentOutOfRangeException("value");
 
                 constants.SampleCount = value;
 
