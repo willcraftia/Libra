@@ -110,10 +110,14 @@ float4 PS(VSOutput input) : SV_Target
         // 遮蔽物までの距離に応じて閉塞度を減衰。
         occlusion *= saturate((Radius - Attenuation * d) / Radius);
 
-        // 同一平面である程に閉塞度を下げる。
+        // 法線が同じである程に閉塞度を下げる。
+        // 法線による調整は、主に、連続する平面における期待しない遮蔽の回避が目的。
+        // 実際には、法線が同一であっても大きな遮蔽である状態も有り得る。
+        // なお、基本はカメラからの深度による遮蔽であるため、
+        // 法線同士の内積が 0 未満である状態は無いものと見做せる。
         float3 occluderNormal = NormalMap.SampleLevel(NormalMapSampler, sampleTexCoord, 0);
         occluderNormal = normalize(occluderNormal);
-        occlusion = 1.0f - (dot(occluderNormal, normal) + 1) * 0.5;
+        occlusion = 1.0f - dot(occluderNormal, normal);
 
         // 対象とした閉塞物における遮蔽度を足す。
         totalOcclusion += occlusion;
