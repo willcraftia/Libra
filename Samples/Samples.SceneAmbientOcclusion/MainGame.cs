@@ -162,6 +162,16 @@ namespace Samples.SceneAmbientOcclusion
         LinearDepthMapVisualize linearDepthMapVisualize;
 
         /// <summary>
+        /// 環境光閉塞マップ可視化フィルタ。
+        /// </summary>
+        SSAOMapVisualize ssaoMapVisualize;
+
+        /// <summary>
+        /// 最終環境光閉塞マップ可視化フィルタ。
+        /// </summary>
+        SSAOMapVisualize finalSsaoMapVisualize;
+
+        /// <summary>
         /// 線形深度マップ エフェクト。
         /// </summary>
         LinearDepthMapEffect depthMapEffect;
@@ -295,9 +305,15 @@ namespace Samples.SceneAmbientOcclusion
             linearDepthMapVisualize.NearClipDistance = camera.NearClipDistance;
             linearDepthMapVisualize.FarClipDistance = camera.FarClipDistance;
             linearDepthMapVisualize.Enabled = false;
+            ssaoMapVisualize = new SSAOMapVisualize(Device);
+            ssaoMapVisualize.Enabled = false;
+            finalSsaoMapVisualize = new SSAOMapVisualize(Device);
+            finalSsaoMapVisualize.Enabled = false;
 
             postprocessScene.Filters.Add(ssaoCombine);
             postprocessScene.Filters.Add(linearDepthMapVisualize);
+            postprocessScene.Filters.Add(ssaoMapVisualize);
+            postprocessScene.Filters.Add(finalSsaoMapVisualize);
 
             depthMapEffect = new LinearDepthMapEffect(Device);
             normalMapEffect = new NormalMapEffect(Device);
@@ -348,17 +364,19 @@ namespace Samples.SceneAmbientOcclusion
             CreateNormalMap(context);
 
             // 環境光閉塞マップを描画。
-            CreateAmbientOcclusionMap(context);
+            CreateSSAOMap(context);
 
             // 通常シーンを描画。
             CreateNormalSceneMap(context);
 
             // 環境光閉塞マップへポストプロセスを適用。
-            var finalAmbientOcclusionMap = postprocessSSAOMap.Draw(ssaoMapRenderTarget.GetShaderResourceView());
-            textureDisplay.Textures.Add(finalAmbientOcclusionMap);
+            var finalSSAOMap = postprocessSSAOMap.Draw(ssaoMapRenderTarget.GetShaderResourceView());
+            textureDisplay.Textures.Add(finalSSAOMap);
 
             // 環境光閉塞マップ合成フィルタへ設定。
-            ssaoCombine.AmbientOcclusionMap = finalAmbientOcclusionMap;
+            ssaoCombine.AmbientOcclusionMap = finalSSAOMap;
+            // 最終環境光閉塞マップ可視化フィルタへ設定。
+            finalSsaoMapVisualize.SSAOMap = finalSSAOMap;
 
             // 通常シーンへポストプロセスを適用。
             finalSceneTexture = postprocessScene.Draw(normalSceneRenderTarget.GetShaderResourceView());
@@ -412,7 +430,7 @@ namespace Samples.SceneAmbientOcclusion
             textureDisplay.Textures.Add(normalMapRenderTarget.GetShaderResourceView());
         }
 
-        void CreateAmbientOcclusionMap(DeviceContext context)
+        void CreateSSAOMap(DeviceContext context)
         {
             context.SetRenderTarget(ssaoMapRenderTarget.GetRenderTargetView());
             context.Clear(Vector4.One);
@@ -420,6 +438,9 @@ namespace Samples.SceneAmbientOcclusion
             ssaoMap.Draw(context);
 
             context.SetRenderTarget(null);
+
+            // 環境光閉塞マップ可視化フィルタへ設定。
+            ssaoMapVisualize.SSAOMap = ssaoMapRenderTarget.GetShaderResourceView();
 
             // 中間マップ表示。
             textureDisplay.Textures.Add(ssaoMapRenderTarget.GetShaderResourceView());
@@ -517,7 +538,9 @@ namespace Samples.SceneAmbientOcclusion
             string basicText =
                 "[F1] HUD on/off\n" +
                 "[F2] Inter-maps on/off\n" +
-                "[F3] Show/Hide Depth (" + linearDepthMapVisualize.Enabled + ")";
+                "[F3] Show/Hide Depth Map (" + linearDepthMapVisualize.Enabled + ")\n" +
+                "[F4] Show/Hide SSAO Map (" + linearDepthMapVisualize.Enabled + ")\n" +
+                "[F5] Show/Hide Final SSAO Map (" + linearDepthMapVisualize.Enabled + ")";
 
             spriteBatch.Begin();
 
@@ -589,7 +612,25 @@ namespace Samples.SceneAmbientOcclusion
                 textureDisplay.Visible = !textureDisplay.Visible;
 
             if (currentKeyboardState.IsKeyUp(Keys.F3) && lastKeyboardState.IsKeyDown(Keys.F3))
+            {
                 linearDepthMapVisualize.Enabled = !linearDepthMapVisualize.Enabled;
+                ssaoMapVisualize.Enabled = false;
+                finalSsaoMapVisualize.Enabled = false;
+            }
+
+            if (currentKeyboardState.IsKeyUp(Keys.F4) && lastKeyboardState.IsKeyDown(Keys.F4))
+            {
+                ssaoMapVisualize.Enabled = !ssaoMapVisualize.Enabled;
+                linearDepthMapVisualize.Enabled = false;
+                finalSsaoMapVisualize.Enabled = false;
+            }
+
+            if (currentKeyboardState.IsKeyUp(Keys.F5) && lastKeyboardState.IsKeyDown(Keys.F5))
+            {
+                finalSsaoMapVisualize.Enabled = !finalSsaoMapVisualize.Enabled;
+                linearDepthMapVisualize.Enabled = false;
+                ssaoMapVisualize.Enabled = false;
+            }
 
             if (currentKeyboardState.IsKeyDown(Keys.Escape))
                 Exit();
