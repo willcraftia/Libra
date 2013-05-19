@@ -86,16 +86,17 @@ float4 PS(VSOutput input) : SV_Target
         // サンプル位置の深度。
         float sampleDepth = LinearDepthMap.SampleLevel(LinearDepthMapSampler, sampleTexCoord, 0);
 
-        // サンプル位置に対応する深度がサンプル点も奥にある場合、
-        // 深度が示す物体はサンプル点を遮蔽しない。
+        // サンプル位置に対応する深度がサンプル点よりも奥にある場合、
+        // 深度が示す物体はサンプル点を遮蔽しないものと見做す。
         if (samplePosition.z < sampleDepth)
             continue;
 
-        // 深度差。
-        float deltaDepth = depth - sampleDepth;
+        // 遮蔽物の位置。
+        float3 occluderPosition = float3(samplePosition.xy, sampleDepth);
 
-        // 深度差が半径を超える場合は完全に減衰と見做す。
-        if (Radius < abs(deltaDepth))
+        // 遮蔽物までの距離が半径を超えるならば完全に減衰と見做す。
+        float d = distance(position, occluderPosition);
+        if (Radius < d)
             continue;
 
         float occlusion = 1.0;
@@ -105,8 +106,8 @@ float4 PS(VSOutput input) : SV_Target
         occluderNormal = normalize(occluderNormal);
         occlusion = 1.0f - (dot(occluderNormal, normal) + 1) * 0.5;
 
-        // レイの長さに応じて閉塞度を減衰。
-        occlusion *= saturate((Radius - Attenuation * deltaDepth) / Radius);
+        // 遮蔽物までの距離に応じて閉塞度を減衰。
+        occlusion *= saturate((Radius - Attenuation * d) / Radius);
 
         // 対象とした閉塞物における遮蔽度を足す。
         totalOcclusion += occlusion;
