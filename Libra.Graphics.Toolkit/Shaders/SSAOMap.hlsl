@@ -63,12 +63,16 @@ float4 PS(VSOutput input) : SV_Target
     float3 position = input.ViewRay * depth;
 
     // 法線。
+    // 法線マップはビュー空間における法線であるが、
+    // ここでは深度空間 (ビュー空間とは z 軸方向が逆) を扱っているため、
+    // z を反転させる必要がある。
     float3 normal = NormalMap.SampleLevel(NormalMapSampler, input.TexCoord, 0);
+    normal.z = -normal.z;
+    normal = normalize(normal);
 
     // ランダム法線。
     int3 randomLocation = int3((int) input.Position.x & 63, (int) input.Position.y & 63, 0);
     float3 randomNormal = RandomNormalMap.Load(randomLocation);
-    randomNormal = normalize(randomNormal);
 
     float totalOcclusion = 0;
     for (int i = 0; i < SampleCount; i++)
@@ -116,6 +120,7 @@ float4 PS(VSOutput input) : SV_Target
         // なお、基本はカメラからの深度による遮蔽であるため、
         // 法線同士の内積が 0 未満である状態は無いものと見做せる。
         float3 occluderNormal = NormalMap.SampleLevel(NormalMapSampler, sampleTexCoord, 0);
+        occluderNormal.z = -occluderNormal.z;
         occluderNormal = normalize(occluderNormal);
         occlusion = 1.0f - dot(occluderNormal, normal);
 
