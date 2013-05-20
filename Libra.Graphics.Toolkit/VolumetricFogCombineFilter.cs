@@ -66,9 +66,9 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        public ShaderResourceView LinearVolumetricFogMap { get; set; }
+        public ShaderResourceView VolumetricFogMap { get; set; }
 
-        public SamplerState LinearVolumetricFogMapSampler { get; set; }
+        public SamplerState VolumetricFogMapSampler { get; set; }
 
         public bool Enabled { get; set; }
 
@@ -85,7 +85,7 @@ namespace Libra.Graphics.Toolkit
 
             constants.FogColor = Vector3.One;
 
-            LinearVolumetricFogMapSampler = SamplerState.LinearClamp;
+            VolumetricFogMapSampler = SamplerState.LinearClamp;
 
             Enabled = true;
 
@@ -104,8 +104,8 @@ namespace Libra.Graphics.Toolkit
             context.PixelShaderConstantBuffers[0] = constantBuffer;
             context.PixelShader = sharedDeviceResource.PixelShader;
 
-            context.PixelShaderResources[1] = LinearVolumetricFogMap;
-            context.PixelShaderSamplers[1] = LinearVolumetricFogMapSampler;
+            context.PixelShaderResources[1] = VolumetricFogMap;
+            context.PixelShaderSamplers[1] = VolumetricFogMapSampler;
         }
 
         #region IDisposable

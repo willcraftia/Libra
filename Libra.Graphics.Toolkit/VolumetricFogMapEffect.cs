@@ -149,7 +149,7 @@ namespace Libra.Graphics.Toolkit
             viewProjection = Matrix.Identity;
             constants.WorldViewProjection = Matrix.Identity;
             constants.WorldView = Matrix.Identity;
-            constants.Density = 0.1f;
+            constants.Density = 0.01f;
 
             FrontFogDepthMapSampler = SamplerState.LinearClamp;
             BackFogDepthMapSampler = SamplerState.LinearClamp;
@@ -198,6 +198,8 @@ namespace Libra.Graphics.Toolkit
 
             context.VertexShaderConstantBuffers[0] = constantBuffer;
             context.VertexShader = sharedDeviceResource.VertexShader;
+
+            context.PixelShaderConstantBuffers[0] = constantBuffer;
             context.PixelShader = sharedDeviceResource.PixelShader;
 
             context.PixelShaderResources[0] = FrontFogDepthMap;

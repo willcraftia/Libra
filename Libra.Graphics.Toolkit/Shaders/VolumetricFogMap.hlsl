@@ -6,11 +6,11 @@ cbuffer Parameters : register(b0)
     float    Density                : packoffset(c8);
 };
 
-Texture2D<float> FrontFogDepthMap;
-Texture2D<float> BackFogDepthMap;
+Texture2D<float> FrontFogDepthMap   : register(t0);
+Texture2D<float> BackFogDepthMap    : register(t1);
 
-SamplerState FrontFogDepthMapSampler;
-SamplerState BackFogDepthMapSampler;
+SamplerState FrontFogDepthMapSampler    : register(s0);
+SamplerState BackFogDepthMapSampler     : register(s1);
 
 struct VSOutput
 {
@@ -35,7 +35,7 @@ float4 PS(VSOutput input) : SV_Target0
     float front = FrontFogDepthMap.Sample(FrontFogDepthMapSampler, texCoord);
     float back = BackFogDepthMap.Sample(BackFogDepthMapSampler, texCoord);
 
-    float level = saturate((front - back) * Density);
+    float level = saturate((back - front) * Density);
 
     return float4(level, 0, 0, 0);
 }
