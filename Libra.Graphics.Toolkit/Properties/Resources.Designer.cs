@@ -172,6 +172,20 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
+        internal static byte[] LinearFogDepthMapPS {
+            get {
+                object obj = ResourceManager.GetObject("LinearFogDepthMapPS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] LinearFogDepthMapVS {
+            get {
+                object obj = ResourceManager.GetObject("LinearFogDepthMapVS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
         internal static byte[] MonochromeFilterPS {
             get {
                 object obj = ResourceManager.GetObject("MonochromeFilterPS", resourceCulture);
@@ -294,6 +308,27 @@ namespace Libra.Graphics.Toolkit.Properties {
         internal static byte[] UpFilterPS {
             get {
                 object obj = ResourceManager.GetObject("UpFilterPS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] VolumetricFogCombineFilterPS {
+            get {
+                object obj = ResourceManager.GetObject("VolumetricFogCombineFilterPS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] VolumetricFogMapPS {
+            get {
+                object obj = ResourceManager.GetObject("VolumetricFogMapPS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] VolumetricFogMapVS {
+            get {
+                object obj = ResourceManager.GetObject("VolumetricFogMapVS", resourceCulture);
                 return ((byte[])(obj));
             }
         }

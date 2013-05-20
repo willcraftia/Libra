@@ -47,6 +47,23 @@ call :CompileShader SSAOBlurFilter PS %ps_profile%
 call :CompileShader SSAOCombineFilter PS %ps_profile%
 
 ::
+:: LinearFogDepthMap VS/PS
+::
+call :CompileShader LinearFogDepthMap VS %vs_profile%
+call :CompileShader LinearFogDepthMap PS %ps_profile%
+
+::
+:: VolumetricFogMap VS/PS
+::
+call :CompileShader VolumetricFogMap VS %vs_profile%
+call :CompileShader VolumetricFogMap PS %ps_profile%
+
+::
+:: VolumetricFogCombineFilter PS
+::
+call :CompileShader VolumetricFogCombineFilter PS %ps_profile%
+
+::
 :: SingleColorObject VS/PS
 ::
 call :CompileShader SingleColorObject VS %vs_profile%
