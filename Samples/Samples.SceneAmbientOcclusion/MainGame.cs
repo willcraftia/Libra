@@ -207,6 +207,11 @@ namespace Samples.SceneAmbientOcclusion
         SquareMesh squareMesh;
 
         /// <summary>
+        /// ブラー適用回数。
+        /// </summary>
+        int blurIteration = 3;
+
+        /// <summary>
         /// HUD テキストを表示するか否かを示す値。
         /// </summary>
         bool hudVisible;
@@ -370,16 +375,10 @@ namespace Samples.SceneAmbientOcclusion
             CreateNormalSceneMap(context);
 
             // 環境光閉塞マップへポストプロセスを適用。
-            var finalSSAOMap = postprocessSSAOMap.Draw(ssaoMapRenderTarget.GetShaderResourceView());
-            textureDisplay.Textures.Add(finalSSAOMap);
-
-            // 環境光閉塞マップ合成フィルタへ設定。
-            ssaoCombine.SSAOMap = finalSSAOMap;
-            // 最終環境光閉塞マップ可視化フィルタへ設定。
-            finalSsaoMapVisualize.SSAOMap = finalSSAOMap;
+            DoPostprocessSSAOMap();
 
             // 通常シーンへポストプロセスを適用。
-            finalSceneTexture = postprocessScene.Draw(normalSceneRenderTarget.GetShaderResourceView());
+            DoPostprocessScene();
 
             // 最終的なシーンをバック バッファへ描画。
             CreateFinalSceneMap(context);
@@ -501,6 +500,30 @@ namespace Samples.SceneAmbientOcclusion
             mesh.Draw(context);
         }
 
+        void DoPostprocessSSAOMap()
+        {
+            postprocessSSAOMap.Filters.Clear();
+            for (int i = 0; i < blurIteration; i++)
+            {
+                postprocessSSAOMap.Filters.Add(ssaoBlurH);
+                postprocessSSAOMap.Filters.Add(ssaoBlurV);
+            }
+
+            var finalSSAOMap = postprocessSSAOMap.Draw(ssaoMapRenderTarget.GetShaderResourceView());
+
+            // 環境光閉塞マップ合成フィルタへ設定。
+            ssaoCombine.SSAOMap = finalSSAOMap;
+            // 最終環境光閉塞マップ可視化フィルタへ設定。
+            finalSsaoMapVisualize.SSAOMap = finalSSAOMap;
+
+            textureDisplay.Textures.Add(finalSSAOMap);
+        }
+
+        void DoPostprocessScene()
+        {
+            finalSceneTexture = postprocessScene.Draw(normalSceneRenderTarget.GetShaderResourceView());
+        }
+
         void CreateFinalSceneMap(DeviceContext context)
         {
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
@@ -537,7 +560,8 @@ namespace Samples.SceneAmbientOcclusion
                 "[F3] SSAO on/off\n" +
                 "[F4] Show/Hide Depth Map (" + linearDepthMapVisualize.Enabled + ")\n" +
                 "[F5] Show/Hide SSAO Map (" + linearDepthMapVisualize.Enabled + ")\n" +
-                "[F6] Show/Hide Final SSAO Map (" + linearDepthMapVisualize.Enabled + ")";
+                "[F6] Show/Hide Final SSAO Map (" + linearDepthMapVisualize.Enabled + ")\n" +
+                "[PageUp/Down] Blur Iteration (" + blurIteration + ")";
 
             spriteBatch.Begin();
 
@@ -631,6 +655,12 @@ namespace Samples.SceneAmbientOcclusion
                 linearDepthMapVisualize.Enabled = false;
                 ssaoMapVisualize.Enabled = false;
             }
+
+            if (currentKeyboardState.IsKeyUp(Keys.PageUp) && lastKeyboardState.IsKeyDown(Keys.PageUp))
+                blurIteration = Math.Min(10, blurIteration + 1);
+
+            if (currentKeyboardState.IsKeyUp(Keys.PageDown) && lastKeyboardState.IsKeyDown(Keys.PageDown))
+                blurIteration = Math.Max(0, blurIteration - 1);
 
             if (currentKeyboardState.IsKeyDown(Keys.Escape))
                 Exit();
