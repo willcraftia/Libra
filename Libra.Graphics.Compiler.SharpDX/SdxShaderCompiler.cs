@@ -3,12 +3,12 @@
 using System;
 using System.IO;
 
-using D3DCEffectFlags = SharpDX.D3DCompiler.EffectFlags;
-using D3DCInclude = SharpDX.D3DCompiler.Include;
-using D3DCIncludeType = SharpDX.D3DCompiler.IncludeType;
-using D3DCShaderBytecode = SharpDX.D3DCompiler.ShaderBytecode;
-using D3DCShaderFlags = SharpDX.D3DCompiler.ShaderFlags;
-using D3DCShaderSignature = SharpDX.D3DCompiler.ShaderSignature;
+using D3DCEffectFlags       = SharpDX.D3DCompiler.EffectFlags;
+using D3DCInclude           = SharpDX.D3DCompiler.Include;
+using D3DCIncludeType       = SharpDX.D3DCompiler.IncludeType;
+using D3DCShaderBytecode    = SharpDX.D3DCompiler.ShaderBytecode;
+using D3DCShaderFlags       = SharpDX.D3DCompiler.ShaderFlags;
+using D3DCShaderSignature   = SharpDX.D3DCompiler.ShaderSignature;
 
 #endregion
 
