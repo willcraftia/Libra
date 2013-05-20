@@ -7,7 +7,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class BloomExtract : IFilterEffect, IDisposable
+    public sealed class SSAOMapColorFilter : IFilterEffect, IDisposable
     {
         #region SharedDeviceResource
 
@@ -18,7 +18,7 @@ namespace Libra.Graphics.Toolkit
             public SharedDeviceResource(Device device)
             {
                 PixelShader = device.CreatePixelShader();
-                PixelShader.Initialize(Resources.BloomExtractPS);
+                PixelShader.Initialize(Resources.SSAOMapColorFilterPS);
             }
         }
 
@@ -28,43 +28,21 @@ namespace Libra.Graphics.Toolkit
 
         SharedDeviceResource sharedDeviceResource;
 
-        ConstantBuffer constantBuffer;
+        public ShaderResourceView SSAOMap { get; set; }
 
-        bool constantsDirty;
-
-        float threshold;
-
-        public float Threshold
-        {
-            get { return threshold; }
-            set
-            {
-                if (value < 0) throw new ArgumentOutOfRangeException("value");
-
-                if (threshold == value) return;
-
-                threshold = value;
-
-                constantsDirty = true;
-            }
-        }
+        public SamplerState SSAOMapSampler { get; set; }
 
         public bool Enabled { get; set; }
 
-        public BloomExtract(Device device)
+        public SSAOMapColorFilter(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 
             this.device = device;
 
-            sharedDeviceResource = device.GetSharedResource<BloomExtract, SharedDeviceResource>();
+            sharedDeviceResource = device.GetSharedResource<SSAOMapColorFilter, SharedDeviceResource>();
 
-            constantBuffer = device.CreateConstantBuffer();
-            constantBuffer.Initialize(16);
-
-            threshold = 0.25f;
-
-            constantsDirty = true;
+            SSAOMapSampler = SamplerState.PointClamp;
 
             Enabled = true;
         }
@@ -73,22 +51,17 @@ namespace Libra.Graphics.Toolkit
         {
             if (context == null) throw new ArgumentNullException("context");
 
-            if (constantsDirty)
-            {
-                constantBuffer.SetData(context, threshold);
-
-                constantsDirty = false;
-            }
-
-            context.PixelShaderConstantBuffers[0] = constantBuffer;
             context.PixelShader = sharedDeviceResource.PixelShader;
+
+            context.PixelShaderResources[1] = SSAOMap;
+            context.PixelShaderSamplers[1] = SSAOMapSampler;
         }
 
         #region IDisposable
 
         bool disposed;
 
-        ~BloomExtract()
+        ~SSAOMapColorFilter()
         {
             Dispose(false);
         }
@@ -106,7 +79,6 @@ namespace Libra.Graphics.Toolkit
             if (disposing)
             {
                 sharedDeviceResource = null;
-                constantBuffer.Dispose();
             }
 
             disposed = true;

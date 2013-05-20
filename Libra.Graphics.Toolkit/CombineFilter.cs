@@ -7,7 +7,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class Combine : IFilterEffect, IDisposable
+    public sealed class CombineFilter : IFilterEffect, IDisposable
     {
         #region SharedDeviceResource
 
@@ -18,7 +18,7 @@ namespace Libra.Graphics.Toolkit
             public SharedDeviceResource(Device device)
             {
                 PixelShader = device.CreatePixelShader();
-                PixelShader.Initialize(Resources.CombinePS);
+                PixelShader.Initialize(Resources.CombineFilterPS);
             }
         }
 
@@ -34,13 +34,13 @@ namespace Libra.Graphics.Toolkit
 
         public bool Enabled { get; set; }
 
-        public Combine(Device device)
+        public CombineFilter(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 
             this.device = device;
 
-            sharedDeviceResource = device.GetSharedResource<Combine, SharedDeviceResource>();
+            sharedDeviceResource = device.GetSharedResource<CombineFilter, SharedDeviceResource>();
 
             BaseTextureSampler = SamplerState.LinearClamp;
 
@@ -60,7 +60,7 @@ namespace Libra.Graphics.Toolkit
 
         bool disposed;
 
-        ~Combine()
+        ~CombineFilter()
         {
             Dispose(false);
         }

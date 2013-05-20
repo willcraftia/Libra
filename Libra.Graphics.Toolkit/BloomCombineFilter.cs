@@ -7,7 +7,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class BloomCombine : IFilterEffect, IDisposable
+    public sealed class BloomCombineFilter : IFilterEffect, IDisposable
     {
         #region SharedDeviceResource
 
@@ -18,7 +18,7 @@ namespace Libra.Graphics.Toolkit
             public SharedDeviceResource(Device device)
             {
                 PixelShader = device.CreatePixelShader();
-                PixelShader.Initialize(Resources.BloomCombinePS);
+                PixelShader.Initialize(Resources.BloomCombineFilterPS);
             }
         }
 
@@ -106,13 +106,13 @@ namespace Libra.Graphics.Toolkit
 
         public bool Enabled { get; set; }
 
-        public BloomCombine(Device device)
+        public BloomCombineFilter(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 
             this.device = device;
 
-            sharedDeviceResource = device.GetSharedResource<BloomCombine, SharedDeviceResource>();
+            sharedDeviceResource = device.GetSharedResource<BloomCombineFilter, SharedDeviceResource>();
 
             constantBuffer = device.CreateConstantBuffer();
             constantBuffer.Initialize(16);
@@ -151,7 +151,7 @@ namespace Libra.Graphics.Toolkit
 
         bool disposed;
 
-        ~BloomCombine()
+        ~BloomCombineFilter()
         {
             Dispose(false);
         }

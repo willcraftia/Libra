@@ -8,7 +8,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class Scanline : IFilterEffect, IDisposable
+    public sealed class ScanlineFilter : IFilterEffect, IDisposable
     {
         #region SharedDeviceResource
 
@@ -19,7 +19,7 @@ namespace Libra.Graphics.Toolkit
             public SharedDeviceResource(Device device)
             {
                 PixelShader = device.CreatePixelShader();
-                PixelShader.Initialize(Resources.ScanlinePS);
+                PixelShader.Initialize(Resources.ScanlineFilterPS);
             }
         }
 
@@ -83,13 +83,13 @@ namespace Libra.Graphics.Toolkit
 
         public bool Enabled { get; set; }
 
-        public Scanline(Device device)
+        public ScanlineFilter(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 
             this.device = device;
 
-            sharedDeviceResource = device.GetSharedResource<Scanline, SharedDeviceResource>();
+            sharedDeviceResource = device.GetSharedResource<ScanlineFilter, SharedDeviceResource>();
 
             constantBuffer = device.CreateConstantBuffer();
             constantBuffer.Initialize<Constants>();
@@ -121,7 +121,7 @@ namespace Libra.Graphics.Toolkit
 
         bool disposed;
 
-        ~Scanline()
+        ~ScanlineFilter()
         {
             Dispose(false);
         }

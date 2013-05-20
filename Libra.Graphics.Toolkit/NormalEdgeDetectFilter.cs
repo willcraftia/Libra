@@ -8,7 +8,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class NormalEdgeDetect : IFilterEffect, IDisposable
+    public sealed class NormalEdgeDetectFilter : IFilterEffect, IDisposable
     {
         #region SharedDeviceResource
 
@@ -19,7 +19,7 @@ namespace Libra.Graphics.Toolkit
             public SharedDeviceResource(Device device)
             {
                 PixelShader = device.CreatePixelShader();
-                PixelShader.Initialize(Resources.NormalEdgeDetectPS);
+                PixelShader.Initialize(Resources.NormalEdgeDetectFilterPS);
             }
         }
 
@@ -79,13 +79,13 @@ namespace Libra.Graphics.Toolkit
 
         public SamplerState NormalMapSampler { get; set; }
 
-        public NormalEdgeDetect(Device device)
+        public NormalEdgeDetectFilter(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 
             this.device = device;
 
-            sharedDeviceResource = device.GetSharedResource<NormalEdgeDetect, SharedDeviceResource>();
+            sharedDeviceResource = device.GetSharedResource<NormalEdgeDetectFilter, SharedDeviceResource>();
 
             constantBuffer = device.CreateConstantBuffer();
             constantBuffer.Initialize<Constants>();
@@ -145,7 +145,7 @@ namespace Libra.Graphics.Toolkit
 
         bool disposed;
 
-        ~NormalEdgeDetect()
+        ~NormalEdgeDetectFilter()
         {
             Dispose(false);
         }

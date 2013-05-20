@@ -8,7 +8,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class SSAOCombine : IFilterEffect, IDisposable
+    public sealed class LinearDepthMapColorFilter : IFilterEffect, IDisposable
     {
         #region SharedDeviceResource
 
@@ -19,7 +19,7 @@ namespace Libra.Graphics.Toolkit
             public SharedDeviceResource(Device device)
             {
                 PixelShader = device.CreatePixelShader();
-                PixelShader.Initialize(Resources.SSAOCombinePS);
+                PixelShader.Initialize(Resources.LinearDepthMapColorFilterPS);
             }
         }
 
@@ -27,10 +27,14 @@ namespace Libra.Graphics.Toolkit
 
         #region Constants
 
-        [StructLayout(LayoutKind.Sequential, Size = 16)]
+        [StructLayout(LayoutKind.Explicit, Size = 16)]
         struct Constants
         {
-            public Vector3 ShadowColor;
+            [FieldOffset(0)]
+            public float NearClipDistance;
+
+            [FieldOffset(4)]
+            public float FarClipDistance;
         }
 
         #endregion
@@ -40,7 +44,7 @@ namespace Libra.Graphics.Toolkit
         [Flags]
         enum DirtyFlags
         {
-            Constants   = (1 << 0)
+            Constants = (1 << 0)
         }
 
         #endregion
@@ -55,48 +59,63 @@ namespace Libra.Graphics.Toolkit
 
         DirtyFlags dirtyFlags;
 
-        public Vector3 ShadowColor
+        public float NearClipDistance
         {
-            get { return constants.ShadowColor; }
+            get { return constants.NearClipDistance; }
             set
             {
-                constants.ShadowColor = value;
+                if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
+
+                constants.NearClipDistance = value;
 
                 dirtyFlags |= DirtyFlags.Constants;
             }
         }
 
-        /// <summary>
-        /// 環境光閉塞マップを取得または設定します。
-        /// </summary>
-        public ShaderResourceView SSAOMap { get; set; }
+        public float FarClipDistance
+        {
+            get { return constants.FarClipDistance; }
+            set
+            {
+                if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
 
-        public SamplerState SSAOMapSampler { get; set; }
+                constants.FarClipDistance = value;
+
+                dirtyFlags |= DirtyFlags.Constants;
+            }
+        }
+
+        public ShaderResourceView LinearDepthMap { get; set; }
+
+        public SamplerState LinearDepthMapSampler { get; set; }
 
         public bool Enabled { get; set; }
 
-        public SSAOCombine(Device device)
+        public LinearDepthMapColorFilter(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 
             this.device = device;
 
-            sharedDeviceResource = device.GetSharedResource<SSAOCombine, SharedDeviceResource>();
+            sharedDeviceResource = device.GetSharedResource<LinearDepthMapColorFilter, SharedDeviceResource>();
 
             constantBuffer = device.CreateConstantBuffer();
             constantBuffer.Initialize<Constants>();
 
-            constants.ShadowColor = Vector3.Zero;
+            constants.NearClipDistance = 1.0f;
+            constants.FarClipDistance = 1000.0f;
 
-            SSAOMapSampler = SamplerState.LinearClamp;
+            LinearDepthMapSampler = SamplerState.PointClamp;
 
             Enabled = true;
 
-            dirtyFlags = DirtyFlags.Constants;
+            dirtyFlags |= DirtyFlags.Constants;
         }
 
         public void Apply(DeviceContext context)
         {
+            if (context == null) throw new ArgumentNullException("context");
+
             if ((dirtyFlags & DirtyFlags.Constants) != 0)
             {
                 constantBuffer.SetData(context, constants);
@@ -107,15 +126,15 @@ namespace Libra.Graphics.Toolkit
             context.PixelShaderConstantBuffers[0] = constantBuffer;
             context.PixelShader = sharedDeviceResource.PixelShader;
 
-            context.PixelShaderResources[1] = SSAOMap;
-            context.PixelShaderSamplers[1] = SSAOMapSampler;
+            context.PixelShaderResources[1] = LinearDepthMap;
+            context.PixelShaderSamplers[1] = LinearDepthMapSampler;
         }
 
         #region IDisposable
 
         bool disposed;
 
-        ~SSAOCombine()
+        ~LinearDepthMapColorFilter()
         {
             Dispose(false);
         }
@@ -133,7 +152,6 @@ namespace Libra.Graphics.Toolkit
             if (disposing)
             {
                 sharedDeviceResource = null;
-                constantBuffer.Dispose();
             }
 
             disposed = true;

@@ -8,7 +8,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class LightScattering : IFilterEffect, IDisposable
+    public sealed class LightScatteringFilter : IFilterEffect, IDisposable
     {
         #region SharedDeviceResource
 
@@ -19,7 +19,7 @@ namespace Libra.Graphics.Toolkit
             public SharedDeviceResource(Device device)
             {
                 PixelShader = device.CreatePixelShader();
-                PixelShader.Initialize(Resources.LightScatteringPS);
+                PixelShader.Initialize(Resources.LightScatteringFilterPS);
             }
         }
 
@@ -153,13 +153,13 @@ namespace Libra.Graphics.Toolkit
 
         public ShaderResourceView Texture { get; set; }
 
-        public LightScattering(Device device)
+        public LightScatteringFilter(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 
             this.device = device;
 
-            sharedDeviceResource = device.GetSharedResource<LightScattering, SharedDeviceResource>();
+            sharedDeviceResource = device.GetSharedResource<LightScatteringFilter, SharedDeviceResource>();
 
             constantBuffer = device.CreateConstantBuffer();
             constantBuffer.Initialize<Constants>();
@@ -196,7 +196,7 @@ namespace Libra.Graphics.Toolkit
 
         bool disposed;
 
-        ~LightScattering()
+        ~LightScatteringFilter()
         {
             Dispose(false);
         }

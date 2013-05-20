@@ -8,7 +8,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class Edge : IFilterEffect, IDisposable
+    public sealed class EdgeFilter : IFilterEffect, IDisposable
     {
         #region SharedDeviceResource
 
@@ -19,7 +19,7 @@ namespace Libra.Graphics.Toolkit
             public SharedDeviceResource(Device device)
             {
                 PixelShader = device.CreatePixelShader();
-                PixelShader.Initialize(Resources.EdgePS);
+                PixelShader.Initialize(Resources.EdgeFilterPS);
             }
         }
 
@@ -229,13 +229,13 @@ namespace Libra.Graphics.Toolkit
 
         public bool Enabled { get; set; }
 
-        public Edge(Device device)
+        public EdgeFilter(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 
             this.device = device;
 
-            sharedDeviceResource = device.GetSharedResource<Edge, SharedDeviceResource>();
+            sharedDeviceResource = device.GetSharedResource<EdgeFilter, SharedDeviceResource>();
 
             constantBuffer = device.CreateConstantBuffer();
             constantBuffer.Initialize<Constants>();
@@ -313,7 +313,7 @@ namespace Libra.Graphics.Toolkit
 
         bool disposed;
 
-        ~Edge()
+        ~EdgeFilter()
         {
             Dispose(false);
         }

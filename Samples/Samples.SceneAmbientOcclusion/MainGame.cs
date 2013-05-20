@@ -127,19 +127,19 @@ namespace Samples.SceneAmbientOcclusion
         Postprocess postprocessScene;
 
         /// <summary>
-        /// ダウン フィルタ パス。
+        /// ダウン フィルタ。
         /// </summary>
         DownFilter downFilter;
 
         /// <summary>
-        /// アップ フィルタ パス。
+        /// アップ フィルタ。
         /// </summary>
         UpFilter upFilter;
 
         /// <summary>
         /// 環境光閉塞ブラー フィルタ。
         /// </summary>
-        SSAOBlur ssaoBlur;
+        SSAOBlurFilter ssaoBlur;
 
         /// <summary>
         /// 環境光閉塞ブラー フィルタ 水平パス。
@@ -154,22 +154,22 @@ namespace Samples.SceneAmbientOcclusion
         /// <summary>
         /// 環境光閉塞マップ合成フィルタ。
         /// </summary>
-        SSAOCombine ssaoCombine;
+        SSAOCombineFilter ssaoCombine;
 
         /// <summary>
         /// 線形深度マップ可視化フィルタ。
         /// </summary>
-        LinearDepthMapVisualize linearDepthMapVisualize;
+        LinearDepthMapColorFilter linearDepthMapVisualize;
 
         /// <summary>
         /// 環境光閉塞マップ可視化フィルタ。
         /// </summary>
-        SSAOMapVisualize ssaoMapVisualize;
+        SSAOMapColorFilter ssaoMapVisualize;
 
         /// <summary>
         /// 最終環境光閉塞マップ可視化フィルタ。
         /// </summary>
-        SSAOMapVisualize finalSsaoMapVisualize;
+        SSAOMapColorFilter finalSsaoMapVisualize;
 
         /// <summary>
         /// 線形深度マップ エフェクト。
@@ -294,7 +294,7 @@ namespace Samples.SceneAmbientOcclusion
             downFilter = new DownFilter(Device);
             upFilter = new UpFilter(Device);
 
-            ssaoBlur = new SSAOBlur(Device);
+            ssaoBlur = new SSAOBlurFilter(Device);
             ssaoBlurH = new GaussianFilterPass(ssaoBlur, GaussianFilterDirection.Horizon);
             ssaoBlurV = new GaussianFilterPass(ssaoBlur, GaussianFilterDirection.Vertical);
 
@@ -305,14 +305,14 @@ namespace Samples.SceneAmbientOcclusion
                 postprocessSSAOMap.Filters.Add(ssaoBlurV);
             }
 
-            ssaoCombine = new SSAOCombine(Device);
-            linearDepthMapVisualize = new LinearDepthMapVisualize(Device);
+            ssaoCombine = new SSAOCombineFilter(Device);
+            linearDepthMapVisualize = new LinearDepthMapColorFilter(Device);
             linearDepthMapVisualize.NearClipDistance = camera.NearClipDistance;
             linearDepthMapVisualize.FarClipDistance = camera.FarClipDistance;
             linearDepthMapVisualize.Enabled = false;
-            ssaoMapVisualize = new SSAOMapVisualize(Device);
+            ssaoMapVisualize = new SSAOMapColorFilter(Device);
             ssaoMapVisualize.Enabled = false;
-            finalSsaoMapVisualize = new SSAOMapVisualize(Device);
+            finalSsaoMapVisualize = new SSAOMapColorFilter(Device);
             finalSsaoMapVisualize.Enabled = false;
 
             postprocessScene.Filters.Add(ssaoCombine);
@@ -399,11 +399,9 @@ namespace Samples.SceneAmbientOcclusion
 
             context.SetRenderTarget(null);
 
-            // 環境光閉塞マップ シェーダへ設定。
+            // フィルタへ設定。
             ssaoMap.LinearDepthMap = depthMapRenderTarget.GetShaderResourceView();
-            // 環境光閉塞マップ ブラー フィルタへ設定。
             ssaoBlur.LinearDepthMap = depthMapRenderTarget.GetShaderResourceView();
-            // 可視化フィルタへ設定。
             linearDepthMapVisualize.LinearDepthMap = depthMapRenderTarget.GetShaderResourceView();
         }
 
@@ -416,9 +414,8 @@ namespace Samples.SceneAmbientOcclusion
 
             context.SetRenderTarget(null);
 
-            // 環境光閉塞マップ シェーダへ設定。
+            // フィルタへ設定。
             ssaoMap.NormalMap = normalMapRenderTarget.GetShaderResourceView();
-            // 環境光閉塞マップ ブラー フィルタへ設定。
             ssaoBlur.NormalMap = normalMapRenderTarget.GetShaderResourceView();
 
             // 中間マップ表示。
@@ -434,7 +431,7 @@ namespace Samples.SceneAmbientOcclusion
 
             context.SetRenderTarget(null);
 
-            // 環境光閉塞マップ可視化フィルタへ設定。
+            // フィルタへ設定。
             ssaoMapVisualize.SSAOMap = ssaoMapRenderTarget.GetShaderResourceView();
 
             // 中間マップ表示。

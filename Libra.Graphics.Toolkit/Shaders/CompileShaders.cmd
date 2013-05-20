@@ -37,14 +37,14 @@ call :CompileShader SSAOMap VS %vs_profile%
 call :CompileShader SSAOMap PS %ps_profile%
 
 ::
-:: SSAOBlur PS
+:: SSAOBlurFilter PS
 ::
-call :CompileShader SSAOBlur PS %ps_profile%
+call :CompileShader SSAOBlurFilter PS %ps_profile%
 
 ::
-:: SSAOCombine PS
+:: SSAOCombineFilter PS
 ::
-call :CompileShader SSAOCombine PS %ps_profile%
+call :CompileShader SSAOCombineFilter PS %ps_profile%
 
 ::
 :: SingleColorObject VS/PS
@@ -58,9 +58,9 @@ call :CompileShader SingleColorObject PS %ps_profile%
 call :CompileShader FullScreenQuad VS %vs_profile%
 
 ::
-:: Combine PS
+:: CombineFilter PS
 ::
-call :CompileShader Combine PS %ps_profile%
+call :CompileShader CombineFilter PS %ps_profile%
 
 ::
 :: DownFilter PS
@@ -88,24 +88,24 @@ call :CompileShader RadialFilter PS %ps_profile%
 call :CompileShader BilateralFilter PS %ps_profile%
 
 ::
-:: BloomExtract PS
+:: BloomExtractFilter PS
 ::
-call :CompileShader BloomExtract PS %ps_profile%
+call :CompileShader BloomExtractFilter PS %ps_profile%
 
 ::
-:: BloomCombine PS
+:: BloomCombineFilter PS
 ::
-call :CompileShader BloomCombine PS %ps_profile%
+call :CompileShader BloomCombineFilter PS %ps_profile%
 
 ::
-:: DofCombine PS
+:: DofCombineFilter PS
 ::
-call :CompileShader DofCombine PS %ps_profile%
+call :CompileShader DofCombineFilter PS %ps_profile%
 
 ::
-:: LightScattering PS
+:: LightScatteringFilter PS
 ::
-call :CompileShader LightScattering PS %ps_profile%
+call :CompileShader LightScatteringFilter PS %ps_profile%
 
 ::
 :: DirectTextureDraw PS
@@ -113,19 +113,19 @@ call :CompileShader LightScattering PS %ps_profile%
 call :CompileShader DirectTextureDraw PS %ps_profile%
 
 ::
-:: Monochrome PS
+:: MonochromeFilter PS
 ::
-call :CompileShader Monochrome PS %ps_profile%
+call :CompileShader MonochromeFilter PS %ps_profile%
 
 ::
-:: Scanline PS
+:: ScanlineFilter PS
 ::
-call :CompileShader Scanline PS %ps_profile%
+call :CompileShader ScanlineFilter PS %ps_profile%
 
 ::
-:: Edge PS
+:: EdgeFilter PS
 ::
-call :CompileShader Edge PS %ps_profile%
+call :CompileShader EdgeFilter PS %ps_profile%
 
 ::
 :: NegativeFilter PS
@@ -133,19 +133,19 @@ call :CompileShader Edge PS %ps_profile%
 call :CompileShader NegativeFilter PS %ps_profile%
 
 ::
-:: NormalEdgeDetect PS
+:: NormalEdgeDetectFilter PS
 ::
-call :CompileShader NormalEdgeDetect PS %ps_profile%
+call :CompileShader NormalEdgeDetectFilter PS %ps_profile%
 
 ::
-:: LinearDepthMapVisualize PS
+:: LinearDepthMapColorFilter PS
 ::
-call :CompileShader LinearDepthMapVisualize PS %ps_profile%
+call :CompileShader LinearDepthMapColorFilter PS %ps_profile%
 
 ::
-:: SSAOMapVisualize PS
+:: SSAOMapColorFilter PS
 ::
-call :CompileShader SSAOMapVisualize PS %ps_profile%
+call :CompileShader SSAOMapColorFilter PS %ps_profile%
 
 echo.
 

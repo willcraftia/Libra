@@ -8,7 +8,10 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class LinearDepthMapVisualize : IFilterEffect, IDisposable
+    /// <summary>
+    /// 被写界深度を考慮してシーンを合成するフィルタです。
+    /// </summary>
+    public sealed class DofCombineFilter : IFilterEffect, IDisposable
     {
         #region SharedDeviceResource
 
@@ -19,7 +22,7 @@ namespace Libra.Graphics.Toolkit
             public SharedDeviceResource(Device device)
             {
                 PixelShader = device.CreatePixelShader();
-                PixelShader.Initialize(Resources.LinearDepthMapVisualizePS);
+                PixelShader.Initialize(Resources.DofCombineFilterPS);
             }
         }
 
@@ -27,14 +30,11 @@ namespace Libra.Graphics.Toolkit
 
         #region Constants
 
-        [StructLayout(LayoutKind.Explicit, Size = 16)]
         struct Constants
         {
-            [FieldOffset(0)]
-            public float NearClipDistance;
-
-            [FieldOffset(4)]
-            public float FarClipDistance;
+            // X = scale
+            // Y = distance
+            public Vector4 Focus;
         }
 
         #endregion
@@ -44,7 +44,8 @@ namespace Libra.Graphics.Toolkit
         [Flags]
         enum DirtyFlags
         {
-            Constants = (1 << 0)
+            FocusScale  = (1 << 0),
+            Constants   = (1 << 2)
         }
 
         #endregion
@@ -57,64 +58,86 @@ namespace Libra.Graphics.Toolkit
 
         Constants constants;
 
+        float focusRange;
+
         DirtyFlags dirtyFlags;
 
-        public float NearClipDistance
+        /// <summary>
+        /// 焦点距離を取得または設定します。
+        /// </summary>
+        public float FocusDistance
         {
-            get { return constants.NearClipDistance; }
+            get { return constants.Focus.Y; }
             set
             {
-                if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
-
-                constants.NearClipDistance = value;
+                constants.Focus.Y = value;
 
                 dirtyFlags |= DirtyFlags.Constants;
             }
         }
 
-        public float FarClipDistance
+        /// <summary>
+        /// 焦点範囲を取得または設定します。
+        /// </summary>
+        public float FocusRange
         {
-            get { return constants.FarClipDistance; }
+            get { return focusRange; }
             set
             {
-                if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
+                focusRange = value;
 
-                constants.FarClipDistance = value;
-
-                dirtyFlags |= DirtyFlags.Constants;
+                dirtyFlags |= DirtyFlags.FocusScale;
             }
         }
 
+        /// <summary>
+        /// 通常シーンを取得または設定します。
+        /// </summary>
+        public ShaderResourceView BaseTexture { get; set; }
+
+        /// <summary>
+        /// 深度マップを取得または設定します。
+        /// </summary>
         public ShaderResourceView LinearDepthMap { get; set; }
+
+        public SamplerState BaseTextureSampler { get; set; }
 
         public SamplerState LinearDepthMapSampler { get; set; }
 
         public bool Enabled { get; set; }
 
-        public LinearDepthMapVisualize(Device device)
+        public DofCombineFilter(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 
             this.device = device;
 
-            sharedDeviceResource = device.GetSharedResource<LinearDepthMapVisualize, SharedDeviceResource>();
+            sharedDeviceResource = device.GetSharedResource<DofCombineFilter, SharedDeviceResource>();
 
             constantBuffer = device.CreateConstantBuffer();
             constantBuffer.Initialize<Constants>();
 
-            constants.NearClipDistance = 1.0f;
-            constants.FarClipDistance = 1000.0f;
+            focusRange = 200.0f;
 
-            LinearDepthMapSampler = SamplerState.PointClamp;
+            constants.Focus.Y = 10.0f;
+
+            BaseTextureSampler = SamplerState.LinearClamp;
+            LinearDepthMapSampler = SamplerState.LinearClamp;
 
             Enabled = true;
 
-            dirtyFlags |= DirtyFlags.Constants;
+            dirtyFlags = DirtyFlags.FocusScale | DirtyFlags.Constants;
         }
 
         public void Apply(DeviceContext context)
         {
-            if (context == null) throw new ArgumentNullException("context");
+            if ((dirtyFlags & DirtyFlags.FocusScale) != 0)
+            {
+                constants.Focus.X = 1.0f / focusRange;
+
+                dirtyFlags &= ~DirtyFlags.FocusScale;
+                dirtyFlags |= DirtyFlags.Constants;
+            }
 
             if ((dirtyFlags & DirtyFlags.Constants) != 0)
             {
@@ -126,15 +149,18 @@ namespace Libra.Graphics.Toolkit
             context.PixelShaderConstantBuffers[0] = constantBuffer;
             context.PixelShader = sharedDeviceResource.PixelShader;
 
-            context.PixelShaderResources[1] = LinearDepthMap;
-            context.PixelShaderSamplers[1] = LinearDepthMapSampler;
+            context.PixelShaderResources[1] = BaseTexture;
+            context.PixelShaderResources[2] = LinearDepthMap;
+
+            context.PixelShaderSamplers[1] = BaseTextureSampler;
+            context.PixelShaderSamplers[2] = LinearDepthMapSampler;
         }
 
         #region IDisposable
 
         bool disposed;
 
-        ~LinearDepthMapVisualize()
+        ~DofCombineFilter()
         {
             Dispose(false);
         }
@@ -152,6 +178,7 @@ namespace Libra.Graphics.Toolkit
             if (disposing)
             {
                 sharedDeviceResource = null;
+                constantBuffer.Dispose();
             }
 
             disposed = true;

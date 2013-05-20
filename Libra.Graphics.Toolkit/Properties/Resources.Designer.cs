@@ -67,23 +67,23 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
-        internal static byte[] BloomCombinePS {
+        internal static byte[] BloomCombineFilterPS {
             get {
-                object obj = ResourceManager.GetObject("BloomCombinePS", resourceCulture);
+                object obj = ResourceManager.GetObject("BloomCombineFilterPS", resourceCulture);
                 return ((byte[])(obj));
             }
         }
         
-        internal static byte[] BloomExtractPS {
+        internal static byte[] BloomExtractFilterPS {
             get {
-                object obj = ResourceManager.GetObject("BloomExtractPS", resourceCulture);
+                object obj = ResourceManager.GetObject("BloomExtractFilterPS", resourceCulture);
                 return ((byte[])(obj));
             }
         }
         
-        internal static byte[] CombinePS {
+        internal static byte[] CombineFilterPS {
             get {
-                object obj = ResourceManager.GetObject("CombinePS", resourceCulture);
+                object obj = ResourceManager.GetObject("CombineFilterPS", resourceCulture);
                 return ((byte[])(obj));
             }
         }
@@ -109,9 +109,9 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
-        internal static byte[] DofCombinePS {
+        internal static byte[] DofCombineFilterPS {
             get {
-                object obj = ResourceManager.GetObject("DofCombinePS", resourceCulture);
+                object obj = ResourceManager.GetObject("DofCombineFilterPS", resourceCulture);
                 return ((byte[])(obj));
             }
         }
@@ -123,9 +123,9 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
-        internal static byte[] EdgePS {
+        internal static byte[] EdgeFilterPS {
             get {
-                object obj = ResourceManager.GetObject("EdgePS", resourceCulture);
+                object obj = ResourceManager.GetObject("EdgeFilterPS", resourceCulture);
                 return ((byte[])(obj));
             }
         }
@@ -144,9 +144,16 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
-        internal static byte[] LightScatteringPS {
+        internal static byte[] LightScatteringFilterPS {
             get {
-                object obj = ResourceManager.GetObject("LightScatteringPS", resourceCulture);
+                object obj = ResourceManager.GetObject("LightScatteringFilterPS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] LinearDepthMapColorFilterPS {
+            get {
+                object obj = ResourceManager.GetObject("LinearDepthMapColorFilterPS", resourceCulture);
                 return ((byte[])(obj));
             }
         }
@@ -158,13 +165,6 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
-        internal static byte[] LinearDepthMapVisualizePS {
-            get {
-                object obj = ResourceManager.GetObject("LinearDepthMapVisualizePS", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
         internal static byte[] LinearDepthMapVS {
             get {
                 object obj = ResourceManager.GetObject("LinearDepthMapVS", resourceCulture);
@@ -172,9 +172,9 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
-        internal static byte[] MonochromePS {
+        internal static byte[] MonochromeFilterPS {
             get {
-                object obj = ResourceManager.GetObject("MonochromePS", resourceCulture);
+                object obj = ResourceManager.GetObject("MonochromeFilterPS", resourceCulture);
                 return ((byte[])(obj));
             }
         }
@@ -186,9 +186,9 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
-        internal static byte[] NormalEdgeDetectPS {
+        internal static byte[] NormalEdgeDetectFilterPS {
             get {
-                object obj = ResourceManager.GetObject("NormalEdgeDetectPS", resourceCulture);
+                object obj = ResourceManager.GetObject("NormalEdgeDetectFilterPS", resourceCulture);
                 return ((byte[])(obj));
             }
         }
@@ -214,9 +214,9 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
-        internal static byte[] ScanlinePS {
+        internal static byte[] ScanlineFilterPS {
             get {
-                object obj = ResourceManager.GetObject("ScanlinePS", resourceCulture);
+                object obj = ResourceManager.GetObject("ScanlineFilterPS", resourceCulture);
                 return ((byte[])(obj));
             }
         }
@@ -256,16 +256,23 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
-        internal static byte[] SSAOBlurPS {
+        internal static byte[] SSAOBlurFilterPS {
             get {
-                object obj = ResourceManager.GetObject("SSAOBlurPS", resourceCulture);
+                object obj = ResourceManager.GetObject("SSAOBlurFilterPS", resourceCulture);
                 return ((byte[])(obj));
             }
         }
         
-        internal static byte[] SSAOCombinePS {
+        internal static byte[] SSAOCombineFilterPS {
             get {
-                object obj = ResourceManager.GetObject("SSAOCombinePS", resourceCulture);
+                object obj = ResourceManager.GetObject("SSAOCombineFilterPS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] SSAOMapColorFilterPS {
+            get {
+                object obj = ResourceManager.GetObject("SSAOMapColorFilterPS", resourceCulture);
                 return ((byte[])(obj));
             }
         }
@@ -273,13 +280,6 @@ namespace Libra.Graphics.Toolkit.Properties {
         internal static byte[] SSAOMapPS {
             get {
                 object obj = ResourceManager.GetObject("SSAOMapPS", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        internal static byte[] SSAOMapVisualizePS {
-            get {
-                object obj = ResourceManager.GetObject("SSAOMapVisualizePS", resourceCulture);
                 return ((byte[])(obj));
             }
         }

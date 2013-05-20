@@ -15,9 +15,9 @@ namespace Samples.BloomPostprocess
     {
         SpriteBatch spriteBatch;
 
-        BloomExtract bloomExtract;
+        BloomExtractFilter bloomExtract;
 
-        BloomCombine bloomCombine;
+        BloomCombineFilter bloomCombine;
 
         GaussianFilter gaussianFilter;
 
@@ -62,8 +62,8 @@ namespace Samples.BloomPostprocess
         {
             spriteBatch = new SpriteBatch(Device.ImmediateContext);
 
-            bloomExtract = new BloomExtract(Device);
-            bloomCombine = new BloomCombine(Device);
+            bloomExtract = new BloomExtractFilter(Device);
+            bloomCombine = new BloomCombineFilter(Device);
             gaussianFilter = new GaussianFilter(Device);
 
             var backBuffer = Device.BackBuffer;

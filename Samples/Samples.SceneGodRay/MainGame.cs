@@ -100,9 +100,9 @@ namespace Samples.SceneGodRay
         SingleColorObjectEffect singleColorObjectEffect;
 
         /// <summary>
-        /// 光芒ポストプロセス。
+        /// 光芒フィルタ。
         /// </summary>
-        LightScattering lightScattering;
+        LightScatteringFilter lightScatteringFilter;
 
         /// <summary>
         /// FullScreenQuad。
@@ -171,9 +171,9 @@ namespace Samples.SceneGodRay
             singleColorObjectEffect = new SingleColorObjectEffect(Device);
             singleColorObjectEffect.Projection = camera.Projection;
 
-            lightScattering = new LightScattering(Device);
-            lightScattering.Density = 2.0f;
-            lightScattering.Exposure = 2.0f;
+            lightScatteringFilter = new LightScatteringFilter(Device);
+            lightScatteringFilter.Density = 2.0f;
+            lightScatteringFilter.Exposure = 2.0f;
 
             fullScreenQuad = new FullScreenQuad(Device);
 
@@ -352,9 +352,9 @@ namespace Samples.SceneGodRay
             context.SetRenderTarget(lightScatteringRenderTarget.GetRenderTargetView());
 
             // テクスチャ座標としてライト位置を設定。
-            lightScattering.ScreenLightPosition = screenLightPosition;
-            lightScattering.Texture = occlusionRenderTarget.GetShaderResourceView();
-            lightScattering.Apply(context);
+            lightScatteringFilter.ScreenLightPosition = screenLightPosition;
+            lightScatteringFilter.Texture = occlusionRenderTarget.GetShaderResourceView();
+            lightScatteringFilter.Apply(context);
 
             fullScreenQuad.Draw(context);
 
@@ -416,11 +416,11 @@ namespace Samples.SceneGodRay
         {
             // HUD のテキストを表示。
             var text =
-                "T/G: Exposure (" + lightScattering.Exposure + ")\n" +
-                "Y/H: Density (" + lightScattering.Density + ")\n" +
-                "U/J: Decay (" + lightScattering.Decay + ")\n" +
-                "I/K: Weight (" + lightScattering.Weight + ")\n" +
-                "PageUp/Down: Sample count (" + lightScattering.SampleCount + ")\n" +
+                "T/G: Exposure (" + lightScatteringFilter.Exposure + ")\n" +
+                "Y/H: Density (" + lightScatteringFilter.Density + ")\n" +
+                "U/J: Decay (" + lightScatteringFilter.Decay + ")\n" +
+                "I/K: Weight (" + lightScatteringFilter.Weight + ")\n" +
+                "PageUp/Down: Sample count (" + lightScatteringFilter.SampleCount + ")\n" +
                 "Home/End: Light occlusion & scattering map scale (x " + MapScales[currentMapScaleIndex] + ")";
 
             spriteBatch.Begin();
@@ -443,29 +443,29 @@ namespace Samples.SceneGodRay
                 Exit();
 
             if (currentKeyboardState.IsKeyDown(Keys.T))
-                lightScattering.Exposure += 0.01f;
+                lightScatteringFilter.Exposure += 0.01f;
             if (currentKeyboardState.IsKeyDown(Keys.G))
-                lightScattering.Exposure = Math.Max(0.0f, lightScattering.Exposure - 0.01f);
+                lightScatteringFilter.Exposure = Math.Max(0.0f, lightScatteringFilter.Exposure - 0.01f);
 
             if (currentKeyboardState.IsKeyDown(Keys.Y))
-                lightScattering.Density += 0.01f;
+                lightScatteringFilter.Density += 0.01f;
             if (currentKeyboardState.IsKeyDown(Keys.H))
-                lightScattering.Density = Math.Max(0.0f, lightScattering.Density - 0.01f);
+                lightScatteringFilter.Density = Math.Max(0.0f, lightScatteringFilter.Density - 0.01f);
 
             if (currentKeyboardState.IsKeyDown(Keys.U))
-                lightScattering.Decay += 0.001f;
+                lightScatteringFilter.Decay += 0.001f;
             if (currentKeyboardState.IsKeyDown(Keys.J))
-                lightScattering.Decay = Math.Max(0.0f, lightScattering.Decay - 0.001f);
+                lightScatteringFilter.Decay = Math.Max(0.0f, lightScatteringFilter.Decay - 0.001f);
 
             if (currentKeyboardState.IsKeyDown(Keys.I))
-                lightScattering.Weight += 0.01f;
+                lightScatteringFilter.Weight += 0.01f;
             if (currentKeyboardState.IsKeyDown(Keys.K))
-                lightScattering.Weight = Math.Max(0.0f, lightScattering.Weight - 0.01f);
+                lightScatteringFilter.Weight = Math.Max(0.0f, lightScatteringFilter.Weight - 0.01f);
 
             if (currentKeyboardState.IsKeyDown(Keys.PageUp))
-                lightScattering.SampleCount = Math.Min(LightScattering.MaxSampleCount, lightScattering.SampleCount + 1);
+                lightScatteringFilter.SampleCount = Math.Min(LightScatteringFilter.MaxSampleCount, lightScatteringFilter.SampleCount + 1);
             if (currentKeyboardState.IsKeyDown(Keys.PageDown))
-                lightScattering.SampleCount = Math.Max(0, lightScattering.SampleCount - 1);
+                lightScatteringFilter.SampleCount = Math.Max(0, lightScatteringFilter.SampleCount - 1);
 
             if (currentKeyboardState.IsKeyUp(Keys.Home) && lastKeyboardState.IsKeyDown(Keys.Home))
             {

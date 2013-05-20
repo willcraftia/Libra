@@ -8,7 +8,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class Monochrome : IFilterEffect, IDisposable
+    public sealed class MonochromeFilter : IFilterEffect, IDisposable
     {
         #region SharedDeviceResource
 
@@ -19,7 +19,7 @@ namespace Libra.Graphics.Toolkit
             public SharedDeviceResource(Device device)
             {
                 PixelShader = device.CreatePixelShader();
-                PixelShader.Initialize(Resources.MonochromePS);
+                PixelShader.Initialize(Resources.MonochromeFilterPS);
             }
         }
 
@@ -85,13 +85,13 @@ namespace Libra.Graphics.Toolkit
 
         public bool Enabled { get; set; }
 
-        public Monochrome(Device device)
+        public MonochromeFilter(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 
             this.device = device;
 
-            sharedDeviceResource = device.GetSharedResource<Monochrome, SharedDeviceResource>();
+            sharedDeviceResource = device.GetSharedResource<MonochromeFilter, SharedDeviceResource>();
 
             constantBuffer = device.CreateConstantBuffer();
             constantBuffer.Initialize<Constants>();
@@ -136,7 +136,7 @@ namespace Libra.Graphics.Toolkit
 
         bool disposed;
 
-        ~Monochrome()
+        ~MonochromeFilter()
         {
             Dispose(false);
         }

@@ -114,12 +114,12 @@ namespace Samples.ScenePostprocess
         Postprocess postprocess;
 
         /// <summary>
-        /// ダウン フィルタ パス。
+        /// ダウン フィルタ。
         /// </summary>
         DownFilter downFilter;
 
         /// <summary>
-        /// アップ フィルタ パス。
+        /// アップ フィルタ。
         /// </summary>
         UpFilter upFilter;
 
@@ -154,49 +154,49 @@ namespace Samples.ScenePostprocess
         GaussianFilterPass bilateralFilterV;
 
         /// <summary>
-        /// ブルーム抽出パス。
+        /// ブルーム抽出フィルタ。
         /// </summary>
-        BloomExtract bloomExtract;
+        BloomExtractFilter bloomExtractFilter;
 
         /// <summary>
-        /// ブルーム合成パス。
+        /// ブルーム合成フィルタ。
         /// </summary>
-        BloomCombine bloomCombine;
+        BloomCombineFilter bloomCombineFilter;
 
         /// <summary>
-        /// 被写界深度合成パス。
+        /// 被写界深度合成フィルタ。
         /// </summary>
-        DofCombine dofCombine;
+        DofCombineFilter dofCombineFilter;
 
         /// <summary>
-        /// モノクローム パス。
+        /// モノクローム フィルタ。
         /// </summary>
-        Monochrome monochrome;
+        MonochromeFilter monochromeFilter;
 
         /// <summary>
-        /// 走査線パス。
+        /// 走査線フィルタ。
         /// </summary>
-        Scanline scanline;
+        ScanlineFilter scanlineFilter;
 
         /// <summary>
-        /// エッジ強調パス。
+        /// エッジ強調フィルタ。
         /// </summary>
-        Edge edge;
+        EdgeFilter edgeFilter;
 
         /// <summary>
-        /// ネガティブ フィルタ パス。
+        /// ネガティブ フィルタ。
         /// </summary>
         NegativeFilter negativeFilter;
 
         /// <summary>
-        /// 放射フィルタ パス。
+        /// 放射フィルタ。
         /// </summary>
         RadialFilter radialFilter;
 
         /// <summary>
-        /// 法線エッジ検出パス。
+        /// 法線エッジ検出フィルタ。
         /// </summary>
-        NormalEdgeDetect normalEdgeDetect;
+        NormalEdgeDetectFilter normalEdgeDetectFilter;
 
         /// <summary>
         /// 線形深度マップ エフェクト。
@@ -304,22 +304,22 @@ namespace Samples.ScenePostprocess
             bilateralFilterH = new GaussianFilterPass(bilateralFilter, GaussianFilterDirection.Horizon);
             bilateralFilterV = new GaussianFilterPass(bilateralFilter, GaussianFilterDirection.Vertical);
 
-            bloomExtract = new BloomExtract(Device);
-            bloomCombine = new BloomCombine(Device);
+            bloomExtractFilter = new BloomExtractFilter(Device);
+            bloomCombineFilter = new BloomCombineFilter(Device);
 
-            dofCombine = new DofCombine(Device);
+            dofCombineFilter = new DofCombineFilter(Device);
 
-            monochrome = new Monochrome(Device);
-            monochrome.Enabled = false;
+            monochromeFilter = new MonochromeFilter(Device);
+            monochromeFilter.Enabled = false;
 
-            scanline = new Scanline(Device);
-            scanline.Enabled = false;
-            scanline.Density = WindowHeight * MathHelper.PiOver2;
+            scanlineFilter = new ScanlineFilter(Device);
+            scanlineFilter.Enabled = false;
+            scanlineFilter.Density = WindowHeight * MathHelper.PiOver2;
 
-            edge = new Edge(Device);
-            edge.Enabled = false;
-            edge.NearClipDistance = camera.NearClipDistance;
-            edge.FarClipDistance = camera.FarClipDistance;
+            edgeFilter = new EdgeFilter(Device);
+            edgeFilter.Enabled = false;
+            edgeFilter.NearClipDistance = camera.NearClipDistance;
+            edgeFilter.FarClipDistance = camera.FarClipDistance;
 
             negativeFilter = new NegativeFilter(Device);
             negativeFilter.Enabled = false;
@@ -327,8 +327,8 @@ namespace Samples.ScenePostprocess
             radialFilter = new RadialFilter(Device);
             radialFilter.Enabled = false;
 
-            normalEdgeDetect = new NormalEdgeDetect(Device);
-            normalEdgeDetect.Enabled = false;
+            normalEdgeDetectFilter = new NormalEdgeDetectFilter(Device);
+            normalEdgeDetectFilter.Enabled = false;
 
             depthMapEffect = new LinearDepthMapEffect(Device);
             normalMapEffect = new NormalMapEffect(Device);
@@ -401,10 +401,9 @@ namespace Samples.ScenePostprocess
 
             context.SetRenderTarget(null);
 
-            // 被写界深度合成パスへ設定。
-            dofCombine.LinearDepthMap = depthMapRenderTarget.GetShaderResourceView();
-            // エッジ強調パスへ設定。
-            edge.LinearDepthMap = depthMapRenderTarget.GetShaderResourceView();
+            // フィルタへ設定。
+            dofCombineFilter.LinearDepthMap = depthMapRenderTarget.GetShaderResourceView();
+            edgeFilter.LinearDepthMap = depthMapRenderTarget.GetShaderResourceView();
 
             // 中間マップ表示。
             textureDisplay.Textures.Add(depthMapRenderTarget.GetShaderResourceView());
@@ -419,10 +418,9 @@ namespace Samples.ScenePostprocess
 
             context.SetRenderTarget(null);
 
-            // 法線エッジ検出パスへ設定。
-            normalEdgeDetect.NormalMap = normalMapRenderTarget.GetShaderResourceView();
-            // エッジ強調パスへ設定。
-            edge.NormalMap = normalMapRenderTarget.GetShaderResourceView();
+            // フィルタへ設定。
+            normalEdgeDetectFilter.NormalMap = normalMapRenderTarget.GetShaderResourceView();
+            edgeFilter.NormalMap = normalMapRenderTarget.GetShaderResourceView();
 
             // 中間マップ表示。
             textureDisplay.Textures.Add(normalMapRenderTarget.GetShaderResourceView());
@@ -437,10 +435,9 @@ namespace Samples.ScenePostprocess
 
             context.SetRenderTarget(null);
 
-            // ブルーム合成パスへ設定。
-            bloomCombine.BaseTexture = normalSceneRenderTarget.GetShaderResourceView();
-            // 被写界深度合成パスへ設定。
-            dofCombine.BaseTexture = normalSceneRenderTarget.GetShaderResourceView();
+            // フィルタへ設定。
+            bloomCombineFilter.BaseTexture = normalSceneRenderTarget.GetShaderResourceView();
+            dofCombineFilter.BaseTexture = normalSceneRenderTarget.GetShaderResourceView();
 
             // 中間マップ表示。
             textureDisplay.Textures.Add(normalSceneRenderTarget.GetShaderResourceView());
@@ -507,12 +504,12 @@ namespace Samples.ScenePostprocess
                 "Current postprocess: " + postprocessType + "\n" +
                 "[F1] None [F2] Depth of Field [F3] Bloom [F4] Blur\n" +
                 "[F5] Bilateral Filter\n" +
-                "[1] Monochrome (" + monochrome.Enabled + ")\n" +
-                "[2] Scanline (" + scanline.Enabled + ")\n" +
-                "[3] Edge (" + edge.Enabled + ")\n" +
+                "[1] Monochrome (" + monochromeFilter.Enabled + ")\n" +
+                "[2] Scanline (" + scanlineFilter.Enabled + ")\n" +
+                "[3] Edge (" + edgeFilter.Enabled + ")\n" +
                 "[4] Negative Filter (" + negativeFilter.Enabled + ")\n" +
                 "[5] Radial Blur (" + radialFilter.Enabled + ")\n" +
-                "[6] Normal Edge Detect (" + normalEdgeDetect.Enabled + ")";
+                "[6] Normal Edge Detect (" + normalEdgeDetectFilter.Enabled + ")";
 
             spriteBatch.Begin();
 
@@ -558,19 +555,19 @@ namespace Samples.ScenePostprocess
             postprocess.Filters.Add(gaussianFilterH);
             postprocess.Filters.Add(gaussianFilterV);
             postprocess.Filters.Add(upFilter);
-            postprocess.Filters.Add(dofCombine);
+            postprocess.Filters.Add(dofCombineFilter);
 
             AddCommonPasses();
         }
 
         void SetupBloom()
         {
-            postprocess.Filters.Add(bloomExtract);
+            postprocess.Filters.Add(bloomExtractFilter);
             postprocess.Filters.Add(downFilter);
             postprocess.Filters.Add(gaussianFilterH);
             postprocess.Filters.Add(gaussianFilterV);
             postprocess.Filters.Add(upFilter);
-            postprocess.Filters.Add(bloomCombine);
+            postprocess.Filters.Add(bloomCombineFilter);
 
             AddCommonPasses();
         }
@@ -601,12 +598,12 @@ namespace Samples.ScenePostprocess
 
         void AddCommonPasses()
         {
-            postprocess.Filters.Add(monochrome);
-            postprocess.Filters.Add(scanline);
+            postprocess.Filters.Add(monochromeFilter);
+            postprocess.Filters.Add(scanlineFilter);
             postprocess.Filters.Add(negativeFilter);
-            postprocess.Filters.Add(edge);
+            postprocess.Filters.Add(edgeFilter);
             postprocess.Filters.Add(radialFilter);
-            postprocess.Filters.Add(normalEdgeDetect);
+            postprocess.Filters.Add(normalEdgeDetectFilter);
         }
 
         void HandleInput(GameTime gameTime)
@@ -632,13 +629,13 @@ namespace Samples.ScenePostprocess
                 postprocessType = PostprocessType.BilateralFilter;
 
             if (currentKeyboardState.IsKeyUp(Keys.D1) && lastKeyboardState.IsKeyDown(Keys.D1))
-                monochrome.Enabled = !monochrome.Enabled;
+                monochromeFilter.Enabled = !monochromeFilter.Enabled;
 
             if (currentKeyboardState.IsKeyUp(Keys.D2) && lastKeyboardState.IsKeyDown(Keys.D2))
-                scanline.Enabled = !scanline.Enabled;
+                scanlineFilter.Enabled = !scanlineFilter.Enabled;
 
             if (currentKeyboardState.IsKeyUp(Keys.D3) && lastKeyboardState.IsKeyDown(Keys.D3))
-                edge.Enabled = !edge.Enabled;
+                edgeFilter.Enabled = !edgeFilter.Enabled;
 
             if (currentKeyboardState.IsKeyUp(Keys.D4) && lastKeyboardState.IsKeyDown(Keys.D4))
                 negativeFilter.Enabled = !negativeFilter.Enabled;
@@ -647,7 +644,7 @@ namespace Samples.ScenePostprocess
                 radialFilter.Enabled = !radialFilter.Enabled;
 
             if (currentKeyboardState.IsKeyUp(Keys.D6) && lastKeyboardState.IsKeyDown(Keys.D6))
-                normalEdgeDetect.Enabled = !normalEdgeDetect.Enabled;
+                normalEdgeDetectFilter.Enabled = !normalEdgeDetectFilter.Enabled;
 
             if (currentKeyboardState.IsKeyDown(Keys.Escape))
                 Exit();
