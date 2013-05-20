@@ -87,7 +87,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.ScenePostprocess", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.SceneAmbientOcclusion", "Samples\Samples.SceneAmbientOcclusion\Samples.SceneAmbientOcclusion.csproj", "{F9A5BA78-6057-47EE-8D5C-6523FFC07453}"
 EndProject
-Project("{96E2B04D-8817-42C6-938A-82C39BA4D311}") = "Samples.SceneAmbientOcclusionContent", "Samples\Samples.SceneAmbientOcclusionContent\Samples.SceneAmbientOcclusionContent.contentproj", "{FA55FBB8-876D-4C88-8CA9-27DF88A72472}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.SceneAmbientOcclusionContent", "Samples\Samples.SceneAmbientOcclusionContent\Samples.SceneAmbientOcclusionContent.contentproj", "{FA55FBB8-876D-4C88-8CA9-27DF88A72472}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.SceneVolumetricFog", "Samples\Samples.SceneVolumetricFog\Samples.SceneVolumetricFog.csproj", "{FA6BFC1F-B708-4ED8-8038-A06B5AA37889}"
+EndProject
+Project("{96E2B04D-8817-42C6-938A-82C39BA4D311}") = "Samples.SceneVolumetricFogContent", "Samples\Samples.SceneVolumetricFogContent\Samples.SceneVolumetricFogContent.contentproj", "{EB1DDA0C-8FB0-413E-A7FC-A131721C3BF5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -495,6 +499,22 @@ Global
 		{FA55FBB8-876D-4C88-8CA9-27DF88A72472}.Release|Any CPU.ActiveCfg = Debug|Any CPU
 		{FA55FBB8-876D-4C88-8CA9-27DF88A72472}.Release|Mixed Platforms.ActiveCfg = Debug|Any CPU
 		{FA55FBB8-876D-4C88-8CA9-27DF88A72472}.Release|x86.ActiveCfg = Debug|Any CPU
+		{FA6BFC1F-B708-4ED8-8038-A06B5AA37889}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{FA6BFC1F-B708-4ED8-8038-A06B5AA37889}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{FA6BFC1F-B708-4ED8-8038-A06B5AA37889}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{FA6BFC1F-B708-4ED8-8038-A06B5AA37889}.Debug|x86.ActiveCfg = Debug|x86
+		{FA6BFC1F-B708-4ED8-8038-A06B5AA37889}.Debug|x86.Build.0 = Debug|x86
+		{FA6BFC1F-B708-4ED8-8038-A06B5AA37889}.Release|Any CPU.ActiveCfg = Release|x86
+		{FA6BFC1F-B708-4ED8-8038-A06B5AA37889}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{FA6BFC1F-B708-4ED8-8038-A06B5AA37889}.Release|Mixed Platforms.Build.0 = Release|x86
+		{FA6BFC1F-B708-4ED8-8038-A06B5AA37889}.Release|x86.ActiveCfg = Release|x86
+		{FA6BFC1F-B708-4ED8-8038-A06B5AA37889}.Release|x86.Build.0 = Release|x86
+		{EB1DDA0C-8FB0-413E-A7FC-A131721C3BF5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB1DDA0C-8FB0-413E-A7FC-A131721C3BF5}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{EB1DDA0C-8FB0-413E-A7FC-A131721C3BF5}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{EB1DDA0C-8FB0-413E-A7FC-A131721C3BF5}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB1DDA0C-8FB0-413E-A7FC-A131721C3BF5}.Release|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{EB1DDA0C-8FB0-413E-A7FC-A131721C3BF5}.Release|x86.ActiveCfg = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
