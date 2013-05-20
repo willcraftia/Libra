@@ -11,10 +11,22 @@ using System.Text;
 
 namespace Libra.Graphics.Compiler
 {
+    /// <summary>
+    /// シェーダをコンパイルするクラスです。
+    /// </summary>
+    /// <remarks>
+    /// DirectX 仕様により、シェーダ ファイルの文字エンコーディングは ASCII です。
+    /// シェーダ ソースコードに日本語を含める場合には、
+    /// 文字エンコーディングを Shift-JIS とします。
+    /// なお、UTF-8 はコンパイル エラーとなります。
+    /// </remarks>
     public abstract class ShaderCompiler : IDisposable
     {
         #region PathCollection
 
+        /// <summary>
+        /// ファイル検索パスを管理するコレクションです。
+        /// </summary>
         public sealed class PathCollection : Collection<string>
         {
             internal PathCollection() { }
@@ -24,6 +36,9 @@ namespace Libra.Graphics.Compiler
 
         #region CompileFlags
 
+        /// <summary>
+        /// コンパイラ フラグの列挙型です。
+        /// </summary>
         [Flags]
         protected enum CompileFlags
         {
@@ -54,14 +69,29 @@ namespace Libra.Graphics.Compiler
 
         #endregion
 
+        /// <summary>
+        /// デフォルト頂点シェーダ エントリポイント。
+        /// </summary>
         public const string DefaultVertexShaderEntrypoint = "VS";
 
+        /// <summary>
+        /// デフォルト ピクセル シェーダ エントリポイント。
+        /// </summary>
         public const string DefaultPixelShaderEntrypoint = "PS";
 
+        /// <summary>
+        /// 実装クラス検索キー。
+        /// </summary>
         public const string AppSettingKey = "Libra.Graphics.Compiler.ShaderCompiler";
 
+        /// <summary>
+        /// デフォルト実装クラス名。
+        /// </summary>
         public const string DefaultImplementation = "Libra.Graphics.Compiler.SharpDX.SdxShaderCompiler, Libra.Graphics.Compiler.SharpDX, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null";
 
+        /// <summary>
+        /// 親ファイル パス。
+        /// </summary>
         string parentFilePath;
 
         // D3DCOMPILE Constants
@@ -175,10 +205,19 @@ namespace Libra.Graphics.Compiler
         /// </summary>
         public PathCollection SystemIncludePaths { get; private set; }
 
+        /// <summary>
+        /// 頂点シェーダ プロファイルを取得または設定します。
+        /// </summary>
         public VertexShaderProfile VertexShaderProfile { get; set; }
 
+        /// <summary>
+        /// ピクセル シェーダ プロファイルを取得または設定します。
+        /// </summary>
         public PixelShaderProfile PixelShaderProfile { get; set; }
 
+        /// <summary>
+        /// コンストラクタ。
+        /// </summary>
         protected ShaderCompiler()
         {
             SystemIncludePaths = new PathCollection();
@@ -187,6 +226,15 @@ namespace Libra.Graphics.Compiler
             PixelShaderProfile = PixelShaderProfile.ps_5_0;
         }
 
+        /// <summary>
+        /// インスタンスを生成します。
+        /// </summary>
+        /// <returns>インスタンス。</returns>
+        /// <remarks>
+        /// 以下の順序で実装クラスを解決してインスタンス化します。
+        /// 1. app.config で AppSettingKey により定義されたクラス名
+        /// 2. DefaultImplementation で定義されたデフォルト実装クラス名
+        /// </remarks>
         public static ShaderCompiler CreateShaderCompiler()
         {
             // app.config 定義を参照。
@@ -199,6 +247,11 @@ namespace Libra.Graphics.Compiler
             return CreateShaderCompiler(DefaultImplementation);
         }
 
+        /// <summary>
+        /// 指定の実装クラスからインスタンスを生成します。
+        /// </summary>
+        /// <param name="assemblyQualifiedName">実装クラス名。</param>
+        /// <returns>インスタンス。</returns>
         public static ShaderCompiler CreateShaderCompiler(string assemblyQualifiedName)
         {
             if (assemblyQualifiedName == null) throw new ArgumentNullException("assemblyQualifiedName");
@@ -207,6 +260,11 @@ namespace Libra.Graphics.Compiler
             return Activator.CreateInstance(type) as ShaderCompiler;
         }
 
+        /// <summary>
+        /// 指定のアセンブリに含まれる実装クラスからインスタンスを生成します。
+        /// </summary>
+        /// <param name="assembly">実装クラスを含むアセンブリ。</param>
+        /// <returns>インスタンス。</returns>
         public static ShaderCompiler CreateShaderCompiler(Assembly assembly)
         {
             if (assembly == null) throw new ArgumentNullException("assembly");
@@ -218,6 +276,13 @@ namespace Libra.Graphics.Compiler
             return Activator.CreateInstance(type) as ShaderCompiler;
         }
 
+        /// <summary>
+        /// アセンブリに含まれる実装クラスの型を検索します。
+        /// </summary>
+        /// <param name="assembly">アセンブリ。</param>
+        /// <returns>
+        /// アセンブリに含まれる実装クラスの型。アセンブリに実装クラスが存在しないならば null。
+        /// </returns>
         static Type FindShaderCompiler(Assembly assembly)
         {
             Type[] types;
@@ -240,6 +305,11 @@ namespace Libra.Graphics.Compiler
             return null;
         }
 
+        /// <summary>
+        /// シェーダ バイトコードから入力シグネチャ バイトコードを取得します。
+        /// </summary>
+        /// <param name="shaderBytecode">シェーダ バイトコード。</param>
+        /// <returns>入力シグネチャ バイトコード。</returns>
         public byte[] GetInputSignature(byte[] shaderBytecode)
         {
             if (shaderBytecode == null) throw new ArgumentNullException("shaderBytecode");
@@ -247,6 +317,11 @@ namespace Libra.Graphics.Compiler
             return GetInputSignatureCore(shaderBytecode);
         }
 
+        /// <summary>
+        /// シェーダ バイトコードから出力シグネチャ バイトコードを取得します。
+        /// </summary>
+        /// <param name="shaderBytecode">シェーダ バイトコード。</param>
+        /// <returns>出力シグネチャ バイトコード。</returns>
         public byte[] GetOutputSignature(byte[] shaderBytecode)
         {
             if (shaderBytecode == null) throw new ArgumentNullException("shaderBytecode");
@@ -254,6 +329,11 @@ namespace Libra.Graphics.Compiler
             return GetOutputSignatureCore(shaderBytecode);
         }
 
+        /// <summary>
+        /// シェーダ バイトコードから入出力シグネチャ バイトコードを取得します。
+        /// </summary>
+        /// <param name="shaderBytecode">シェーダ バイトコード。</param>
+        /// <returns>入出力シグネチャ バイトコード。</returns>
         public byte[] GetInputAndOutputSignature(byte[] shaderBytecode)
         {
             if (shaderBytecode == null) throw new ArgumentNullException("shaderBytecode");
@@ -261,27 +341,52 @@ namespace Libra.Graphics.Compiler
             return GetInputAndOutputSignatureCore(shaderBytecode);
         }
 
+        /// <summary>
+        /// ストリームが提供する頂点シェーダ ソースコードをコンパイルします。
+        /// </summary>
+        /// <param name="stream">頂点シェーダ ソースコードを提供するストリーム。</param>
+        /// <param name="entrypoint">エントリポイント。</param>
+        /// <returns>頂点シェーダ バイトコード。</returns>
         public byte[] CompileVertexShader(Stream stream, string entrypoint = DefaultVertexShaderEntrypoint)
         {
             return Compile(stream, entrypoint, ToString(VertexShaderProfile));
         }
 
+        /// <summary>
+        /// ストリームが提供するピクセル シェーダ ソースコードをコンパイルします。
+        /// </summary>
+        /// <param name="stream">ピクセル シェーダ ソースコードを提供するストリーム。</param>
+        /// <param name="entrypoint">エントリポイント。</param>
+        /// <returns>ピクセル シェーダ バイトコード。</returns>
         public byte[] CompilePixelShader(Stream stream, string entrypoint = DefaultPixelShaderEntrypoint)
         {
             return Compile(stream, entrypoint, ToString(PixelShaderProfile));
         }
 
+        /// <summary>
+        /// 指定のパスにある頂点シェーダ ソースコードをコンパイルします。
+        /// </summary>
+        /// <param name="path">頂点シェーダ ソースコード ファイルのパス。</param>
+        /// <param name="entrypoint">エントリポイント。</param>
+        /// <returns>頂点シェーダ バイトコード。</returns>
         public byte[] CompileVertexShader(string path, string entrypoint = DefaultVertexShaderEntrypoint)
         {
             return CompileFromFile(path, entrypoint, ToString(VertexShaderProfile));
         }
 
+        /// <summary>
+        /// 指定のパスにあるピクセル シェーダ ソースコードをコンパイルします。
+        /// </summary>
+        /// <param name="path">ピクセル シェーダ ソースコード ファイルのパス。</param>
+        /// <param name="entrypoint">エントリポイント。</param>
+        /// <returns>ピクセル シェーダ バイトコード。</returns>
         public byte[] CompilePixelShader(string path, string entrypoint = DefaultPixelShaderEntrypoint)
         {
             return CompileFromFile(path, entrypoint, ToString(PixelShaderProfile));
         }
 
         /// <summary>
+        /// 指定のパスにあるシェーダ ソースコードをコンパイルします。
         /// </summary>
         /// <remarks>
         /// ファイルからシェーダ コードを読み込む場合、
@@ -289,10 +394,10 @@ namespace Libra.Graphics.Compiler
         /// 絶対パス指定、および、カレント ディレクトリからの相対パスに加え、
         /// 親ファイルからの相対パスも有効となります。
         /// </remarks>
-        /// <param name="path"></param>
-        /// <param name="entrypoint"></param>
-        /// <param name="profile"></param>
-        /// <returns></returns>
+        /// <param name="path">シェーダ ソースコード ファイルのパス。</param>
+        /// <param name="entrypoint">エントリポイント。</param>
+        /// <param name="profile">プロファイル。</param>
+        /// <returns>シェーダ バイトコード。</returns>
         public byte[] CompileFromFile(string path, string entrypoint, string profile)
         {
             if (path == null) throw new ArgumentNullException("path");
@@ -319,18 +424,17 @@ namespace Libra.Graphics.Compiler
         }
 
         /// <summary>
-        /// 
+        /// ストリームが提供するシェーダ ソースコードをコンパイルします。
         /// </summary>
         /// <remarks>
-        /// ストリームからシェーダ コードをを読み込む場合、
-        /// シェーダ ファイルのパスは不明であるため、
+        /// ストリームからシェーダ コードを読み込む場合はファイル パスが不明となるため、
         /// ローカル インクルード (#include "filename" 形式) は、
         /// 絶対パス指定、あるいは、カレント ディレクトリからの相対パスのみが有効となります。
         /// </remarks>
-        /// <param name="stream"></param>
-        /// <param name="entrypoint"></param>
-        /// <param name="profile"></param>
-        /// <returns></returns>
+        /// <param name="stream">シェーダ ソースコードを提供するストリーム。</param>
+        /// <param name="entrypoint">エントリポイント。</param>
+        /// <param name="profile">プロファイル。</param>
+        /// <returns>シェーダ バイトコード。</returns>
         public byte[] Compile(Stream stream, string entrypoint, string profile)
         {
             if (stream == null) throw new ArgumentNullException("stream");
@@ -356,14 +460,42 @@ namespace Libra.Graphics.Compiler
             
         }
 
+        /// <summary>
+        /// 実装クラスにコンパイルを委譲します。
+        /// </summary>
+        /// <param name="sourceCode">シェーダ ソースコード。</param>
+        /// <param name="entrypoint">エントリポイント。</param>
+        /// <param name="profile">プロファイル。</param>
+        /// <param name="flags">コンパイル フラグ。</param>
+        /// <returns>シェーダ バイトコード。</returns>
         protected abstract byte[] CompileCore(byte[] sourceCode, string entrypoint, string profile, CompileFlags flags);
 
+        /// <summary>
+        /// 実装クラスに入力シグネチャ バイトコードの抽出を委譲します。
+        /// </summary>
+        /// <param name="shaderBytecode">シェーダ バイトコード。</param>
+        /// <returns>入力シグネチャ バイトコード。</returns>
         protected abstract byte[] GetInputSignatureCore(byte[] shaderBytecode);
 
+        /// <summary>
+        /// 実装クラスに出力シグネチャ バイトコードの抽出を委譲します。
+        /// </summary>
+        /// <param name="shaderBytecode">シェーダ バイトコード。</param>
+        /// <returns>出力シグネチャ バイトコード。</returns>
         protected abstract byte[] GetOutputSignatureCore(byte[] shaderBytecode);
 
+        /// <summary>
+        /// 実装クラスに入出力シグネチャ バイトコードの抽出を委譲します。
+        /// </summary>
+        /// <param name="shaderBytecode">シェーダ バイトコード。</param>
+        /// <returns>入出力シグネチャ バイトコード。</returns>
         protected abstract byte[] GetInputAndOutputSignatureCore(byte[] shaderBytecode);
 
+        /// <summary>
+        /// 頂点シェーダ プロファイル列挙型を文字列へ変換します。
+        /// </summary>
+        /// <param name="profile">頂点シェーダ プロファイル型。</param>
+        /// <returns>頂点シェーダ プロファイル名。</returns>
         public static string ToString(VertexShaderProfile profile)
         {
             switch (profile)
@@ -395,6 +527,11 @@ namespace Libra.Graphics.Compiler
             throw new InvalidOperationException();
         }
 
+        /// <summary>
+        /// ピクセル シェーダ プロファイル列挙型を文字列へ変換します。
+        /// </summary>
+        /// <param name="profile">ピクセル シェーダ プロファイル型。</param>
+        /// <returns>ピクセル シェーダ プロファイル名。</returns>
         public static string ToString(PixelShaderProfile profile)
         {
             switch (profile)
@@ -426,17 +563,33 @@ namespace Libra.Graphics.Compiler
             throw new InvalidOperationException();
         }
 
+        /// <summary>
+        /// インクルード ファイル ストリームを開きます。
+        /// </summary>
+        /// <param name="type">インクルードの種類 (システム インクルードあるいはローカル インクルード)。</param>
+        /// <param name="fileName">インクルード ファイル名 (パス)。</param>
+        /// <returns>インクルード ファイル ストリーム。</returns>
         protected Stream OpenIncludeFile(IncludeType type, string fileName)
         {
             var filePath = ResolveIncludePath(type, fileName);
             return File.OpenRead(filePath);
         }
 
+        /// <summary>
+        /// インクルード ファイル ストリームを閉じます。
+        /// </summary>
+        /// <param name="stream">インクルード ファイル ストリーム。</param>
         protected void CloseIncludeFile(Stream stream)
         {
             stream.Close();
         }
 
+        /// <summary>
+        /// インクルード ファイル パスを解決します。
+        /// </summary>
+        /// <param name="type">インクルードの種類 (システム インクルードあるいはローカル インクルード)。</param>
+        /// <param name="fileName">インクルード ファイル名 (パス)。</param>
+        /// <returns>解決されたインクルード ファイル パス。</returns>
         string ResolveIncludePath(IncludeType type, string fileName)
         {
             if (type == IncludeType.Local)
@@ -445,6 +598,11 @@ namespace Libra.Graphics.Compiler
             return ResolveSystemIncludePath(fileName);
         }
 
+        /// <summary>
+        /// ローカル インクルード ファイル パスを解決します。
+        /// </summary>
+        /// <param name="fileName">インクルード ファイル名 (パス)。</param>
+        /// <returns>解決されたインクルード ファイル パス。</returns>
         string ResolveLocalIncludePath(string fileName)
         {
             if (File.Exists(fileName))
@@ -461,6 +619,11 @@ namespace Libra.Graphics.Compiler
             throw new FileNotFoundException("Local include file not found: " + fileName);
         }
 
+        /// <summary>
+        /// システム インクルード ファイル パスを解決します。
+        /// </summary>
+        /// <param name="fileName">インクルード ファイル名 (パス)。</param>
+        /// <returns>解決されたインクルード ファイル パス。</returns>
         string ResolveSystemIncludePath(string fileName)
         {
             foreach (var path in SystemIncludePaths)
@@ -473,6 +636,10 @@ namespace Libra.Graphics.Compiler
             throw new FileNotFoundException("System include file not found: " + fileName);
         }
 
+        /// <summary>
+        /// プロパティからコンパイル フラグを解決します。
+        /// </summary>
+        /// <returns>解決されたコンパイル フラグ。</returns>
         CompileFlags ResolveCompileFlags()
         {
             var flags = CompileFlags.None;
