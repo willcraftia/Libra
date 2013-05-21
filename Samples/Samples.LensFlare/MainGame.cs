@@ -120,8 +120,6 @@ namespace Samples.LensFlare
             var aspectRatio = context.Viewport.AspectRatio;
             var projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspectRatio, 0.1f, 500);
 
-            //context.RasterizerState = RasterizerState.CullNone;
-
             // D3D11 の TextureAddressMode のデフォルトは Clamp。
             // XNA (D3D9) はデフォルト Wrap を仮定しているため、ここで明示する必要がある。
             context.PixelShaderSamplers[0] = SamplerState.LinearWrap;
