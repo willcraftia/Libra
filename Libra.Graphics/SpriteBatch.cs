@@ -11,7 +11,7 @@ using Libra.Graphics.Properties;
 // DKTK との相違点。
 // ・DeviceContext 単位ではなく Device 単位によるインスタンス生成。
 //      複数の DeviceContext を用いる場合は、
-//      DeviceContext 単位で個別にインスタンスを生成して管理すれば良い。
+//      DeviceContext 単位で個別にインスタンスを生成して管理する。
 // ・Libra における Device 単位リソース共有の枠組みの利用。
 //      せめて、Device が GC 回収されるタイミングで破棄したいため。
 //      静的クラスによる管理では破棄がアプリケーション終了時となる。
@@ -225,6 +225,16 @@ namespace Libra.Graphics
         };
 
         SharedDeviceResource sharedDeviceResource;
+
+        // DKTK とは異なり、DeviceContext 毎に管理すべき情報を
+        // フィールドとして保持している。
+        // SpriteBatch は Begin/End の組が正しいかを検査するため、
+        // Begin を連続させることはできず、
+        // 仮に誤って複数スレッドで共有したとしても Begin で処理が失敗し、
+        // フィールドが複数の DeviceContext で共有されたまま稼働することはない。
+        // そもそも、DKTK についても、SpriteBatch インスタンスは
+        // DeviceContext 単位での生成であるため、
+        // あえて DeviceContext 単位の共有領域で管理する意味は無いと思われる。
 
         int vertexBufferPosition;
 
