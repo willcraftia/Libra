@@ -126,6 +126,28 @@ namespace Libra
             }
         }
 
+        /// <summary>
+        /// 透視射影行列を仮定して視野角を取得します。
+        /// </summary>
+        public float PerspectiveFieldOfView
+        {
+            // 参考:
+            //      M22 = 1 / tan(fov / 2)
+            //      fov = atan(1 / M22) * 2
+            get { return (float) Math.Atan(1.0f / M22) * 2.0f; }
+        }
+
+        /// <summary>
+        /// 投資者営業列を仮定してアスペクト比を取得します。
+        /// </summary>
+        public float PerspectiveAspectRatio
+        {
+            // 参考:
+            //      M11 = M22 / aspectRatio
+            //      aspectRatio = M11 / M22
+            get { return M22 / M11; }
+        }
+
         public Matrix(float value)
         {
             M11 = M12 = M13 = M14 =
