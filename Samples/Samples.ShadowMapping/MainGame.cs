@@ -243,6 +243,11 @@ namespace Samples.ShadowMapping
         XnbManager content;
 
         /// <summary>
+        /// 描画に使用するコンテキスト。
+        /// </summary>
+        DeviceContext context;
+
+        /// <summary>
         /// スプライト バッチ。
         /// </summary>
         SpriteBatch spriteBatch;
@@ -506,9 +511,11 @@ namespace Samples.ShadowMapping
 
         protected override void LoadContent()
         {
+            context = Device.ImmediateContext;
+
             drawModelEffect = new DrawModelEffect(Device);
 
-            spriteBatch = new SpriteBatch(Device.ImmediateContext);
+            spriteBatch = new SpriteBatch(context);
             spriteFont = content.Load<SpriteFont>("hudFont");
 
             gridModel = content.Load<Model>("grid");
@@ -522,7 +529,7 @@ namespace Samples.ShadowMapping
 
             for (int i = 0; i < shadowMaps.Length; i++)
             {
-                shadowMaps[i] = new ShadowMap(Device);
+                shadowMaps[i] = new ShadowMap(context);
             }
         }
 
@@ -544,8 +551,6 @@ namespace Samples.ShadowMapping
 
         protected override void Draw(GameTime gameTime)
         {
-            var context = Device.ImmediateContext;
-
             // 念のため状態を初期状態へ。
             context.BlendState = BlendState.Opaque;
             context.DepthStencilState = DepthStencilState.Default;
@@ -669,8 +674,6 @@ namespace Samples.ShadowMapping
 
         void DrawWithShadowMap()
         {
-            var context = Device.ImmediateContext;
-
             context.Clear(Color.CornflowerBlue);
 
             // シャドウ マップに対するサンプラ。
@@ -703,8 +706,6 @@ namespace Samples.ShadowMapping
 
         void DrawShadowCaster(ShadowMapEffect effect, Model model)
         {
-            var context = Device.ImmediateContext;
-
             // シャドウ マップ エフェクトの準備。
             effect.World = world;
             effect.Apply(context);
@@ -724,8 +725,6 @@ namespace Samples.ShadowMapping
 
         void DrawModelWithShadowMap(Model model)
         {
-            var context = Device.ImmediateContext;
-
             drawModelEffect.World = world;
             drawModelEffect.View = camera.View;
             drawModelEffect.Projection = camera.Projection;

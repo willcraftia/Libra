@@ -37,9 +37,9 @@ namespace Libra.Graphics.Toolkit
         int size;
 
         /// <summary>
-        /// デバイスを取得します。
+        /// デバイス コンテキストを取得します。
         /// </summary>
-        public Device Device { get; private set; }
+        public DeviceContext Context { get; private set; }
 
         /// <summary>
         /// シャドウ マップ形式を取得または設定します。
@@ -93,14 +93,14 @@ namespace Libra.Graphics.Toolkit
         /// <summary>
         /// インスタンスを生成します。
         /// </summary>
-        /// <param name="device">デバイス。</param>
-        public ShadowMap(Device device)
+        /// <param name="device">デバイス コンテキスト。</param>
+        public ShadowMap(DeviceContext context)
         {
-            if (device == null) throw new ArgumentNullException("device");
+            if (context == null) throw new ArgumentNullException("context");
 
-            Device = device;
+            Context = context;
 
-            shadowMapEffect = new ShadowMapEffect(device);
+            shadowMapEffect = new ShadowMapEffect(context.Device);
         }
 
         /// <summary>
@@ -148,7 +148,7 @@ namespace Libra.Graphics.Toolkit
                 if (shadowMapEffect.Form == ShadowMapForm.Variance)
                     format = SurfaceFormat.Vector2;
 
-                RenderTarget = Device.CreateRenderTarget();
+                RenderTarget = Context.Device.CreateRenderTarget();
                 RenderTarget.Width = size;
                 RenderTarget.Height = size;
                 RenderTarget.Format = format;
