@@ -650,12 +650,16 @@ namespace Samples.ShadowMapping
                     if (gaussianFilter == null)
                     {
                         var shadowMapSize = ShadowMapSizes[currentShadowMapSizeIndex];
-                        gaussianFilter = new GaussianFilterSuite(Device, shadowMapSize, shadowMapSize, SurfaceFormat.Vector2);
+                        gaussianFilter = new GaussianFilterSuite(
+                            Device.ImmediateContext,
+                            shadowMapSize,
+                            shadowMapSize,
+                            SurfaceFormat.Vector2);
                         gaussianFilter.Radius = 3;
                         gaussianFilter.Sigma = 1;
                     }
 
-                    gaussianFilter.Filter(context, shadowMaps[i].RenderTarget, shadowMaps[i].RenderTarget);
+                    gaussianFilter.Filter(shadowMaps[i].RenderTarget, shadowMaps[i].RenderTarget);
                 }
 
                 // 生成されたシャドウ マップを一覧表示機能へ追加。

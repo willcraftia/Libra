@@ -193,7 +193,10 @@ namespace Samples.SceneDepthOfField
             depthMapEffect = new LinearDepthMapEffect(Device);
 
             gaussianFilter = new GaussianFilterSuite(
-                Device, bluredSceneRenderTarget.Width, bluredSceneRenderTarget.Height, bluredSceneRenderTarget.Format);
+                Device.ImmediateContext,
+                bluredSceneRenderTarget.Width,
+                bluredSceneRenderTarget.Height,
+                bluredSceneRenderTarget.Format);
 
             dofCombineFilter = new DofCombineFilter(Device);
 
@@ -236,7 +239,7 @@ namespace Samples.SceneDepthOfField
             CreateNormalSceneMap(context);
 
             // ブラー済みシーンを作成。
-            CreateBluredSceneMap(context);
+            CreateBluredSceneMap();
 
             // 最終的なシーンをバック バッファへ描画。
             CreateFinalSceneMap(context);
@@ -311,9 +314,9 @@ namespace Samples.SceneDepthOfField
             mesh.Draw(context);
         }
 
-        void CreateBluredSceneMap(DeviceContext context)
+        void CreateBluredSceneMap()
         {
-            gaussianFilter.Filter(context, normalSceneRenderTarget, bluredSceneRenderTarget);
+            gaussianFilter.Filter(normalSceneRenderTarget, bluredSceneRenderTarget);
 
             textureDisplay.Textures.Add(bluredSceneRenderTarget);
         }

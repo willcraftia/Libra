@@ -8,13 +8,27 @@ namespace Libra.Graphics.Toolkit
 {
     public sealed class GaussianFilterSuite : IDisposable
     {
+        #region SharedDeviceResource
+
+        sealed class SharedDeviceResource
+        {
+            public FullScreenQuad FullScreenQuad { get; private set; }
+
+            public SharedDeviceResource(Device device)
+            {
+                FullScreenQuad = new FullScreenQuad(device);
+            }
+        }
+
+        #endregion
+
+        DeviceContext context;
+
+        SharedDeviceResource sharedDeviceResource;
+
         GaussianFilter gaussianFilter;
 
         RenderTarget backingRenderTarget;
-
-        FullScreenQuad fullScreenQuad;
-
-        public Device Device { get; private set; }
 
         public int Width { get; private set; }
 
@@ -34,28 +48,32 @@ namespace Libra.Graphics.Toolkit
             set { gaussianFilter.Sigma = value; }
         }
 
-        public GaussianFilterSuite(Device device, int width, int height, SurfaceFormat format)
+        public GaussianFilterSuite(DeviceContext context, int width, int height, SurfaceFormat format)
         {
-            if (device == null) throw new ArgumentNullException("device");
+            if (context == null) throw new ArgumentNullException("context");
             if (width < 1) throw new ArgumentOutOfRangeException("width");
             if (height < 1) throw new ArgumentOutOfRangeException("height");
 
-            Device = device;
+            this.context = context;
             Width = width;
             Height = height;
 
-            gaussianFilter = new GaussianFilter(Device);
-            fullScreenQuad = new FullScreenQuad(Device);
+            sharedDeviceResource = context.Device.GetSharedResource<GaussianFilterSuite, SharedDeviceResource>();
 
-            backingRenderTarget = Device.CreateRenderTarget();
+            gaussianFilter = new GaussianFilter(context.Device);
+
+            backingRenderTarget = context.Device.CreateRenderTarget();
             backingRenderTarget.Width = width;
             backingRenderTarget.Height = height;
             backingRenderTarget.Format = format;
             backingRenderTarget.Initialize();
         }
 
-        public void Filter(DeviceContext context, ShaderResourceView source, RenderTargetView destination)
+        public void Filter(ShaderResourceView source, RenderTargetView destination)
         {
+            if (source == null) throw new ArgumentNullException("source");
+            if (destination == null) throw new ArgumentNullException("destination");
+
             var previousBlendState = context.BlendState;
             var previousDepthStencilState = context.DepthStencilState;
             var previousRasterizerState = context.RasterizerState;
@@ -66,8 +84,8 @@ namespace Libra.Graphics.Toolkit
             context.RasterizerState = RasterizerState.CullBack;
             context.PixelShaderSamplers[0] = SamplerState.LinearClamp;
 
-            Filter(context, source, backingRenderTarget, GaussianFilterDirection.Horizon);
-            Filter(context, backingRenderTarget, destination, GaussianFilterDirection.Vertical);
+            Filter(source, backingRenderTarget, GaussianFilterDirection.Horizon);
+            Filter(backingRenderTarget, destination, GaussianFilterDirection.Vertical);
 
             context.SetRenderTarget(null);
 
@@ -78,7 +96,7 @@ namespace Libra.Graphics.Toolkit
             context.PixelShaderSamplers[0] = previousSamplerState;
         }
 
-        void Filter(DeviceContext context, ShaderResourceView source, RenderTargetView destination, GaussianFilterDirection direction)
+        void Filter(ShaderResourceView source, RenderTargetView destination, GaussianFilterDirection direction)
         {
             context.SetRenderTarget(destination);
 
@@ -86,8 +104,8 @@ namespace Libra.Graphics.Toolkit
             gaussianFilter.Apply(context);
 
             context.PixelShaderResources[0] = source;
-            
-            fullScreenQuad.Draw(context);
+
+            sharedDeviceResource.FullScreenQuad.Draw(context);
         }
 
         #region IDisposable
@@ -111,9 +129,9 @@ namespace Libra.Graphics.Toolkit
 
             if (disposing)
             {
+                sharedDeviceResource = null;
                 gaussianFilter.Dispose();
                 backingRenderTarget.Dispose();
-                fullScreenQuad.Dispose();
             }
 
             disposed = true;
