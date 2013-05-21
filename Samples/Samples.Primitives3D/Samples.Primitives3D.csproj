@@ -50,6 +50,10 @@
       <Project>{FEBB9768-3083-40C9-866C-C5314E1DDDF3}</Project>
       <Name>Libra.Games.Forms</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Libra.Graphics.Toolkit\Libra.Graphics.Toolkit.csproj">
+      <Project>{7E6353FF-27C2-48CB-B582-530450AF0553}</Project>
+      <Name>Libra.Graphics.Toolkit</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Samples.Primitives3DContent\Samples.Primitives3DContent.contentproj">
       <Name>Samples.Primitives3DContent %28Content%29</Name>
       <XnaReferenceType>Content</XnaReferenceType>
@@ -86,15 +90,8 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BezierPrimitive.cs" />
-    <Compile Include="CubePrimitive.cs" />
-    <Compile Include="CylinderPrimitive.cs" />
-    <Compile Include="GeometricPrimitive.cs" />
     <Compile Include="MainGame.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SpherePrimitive.cs" />
-    <Compile Include="TeapotPrimitive.cs" />
-    <Compile Include="TorusPrimitive.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="README.txt" />

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Libra;
 using Libra.Games;
 using Libra.Graphics;
+using Libra.Graphics.Toolkit;
 using Libra.Input;
 using Libra.Xnb;
 
@@ -17,6 +18,10 @@ namespace Samples.Primitives3D
         GraphicsManager graphicsManager;
 
         XnbManager content;
+
+        DeviceContext context;
+
+        BasicEffect basicEffect;
 
         SpriteBatch spriteBatch;
 
@@ -34,7 +39,7 @@ namespace Samples.Primitives3D
 
         MouseState lastMouseState;
 
-        List<GeometricPrimitive> primitives = new List<GeometricPrimitive>();
+        List<PrimitiveMesh> primitives = new List<PrimitiveMesh>();
 
         int currentPrimitiveIndex = 0;
 
@@ -60,14 +65,19 @@ namespace Samples.Primitives3D
 
         protected override void LoadContent()
         {
-            spriteBatch = new SpriteBatch(Device.ImmediateContext);
+            context = Device.ImmediateContext;
+
+            basicEffect = new BasicEffect(Device);
+            basicEffect.EnableDefaultLighting();
+
+            spriteBatch = new SpriteBatch(context);
             spriteFont = content.Load<SpriteFont>("hudFont");
 
-            primitives.Add(new CubePrimitive(Device));
-            primitives.Add(new SpherePrimitive(Device));
-            primitives.Add(new CylinderPrimitive(Device));
-            primitives.Add(new TorusPrimitive(Device));
-            primitives.Add(new TeapotPrimitive(Device));
+            primitives.Add(new CubeMesh(context));
+            primitives.Add(new SphereMesh(context));
+            primitives.Add(new CylinderMesh(context));
+            primitives.Add(new TorusMesh(context));
+            primitives.Add(new TeapotMesh(context));
 
             base.LoadContent();
         }
@@ -110,7 +120,14 @@ namespace Samples.Primitives3D
             var currentPrimitive = primitives[currentPrimitiveIndex];
             var color = colors[currentColorIndex];
 
-            currentPrimitive.Draw(context, world, view, projection, color);
+            basicEffect.World = world;
+            basicEffect.View = view;
+            basicEffect.Projection = projection;
+            basicEffect.DiffuseColor = color.ToVector3();
+            basicEffect.Alpha = color.A / 255.0f;
+
+            basicEffect.Apply(context);
+            currentPrimitive.Draw();
 
             context.RasterizerState = RasterizerState.CullBack;
 
