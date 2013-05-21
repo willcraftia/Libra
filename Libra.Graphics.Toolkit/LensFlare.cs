@@ -332,7 +332,7 @@ namespace Libra.Graphics.Toolkit
         void RestoreRenderStates()
         {
             Context.BlendState = null;
-            Context.DepthStencilState = DepthStencilState.Default;
+            Context.DepthStencilState = null;
             Context.RasterizerState = null;
             Context.PixelShaderSamplers[0] = null;
         }
