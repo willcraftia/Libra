@@ -138,7 +138,7 @@ namespace Libra
         }
 
         /// <summary>
-        /// 投資者営業列を仮定してアスペクト比を取得します。
+        /// 透視射影行列を仮定してアスペクト比を取得します。
         /// </summary>
         public float PerspectiveAspectRatio
         {
