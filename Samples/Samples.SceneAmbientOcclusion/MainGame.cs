@@ -212,6 +212,16 @@ namespace Samples.SceneAmbientOcclusion
         SquareMesh squareMesh;
 
         /// <summary>
+        /// 輪環体メッシュ。
+        /// </summary>
+        TorusMesh torusMesh;
+
+        /// <summary>
+        /// ティーポット メッシュ。
+        /// </summary>
+        TeapotMesh teapotMesh;
+
+        /// <summary>
         /// ブラー適用回数。
         /// </summary>
         int blurIteration = 3;
@@ -339,6 +349,8 @@ namespace Samples.SceneAmbientOcclusion
             sphereMesh = new SphereMesh(context, 20, 32);
             cylinderMesh = new CylinderMesh(context, 80, 20, 32);
             squareMesh = new SquareMesh(context, 400);
+            torusMesh = new TorusMesh(context, 20, 10);
+            teapotMesh = new TeapotMesh(context, 40);
         }
 
         protected override void Update(GameTime gameTime)
@@ -477,6 +489,8 @@ namespace Samples.SceneAmbientOcclusion
             DrawPrimitiveMesh(cubeMesh, Matrix.CreateTranslation(-40, 10, 0), new Vector3(1, 0, 0), effect);
             DrawPrimitiveMesh(sphereMesh, Matrix.CreateTranslation(10, 10, -60), new Vector3(0, 1, 0), effect);
             DrawPrimitiveMesh(sphereMesh, Matrix.CreateTranslation(0, 10, -40), new Vector3(0, 1, 0), effect);
+            DrawPrimitiveMesh(torusMesh, Matrix.CreateTranslation(40, 5, -40), new Vector3(1, 1, 0), effect);
+            DrawPrimitiveMesh(teapotMesh, Matrix.CreateTranslation(100, 10, -100), new Vector3(0, 1, 1), effect);
             for (float z = -180; z <= 180; z += 40)
             {
                 DrawPrimitiveMesh(cylinderMesh, Matrix.CreateTranslation(-180, 40, z), new Vector3(0, 0, 1), effect);
