@@ -78,6 +78,7 @@
     <Compile Include="SphereMesh.cs" />
     <Compile Include="SquareMesh.cs" />
     <Compile Include="SSAOMapColorFilter.cs" />
+    <Compile Include="TorusMesh.cs" />
     <Compile Include="UniformLightCameraBuilder.cs" />
     <Compile Include="LightCameraBuilder.cs" />
     <Compile Include="ConvexBody.cs" />
