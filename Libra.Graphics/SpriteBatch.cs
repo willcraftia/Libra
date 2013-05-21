@@ -235,8 +235,6 @@ namespace Libra.Graphics
 
         ConstantBuffer constantBuffer;
 
-        DeviceContext context;
-
         bool inImmediateMode;
 
         SpriteSortMode sortMode;
@@ -265,11 +263,13 @@ namespace Libra.Graphics
 
         RasterizerState previousRasterizerState;
 
+        public DeviceContext Context { get; private set; }
+
         public SpriteBatch(DeviceContext context)
         {
             if (context == null) throw new ArgumentNullException("device");
 
-            this.context = context;
+            Context = context;
 
             sharedDeviceResource = context.Device.GetSharedResource<SpriteBatch, SharedDeviceResource>();
 
@@ -343,10 +343,10 @@ namespace Libra.Graphics
             }
 
             // ステートを Begin 以前の状態へ戻す。
-            context.BlendState = previousBlendState;
-            context.DepthStencilState = previousDepthStencilState;
-            context.RasterizerState = previousRasterizerState;
-            context.PixelShaderSamplers[0] = previousSamplerState;
+            Context.BlendState = previousBlendState;
+            Context.DepthStencilState = previousDepthStencilState;
+            Context.RasterizerState = previousRasterizerState;
+            Context.PixelShaderSamplers[0] = previousSamplerState;
 
             setCustomShaders = null;
 
@@ -459,23 +459,23 @@ namespace Libra.Graphics
 
         void PrepareForRendering()
         {
-            previousBlendState = context.BlendState;
-            previousDepthStencilState = context.DepthStencilState;
-            previousRasterizerState = context.RasterizerState;
-            previousSamplerState = context.PixelShaderSamplers[0];
+            previousBlendState = Context.BlendState;
+            previousDepthStencilState = Context.DepthStencilState;
+            previousRasterizerState = Context.RasterizerState;
+            previousSamplerState = Context.PixelShaderSamplers[0];
 
-            context.BlendState = blendState;
-            context.DepthStencilState = depthStencilState;
-            context.RasterizerState = rasterizerState;
-            context.PixelShaderSamplers[0] = samplerState;
+            Context.BlendState = blendState;
+            Context.DepthStencilState = depthStencilState;
+            Context.RasterizerState = rasterizerState;
+            Context.PixelShaderSamplers[0] = samplerState;
 
-            context.PrimitiveTopology = PrimitiveTopology.TriangleList;
-            context.InputLayout = sharedDeviceResource.InputLayout;
-            context.VertexShader = sharedDeviceResource.VertexShader;
-            context.PixelShader = sharedDeviceResource.PixelShader;
+            Context.PrimitiveTopology = PrimitiveTopology.TriangleList;
+            Context.InputLayout = sharedDeviceResource.InputLayout;
+            Context.VertexShader = sharedDeviceResource.VertexShader;
+            Context.PixelShader = sharedDeviceResource.PixelShader;
 
-            context.SetVertexBuffer(0, vertexBuffer);
-            context.IndexBuffer = sharedDeviceResource.IndexBuffer;
+            Context.SetVertexBuffer(0, vertexBuffer);
+            Context.IndexBuffer = sharedDeviceResource.IndexBuffer;
 
             Matrix viewportTransform;
             GetViewportTransform(out viewportTransform);
@@ -483,18 +483,18 @@ namespace Libra.Graphics
             Matrix finalTransformMatrix;
             Matrix.Multiply(ref transformMatrix, ref viewportTransform, out finalTransformMatrix);
 
-            constantBuffer.SetData(context, finalTransformMatrix);
+            constantBuffer.SetData(Context, finalTransformMatrix);
 
-            context.VertexShaderConstantBuffers[0] = constantBuffer;
+            Context.VertexShaderConstantBuffers[0] = constantBuffer;
 
-            if (context.Deferred)
+            if (Context.Deferred)
             {
                 vertexBufferPosition = 0;
             }
 
             if (setCustomShaders != null)
             {
-                setCustomShaders(context);
+                setCustomShaders(Context);
             }
         }
 
@@ -553,7 +553,7 @@ namespace Libra.Graphics
 
         void RenderBatch(ShaderResourceView texture, int startIndex, int spriteCount)
         {
-            context.PixelShaderResources[0] = texture;
+            Context.PixelShaderResources[0] = texture;
 
             Vector2 textureSize;
             GetTextureSize(texture, out textureSize);
@@ -590,7 +590,7 @@ namespace Libra.Graphics
                 // Map されたリソースへ直接書き込むと極端に低速になるとのこと。
                 // x64 で実装する際には要調査。
 
-                var mappedResource = context.Map(vertexBuffer, 0, mapMode);
+                var mappedResource = Context.Map(vertexBuffer, 0, mapMode);
                 unsafe
                 {
                     var vertices = (VertexPositionColorTexture*) mappedResource.Pointer +
@@ -603,12 +603,12 @@ namespace Libra.Graphics
                         vertices += VerticesPerSprite;
                     }
                 }
-                context.Unmap(vertexBuffer, 0);
+                Context.Unmap(vertexBuffer, 0);
 
                 int startIndexLocation = vertexBufferPosition * IndicesPerSprite;
                 int indexCount = batchSize * IndicesPerSprite;
 
-                context.DrawIndexed(indexCount, startIndexLocation);
+                Context.DrawIndexed(indexCount, startIndexLocation);
 
                 vertexBufferPosition += batchSize;
                 baseSpriteIndex += batchSize;
@@ -703,7 +703,7 @@ namespace Libra.Graphics
 
         void GetViewportTransform(out Matrix result)
         {
-            var viewport = context.Viewport;
+            var viewport = Context.Viewport;
 
             float xScale = (0 < viewport.Width) ? 2.0f / viewport.Width : 0.0f;
             float yScale = (0 < viewport.Height) ? 2.0f / viewport.Height : 0.0f;
