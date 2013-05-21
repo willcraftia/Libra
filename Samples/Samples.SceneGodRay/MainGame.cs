@@ -164,7 +164,7 @@ namespace Samples.SceneGodRay
 
         protected override void LoadContent()
         {
-            spriteBatch = new SpriteBatch(Device);
+            spriteBatch = new SpriteBatch(Device.ImmediateContext);
             spriteFont = content.Load<SpriteFont>("hudFont");
 
             normalSceneRenderTarget = Device.CreateRenderTarget();
@@ -376,7 +376,7 @@ namespace Samples.SceneGodRay
 
             context.Clear(Color.Black);
 
-            spriteBatch.Begin(context, SpriteSortMode.Immediate, BlendState.Additive);
+            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Additive);
             spriteBatch.Draw(normalSceneRenderTarget, Vector2.Zero, Color.White);
             spriteBatch.Draw(lightScatteringRenderTarget, new Rectangle(0, 0, WindowWidth, WindowHeight), Color.White);
             spriteBatch.End();

@@ -60,7 +60,7 @@ namespace Samples.BloomPostprocess
 
         protected override void LoadContent()
         {
-            spriteBatch = new SpriteBatch(Device);
+            spriteBatch = new SpriteBatch(Device.ImmediateContext);
 
             bloomExtract = new BloomExtractFilter(Device);
             bloomCombine = new BloomCombineFilter(Device);

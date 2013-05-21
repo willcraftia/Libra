@@ -170,7 +170,7 @@ namespace Libra.Graphics.Toolkit
 
             sharedDeviceResource = device.GetSharedResource<LensFlare, SharedDeviceResource>();
 
-            spriteBatch = new SpriteBatch(device);
+            spriteBatch = new SpriteBatch(device.ImmediateContext);
 
             for (int i = 0; i < flares.Length; i++)
             {
@@ -231,7 +231,7 @@ namespace Libra.Graphics.Toolkit
 
             UpdateOcclusion(context);
 
-            DrawGlow(context);
+            DrawGlow();
             DrawFlares(context);
         }
 
@@ -274,7 +274,7 @@ namespace Libra.Graphics.Toolkit
             occlusionQueryActive = true;
         }
 
-        void DrawGlow(DeviceContext context)
+        void DrawGlow()
         {
             if (lightBehindCamera || occlusionAlpha <= 0) return;
 
@@ -282,7 +282,7 @@ namespace Libra.Graphics.Toolkit
             var origin = new Vector2(glowSprite.Width / 2.0f, glowSprite.Height / 2.0f);
             var scale = GlowSize * 2.0f / (float) glowSprite.Width;
 
-            spriteBatch.Begin(context);
+            spriteBatch.Begin();
             spriteBatch.Draw(glowSprite, lightPosition, null, color, 0, origin, scale);
             spriteBatch.End();
         }

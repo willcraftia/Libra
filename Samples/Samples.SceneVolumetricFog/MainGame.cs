@@ -216,7 +216,7 @@ namespace Samples.SceneVolumetricFog
 
         protected override void LoadContent()
         {
-            spriteBatch = new SpriteBatch(Device);
+            spriteBatch = new SpriteBatch(Device.ImmediateContext);
             spriteFont = content.Load<SpriteFont>("hudFont");
 
             depthMapRenderTarget = Device.CreateRenderTarget();
@@ -480,7 +480,7 @@ namespace Samples.SceneVolumetricFog
 
         void CreateFinalSceneMap(DeviceContext context)
         {
-            spriteBatch.Begin(context, SpriteSortMode.Immediate, BlendState.Opaque);
+            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
             spriteBatch.Draw(finalSceneTexture, Vector2.Zero, Color.White);
             spriteBatch.End();
         }

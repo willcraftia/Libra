@@ -87,7 +87,7 @@ namespace Libra.Games.Debugging
 
         protected override void LoadContent()
         {
-            spriteBatch = new SpriteBatch(Device);
+            spriteBatch = new SpriteBatch(Device.ImmediateContext);
             
             base.LoadContent();
         }

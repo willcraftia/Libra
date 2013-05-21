@@ -60,7 +60,7 @@ namespace Samples.Primitives3D
 
         protected override void LoadContent()
         {
-            spriteBatch = new SpriteBatch(Device);
+            spriteBatch = new SpriteBatch(Device.ImmediateContext);
             spriteFont = content.Load<SpriteFont>("hudFont");
 
             primitives.Add(new CubePrimitive(Device));

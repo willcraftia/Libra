@@ -508,7 +508,7 @@ namespace Samples.ShadowMapping
         {
             drawModelEffect = new DrawModelEffect(Device);
 
-            spriteBatch = new SpriteBatch(Device);
+            spriteBatch = new SpriteBatch(Device.ImmediateContext);
             spriteFont = content.Load<SpriteFont>("hudFont");
 
             gridModel = content.Load<Model>("grid");

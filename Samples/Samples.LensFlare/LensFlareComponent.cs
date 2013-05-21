@@ -96,7 +96,7 @@ namespace Samples.LensFlare
 
         protected override void LoadContent()
         {
-            spriteBatch = new SpriteBatch(Device);
+            spriteBatch = new SpriteBatch(Device.ImmediateContext);
 
             glowSprite = (Game as MainGame).Content.Load<Texture2D>("glow");
             glowSpriteView = Device.CreateShaderResourceView();

@@ -9,9 +9,7 @@ using Libra.Graphics.Properties;
 
 // 参考: DirectX Tool Kit (DXTK) SpriteBatch。
 // DKTK との相違点。
-// ・DeviceContext 単位ではなく Device 単位によるインスタンス生成。
-//      複数の DeviceContext を用いる場合は、
-//      DeviceContext 単位で個別にインスタンスを生成して管理する。
+// ・DeviceContext 単位共有リソースをフィールドで定義。
 // ・Libra における Device 単位リソース共有の枠組みの利用。
 //      せめて、Device が GC 回収されるタイミングで破棄したいため。
 //      静的クラスによる管理では破棄がアプリケーション終了時となる。
@@ -227,13 +225,8 @@ namespace Libra.Graphics
         SharedDeviceResource sharedDeviceResource;
 
         // DKTK とは異なり、DeviceContext 毎に管理すべき情報を
-        // フィールドとして保持している。
-        // SpriteBatch は Begin/End の組が正しいかを検査するため、
-        // Begin を連続させることはできず、
-        // 仮に誤って複数スレッドで共有したとしても Begin で処理が失敗し、
-        // フィールドが複数の DeviceContext で共有されたまま稼働することはない。
-        // そもそも、DKTK についても、SpriteBatch インスタンスは
-        // DeviceContext 単位での生成であるため、
+        // フィールドで保持している。
+        // SpriteBatch インスタンスは DeviceContext 単位での生成であるため、
         // あえて DeviceContext 単位の共有領域で管理する意味は無いと思われる。
 
         int vertexBufferPosition;
@@ -244,7 +237,7 @@ namespace Libra.Graphics
 
         DeviceContext context;
 
-        bool InImmediateMode;
+        bool inImmediateMode;
 
         SpriteSortMode sortMode;
 
@@ -272,21 +265,19 @@ namespace Libra.Graphics
 
         RasterizerState previousRasterizerState;
 
-        public Device Device { get; private set; }
-
-        public SpriteBatch(Device device)
+        public SpriteBatch(DeviceContext context)
         {
-            if (device == null) throw new ArgumentNullException("device");
+            if (context == null) throw new ArgumentNullException("device");
 
-            Device = device;
+            this.context = context;
 
-            sharedDeviceResource = device.GetSharedResource<SpriteBatch, SharedDeviceResource>();
+            sharedDeviceResource = context.Device.GetSharedResource<SpriteBatch, SharedDeviceResource>();
 
-            vertexBuffer = device.CreateVertexBuffer();
+            vertexBuffer = context.Device.CreateVertexBuffer();
             vertexBuffer.Usage = ResourceUsage.Dynamic;
             vertexBuffer.Initialize(VertexPositionColorTexture.VertexDeclaration, MaxBatchSize * VerticesPerSprite);
 
-            constantBuffer = device.CreateConstantBuffer();
+            constantBuffer = context.Device.CreateConstantBuffer();
             constantBuffer.Initialize<Matrix>();
 
             sprites = new List<SpriteInfo>();
@@ -309,25 +300,9 @@ namespace Libra.Graphics
             Action<DeviceContext> setCustomShaders = null,
             Matrix? transformMatrix = null)
         {
-            var context = Device.ImmediateContext;
-            Begin(context, sortMode, blendState, samplerState, depthStencilState, rasterizerState, setCustomShaders, transformMatrix);
-        }
-
-        public void Begin(
-            DeviceContext context,
-            SpriteSortMode sortMode = SpriteSortMode.Deferred,
-            BlendState blendState = null,
-            SamplerState samplerState = null,
-            DepthStencilState depthStencilState = null,
-            RasterizerState rasterizerState = null,
-            Action<DeviceContext> setCustomShaders = null,
-            Matrix? transformMatrix = null)
-        {
-            if (context == null) throw new ArgumentNullException("context");
             if (inBeginEndPair)
                 throw new InvalidOperationException("Cannot nest Begin calls on a single SpriteBatch");
 
-            this.context = context;
             this.sortMode = sortMode;
             this.blendState = blendState ?? BlendState.AlphaBlend;
             this.samplerState = samplerState ?? SamplerState.LinearClamp;
@@ -338,12 +313,12 @@ namespace Libra.Graphics
 
             if (sortMode == SpriteSortMode.Immediate)
             {
-                if (InImmediateMode)
+                if (inImmediateMode)
                     throw new InvalidOperationException("Only one SpriteBatch at a time can use SpriteSortMode.Immediate");
 
                 PrepareForRendering();
 
-                InImmediateMode = true;
+                inImmediateMode = true;
             }
 
             inBeginEndPair = true;
@@ -356,11 +331,11 @@ namespace Libra.Graphics
 
             if (sortMode == SpriteSortMode.Immediate)
             {
-                InImmediateMode = false;
+                inImmediateMode = false;
             }
             else
             {
-                if (InImmediateMode)
+                if (inImmediateMode)
                     throw new InvalidOperationException("Cannot end one SpriteBatch while another is using SpriteSortMode.Immediate");
 
                 PrepareForRendering();

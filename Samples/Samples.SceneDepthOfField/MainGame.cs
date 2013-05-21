@@ -169,7 +169,7 @@ namespace Samples.SceneDepthOfField
 
         protected override void LoadContent()
         {
-            spriteBatch = new SpriteBatch(Device);
+            spriteBatch = new SpriteBatch(Device.ImmediateContext);
             spriteFont = content.Load<SpriteFont>("hudFont");
 
             depthMapRenderTarget = Device.CreateRenderTarget();

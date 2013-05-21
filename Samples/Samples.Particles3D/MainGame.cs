@@ -91,7 +91,7 @@ namespace Samples.Particles3D
 
         protected override void LoadContent()
         {
-            spriteBatch = new SpriteBatch(Device);
+            spriteBatch = new SpriteBatch(Device.ImmediateContext);
             font = content.Load<SpriteFont>("font");
             grid = content.Load<Model>("grid");
         }

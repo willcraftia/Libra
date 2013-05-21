@@ -178,7 +178,7 @@ namespace Libra.Graphics.Toolkit
 
             renderTargetChains = new Dictionary<ulong, RenderTargetChain>(4);
             Filters = new FilterCollection();
-            spriteBatch = new SpriteBatch(device);
+            spriteBatch = new SpriteBatch(device.ImmediateContext);
 
             width = 1;
             height = 1;
@@ -240,7 +240,7 @@ namespace Libra.Graphics.Toolkit
 
                 context.SetRenderTarget(renderTargetChain.Current);
 
-                spriteBatch.Begin(context, SpriteSortMode.Immediate, BlendState.Opaque, null, null, null, filter.Apply);
+                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque, null, null, null, filter.Apply);
                 spriteBatch.Draw(currentTexture, new Rectangle(0, 0, currentWidth, currentHeight), Color.White);
                 spriteBatch.End();
 

@@ -54,7 +54,7 @@ namespace Samples.BloomPostprocess
         protected override void LoadContent()
         {
             basicEffect = new BasicEffect(Device);
-            spriteBatch = new SpriteBatch(Device);
+            spriteBatch = new SpriteBatch(Device.ImmediateContext);
             spriteFont = Content.Load<SpriteFont>("hudFont");
             background = Content.Load<Texture2D>("sunset");
             model = Content.Load<Model>("tank");

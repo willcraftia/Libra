@@ -153,7 +153,7 @@ namespace Samples.InstancedModel
             constants.DiffuseLight = new Vector4(1.25f, 1.25f, 1.25f, 0);
             constants.AmbientLight = new Vector4(0.25f, 0.25f, 0.25f, 0);
 
-            spriteBatch = new SpriteBatch(Device);
+            spriteBatch = new SpriteBatch(Device.ImmediateContext);
             spriteFont = content.Load<SpriteFont>("Font");
 
             instancedModel = content.Load<Model>("Cats");
