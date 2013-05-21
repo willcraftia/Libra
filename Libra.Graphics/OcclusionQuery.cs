@@ -61,8 +61,10 @@ namespace Libra.Graphics
             initialized = true;
         }
 
-        public void Begin(DeviceContext context = null)
+        public void Begin(DeviceContext context)
         {
+            if (context == null) throw new ArgumentNullException("context");
+
             AssertInitialized();
             if (inBeginEndPair)
                 throw new InvalidOperationException("Cannot nest Begin calls on a single OcclusionQuery");

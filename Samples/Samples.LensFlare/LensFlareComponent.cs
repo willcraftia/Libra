@@ -177,7 +177,7 @@ namespace Samples.LensFlare
 
             basicEffect.Apply(context);
 
-            occlusionQuery.Begin();
+            occlusionQuery.Begin(context);
 
             // TriangleStrip で 3 * 2 の三角形を描画。
             context.Draw(6);
