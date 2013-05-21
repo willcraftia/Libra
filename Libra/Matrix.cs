@@ -148,6 +148,29 @@ namespace Libra
             get { return M22 / M11; }
         }
 
+        /// <summary>
+        /// 透視射影行列を仮定して近クリップ面距離を取得します。
+        /// </summary>
+        public float PerspectiveNearClipDistance
+        {
+            // 参考:
+            //      M43 = near * M33
+            //      near = M43 / M33
+            get { return M43 / M33; }
+        }
+
+        /// <summary>
+        /// 透視射影行列を仮定して遠クリップ面距離を取得します。
+        /// </summary>
+        public float PerspectiveFarClipDistance
+        {
+            // 参考:
+            //      M33 = far / (near - far)
+            //      M43 = near * M33
+            //      far = M43 / (M33 + 1)
+            get { return M43 / (M33 + 1.0f); }
+        }
+
         public Matrix(float value)
         {
             M11 = M12 = M13 = M14 =
