@@ -21,7 +21,7 @@ namespace Libra.Graphics.Toolkit
         public CubeMesh(DeviceContext context, float size = 1.0f)
             : base(context)
         {
-            if (size < 0.0f) throw new ArgumentOutOfRangeException("size");
+            if (size <= 0.0f) throw new ArgumentOutOfRangeException("size");
 
             const int vertexCount = 6 * 4;
             const int indexCount = 6 * 6;

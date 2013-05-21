@@ -11,7 +11,7 @@ namespace Libra.Graphics.Toolkit
         public SphereMesh(DeviceContext context, float diameter = 1.0f, int tessellation = 16)
             : base(context)
         {
-            if (diameter < 0.0f) throw new ArgumentOutOfRangeException("diameter");
+            if (diameter <= 0.0f) throw new ArgumentOutOfRangeException("diameter");
             if (tessellation < 3) throw new ArgumentOutOfRangeException("tessellation");
 
             var verticalSegments = tessellation;

@@ -11,8 +11,8 @@ namespace Libra.Graphics.Toolkit
         public CylinderMesh(DeviceContext context, float height = 1.0f, float diameter = 1.0f, int tessellation = 32)
             : base(context)
         {
-            if (height < 0.0f) throw new ArgumentOutOfRangeException("height");
-            if (diameter < 0.0f) throw new ArgumentOutOfRangeException("diameter");
+            if (height <= 0.0f) throw new ArgumentOutOfRangeException("height");
+            if (diameter <= 0.0f) throw new ArgumentOutOfRangeException("diameter");
             if (tessellation < 3) throw new ArgumentOutOfRangeException("tessellation");
 
             var vertexCount = tessellation * 2 + tessellation * 2;
