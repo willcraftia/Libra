@@ -324,19 +324,7 @@ namespace Libra.Graphics.Toolkit
             {
                 constants.FocalLength.X = projection.M11;
                 constants.FocalLength.Y = projection.M22;
-
-                float fov;
-                float aspectRatio;
-                float left;
-                float right;
-                float bottom;
-                float top;
-                float nearClipDistance;
-                float farClipDistance;
-                projection.ExtractPerspective(
-                    out fov, out aspectRatio, out left, out right, out bottom, out top, out nearClipDistance, out farClipDistance);
-
-                constants.FarClipDistance = farClipDistance;
+                constants.FarClipDistance = projection.PerspectiveFarClipDistance;
 
                 dirtyFlags &= ~DirtyFlags.Projection;
                 dirtyFlags |= DirtyFlags.Constants;
