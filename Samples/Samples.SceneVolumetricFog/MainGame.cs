@@ -497,7 +497,7 @@ namespace Samples.SceneVolumetricFog
                 "[F4] Show/Hide Front Fog Depth Map (" + frontFogDepthMapColorFilter.Enabled + ")\n" +
                 "[F5] Show/Hide Back Fog Depth Map (" + backFogDepthMapColorFilter.Enabled + ")";
 
-            spriteBatch.Begin(Device.ImmediateContext);
+            spriteBatch.Begin();
 
             spriteBatch.DrawString(spriteFont, text, new Vector2(65, 280), Color.Black);
             spriteBatch.DrawString(spriteFont, text, new Vector2(64, 280 - 1), Color.Yellow);

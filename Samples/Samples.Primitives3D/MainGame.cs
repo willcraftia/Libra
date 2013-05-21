@@ -118,7 +118,7 @@ namespace Samples.Primitives3D
                        "B or tap bottom left of screen = Change color\n" +
                        "Y or tap bottom right of screen = Toggle wireframe";
 
-            spriteBatch.Begin(Device.ImmediateContext);
+            spriteBatch.Begin();
             spriteBatch.DrawString(spriteFont, text, new Vector2(48, 48), Color.White);
             spriteBatch.End();
 

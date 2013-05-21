@@ -232,7 +232,7 @@ namespace Samples.Particles3D
                                            "Hit the A button or space bar to switch.",
                                            currentState);
 
-            spriteBatch.Begin(Device.ImmediateContext);
+            spriteBatch.Begin();
             spriteBatch.DrawString(font, message, new Vector2(50, 50), Color.White);
             spriteBatch.End();
         }

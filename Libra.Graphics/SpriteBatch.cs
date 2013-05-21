@@ -224,8 +224,6 @@ namespace Libra.Graphics
             new Vector2(1, 1)
         };
 
-        Device device;
-
         SharedDeviceResource sharedDeviceResource;
 
         int vertexBufferPosition;
@@ -264,11 +262,13 @@ namespace Libra.Graphics
 
         RasterizerState previousRasterizerState;
 
+        public Device Device { get; private set; }
+
         public SpriteBatch(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 
-            this.device = device;
+            Device = device;
 
             sharedDeviceResource = device.GetSharedResource<SpriteBatch, SharedDeviceResource>();
 
@@ -291,26 +291,27 @@ namespace Libra.Graphics
         // 使い方の概念については上記サイトを参照。
 
         public void Begin(
+            SpriteSortMode sortMode = SpriteSortMode.Deferred,
+            BlendState blendState = null,
+            SamplerState samplerState = null,
+            DepthStencilState depthStencilState = null,
+            RasterizerState rasterizerState = null,
+            Action<DeviceContext> setCustomShaders = null,
+            Matrix? transformMatrix = null)
+        {
+            var context = Device.ImmediateContext;
+            Begin(context, sortMode, blendState, samplerState, depthStencilState, rasterizerState, setCustomShaders, transformMatrix);
+        }
+
+        public void Begin(
             DeviceContext context,
             SpriteSortMode sortMode = SpriteSortMode.Deferred,
             BlendState blendState = null,
             SamplerState samplerState = null,
             DepthStencilState depthStencilState = null,
             RasterizerState rasterizerState = null,
-            Action<DeviceContext> setCustomShaders = null)
-        {
-            Begin(context, sortMode, blendState, samplerState, depthStencilState, rasterizerState, setCustomShaders, Matrix.Identity);
-        }
-
-        public void Begin(
-            DeviceContext context,
-            SpriteSortMode sortMode,
-            BlendState blendState,
-            SamplerState samplerState,
-            DepthStencilState depthStencilState,
-            RasterizerState rasterizerState,
-            Action<DeviceContext> setCustomShaders,
-            Matrix transformMatrix)
+            Action<DeviceContext> setCustomShaders = null,
+            Matrix? transformMatrix = null)
         {
             if (context == null) throw new ArgumentNullException("context");
             if (inBeginEndPair)
@@ -323,7 +324,7 @@ namespace Libra.Graphics
             this.depthStencilState = depthStencilState ?? DepthStencilState.None;
             this.rasterizerState = rasterizerState ?? RasterizerState.CullBack;
             this.setCustomShaders = setCustomShaders;
-            this.transformMatrix = transformMatrix;
+            this.transformMatrix = transformMatrix ?? Matrix.Identity;
 
             if (sortMode == SpriteSortMode.Immediate)
             {

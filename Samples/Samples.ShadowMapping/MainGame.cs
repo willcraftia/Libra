@@ -772,11 +772,9 @@ namespace Samples.ShadowMapping
                 "K = Split count (" + splitCount + ")\n" +
                 "L = Shadow map size (" + currentShadowMapSize + "x" + currentShadowMapSize + ")";
 
-            spriteBatch.Begin(Device.ImmediateContext);
-
+            spriteBatch.Begin();
             spriteBatch.DrawString(spriteFont, text, new Vector2(65, 350), Color.Black);
             spriteBatch.DrawString(spriteFont, text, new Vector2(64, 350 - 1), Color.Yellow);
-
             spriteBatch.End();
         }
 

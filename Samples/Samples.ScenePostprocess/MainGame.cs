@@ -515,11 +515,9 @@ namespace Samples.ScenePostprocess
                 "[5] Radial Blur (" + radialFilter.Enabled + ")\n" +
                 "[6] Normal Edge Detect (" + normalEdgeDetectFilter.Enabled + ")";
 
-            spriteBatch.Begin(Device.ImmediateContext);
-
+            spriteBatch.Begin();
             spriteBatch.DrawString(spriteFont, text, new Vector2(65, 280), Color.Black);
             spriteBatch.DrawString(spriteFont, text, new Vector2(64, 280 - 1), Color.Yellow);
-
             spriteBatch.End();
         }
 

@@ -103,7 +103,6 @@ namespace Libra.Games.Debugging
         public override void Draw(GameTime gameTime)
         {
             var context = Device.ImmediateContext;
-            
             var viewport = context.Viewport;
             var rect = new Rectangle(offset.X, offset.Y, textureWidth, textureHeight);
 
@@ -111,7 +110,7 @@ namespace Libra.Games.Debugging
             {
                 var texture = Textures[i];
 
-                spriteBatch.Begin(context, SpriteSortMode.Immediate, BlendState.Opaque);
+                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
                 spriteBatch.Draw(texture, rect, Color.White);
                 spriteBatch.End();
 

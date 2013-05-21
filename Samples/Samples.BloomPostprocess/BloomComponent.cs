@@ -175,7 +175,7 @@ namespace Samples.BloomPostprocess
                 applyShader = null;
             }
 
-            spriteBatch.Begin(Device.ImmediateContext, SpriteSortMode.Deferred, BlendState.Opaque, null, null, null, applyShader);
+            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Opaque, null, null, null, applyShader);
             spriteBatch.Draw(texture.GetShaderResourceView(), new Rectangle(0, 0, width, height), Color.White);
             spriteBatch.End();
         }

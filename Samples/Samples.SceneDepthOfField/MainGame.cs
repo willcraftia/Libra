@@ -335,11 +335,9 @@ namespace Samples.SceneDepthOfField
                 "PageUp/Down: Focus distance (" + dofCombineFilter.FocusDistance + ")\n" +
                 "Home/End: Focus range (" + dofCombineFilter.FocusRange + ")";
 
-            spriteBatch.Begin(Device.ImmediateContext);
-
+            spriteBatch.Begin();
             spriteBatch.DrawString(spriteFont, text, new Vector2(65, 380), Color.Black);
             spriteBatch.DrawString(spriteFont, text, new Vector2(64, 380 - 1), Color.Yellow);
-
             spriteBatch.End();
         }
 

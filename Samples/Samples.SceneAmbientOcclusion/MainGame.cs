@@ -560,7 +560,7 @@ namespace Samples.SceneAmbientOcclusion
                 "[F6] Show/Hide Final SSAO Map (" + linearDepthMapVisualize.Enabled + ")\n" +
                 "[PageUp/Down] Blur Iteration (" + blurIteration + ")";
 
-            spriteBatch.Begin(Device.ImmediateContext);
+            spriteBatch.Begin();
 
             spriteBatch.DrawString(spriteFont, text, new Vector2(65, 340), Color.Black);
             spriteBatch.DrawString(spriteFont, text, new Vector2(64, 340 - 1), Color.Yellow);

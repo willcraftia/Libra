@@ -196,7 +196,7 @@ namespace Samples.LensFlare
             var origin = new Vector2(glowSprite.Width, glowSprite.Height) / 2;
             float scale = glowSize * 2 / glowSprite.Width;
 
-            spriteBatch.Begin(Device.ImmediateContext);
+            spriteBatch.Begin();
             spriteBatch.Draw(glowSpriteView, lightPosition, null, color, 0, origin, scale);
             spriteBatch.End();
         }
@@ -212,7 +212,7 @@ namespace Samples.LensFlare
 
             var flareVector = screenCenter - lightPosition;
 
-            spriteBatch.Begin(context, SpriteSortMode.Deferred, BlendState.Additive);
+            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Additive);
 
             foreach (var flare in flares)
             {

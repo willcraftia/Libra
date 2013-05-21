@@ -346,7 +346,7 @@ namespace Samples.SceneGodRay
             if (lightBehindCamera)
             {
                 // ライト位置がカメラの後方ならば、光芒効果を適用しない。
-                spriteBatch.Begin(Device.ImmediateContext);
+                spriteBatch.Begin();
                 spriteBatch.Draw(normalSceneRenderTarget.GetShaderResourceView(), Vector2.Zero, Color.White);
                 spriteBatch.End();
                 return;
@@ -409,11 +409,9 @@ namespace Samples.SceneGodRay
                 "PageUp/Down: Sample count (" + lightScatteringFilter.SampleCount + ")\n" +
                 "Home/End: Light occlusion & scattering map scale (x " + MapScales[currentMapScaleIndex] + ")";
 
-            spriteBatch.Begin(Device.ImmediateContext);
-
+            spriteBatch.Begin();
             spriteBatch.DrawString(spriteFont, text, new Vector2(33, 352), Color.Black);
             spriteBatch.DrawString(spriteFont, text, new Vector2(32, 352 - 1), Color.Yellow);
-
             spriteBatch.End();
         }
 

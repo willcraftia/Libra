@@ -76,7 +76,7 @@ namespace Samples.BloomPostprocess
 
             context.Clear(Color.Black);
 
-            spriteBatch.Begin(context, SpriteSortMode.Deferred, BlendState.Opaque);
+            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Opaque);
             spriteBatch.Draw(background.GetShaderResourceView(), new Rectangle(0, 0, (int) viewport.Width, (int) viewport.Height), Color.White);
             spriteBatch.End();
 
@@ -129,11 +129,9 @@ namespace Samples.BloomPostprocess
                        "B = toggle bloom (" + (bloom.Visible ? "on" : "off") + ")\n" +
                        "X = show buffer (" + bloom.ShowBuffer.ToString() + ")";
 
-            spriteBatch.Begin(Device.ImmediateContext);
-
+            spriteBatch.Begin();
             spriteBatch.DrawString(spriteFont, text, new Vector2(65, 65), Color.Black);
             spriteBatch.DrawString(spriteFont, text, new Vector2(64, 64), Color.White);
-
             spriteBatch.End();
         }
 

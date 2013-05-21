@@ -338,11 +338,9 @@ namespace Samples.InstancedModel
                                      instances.Count,
                                      instancingTechnique);
 
-            spriteBatch.Begin(Device.ImmediateContext);
-
+            spriteBatch.Begin();
             spriteBatch.DrawString(spriteFont, text, new Vector2(65, 65), Color.Black);
             spriteBatch.DrawString(spriteFont, text, new Vector2(64, 64), Color.White);
-
             spriteBatch.End();
         }
 
