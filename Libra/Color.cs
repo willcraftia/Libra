@@ -846,7 +846,25 @@ namespace Libra
         public static Color operator *(Color value, float scale)
         {
             return Multiply(value, scale);
-        }		
+        }
+
+        public static Color FromNonPremultiplied(Vector4 vector)
+        {
+            return new Color(
+                vector.X * vector.W,
+                vector.Y * vector.W,
+                vector.Z * vector.W,
+                vector.W);
+        }
+
+        public static Color FromNonPremultiplied(int r, int g, int b, int a)
+        {
+            return new Color(
+                (byte) (r * a / 255),
+                (byte) (g * a / 255),
+                (byte) (b * a / 255),
+                (byte) a);
+        }
 
         #region IEquatable
 

@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Collections.ObjectModel;
 
 #endregion
 
@@ -8,25 +9,9 @@ namespace Libra.Graphics.Toolkit
 {
     public sealed class LensFlare : IDisposable
     {
-        #region SharedDeviceResource
-
-        sealed class SharedDeviceResource
-        {
-            public IndexBuffer IndexBuffer { get; private set; }
-
-            public SharedDeviceResource(Device device)
-            {
-                IndexBuffer = device.CreateIndexBuffer();
-                IndexBuffer.Usage = ResourceUsage.Immutable;
-                IndexBuffer.Initialize(Indices);
-            }
-        }
-
-        #endregion
-
         #region Flare
 
-        class Flare
+        public struct Flare
         {
             public float Position;
 
@@ -34,17 +19,24 @@ namespace Libra.Graphics.Toolkit
 
             public Color Color;
 
-            public int TextureIndex;
+            public ShaderResourceView Texture;
 
-            public Texture2D Texture;
-
-            public Flare(float position, float scale, Color color, int textureIndex)
+            public Flare(float position, float scale, Color color, ShaderResourceView texture)
             {
                 Position = position;
                 Scale = scale;
                 Color = color;
-                TextureIndex = textureIndex;
+                Texture = texture;
             }
+        }
+
+        #endregion
+
+        #region FlareCollection
+
+        public sealed class FlareCollection : Collection<Flare>
+        {
+            internal FlareCollection() { }
         }
 
         #endregion
@@ -54,45 +46,18 @@ namespace Libra.Graphics.Toolkit
         [Flags]
         enum DirtyFlags
         {
-            VertexBuffer
+            VertexBuffer    = (1 << 0),
+            Glow            = (1 << 1)
         }
 
         #endregion
-
-        const float GlowSize = 400;
-
-        static readonly ushort[] Indices =
-        {
-            0, 1, 2,
-            0, 2, 3
-        };
 
         static readonly BlendState ColorWriteDisable = new BlendState
         {
             ColorWriteChannels = ColorWriteChannels.None
         };
 
-        SharedDeviceResource sharedDeviceResource;
-
         SpriteBatch spriteBatch;
-
-        Texture2D glowSprite;
-
-        Flare[] flares =
-        {
-            new Flare(-0.5f, 0.7f, new Color( 50,  25,  50), 0),
-            new Flare( 0.3f, 0.4f, new Color(100, 255, 200), 0),
-            new Flare( 1.2f, 1.0f, new Color(100,  50,  50), 0),
-            new Flare( 1.5f, 1.5f, new Color( 50, 100,  50), 0),
-
-            new Flare(-0.3f, 0.7f, new Color(200,  50,  50), 1),
-            new Flare( 0.6f, 0.9f, new Color( 50, 100,  50), 1),
-            new Flare( 0.7f, 0.4f, new Color( 50, 200, 200), 1),
-
-            new Flare(-0.7f, 0.7f, new Color( 50, 100,  25), 2),
-            new Flare( 0.0f, 0.6f, new Color( 25,  25,  25), 2),
-            new Flare( 2.0f, 1.4f, new Color( 25,  50, 100), 2),
-        };
 
         BasicEffect basicEffect;
 
@@ -116,6 +81,14 @@ namespace Libra.Graphics.Toolkit
 
         Vector2 lightPosition;
 
+        ShaderResourceView glowTexture;
+
+        float glowSize;
+
+        Vector2 glowOrigin;
+
+        float glowScale;
+
         bool lightBehindCamera;
 
         DirtyFlags dirtyFlags;
@@ -132,6 +105,34 @@ namespace Libra.Graphics.Toolkit
                 querySize = value;
 
                 dirtyFlags |= DirtyFlags.VertexBuffer;
+            }
+        }
+
+        public FlareCollection Flares { get; private set; }
+
+        public ShaderResourceView GlowTexture
+        {
+            get { return glowTexture; }
+            set
+            {
+                if (glowTexture == value) return;
+
+                glowTexture = value;
+
+                dirtyFlags |= DirtyFlags.Glow;
+            }
+        }
+
+        public float GlowSize
+        {
+            get { return glowSize; }
+            set
+            {
+                if (glowSize == value) return;
+
+                glowSize = value;
+
+                dirtyFlags |= DirtyFlags.Glow;
             }
         }
 
@@ -159,59 +160,39 @@ namespace Libra.Graphics.Toolkit
 
         public bool Enabled { get; set; }
 
-        public LensFlare(DeviceContext context, Texture2D glowSprite, Texture2D[] flareSprites)
+        public LensFlare(DeviceContext context)
         {
             if (context == null) throw new ArgumentNullException("context");
-            if (glowSprite == null) throw new ArgumentNullException("glowSprite");
-            if (flareSprites == null) throw new ArgumentNullException("flareSprites");
 
             Context = context;
-            this.glowSprite = glowSprite;
-
-            sharedDeviceResource = context.Device.GetSharedResource<LensFlare, SharedDeviceResource>();
 
             spriteBatch = new SpriteBatch(context);
-
-            for (int i = 0; i < flares.Length; i++)
-            {
-                var index = flares[i].TextureIndex;
-                if (index < 0 || flareSprites.Length <= index)
-                    throw new InvalidOperationException("Invalid index of flare sprite: " + index);
-
-                flares[i].Texture = flareSprites[index];
-            }
 
             basicEffect = new BasicEffect(context.Device);
             basicEffect.View = Matrix.Identity;
             basicEffect.VertexColorEnabled = true;
 
             vertexBuffer = context.Device.CreateVertexBuffer();
+            vertexBuffer.Initialize(VertexPositionColor.VertexDeclaration, 4);
+
             occlusionQuery = context.Device.CreateOcclusionQuery();
+            occlusionQuery.Initialize();
 
             vertices = new VertexPositionColor[4];
             querySize = 100;
+            glowSize = 400;
+            Flares = new FlareCollection();
 
             dirtyFlags = DirtyFlags.VertexBuffer;
 
             Enabled = true;
         }
 
-        void SetVertices()
-        {
-            if ((dirtyFlags & DirtyFlags.VertexBuffer) != 0)
-            {
-                vertices[0].Position = new Vector3(-querySize * 0.5f,  querySize * 0.5f, -1.0f);
-                vertices[1].Position = new Vector3(-querySize * 0.5f, -querySize * 0.5f, -1.0f);
-                vertices[2].Position = new Vector3( querySize * 0.5f, -querySize * 0.5f, -1.0f);
-                vertices[3].Position = new Vector3( querySize * 0.5f,  querySize * 0.5f, -1.0f);
-                vertexBuffer.SetData(Context, vertices);
-
-                dirtyFlags &= ~DirtyFlags.VertexBuffer;
-            }
-        }
-
         public void Draw()
         {
+            if (!Enabled)
+                return;
+
             SetVertices();
 
             var infiniteView = view;
@@ -233,15 +214,33 @@ namespace Libra.Graphics.Toolkit
 
             DrawGlow();
             DrawFlares();
+
+            RestoreRenderStates();
+        }
+        
+        void SetVertices()
+        {
+            if ((dirtyFlags & DirtyFlags.VertexBuffer) != 0)
+            {
+                vertices[0].Position = new Vector3(-querySize * 0.5f, -querySize * 0.5f, -1.0f);
+                vertices[1].Position = new Vector3( querySize * 0.5f, -querySize * 0.5f, -1.0f);
+                vertices[2].Position = new Vector3(-querySize * 0.5f,  querySize * 0.5f, -1.0f);
+                vertices[3].Position = new Vector3( querySize * 0.5f,  querySize * 0.5f, -1.0f);
+                vertexBuffer.SetData(Context, vertices);
+
+                dirtyFlags &= ~DirtyFlags.VertexBuffer;
+            }
         }
 
         void UpdateOcclusion()
         {
-            if (lightBehindCamera) return;
+            if (lightBehindCamera)
+                return;
 
             if (occlusionQueryActive)
             {
-                if (!occlusionQuery.IsComplete) return;
+                if (!occlusionQuery.IsComplete)
+                    return;
 
                 float queryArea = querySize * querySize;
                 occlusionAlpha = Math.Min(occlusionQuery.PixelCount / queryArea, 1);
@@ -255,19 +254,20 @@ namespace Libra.Graphics.Toolkit
             Matrix projection;
             Matrix.CreateOrthographicOffCenter(0, viewport.Width, viewport.Height, 0, 0, 1, out projection);
 
+            Context.BlendState = ColorWriteDisable;
+            Context.DepthStencilState = DepthStencilState.DepthRead;
+            Context.RasterizerState = RasterizerState.CullNone;
+            Context.SetVertexBuffer(vertexBuffer);
+            Context.PrimitiveTopology = PrimitiveTopology.TriangleStrip;
+
             basicEffect.World = world;
             basicEffect.Projection = projection;
             basicEffect.Apply(Context);
 
-            Context.BlendState = ColorWriteDisable;
-            Context.DepthStencilState = DepthStencilState.DepthRead;
-
             occlusionQuery.Begin(Context);
 
-            Context.SetVertexBuffer(vertexBuffer);
-            Context.IndexBuffer = sharedDeviceResource.IndexBuffer;
-            Context.PrimitiveTopology = PrimitiveTopology.TriangleList;
-            Context.DrawIndexed(sharedDeviceResource.IndexBuffer.IndexCount);
+            // TriangleStrip で 3 * 2 の三角形を描画。
+            Context.Draw(6);
 
             occlusionQuery.End();
 
@@ -276,42 +276,74 @@ namespace Libra.Graphics.Toolkit
 
         void DrawGlow()
         {
-            if (lightBehindCamera || occlusionAlpha <= 0) return;
+            if (GlowTexture == null)
+                return;
+            
+            if (lightBehindCamera || occlusionAlpha <= 0)
+                return;
+
+            if ((dirtyFlags & DirtyFlags.Glow) != 0)
+            {
+                var texture2d = GetTexture2D(GlowTexture);
+
+                glowOrigin = new Vector2((float) texture2d.Width / 2.0f, (float) texture2d.Height / 2.0f);
+                glowScale = glowSize * 2.0f / (float) texture2d.Width;
+
+                dirtyFlags &= ~DirtyFlags.Glow;
+            }
 
             var color = Color.White * occlusionAlpha;
-            var origin = new Vector2(glowSprite.Width / 2.0f, glowSprite.Height / 2.0f);
-            var scale = GlowSize * 2.0f / (float) glowSprite.Width;
 
             spriteBatch.Begin();
-            spriteBatch.Draw(glowSprite, lightPosition, null, color, 0, origin, scale);
+            spriteBatch.Draw(GlowTexture, lightPosition, null, color, 0, glowOrigin, glowScale);
             spriteBatch.End();
         }
 
         void DrawFlares()
         {
-            if (lightBehindCamera || occlusionAlpha <= 0) return;
+            if (lightBehindCamera || occlusionAlpha <= 0)
+                return;
 
             var viewport = Context.Viewport;
-
             var screenCenter = new Vector2(viewport.Width / 2.0f, viewport.Height / 2.0f);
 
             var flareVector = screenCenter - lightPosition;
 
             spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Additive);
 
-            foreach (var flare in flares)
+            for (int i = 0; i < Flares.Count; i++)
             {
+                var flare = Flares[i];
                 var flarePosition = lightPosition + flareVector * flare.Position;
 
                 var flareColor = flare.Color.ToVector4();
                 flareColor.W *= occlusionAlpha;
 
-                var flareOrigin = new Vector2(flare.Texture.Width / 2.0f, flare.Texture.Height / 2.0f);
+                var texture2d = GetTexture2D(flare.Texture);
+
+                var flareOrigin = new Vector2((float) texture2d.Width / 2.0f, (float) texture2d.Height / 2.0f);
 
                 spriteBatch.Draw(flare.Texture, flarePosition, null, new Color(flareColor), 1, flareOrigin, flare.Scale);
             }
 
             spriteBatch.End();
+        }
+
+        void RestoreRenderStates()
+        {
+            Context.BlendState = null;
+            Context.DepthStencilState = DepthStencilState.Default;
+            Context.RasterizerState = null;
+            Context.PixelShaderSamplers[0] = null;
+        }
+
+        Texture2D GetTexture2D(ShaderResourceView texture)
+        {
+            var textureSource = texture.Resource as Texture2D;
+            if (textureSource == null)
+                throw new InvalidOperationException("ShaderResourceView is not for Texture2D.");
+
+            return textureSource;
         }
 
         #region IDisposable
@@ -336,6 +368,7 @@ namespace Libra.Graphics.Toolkit
             if (disposing)
             {
                 basicEffect.Dispose();
+                spriteBatch.Dispose();
                 occlusionQuery.Dispose();
             }
 

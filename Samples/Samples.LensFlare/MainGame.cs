@@ -7,13 +7,56 @@ using Libra.Graphics;
 using Libra.Input;
 using Libra.Xnb;
 
+using TKLensFlare = Libra.Graphics.Toolkit.LensFlare;
+
 #endregion
 
 namespace Samples.LensFlare
 {
     public sealed class MainGame : Game
     {
+        #region FlareDefinition
+
+        struct FlareDefinition
+        {
+            public float Position;
+
+            public float Scale;
+
+            public Color Color;
+
+            public string TextureName;
+
+            public FlareDefinition(float position, float scale, Color color, string textureName)
+            {
+                Position = position;
+                Scale = scale;
+                Color = color;
+                TextureName = textureName;
+            }
+        }
+
+        #endregion
+
+        FlareDefinition[] flareDefinitions =
+        {
+            new FlareDefinition(-0.5f, 0.7f, new Color( 50,  25,  50), "flare1"),
+            new FlareDefinition( 0.3f, 0.4f, new Color(100, 255, 200), "flare1"),
+            new FlareDefinition( 1.2f, 1.0f, new Color(100,  50,  50), "flare1"),
+            new FlareDefinition( 1.5f, 1.5f, new Color( 50, 100,  50), "flare1"),
+
+            new FlareDefinition(-0.3f, 0.7f, new Color(200,  50,  50), "flare2"),
+            new FlareDefinition( 0.6f, 0.9f, new Color( 50, 100,  50), "flare2"),
+            new FlareDefinition( 0.7f, 0.4f, new Color( 50, 200, 200), "flare2"),
+
+            new FlareDefinition(-0.7f, 0.7f, new Color( 50, 100,  25), "flare3"),
+            new FlareDefinition( 0.0f, 0.6f, new Color( 25,  25,  25), "flare3"),
+            new FlareDefinition( 2.0f, 1.4f, new Color( 25,  50, 100), "flare3"),
+        };
+
         GraphicsManager graphics;
+
+        DeviceContext context;
 
         KeyboardState currentKeyboardState = new KeyboardState();
 
@@ -25,7 +68,7 @@ namespace Samples.LensFlare
 
         Model terrain;
 
-        LensFlareComponent lensFlare;
+        TKLensFlare lensFlare;
 
         internal XnbManager Content { get; private set; }
 
@@ -34,15 +77,29 @@ namespace Samples.LensFlare
             graphics = new GraphicsManager(this);
 
             Content = new XnbManager(Services, "Content");
-
-            lensFlare = new LensFlareComponent(this);
-
-            Components.Add(lensFlare);
         }
 
         protected override void LoadContent()
         {
+            context = Device.ImmediateContext;
+
             terrain = Content.Load<Model>("terrain");
+
+            lensFlare = new TKLensFlare(Device.ImmediateContext);
+            lensFlare.LightDirection = Vector3.Normalize(new Vector3(-1, -0.1f, 0.3f));
+
+            lensFlare.GlowTexture = Content.Load<Texture2D>("glow");
+
+            foreach (var flareDefinition in flareDefinitions)
+            {
+                var flare = new TKLensFlare.Flare(
+                    flareDefinition.Position,
+                    flareDefinition.Scale,
+                    flareDefinition.Color,
+                    Content.Load<Texture2D>(flareDefinition.TextureName));
+
+                lensFlare.Flares.Add(flare);
+            }
         }
 
         protected override void Update(GameTime gameTime)
@@ -56,8 +113,6 @@ namespace Samples.LensFlare
 
         protected override void Draw(GameTime gameTime)
         {
-            var context = Device.ImmediateContext;
-
             context.Clear(Color.CornflowerBlue);
 
             var view = Matrix.CreateLookAt(cameraPosition, cameraPosition + cameraFront, Vector3.Up);
@@ -65,7 +120,11 @@ namespace Samples.LensFlare
             var aspectRatio = context.Viewport.AspectRatio;
             var projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspectRatio, 0.1f, 500);
 
-            context.RasterizerState = RasterizerState.CullNone;
+            //context.RasterizerState = RasterizerState.CullNone;
+
+            // D3D11 の TextureAddressMode のデフォルトは Clamp。
+            // XNA (D3D9) はデフォルト Wrap を仮定しているため、ここで明示する必要がある。
+            context.PixelShaderSamplers[0] = SamplerState.LinearWrap;
 
             foreach (var mesh in terrain.Meshes)
             {
@@ -92,8 +151,11 @@ namespace Samples.LensFlare
                 mesh.Draw(context);
             }
 
+            context.PixelShaderSamplers[0] = null;
+
             lensFlare.View = view;
             lensFlare.Projection = projection;
+            lensFlare.Draw();
 
             base.Draw(gameTime);
         }
