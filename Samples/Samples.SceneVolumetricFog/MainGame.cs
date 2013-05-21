@@ -253,7 +253,7 @@ namespace Samples.SceneVolumetricFog
             normalSceneRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
             normalSceneRenderTarget.Initialize();
 
-            postprocess = new Postprocess(Device);
+            postprocess = new Postprocess(Device.ImmediateContext);
             postprocess.Width = WindowWidth;
             postprocess.Height = WindowHeight;
 
@@ -322,7 +322,7 @@ namespace Samples.SceneVolumetricFog
             CreateNormalSceneMap(context);
 
             // ポストプロセスを実行。
-            ApplyPostprocess(context);
+            ApplyPostprocess();
 
             // 最終的なシーンをバック バッファへ描画。
             CreateFinalSceneMap(context);
@@ -414,9 +414,9 @@ namespace Samples.SceneVolumetricFog
             textureDisplay.Textures.Add(normalSceneRenderTarget);
         }
 
-        void ApplyPostprocess(DeviceContext context)
+        void ApplyPostprocess()
         {
-            finalSceneTexture = postprocess.Draw(context, normalSceneRenderTarget);
+            finalSceneTexture = postprocess.Draw(normalSceneRenderTarget);
         }
 
         void DrawPrimitiveMesh(DeviceContext context, PrimitiveMesh mesh, Matrix world, Vector3 color)

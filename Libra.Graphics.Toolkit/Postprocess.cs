@@ -104,7 +104,7 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        Device device;
+        DeviceContext context;
 
         int width;
 
@@ -170,15 +170,15 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        public Postprocess(Device device)
+        public Postprocess(DeviceContext context)
         {
-            if (device == null) throw new ArgumentNullException("device");
+            if (context == null) throw new ArgumentNullException("context");
 
-            this.device = device;
+            this.context = context;
 
             renderTargetChains = new Dictionary<ulong, RenderTargetChain>(4);
             Filters = new FilterCollection();
-            spriteBatch = new SpriteBatch(device.ImmediateContext);
+            spriteBatch = new SpriteBatch(context);
 
             width = 1;
             height = 1;
@@ -186,9 +186,8 @@ namespace Libra.Graphics.Toolkit
             multisampleCount = 1;
         }
 
-        public ShaderResourceView Draw(DeviceContext context, ShaderResourceView texture)
+        public ShaderResourceView Draw(ShaderResourceView texture)
         {
-            if (context == null) throw new ArgumentNullException("context");
             if (texture == null) throw new ArgumentNullException("texture");
 
             var currentTexture = texture;

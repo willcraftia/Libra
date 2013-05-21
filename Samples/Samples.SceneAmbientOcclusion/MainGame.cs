@@ -282,12 +282,12 @@ namespace Samples.SceneAmbientOcclusion
             ssaoMap = new SSAOMap(Device);
             ssaoMap.Projection = camera.Projection;
 
-            postprocessSSAOMap = new Postprocess(Device);
+            postprocessSSAOMap = new Postprocess(Device.ImmediateContext);
             postprocessSSAOMap.Width = ssaoMapRenderTarget.Width;
             postprocessSSAOMap.Height = ssaoMapRenderTarget.Height;
             postprocessSSAOMap.Format = SurfaceFormat.Single;
 
-            postprocessScene = new Postprocess(Device);
+            postprocessScene = new Postprocess(Device.ImmediateContext);
             postprocessScene.Width = WindowWidth;
             postprocessScene.Height = WindowHeight;
 
@@ -375,10 +375,10 @@ namespace Samples.SceneAmbientOcclusion
             CreateNormalSceneMap(context);
 
             // 環境光閉塞マップへポストプロセスを適用。
-            DoPostprocessSSAOMap(context);
+            ApplyPostprocessSSAOMap();
 
             // 通常シーンへポストプロセスを適用。
-            DoPostprocessScene(context);
+            ApplyPostprocessScene();
 
             // 最終的なシーンをバック バッファへ描画。
             CreateFinalSceneMap(context);
@@ -497,7 +497,7 @@ namespace Samples.SceneAmbientOcclusion
             mesh.Draw(context);
         }
 
-        void DoPostprocessSSAOMap(DeviceContext context)
+        void ApplyPostprocessSSAOMap()
         {
             postprocessSSAOMap.Filters.Clear();
             for (int i = 0; i < blurIteration; i++)
@@ -506,7 +506,7 @@ namespace Samples.SceneAmbientOcclusion
                 postprocessSSAOMap.Filters.Add(ssaoBlurV);
             }
 
-            var finalSSAOMap = postprocessSSAOMap.Draw(context, ssaoMapRenderTarget);
+            var finalSSAOMap = postprocessSSAOMap.Draw(ssaoMapRenderTarget);
 
             // 環境光閉塞マップ合成フィルタへ設定。
             ssaoCombine.SSAOMap = finalSSAOMap;
@@ -516,9 +516,9 @@ namespace Samples.SceneAmbientOcclusion
             textureDisplay.Textures.Add(finalSSAOMap);
         }
 
-        void DoPostprocessScene(DeviceContext context)
+        void ApplyPostprocessScene()
         {
-            finalSceneTexture = postprocessScene.Draw(context, normalSceneRenderTarget);
+            finalSceneTexture = postprocessScene.Draw(normalSceneRenderTarget);
         }
 
         void CreateFinalSceneMap(DeviceContext context)
