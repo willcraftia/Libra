@@ -98,7 +98,7 @@ namespace Samples.Audio3D
 
             var groundTransform = Matrix.CreateScale(20000) * Matrix.CreateRotationX(MathHelper.PiOver2);
 
-            quadDrawer.DrawQuad(context, checkerTexture.GetShaderResourceView(), 32, groundTransform, view, projection);
+            quadDrawer.DrawQuad(context, checkerTexture, 32, groundTransform, view, projection);
 
             cat.Draw(context, quadDrawer, cameraPosition, view, projection);
             dog.Draw(context, quadDrawer, cameraPosition, view, projection);

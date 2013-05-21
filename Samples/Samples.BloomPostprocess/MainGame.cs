@@ -77,7 +77,7 @@ namespace Samples.BloomPostprocess
             context.Clear(Color.Black);
 
             spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Opaque);
-            spriteBatch.Draw(background.GetShaderResourceView(), new Rectangle(0, 0, (int) viewport.Width, (int) viewport.Height), Color.White);
+            spriteBatch.Draw(background, new Rectangle(0, 0, (int) viewport.Width, (int) viewport.Height), Color.White);
             spriteBatch.End();
 
             context.DepthStencilState = DepthStencilState.Default;

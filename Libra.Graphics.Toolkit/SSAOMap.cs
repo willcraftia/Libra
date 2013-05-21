@@ -250,7 +250,7 @@ namespace Libra.Graphics.Toolkit
 
             context.PixelShaderResources[0] = LinearDepthMap;
             context.PixelShaderResources[1] = NormalMap;
-            context.PixelShaderResources[2] = randomNormalMap.GetShaderResourceView();
+            context.PixelShaderResources[2] = randomNormalMap;
             context.PixelShaderSamplers[0] = LinearDepthMapSampler;
             context.PixelShaderSamplers[1] = NormalMapSampler;
         }

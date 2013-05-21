@@ -392,7 +392,7 @@ namespace Samples.SceneAmbientOcclusion
 
         void CreateDepthMap(DeviceContext context)
         {
-            context.SetRenderTarget(depthMapRenderTarget.GetRenderTargetView());
+            context.SetRenderTarget(depthMapRenderTarget);
             context.Clear(new Vector4(float.MaxValue));
 
             DrawScene(context, depthMapEffect);
@@ -400,14 +400,14 @@ namespace Samples.SceneAmbientOcclusion
             context.SetRenderTarget(null);
 
             // フィルタへ設定。
-            ssaoMap.LinearDepthMap = depthMapRenderTarget.GetShaderResourceView();
-            ssaoBlur.LinearDepthMap = depthMapRenderTarget.GetShaderResourceView();
-            linearDepthMapVisualize.LinearDepthMap = depthMapRenderTarget.GetShaderResourceView();
+            ssaoMap.LinearDepthMap = depthMapRenderTarget;
+            ssaoBlur.LinearDepthMap = depthMapRenderTarget;
+            linearDepthMapVisualize.LinearDepthMap = depthMapRenderTarget;
         }
 
         void CreateNormalMap(DeviceContext context)
         {
-            context.SetRenderTarget(normalMapRenderTarget.GetRenderTargetView());
+            context.SetRenderTarget(normalMapRenderTarget);
             context.Clear(Vector4.One);
 
             DrawScene(context, normalMapEffect);
@@ -415,16 +415,16 @@ namespace Samples.SceneAmbientOcclusion
             context.SetRenderTarget(null);
 
             // フィルタへ設定。
-            ssaoMap.NormalMap = normalMapRenderTarget.GetShaderResourceView();
-            ssaoBlur.NormalMap = normalMapRenderTarget.GetShaderResourceView();
+            ssaoMap.NormalMap = normalMapRenderTarget;
+            ssaoBlur.NormalMap = normalMapRenderTarget;
 
             // 中間マップ表示。
-            textureDisplay.Textures.Add(normalMapRenderTarget.GetShaderResourceView());
+            textureDisplay.Textures.Add(normalMapRenderTarget);
         }
 
         void CreateSSAOMap(DeviceContext context)
         {
-            context.SetRenderTarget(ssaoMapRenderTarget.GetRenderTargetView());
+            context.SetRenderTarget(ssaoMapRenderTarget);
             context.Clear(Vector4.One);
 
             ssaoMap.Draw(context);
@@ -432,15 +432,15 @@ namespace Samples.SceneAmbientOcclusion
             context.SetRenderTarget(null);
 
             // フィルタへ設定。
-            ssaoMapVisualize.SSAOMap = ssaoMapRenderTarget.GetShaderResourceView();
+            ssaoMapVisualize.SSAOMap = ssaoMapRenderTarget;
 
             // 中間マップ表示。
-            textureDisplay.Textures.Add(ssaoMapRenderTarget.GetShaderResourceView());
+            textureDisplay.Textures.Add(ssaoMapRenderTarget);
         }
 
         void CreateNormalSceneMap(DeviceContext context)
         {
-            context.SetRenderTarget(normalSceneRenderTarget.GetRenderTargetView());
+            context.SetRenderTarget(normalSceneRenderTarget);
             context.Clear(Color.CornflowerBlue);
 
             DrawScene(context, basicEffect);
@@ -448,7 +448,7 @@ namespace Samples.SceneAmbientOcclusion
             context.SetRenderTarget(null);
 
             // 中間マップ表示。
-            textureDisplay.Textures.Add(normalSceneRenderTarget.GetShaderResourceView());
+            textureDisplay.Textures.Add(normalSceneRenderTarget);
         }
 
         void DrawPrimitiveMesh(DeviceContext context, PrimitiveMesh mesh, Matrix world, Vector3 color)
@@ -506,7 +506,7 @@ namespace Samples.SceneAmbientOcclusion
                 postprocessSSAOMap.Filters.Add(ssaoBlurV);
             }
 
-            var finalSSAOMap = postprocessSSAOMap.Draw(context, ssaoMapRenderTarget.GetShaderResourceView());
+            var finalSSAOMap = postprocessSSAOMap.Draw(context, ssaoMapRenderTarget);
 
             // 環境光閉塞マップ合成フィルタへ設定。
             ssaoCombine.SSAOMap = finalSSAOMap;
@@ -518,7 +518,7 @@ namespace Samples.SceneAmbientOcclusion
 
         void DoPostprocessScene(DeviceContext context)
         {
-            finalSceneTexture = postprocessScene.Draw(context, normalSceneRenderTarget.GetShaderResourceView());
+            finalSceneTexture = postprocessScene.Draw(context, normalSceneRenderTarget);
         }
 
         void CreateFinalSceneMap(DeviceContext context)

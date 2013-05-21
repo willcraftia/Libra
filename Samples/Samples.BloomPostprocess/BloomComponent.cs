@@ -106,7 +106,7 @@ namespace Samples.BloomPostprocess
         {
             if (Visible)
             {
-                Device.ImmediateContext.SetRenderTarget(sceneRenderTarget.GetRenderTargetView());
+                Device.ImmediateContext.SetRenderTarget(sceneRenderTarget);
             }
         }
 
@@ -150,7 +150,7 @@ namespace Samples.BloomPostprocess
             bloomCombine.BaseSaturation = Settings.BaseSaturation;
             bloomCombine.BloomIntensity = Settings.BloomIntensity;
             bloomCombine.BloomSaturation = Settings.BloomSaturation;
-            bloomCombine.BaseTexture = sceneRenderTarget.GetShaderResourceView();
+            bloomCombine.BaseTexture = sceneRenderTarget;
             DrawFullscreenQuad(
                 bloomMapRenderTarget,
                 (int) viewport.Width,
@@ -162,7 +162,7 @@ namespace Samples.BloomPostprocess
         void DrawFullscreenQuad(Texture2D texture, RenderTarget renderTarget,
             Action<DeviceContext> applyShader, IntermediateBuffer currentBuffer)
         {
-            Device.ImmediateContext.SetRenderTarget(renderTarget.GetRenderTargetView());
+            Device.ImmediateContext.SetRenderTarget(renderTarget);
 
             DrawFullscreenQuad(texture, renderTarget.Width, renderTarget.Height, applyShader, currentBuffer);
         }
@@ -176,7 +176,7 @@ namespace Samples.BloomPostprocess
             }
 
             spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Opaque, null, null, null, applyShader);
-            spriteBatch.Draw(texture.GetShaderResourceView(), new Rectangle(0, 0, width, height), Color.White);
+            spriteBatch.Draw(texture, new Rectangle(0, 0, width, height), Color.White);
             spriteBatch.End();
         }
     }

@@ -335,7 +335,7 @@ namespace Samples.SceneVolumetricFog
 
         void CreateDepthMap(DeviceContext context)
         {
-            context.SetRenderTarget(depthMapRenderTarget.GetRenderTargetView());
+            context.SetRenderTarget(depthMapRenderTarget);
             context.Clear(new Vector4(float.MaxValue));
 
             DrawScene(context, depthMapEffect);
@@ -343,9 +343,9 @@ namespace Samples.SceneVolumetricFog
             context.SetRenderTarget(null);
 
             // エフェクトへ設定。
-            fogDepthMapEffect.LinearDepthMap = depthMapRenderTarget.GetShaderResourceView();
+            fogDepthMapEffect.LinearDepthMap = depthMapRenderTarget;
             // フィルタへ設定。
-            depthMapColorFilter.LinearDepthMap = depthMapRenderTarget.GetShaderResourceView();
+            depthMapColorFilter.LinearDepthMap = depthMapRenderTarget;
         }
 
         void CreateVolumetricFogMap(DeviceContext context)
@@ -357,14 +357,14 @@ namespace Samples.SceneVolumetricFog
             // 状態としては前面がカメラの背後にある事を示さねばならず、
             // すなわち深度 0 を初期値とする必要がある。
 
-            context.SetRenderTarget(frontFogDepthMapRenderTarget.GetRenderTargetView());
+            context.SetRenderTarget(frontFogDepthMapRenderTarget);
             context.Clear(Vector4.Zero);
 
             context.RasterizerState = RasterizerState.CullBack;
 
             DrawVolumetricFog(context, fogDepthMapEffect);
 
-            context.SetRenderTarget(backFogDepthMapRenderTarget.GetRenderTargetView());
+            context.SetRenderTarget(backFogDepthMapRenderTarget);
             context.Clear(Vector4.Zero);
 
             context.RasterizerState = RasterizerState.CullFront;
@@ -374,14 +374,14 @@ namespace Samples.SceneVolumetricFog
             context.SetRenderTarget(null);
 
             // エフェクトへ設定。
-            volumetricFogMapEffect.FrontFogDepthMap = frontFogDepthMapRenderTarget.GetShaderResourceView();
-            volumetricFogMapEffect.BackFogDepthMap = backFogDepthMapRenderTarget.GetShaderResourceView();
+            volumetricFogMapEffect.FrontFogDepthMap = frontFogDepthMapRenderTarget;
+            volumetricFogMapEffect.BackFogDepthMap = backFogDepthMapRenderTarget;
 
             // フィルタへ設定。
-            frontFogDepthMapColorFilter.LinearDepthMap = frontFogDepthMapRenderTarget.GetShaderResourceView();
-            backFogDepthMapColorFilter.LinearDepthMap = backFogDepthMapRenderTarget.GetShaderResourceView();
+            frontFogDepthMapColorFilter.LinearDepthMap = frontFogDepthMapRenderTarget;
+            backFogDepthMapColorFilter.LinearDepthMap = backFogDepthMapRenderTarget;
 
-            context.SetRenderTarget(volumetricFogMapRenderTarget.GetRenderTargetView());
+            context.SetRenderTarget(volumetricFogMapRenderTarget);
             // ボリューム フォグ マップの値はフォグの度合いを示すため、
             // 0 (フォグ無し) で埋めてから描画する。
             context.Clear(Vector4.Zero);
@@ -395,15 +395,15 @@ namespace Samples.SceneVolumetricFog
             context.RasterizerState = RasterizerState.CullBack;
 
             // フィルタへ設定。
-            volumetricFogCombineFilter.VolumetricFogMap = volumetricFogMapRenderTarget.GetShaderResourceView();
+            volumetricFogCombineFilter.VolumetricFogMap = volumetricFogMapRenderTarget;
 
             // 中間マップ表示。
-            textureDisplay.Textures.Add(volumetricFogMapRenderTarget.GetShaderResourceView());
+            textureDisplay.Textures.Add(volumetricFogMapRenderTarget);
         }
 
         void CreateNormalSceneMap(DeviceContext context)
         {
-            context.SetRenderTarget(normalSceneRenderTarget.GetRenderTargetView());
+            context.SetRenderTarget(normalSceneRenderTarget);
             context.Clear(Color.CornflowerBlue);
 
             DrawScene(context, basicEffect);
@@ -411,12 +411,12 @@ namespace Samples.SceneVolumetricFog
             context.SetRenderTarget(null);
 
             // 中間マップ表示。
-            textureDisplay.Textures.Add(normalSceneRenderTarget.GetShaderResourceView());
+            textureDisplay.Textures.Add(normalSceneRenderTarget);
         }
 
         void ApplyPostprocess(DeviceContext context)
         {
-            finalSceneTexture = postprocess.Draw(context, normalSceneRenderTarget.GetShaderResourceView());
+            finalSceneTexture = postprocess.Draw(context, normalSceneRenderTarget);
         }
 
         void DrawPrimitiveMesh(DeviceContext context, PrimitiveMesh mesh, Matrix world, Vector3 color)

@@ -66,8 +66,8 @@ namespace Libra.Graphics.Toolkit
             context.RasterizerState = RasterizerState.CullBack;
             context.PixelShaderSamplers[0] = SamplerState.LinearClamp;
 
-            Filter(context, source, backingRenderTarget.GetRenderTargetView(), GaussianFilterDirection.Horizon);
-            Filter(context, backingRenderTarget.GetShaderResourceView(), destination, GaussianFilterDirection.Vertical);
+            Filter(context, source, backingRenderTarget, GaussianFilterDirection.Horizon);
+            Filter(context, backingRenderTarget, destination, GaussianFilterDirection.Vertical);
 
             context.SetRenderTarget(null);
 

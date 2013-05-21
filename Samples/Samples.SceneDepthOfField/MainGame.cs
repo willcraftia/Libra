@@ -249,7 +249,7 @@ namespace Samples.SceneDepthOfField
 
         void CreateDepthMap(DeviceContext context)
         {
-            context.SetRenderTarget(depthMapRenderTarget.GetRenderTargetView());
+            context.SetRenderTarget(depthMapRenderTarget);
             context.Clear(new Vector4(float.MaxValue));
 
             DrawScene(context, depthMapEffect);
@@ -257,12 +257,12 @@ namespace Samples.SceneDepthOfField
             context.SetRenderTarget(null);
 
             // フィルタへ設定。
-            dofCombineFilter.LinearDepthMap = depthMapRenderTarget.GetShaderResourceView();
+            dofCombineFilter.LinearDepthMap = depthMapRenderTarget;
         }
 
         void CreateNormalSceneMap(DeviceContext context)
         {
-            context.SetRenderTarget(normalSceneRenderTarget.GetRenderTargetView());
+            context.SetRenderTarget(normalSceneRenderTarget);
             context.Clear(Color.CornflowerBlue);
 
             DrawScene(context, basicEffect);
@@ -270,9 +270,9 @@ namespace Samples.SceneDepthOfField
             context.SetRenderTarget(null);
 
             // フィルタへ設定。
-            dofCombineFilter.BaseTexture = normalSceneRenderTarget.GetShaderResourceView();
+            dofCombineFilter.BaseTexture = normalSceneRenderTarget;
 
-            textureDisplay.Textures.Add(normalSceneRenderTarget.GetShaderResourceView());
+            textureDisplay.Textures.Add(normalSceneRenderTarget);
         }
 
         void DrawScene(DeviceContext context, IEffect effect)
@@ -313,17 +313,14 @@ namespace Samples.SceneDepthOfField
 
         void CreateBluredSceneMap(DeviceContext context)
         {
-            gaussianFilter.Filter(
-                context,
-                normalSceneRenderTarget.GetShaderResourceView(),
-                bluredSceneRenderTarget.GetRenderTargetView());
+            gaussianFilter.Filter(context, normalSceneRenderTarget, bluredSceneRenderTarget);
 
-            textureDisplay.Textures.Add(bluredSceneRenderTarget.GetShaderResourceView());
+            textureDisplay.Textures.Add(bluredSceneRenderTarget);
         }
 
         void CreateFinalSceneMap(DeviceContext context)
         {
-            context.PixelShaderResources[0] = bluredSceneRenderTarget.GetShaderResourceView();
+            context.PixelShaderResources[0] = bluredSceneRenderTarget;
             dofCombineFilter.Apply(context);
             fullScreenQuad.Draw(context);
         }

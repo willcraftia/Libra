@@ -130,7 +130,7 @@ namespace Libra.Graphics.Toolkit
             shadowMapEffect.View = lightView;
             shadowMapEffect.Projection = lightProjection;
 
-            context.SetRenderTarget(RenderTarget.GetRenderTargetView());
+            context.SetRenderTarget(RenderTarget);
             context.Clear(Color.White);
 
             // 描画をコールバック。

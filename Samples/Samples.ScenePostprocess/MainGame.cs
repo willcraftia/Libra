@@ -393,7 +393,7 @@ namespace Samples.ScenePostprocess
 
         void CreateDepthMap(DeviceContext context)
         {
-            context.SetRenderTarget(depthMapRenderTarget.GetRenderTargetView());
+            context.SetRenderTarget(depthMapRenderTarget);
             context.Clear(new Vector4(float.MaxValue));
 
             DrawScene(context, depthMapEffect);
@@ -401,16 +401,16 @@ namespace Samples.ScenePostprocess
             context.SetRenderTarget(null);
 
             // フィルタへ設定。
-            dofCombineFilter.LinearDepthMap = depthMapRenderTarget.GetShaderResourceView();
-            edgeFilter.LinearDepthMap = depthMapRenderTarget.GetShaderResourceView();
+            dofCombineFilter.LinearDepthMap = depthMapRenderTarget;
+            edgeFilter.LinearDepthMap = depthMapRenderTarget;
 
             // 中間マップ表示。
-            textureDisplay.Textures.Add(depthMapRenderTarget.GetShaderResourceView());
+            textureDisplay.Textures.Add(depthMapRenderTarget);
         }
 
         void CreateNormalMap(DeviceContext context)
         {
-            context.SetRenderTarget(normalMapRenderTarget.GetRenderTargetView());
+            context.SetRenderTarget(normalMapRenderTarget);
             context.Clear(Vector4.One);
 
             DrawScene(context, normalMapEffect);
@@ -418,16 +418,16 @@ namespace Samples.ScenePostprocess
             context.SetRenderTarget(null);
 
             // フィルタへ設定。
-            normalEdgeDetectFilter.NormalMap = normalMapRenderTarget.GetShaderResourceView();
-            edgeFilter.NormalMap = normalMapRenderTarget.GetShaderResourceView();
+            normalEdgeDetectFilter.NormalMap = normalMapRenderTarget;
+            edgeFilter.NormalMap = normalMapRenderTarget;
 
             // 中間マップ表示。
-            textureDisplay.Textures.Add(normalMapRenderTarget.GetShaderResourceView());
+            textureDisplay.Textures.Add(normalMapRenderTarget);
         }
 
         void CreateNormalSceneMap(DeviceContext context)
         {
-            context.SetRenderTarget(normalSceneRenderTarget.GetRenderTargetView());
+            context.SetRenderTarget(normalSceneRenderTarget);
             context.Clear(Color.CornflowerBlue);
 
             DrawScene(context, basicEffect);
@@ -435,16 +435,16 @@ namespace Samples.ScenePostprocess
             context.SetRenderTarget(null);
 
             // フィルタへ設定。
-            bloomCombineFilter.BaseTexture = normalSceneRenderTarget.GetShaderResourceView();
-            dofCombineFilter.BaseTexture = normalSceneRenderTarget.GetShaderResourceView();
+            bloomCombineFilter.BaseTexture = normalSceneRenderTarget;
+            dofCombineFilter.BaseTexture = normalSceneRenderTarget;
 
             // 中間マップ表示。
-            textureDisplay.Textures.Add(normalSceneRenderTarget.GetShaderResourceView());
+            textureDisplay.Textures.Add(normalSceneRenderTarget);
         }
 
         void ApplyPostprocess(DeviceContext context)
         {
-            finalSceneTexture = postprocess.Draw(context, normalSceneRenderTarget.GetShaderResourceView());
+            finalSceneTexture = postprocess.Draw(context, normalSceneRenderTarget);
         }
 
         void DrawPrimitiveMesh(DeviceContext context, PrimitiveMesh mesh, Matrix world, Vector3 color)

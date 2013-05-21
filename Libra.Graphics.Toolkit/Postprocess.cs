@@ -238,7 +238,7 @@ namespace Libra.Graphics.Toolkit
                     renderTargetChain.Swap();
                 }
 
-                context.SetRenderTarget(renderTargetChain.Current.GetRenderTargetView());
+                context.SetRenderTarget(renderTargetChain.Current);
 
                 spriteBatch.Begin(context, SpriteSortMode.Immediate, BlendState.Opaque, null, null, null, filter.Apply);
                 spriteBatch.Draw(currentTexture, new Rectangle(0, 0, currentWidth, currentHeight), Color.White);
@@ -246,7 +246,7 @@ namespace Libra.Graphics.Toolkit
 
                 context.SetRenderTarget(null);
 
-                currentTexture = renderTargetChain.Current.GetShaderResourceView();
+                currentTexture = renderTargetChain.Current;
             }
 
             return currentTexture;

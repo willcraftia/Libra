@@ -47,6 +47,18 @@ namespace Libra.Graphics
             initialized = true;
         }
 
+        /// <summary>
+        /// 暗黙的に GetRenderTargetView() を呼び出して RenderTargetView 型とします。
+        /// </summary>
+        /// <param name="renderTarget">RenderTarget。</param>
+        /// <returns>RenderTarget 内部で管理する RenderTargetView。</returns>
+        public static implicit operator RenderTargetView(RenderTarget renderTarget)
+        {
+            if (renderTarget == null) return null;
+
+            return renderTarget.GetRenderTargetView();
+        }
+
         public RenderTargetView GetRenderTargetView()
         {
             if (renderTargetView == null)

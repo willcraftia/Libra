@@ -146,7 +146,7 @@ namespace Samples.ShadowMapping
                     {
                         Matrix.Transpose(ref LightViewProjections[i], out constants.LightViewProjections[i]);
 
-                        context.PixelShaderResources[i + 1] = ShadowMaps[i].RenderTarget.GetShaderResourceView();
+                        context.PixelShaderResources[i + 1] = ShadowMaps[i].RenderTarget;
                     }
                     else
                     {
@@ -655,14 +655,11 @@ namespace Samples.ShadowMapping
                         gaussianFilter.Sigma = 1;
                     }
 
-                    gaussianFilter.Filter(
-                        context,
-                        shadowMaps[i].RenderTarget.GetShaderResourceView(),
-                        shadowMaps[i].RenderTarget.GetRenderTargetView());
+                    gaussianFilter.Filter(context, shadowMaps[i].RenderTarget, shadowMaps[i].RenderTarget);
                 }
 
                 // 生成されたシャドウ マップを一覧表示機能へ追加。
-                textureDisplay.Textures.Add(shadowMaps[i].RenderTarget.GetShaderResourceView());
+                textureDisplay.Textures.Add(shadowMaps[i].RenderTarget);
             }
         }
 

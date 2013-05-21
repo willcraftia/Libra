@@ -280,7 +280,7 @@ namespace Samples.SceneGodRay
                 occlusionRenderTarget.Initialize();
             }
 
-            context.SetRenderTarget(occlusionRenderTarget.GetRenderTargetView());
+            context.SetRenderTarget(occlusionRenderTarget);
 
             context.Clear(Color.Black);
 
@@ -289,12 +289,12 @@ namespace Samples.SceneGodRay
             skySphere.SkyColor = Color.Black.ToVector3();
             skySphere.Draw(context);
 
-            textureDisplay.Textures.Add(occlusionRenderTarget.GetShaderResourceView());
+            textureDisplay.Textures.Add(occlusionRenderTarget);
         }
 
         void CreateNormalSceneMap(DeviceContext context)
         {
-            context.SetRenderTarget(normalSceneRenderTarget.GetRenderTargetView());
+            context.SetRenderTarget(normalSceneRenderTarget);
 
             context.Clear(Color.CornflowerBlue);
 
@@ -305,7 +305,7 @@ namespace Samples.SceneGodRay
 
             context.SetRenderTarget(null);
 
-            textureDisplay.Textures.Add(normalSceneRenderTarget.GetShaderResourceView());
+            textureDisplay.Textures.Add(normalSceneRenderTarget);
         }
 
         void DrawCubeMeshes(DeviceContext context, IEffect effect)
@@ -347,7 +347,7 @@ namespace Samples.SceneGodRay
             {
                 // ライト位置がカメラの後方ならば、光芒効果を適用しない。
                 spriteBatch.Begin();
-                spriteBatch.Draw(normalSceneRenderTarget.GetShaderResourceView(), Vector2.Zero, Color.White);
+                spriteBatch.Draw(normalSceneRenderTarget, Vector2.Zero, Color.White);
                 spriteBatch.End();
                 return;
             }
@@ -362,11 +362,11 @@ namespace Samples.SceneGodRay
             }
 
             // 閉塞マップから光芒マップを生成。
-            context.SetRenderTarget(lightScatteringRenderTarget.GetRenderTargetView());
+            context.SetRenderTarget(lightScatteringRenderTarget);
 
             // テクスチャ座標としてライト位置を設定。
             lightScatteringFilter.ScreenLightPosition = screenLightPosition;
-            lightScatteringFilter.Texture = occlusionRenderTarget.GetShaderResourceView();
+            lightScatteringFilter.Texture = occlusionRenderTarget;
             lightScatteringFilter.Apply(context);
 
             fullScreenQuad.Draw(context);
@@ -377,11 +377,11 @@ namespace Samples.SceneGodRay
             context.Clear(Color.Black);
 
             spriteBatch.Begin(context, SpriteSortMode.Immediate, BlendState.Additive);
-            spriteBatch.Draw(normalSceneRenderTarget.GetShaderResourceView(), Vector2.Zero, Color.White);
-            spriteBatch.Draw(lightScatteringRenderTarget.GetShaderResourceView(), new Rectangle(0, 0, WindowWidth, WindowHeight), Color.White);
+            spriteBatch.Draw(normalSceneRenderTarget, Vector2.Zero, Color.White);
+            spriteBatch.Draw(lightScatteringRenderTarget, new Rectangle(0, 0, WindowWidth, WindowHeight), Color.White);
             spriteBatch.End();
 
-            textureDisplay.Textures.Add(lightScatteringRenderTarget.GetShaderResourceView());
+            textureDisplay.Textures.Add(lightScatteringRenderTarget);
         }
 
         void InvalidateRenderTargets()

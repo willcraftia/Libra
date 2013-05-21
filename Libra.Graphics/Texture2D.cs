@@ -131,6 +131,18 @@ namespace Libra.Graphics
             }
         }
 
+        /// <summary>
+        /// 暗黙的に GetShaderResourceView() を呼び出して ShaderResourceView 型とします。
+        /// </summary>
+        /// <param name="texture">Texture2D。</param>
+        /// <returns>Texture2D 内部で管理する ShaderResourceView。</returns>
+        public static implicit operator ShaderResourceView(Texture2D texture)
+        {
+            if (texture == null) return null;
+
+            return texture.GetShaderResourceView();
+        }
+
         public ShaderResourceView GetShaderResourceView()
         {
             if (shaderResourceView == null)

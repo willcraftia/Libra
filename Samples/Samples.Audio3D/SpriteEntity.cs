@@ -59,7 +59,7 @@ namespace Samples.Audio3D
                         Matrix.CreateScale(800) *
                         Matrix.CreateConstrainedBillboard(Position, cameraPosition, Up, null, null);
 
-            quadDrawer.DrawQuad(context, Texture.GetShaderResourceView(), 1, world, view, projection);
+            quadDrawer.DrawQuad(context, Texture, 1, world, view, projection);
         }
     }
 }
