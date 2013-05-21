@@ -49,15 +49,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="MainGame.cs" />
-    <Compile Include="ParticleEmitter.cs" />
-    <Compile Include="ParticleSettings.cs" />
-    <Compile Include="ParticleSystem.cs" />
-    <Compile Include="ParticleSystems\ExplosionParticleSystem.cs" />
-    <Compile Include="ParticleSystems\ExplosionSmokeParticleSystem.cs" />
-    <Compile Include="ParticleSystems\FireParticleSystem.cs" />
-    <Compile Include="ParticleSystems\ProjectileTrailParticleSystem.cs" />
-    <Compile Include="ParticleSystems\SmokePlumeParticleSystem.cs" />
-    <Compile Include="ParticleVertex.cs" />
     <Compile Include="Projectile.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -86,6 +77,10 @@
       <Project>{FAEE2668-AB77-477D-9405-26D59951501D}</Project>
       <Name>Libra.Graphics.SharpDX</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Libra.Graphics.Toolkit\Libra.Graphics.Toolkit.csproj">
+      <Project>{7E6353FF-27C2-48CB-B582-530450AF0553}</Project>
+      <Name>Libra.Graphics.Toolkit</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Libra.Graphics\Libra.Graphics.csproj">
       <Project>{CDFAB2B9-00DB-4719-B424-C2A973A7BC4C}</Project>
       <Name>Libra.Graphics</Name>
@@ -107,11 +102,6 @@
       <XnaReferenceType>Content</XnaReferenceType>
       <Project>{5D5486FD-132D-4165-9C7C-6F19BC7DC9F4}</Project>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Shaders\ParticleEffect.fx">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="README.txt" />

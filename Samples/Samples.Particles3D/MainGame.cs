@@ -5,9 +5,9 @@ using System.Collections.Generic;
 using Libra;
 using Libra.Games;
 using Libra.Graphics;
+using Libra.Graphics.Toolkit;
 using Libra.Input;
 using Libra.Xnb;
-using Samples.Particles3D.ParticleSystems;
 
 #endregion
 
@@ -15,9 +15,22 @@ namespace Samples.Particles3D
 {
     public sealed class MainGame : Game
     {
+        #region ParticleState
+
+        enum ParticleState
+        {
+            Explosions,
+            SmokePlume,
+            RingOfFire,
+        }
+
+        #endregion
+
         GraphicsManager graphics;
 
         XnbManager content;
+
+        DeviceContext context;
 
         SpriteBatch spriteBatch;
 
@@ -34,13 +47,6 @@ namespace Samples.Particles3D
         ParticleSystem smokePlumeParticles;
         
         ParticleSystem fireParticles;
-
-        enum ParticleState
-        {
-            Explosions,
-            SmokePlume,
-            RingOfFire,
-        };
 
         ParticleState currentState = ParticleState.Explosions;
 
@@ -67,33 +73,174 @@ namespace Samples.Particles3D
         public MainGame()
         {
             graphics = new GraphicsManager(this);
-
             content = new XnbManager(Services, "Content");
-
-            explosionParticles = new ExplosionParticleSystem(this, content);
-            explosionSmokeParticles = new ExplosionSmokeParticleSystem(this, content);
-            projectileTrailParticles = new ProjectileTrailParticleSystem(this, content);
-            smokePlumeParticles = new SmokePlumeParticleSystem(this, content);
-            fireParticles = new FireParticleSystem(this, content);
-
-            smokePlumeParticles.DrawOrder = 100;
-            explosionSmokeParticles.DrawOrder = 200;
-            projectileTrailParticles.DrawOrder = 300;
-            explosionParticles.DrawOrder = 400;
-            fireParticles.DrawOrder = 500;
- 
-            Components.Add(explosionParticles);
-            Components.Add(explosionSmokeParticles);
-            Components.Add(projectileTrailParticles);
-            Components.Add(smokePlumeParticles);
-            Components.Add(fireParticles);
         }
 
         protected override void LoadContent()
         {
-            spriteBatch = new SpriteBatch(Device.ImmediateContext);
+            context = Device.ImmediateContext;
+
+            spriteBatch = new SpriteBatch(context);
             font = content.Load<SpriteFont>("font");
             grid = content.Load<Model>("grid");
+
+            BuildExplosionParticleSystem();
+            BuildExplosionSmokeParticleSystem();
+            BuildProjectileTrailParticleSystem();
+            BuildSmokePlumeParticleSystem();
+            BuildFireParticleSystem();
+        }
+
+        void BuildExplosionParticleSystem()
+        {
+            explosionParticles = new ParticleSystem(context, 100);
+
+            explosionParticles.Texture = content.Load<Texture2D>("explosion");
+
+            explosionParticles.Duration = 2;
+            explosionParticles.DurationRandomness = 1;
+
+            explosionParticles.MinHorizontalVelocity = 20;
+            explosionParticles.MaxHorizontalVelocity = 30;
+
+            explosionParticles.MinVerticalVelocity = -20;
+            explosionParticles.MaxVerticalVelocity = 20;
+
+            explosionParticles.EndVelocity = 0;
+
+            explosionParticles.MinColor = Color.DarkGray.ToVector4();
+            explosionParticles.MaxColor = Color.Gray.ToVector4();
+
+            explosionParticles.MinRotateSpeed = -1;
+            explosionParticles.MaxRotateSpeed = 1;
+
+            explosionParticles.MinStartSize = 7;
+            explosionParticles.MaxStartSize = 7;
+
+            explosionParticles.MinEndSize = 70;
+            explosionParticles.MaxEndSize = 140;
+
+            explosionParticles.BlendState = BlendState.Additive;
+        }
+
+        void BuildExplosionSmokeParticleSystem()
+        {
+            explosionSmokeParticles = new ParticleSystem(context, 200);
+
+            explosionSmokeParticles.Texture = content.Load<Texture2D>("smoke");
+
+            explosionSmokeParticles.Duration = 4;
+
+            explosionSmokeParticles.MinHorizontalVelocity = 0;
+            explosionSmokeParticles.MaxHorizontalVelocity = 50;
+
+            explosionSmokeParticles.MinVerticalVelocity = -10;
+            explosionSmokeParticles.MaxVerticalVelocity = 50;
+
+            explosionSmokeParticles.Gravity = new Vector3(0, -20, 0);
+
+            explosionSmokeParticles.EndVelocity = 0;
+
+            explosionSmokeParticles.MinColor = Color.LightGray.ToVector4();
+            explosionSmokeParticles.MaxColor = Color.White.ToVector4();
+
+            explosionSmokeParticles.MinRotateSpeed = -2;
+            explosionSmokeParticles.MaxRotateSpeed = 2;
+
+            explosionSmokeParticles.MinStartSize = 7;
+            explosionSmokeParticles.MaxStartSize = 7;
+
+            explosionSmokeParticles.MinEndSize = 70;
+            explosionSmokeParticles.MaxEndSize = 140;
+        }
+
+        void BuildProjectileTrailParticleSystem()
+        {
+            projectileTrailParticles = new ParticleSystem(context, 1000);
+
+            projectileTrailParticles.Texture = content.Load<Texture2D>("smoke");
+
+            projectileTrailParticles.Duration = 3;
+
+            projectileTrailParticles.DurationRandomness = 1.5f;
+
+            projectileTrailParticles.EmitterVelocitySensitivity = 0.1f;
+
+            projectileTrailParticles.MinHorizontalVelocity = 0;
+            projectileTrailParticles.MaxHorizontalVelocity = 1;
+
+            projectileTrailParticles.MinVerticalVelocity = -1;
+            projectileTrailParticles.MaxVerticalVelocity = 1;
+
+            projectileTrailParticles.MinColor = new Color(64, 96, 128, 255).ToVector4();
+            projectileTrailParticles.MaxColor = new Color(255, 255, 255, 128).ToVector4();
+
+            projectileTrailParticles.MinRotateSpeed = -4;
+            projectileTrailParticles.MaxRotateSpeed = 4;
+
+            projectileTrailParticles.MinStartSize = 1;
+            projectileTrailParticles.MaxStartSize = 3;
+
+            projectileTrailParticles.MinEndSize = 4;
+            projectileTrailParticles.MaxEndSize = 11;
+        }
+
+        void BuildSmokePlumeParticleSystem()
+        {
+            smokePlumeParticles = new ParticleSystem(context, 600);
+
+            smokePlumeParticles.Texture = content.Load<Texture2D>("smoke");
+
+            smokePlumeParticles.Duration = 10;
+
+            smokePlumeParticles.MinHorizontalVelocity = 0;
+            smokePlumeParticles.MaxHorizontalVelocity = 15;
+
+            smokePlumeParticles.MinVerticalVelocity = 10;
+            smokePlumeParticles.MaxVerticalVelocity = 20;
+
+            smokePlumeParticles.Gravity = new Vector3(-20, -5, 0);
+
+            smokePlumeParticles.EndVelocity = 0.75f;
+
+            smokePlumeParticles.MinRotateSpeed = -1;
+            smokePlumeParticles.MaxRotateSpeed = 1;
+
+            smokePlumeParticles.MinStartSize = 4;
+            smokePlumeParticles.MaxStartSize = 7;
+
+            smokePlumeParticles.MinEndSize = 35;
+            smokePlumeParticles.MaxEndSize = 140;
+        }
+
+        void BuildFireParticleSystem()
+        {
+            fireParticles = new ParticleSystem(context, 2400);
+
+            fireParticles.Texture = content.Load<Texture2D>("fire");
+
+            fireParticles.Duration = 2;
+
+            fireParticles.DurationRandomness = 1;
+
+            fireParticles.MinHorizontalVelocity = 0;
+            fireParticles.MaxHorizontalVelocity = 15;
+
+            fireParticles.MinVerticalVelocity = -10;
+            fireParticles.MaxVerticalVelocity = 10;
+
+            fireParticles.Gravity = new Vector3(0, 15, 0);
+
+            fireParticles.MinColor = new Color(255, 255, 255, 10).ToVector4();
+            fireParticles.MaxColor = new Color(255, 255, 255, 40).ToVector4();
+
+            fireParticles.MinStartSize = 5;
+            fireParticles.MaxStartSize = 10;
+
+            fireParticles.MinEndSize = 10;
+            fireParticles.MaxEndSize = 40;
+
+            fireParticles.BlendState = BlendState.Additive;
         }
 
         protected override void Update(GameTime gameTime)
@@ -119,6 +266,12 @@ namespace Samples.Particles3D
 
             UpdateProjectiles(gameTime);
 
+            smokePlumeParticles.Update(gameTime.ElapsedGameTime);
+            explosionSmokeParticles.Update(gameTime.ElapsedGameTime);
+            projectileTrailParticles.Update(gameTime.ElapsedGameTime);
+            explosionParticles.Update(gameTime.ElapsedGameTime);
+            fireParticles.Update(gameTime.ElapsedGameTime);
+
             base.Update(gameTime);
         }
 
@@ -128,9 +281,8 @@ namespace Samples.Particles3D
 
             if (timeToNextProjectile <= TimeSpan.Zero)
             { 
-                projectiles.Add(new Projectile(explosionParticles,
-                                               explosionSmokeParticles,
-                                               projectileTrailParticles));
+                projectiles.Add(
+                    new Projectile(explosionParticles, explosionSmokeParticles, projectileTrailParticles));
 
                 timeToNextProjectile += TimeSpan.FromSeconds(1);
             }
@@ -185,12 +337,7 @@ namespace Samples.Particles3D
 
         protected override void Draw(GameTime gameTime)
         {
-            var context = Device.ImmediateContext;
-
             context.Clear(Color.CornflowerBlue);
-
-            float aspectRatio = (float) context.Viewport.Width /
-                                (float) context.Viewport.Height;
 
             Matrix view = Matrix.CreateTranslation(0, -25, 0) *
                           Matrix.CreateRotationY(MathHelper.ToRadians(cameraRotation)) *
@@ -198,17 +345,27 @@ namespace Samples.Particles3D
                           Matrix.CreateLookAt(new Vector3(0, 0, -cameraDistance),
                                               new Vector3(0, 0, 0), Vector3.Up);
 
-            Matrix projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4,
-                                                                    aspectRatio,
-                                                                    1, 10000);
+            Matrix projection = Matrix.CreatePerspectiveFieldOfView(
+                MathHelper.PiOver4, context.Viewport.AspectRatio, 1, 10000);
 
-            explosionParticles.SetCamera(view, projection);
-            explosionSmokeParticles.SetCamera(view, projection);
-            projectileTrailParticles.SetCamera(view, projection);
-            smokePlumeParticles.SetCamera(view, projection);
-            fireParticles.SetCamera(view, projection);
+            explosionParticles.View = view;
+            explosionParticles.Projection = projection;
+            explosionSmokeParticles.View = view;
+            explosionSmokeParticles.Projection = projection;
+            projectileTrailParticles.View = view;
+            projectileTrailParticles.Projection = projection;
+            smokePlumeParticles.View = view;
+            smokePlumeParticles.Projection = projection;
+            fireParticles.View = view;
+            fireParticles.Projection = projection;
 
             DrawGrid(view, projection);
+
+            smokePlumeParticles.Draw();
+            explosionSmokeParticles.Draw();
+            projectileTrailParticles.Draw();
+            explosionParticles.Draw();
+            fireParticles.Draw();
 
             DrawMessage();
 
@@ -228,9 +385,10 @@ namespace Samples.Particles3D
 
         void DrawMessage()
         {
-            string message = string.Format("Current effect: {0}!!!\n" +
-                                           "Hit the A button or space bar to switch.",
-                                           currentState);
+            string message = string.Format(
+                "Current effect: {0}!!!\n" +
+                "Hit the A button or space bar to switch.",
+                currentState);
 
             spriteBatch.Begin();
             spriteBatch.DrawString(font, message, new Vector2(50, 50), Color.White);
@@ -308,9 +466,13 @@ namespace Samples.Particles3D
             cameraDistance -= currentGamePadState.Triggers.Right * time * 0.5f;
 
             if (cameraDistance > 500)
+            {
                 cameraDistance = 500;
+            }
             else if (cameraDistance < 10)
+            {
                 cameraDistance = 10;
+            }
 
             if (currentGamePadState.Buttons.RightStick == ButtonState.Pressed ||
                 currentKeyboardState.IsKeyDown(Keys.R))

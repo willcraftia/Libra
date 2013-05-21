@@ -3,6 +3,7 @@
 using System;
 using Libra;
 using Libra.Games;
+using Libra.Graphics.Toolkit;
 
 #endregion
 
@@ -57,13 +58,13 @@ namespace Samples.Particles3D
 
         public bool Update(GameTime gameTime)
         {
-            float elapsedTime = (float) gameTime.ElapsedGameTime.TotalSeconds;
+            float elapsedSeconds = (float) gameTime.ElapsedGameTime.TotalSeconds;
 
-            position += velocity * elapsedTime;
-            velocity.Y -= elapsedTime * gravity;
-            age += elapsedTime;
+            position += velocity * elapsedSeconds;
+            velocity.Y -= elapsedSeconds * gravity;
+            age += elapsedSeconds;
 
-            trailEmitter.Update(gameTime, position);
+            trailEmitter.Update(gameTime.ElapsedGameTime, position);
 
             if (age > projectileLifespan)
             {
