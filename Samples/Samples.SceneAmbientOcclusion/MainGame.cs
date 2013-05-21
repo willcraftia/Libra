@@ -286,7 +286,7 @@ namespace Samples.SceneAmbientOcclusion
             normalSceneRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
             normalSceneRenderTarget.Initialize();
 
-            ssaoMap = new SSAOMap(Device);
+            ssaoMap = new SSAOMap(context);
             ssaoMap.Projection = camera.Projection;
 
             postprocessSSAOMap = new Postprocess(context);
@@ -432,7 +432,7 @@ namespace Samples.SceneAmbientOcclusion
             context.SetRenderTarget(ssaoMapRenderTarget);
             context.Clear(Vector4.One);
 
-            ssaoMap.Draw(context);
+            ssaoMap.Draw();
 
             context.SetRenderTarget(null);
 

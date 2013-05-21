@@ -77,8 +77,6 @@ namespace Libra.Graphics.Toolkit
 
         const int RandomNormalMapSize = 64;
 
-        Device device;
-
         SharedDeviceResource sharedDeviceResource;
 
         ConstantBuffer constantBuffer;
@@ -94,6 +92,8 @@ namespace Libra.Graphics.Toolkit
         Matrix projection;
 
         DirtyFlags dirtyFlags;
+
+        public DeviceContext Context { get; private set; }
 
         public int Seed
         {
@@ -179,15 +179,15 @@ namespace Libra.Graphics.Toolkit
 
         public bool Enabled { get; set; }
 
-        public SSAOMap(Device device)
+        public SSAOMap(DeviceContext context)
         {
-            if (device == null) throw new ArgumentNullException("device");
+            if (context == null) throw new ArgumentNullException("context");
 
-            this.device = device;
+            Context = context;
 
-            sharedDeviceResource = device.GetSharedResource<SSAOMap, SharedDeviceResource>();
+            sharedDeviceResource = context.Device.GetSharedResource<SSAOMap, SharedDeviceResource>();
 
-            constantBuffer = device.CreateConstantBuffer();
+            constantBuffer = context.Device.CreateConstantBuffer();
             constantBuffer.Initialize<Constants>();
 
             seed = 0;
@@ -209,20 +209,16 @@ namespace Libra.Graphics.Toolkit
                 DirtyFlags.Projection | DirtyFlags.Constants;
         }
 
-        public void Draw(DeviceContext context)
+        public void Draw()
         {
-            if (context == null) throw new ArgumentNullException("context");
+            Apply();
 
-            Apply(context);
-
-            context.PrimitiveTopology = PrimitiveTopology.TriangleList;
-            context.Draw(3);
+            Context.PrimitiveTopology = PrimitiveTopology.TriangleList;
+            Context.Draw(3);
         }
 
-        void Apply(DeviceContext context)
+        void Apply()
         {
-            if (context == null) throw new ArgumentNullException("context");
-
             if ((dirtyFlags & DirtyFlags.Random) != 0)
             {
                 random = new Random(seed);
@@ -231,31 +227,31 @@ namespace Libra.Graphics.Toolkit
                 dirtyFlags |= DirtyFlags.RandomNormals | DirtyFlags.SampleSphere;
             }
 
-            SetRandomNormals(context);
+            SetRandomNormals();
             SetSampleSphere();
             SetProjection();
 
             if ((dirtyFlags & DirtyFlags.Constants) != 0)
             {
-                constantBuffer.SetData(context, constants);
+                constantBuffer.SetData(Context, constants);
 
                 dirtyFlags &= ~DirtyFlags.Constants;
             }
 
-            context.VertexShaderConstantBuffers[0] = constantBuffer;
-            context.VertexShader = sharedDeviceResource.VertexShader;
+            Context.VertexShaderConstantBuffers[0] = constantBuffer;
+            Context.VertexShader = sharedDeviceResource.VertexShader;
 
-            context.PixelShaderConstantBuffers[0] = constantBuffer;
-            context.PixelShader = sharedDeviceResource.PixelShader;
+            Context.PixelShaderConstantBuffers[0] = constantBuffer;
+            Context.PixelShader = sharedDeviceResource.PixelShader;
 
-            context.PixelShaderResources[0] = LinearDepthMap;
-            context.PixelShaderResources[1] = NormalMap;
-            context.PixelShaderResources[2] = randomNormalMap;
-            context.PixelShaderSamplers[0] = LinearDepthMapSampler;
-            context.PixelShaderSamplers[1] = NormalMapSampler;
+            Context.PixelShaderResources[0] = LinearDepthMap;
+            Context.PixelShaderResources[1] = NormalMap;
+            Context.PixelShaderResources[2] = randomNormalMap;
+            Context.PixelShaderSamplers[0] = LinearDepthMapSampler;
+            Context.PixelShaderSamplers[1] = NormalMapSampler;
         }
 
-        void SetRandomNormals(DeviceContext context)
+        void SetRandomNormals()
         {
             if ((dirtyFlags & DirtyFlags.RandomNormals) != 0)
             {
@@ -277,12 +273,12 @@ namespace Libra.Graphics.Toolkit
                     normals[i] = new NormalizedByte4(normal);
                 }
 
-                randomNormalMap = context.Device.CreateTexture2D();
+                randomNormalMap = Context.Device.CreateTexture2D();
                 randomNormalMap.Width = RandomNormalMapSize;
                 randomNormalMap.Height = RandomNormalMapSize;
                 randomNormalMap.Format = SurfaceFormat.NormalizedByte4;
                 randomNormalMap.Initialize();
-                randomNormalMap.SetData(context, normals);
+                randomNormalMap.SetData(Context, normals);
 
 
                 dirtyFlags &= ~DirtyFlags.RandomNormals;
