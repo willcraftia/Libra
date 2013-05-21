@@ -40,6 +40,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BezierMesh.cs" />
     <Compile Include="LensFlare.cs" />
     <Compile Include="LinearFogDepthMapEffect.cs" />
     <Compile Include="SSAOBlurFilter.cs" />
@@ -78,6 +79,7 @@
     <Compile Include="SphereMesh.cs" />
     <Compile Include="SquareMesh.cs" />
     <Compile Include="SSAOMapColorFilter.cs" />
+    <Compile Include="TeapotMesh.cs" />
     <Compile Include="TorusMesh.cs" />
     <Compile Include="UniformLightCameraBuilder.cs" />
     <Compile Include="LightCameraBuilder.cs" />

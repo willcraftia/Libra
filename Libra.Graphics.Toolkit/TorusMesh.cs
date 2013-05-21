@@ -12,7 +12,7 @@ namespace Libra.Graphics.Toolkit
             : base(context)
         {
             if (diameter <= 0.0f) throw new ArgumentOutOfRangeException("diameter");
-            if (thickness <= 0.0f) throw new ArgumentOutOfRangeException("diameter");
+            if (thickness <= 0.0f) throw new ArgumentOutOfRangeException("thickness");
             if (tessellation < 3) throw new ArgumentOutOfRangeException("tessellation");
 
             var vertexCount = tessellation * tessellation;
