@@ -4,6 +4,9 @@ using System;
 
 #endregion
 
+// Xbox LIVE Indie Games - Primitives3D より移植
+// http://xbox.create.msdn.com/en-US/education/catalog/sample/primitives_3d
+
 namespace Libra.Graphics.Toolkit
 {
     public abstract class BezierMesh : PrimitiveMesh
