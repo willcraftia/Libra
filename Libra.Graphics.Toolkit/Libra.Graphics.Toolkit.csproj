@@ -43,6 +43,9 @@
     <Compile Include="BezierMesh.cs" />
     <Compile Include="LensFlare.cs" />
     <Compile Include="LinearFogDepthMapEffect.cs" />
+    <Compile Include="ParticleEffect.cs" />
+    <Compile Include="ParticleEmitter.cs" />
+    <Compile Include="ParticleSystem.cs" />
     <Compile Include="SSAOBlurFilter.cs" />
     <Compile Include="SSAOCombineFilter.cs" />
     <Compile Include="SSAOMap.cs" />
@@ -144,6 +147,8 @@
     <None Include="Shaders\Compiled\LinearFogDepthMapVS.bin" />
     <None Include="Shaders\Compiled\MonochromeFilterPS.bin" />
     <None Include="Shaders\Compiled\NormalEdgeDetectFilterPS.bin" />
+    <None Include="Shaders\Compiled\ParticlePS.bin" />
+    <None Include="Shaders\Compiled\ParticleVS.bin" />
     <None Include="Shaders\Compiled\ScanlineFilterPS.bin" />
     <None Include="Shaders\Compiled\SSAOBlurFilterPS.bin" />
     <None Include="Shaders\Compiled\SSAOCombineFilterPS.bin" />
@@ -154,6 +159,7 @@
     <None Include="Shaders\Compiled\VolumetricFogMapPS.bin" />
     <None Include="Shaders\Compiled\VolumetricFogMapVS.bin" />
     <None Include="Shaders\LinearFogDepthMap.hlsl" />
+    <None Include="Shaders\Particle.hlsl" />
     <None Include="Shaders\VolumetricFogCombineFilter.hlsl" />
     <None Include="Shaders\SSAOBlurFilter.hlsl" />
     <None Include="Shaders\SSAOCombineFilter.hlsl" />

@@ -221,6 +221,20 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
+        internal static byte[] ParticlePS {
+            get {
+                object obj = ResourceManager.GetObject("ParticlePS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] ParticleVS {
+            get {
+                object obj = ResourceManager.GetObject("ParticleVS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
         internal static byte[] RadialFilterPS {
             get {
                 object obj = ResourceManager.GetObject("RadialFilterPS", resourceCulture);

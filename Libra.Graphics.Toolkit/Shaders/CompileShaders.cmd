@@ -70,6 +70,12 @@ call :CompileShader SingleColorObject VS %vs_profile%
 call :CompileShader SingleColorObject PS %ps_profile%
 
 ::
+:: Particle VS/PS
+::
+call :CompileShader Particle VS %vs_profile%
+call :CompileShader Particle PS %ps_profile%
+
+::
 :: FullScreenQuad VS
 ::
 call :CompileShader FullScreenQuad VS %vs_profile%
