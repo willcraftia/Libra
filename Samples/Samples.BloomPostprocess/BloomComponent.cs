@@ -60,7 +60,7 @@ namespace Samples.BloomPostprocess
 
         protected override void LoadContent()
         {
-            spriteBatch = new SpriteBatch(Device.ImmediateContext);
+            spriteBatch = new SpriteBatch(Device);
 
             bloomExtract = new BloomExtractFilter(Device);
             bloomCombine = new BloomCombineFilter(Device);
@@ -175,7 +175,7 @@ namespace Samples.BloomPostprocess
                 applyShader = null;
             }
 
-            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Opaque, null, null, null, applyShader);
+            spriteBatch.Begin(Device.ImmediateContext, SpriteSortMode.Deferred, BlendState.Opaque, null, null, null, applyShader);
             spriteBatch.Draw(texture.GetShaderResourceView(), new Rectangle(0, 0, width, height), Color.White);
             spriteBatch.End();
         }

@@ -508,7 +508,7 @@ namespace Samples.ShadowMapping
         {
             drawModelEffect = new DrawModelEffect(Device);
 
-            spriteBatch = new SpriteBatch(Device.ImmediateContext);
+            spriteBatch = new SpriteBatch(Device);
             spriteFont = content.Load<SpriteFont>("hudFont");
 
             gridModel = content.Load<Model>("grid");
@@ -772,7 +772,7 @@ namespace Samples.ShadowMapping
                 "K = Split count (" + splitCount + ")\n" +
                 "L = Shadow map size (" + currentShadowMapSize + "x" + currentShadowMapSize + ")";
 
-            spriteBatch.Begin();
+            spriteBatch.Begin(Device.ImmediateContext);
 
             spriteBatch.DrawString(spriteFont, text, new Vector2(65, 350), Color.Black);
             spriteBatch.DrawString(spriteFont, text, new Vector2(64, 350 - 1), Color.Yellow);

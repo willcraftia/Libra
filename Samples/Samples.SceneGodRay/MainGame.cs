@@ -3,6 +3,7 @@
 using System;
 using Libra;
 using Libra.Games;
+using Libra.Games.Debugging;
 using Libra.Graphics;
 using Libra.Graphics.Toolkit;
 using Libra.Input;
@@ -48,6 +49,11 @@ namespace Samples.SceneGodRay
         /// フォント。
         /// </summary>
         SpriteFont spriteFont;
+
+        /// <summary>
+        /// 中間マップ表示。
+        /// </summary>
+        TextureDisplay textureDisplay;
 
         /// <summary>
         /// 表示カメラ。
@@ -148,11 +154,17 @@ namespace Samples.SceneGodRay
                 FarClipDistance = 1000.0f
             };
             camera.Update();
+
+            textureDisplay = new TextureDisplay(this);
+            const float scale = 0.2f;
+            textureDisplay.TextureWidth = (int) (WindowWidth * scale);
+            textureDisplay.TextureHeight = (int) (WindowHeight * scale);
+            Components.Add(textureDisplay);
         }
 
         protected override void LoadContent()
         {
-            spriteBatch = new SpriteBatch(Device.ImmediateContext);
+            spriteBatch = new SpriteBatch(Device);
             spriteFont = content.Load<SpriteFont>("hudFont");
 
             normalSceneRenderTarget = Device.CreateRenderTarget();
@@ -250,9 +262,6 @@ namespace Samples.SceneGodRay
             // 最終的なシーンをバック バッファへ描画。
             CreateFinalSceneMap(context);
 
-            // 中間マップを描画。
-            DrawInterMapsToScreen();
-
             // HUD のテキストを描画。
             DrawOverlayText();
 
@@ -279,6 +288,8 @@ namespace Samples.SceneGodRay
 
             skySphere.SkyColor = Color.Black.ToVector3();
             skySphere.Draw(context);
+
+            textureDisplay.Textures.Add(occlusionRenderTarget.GetShaderResourceView());
         }
 
         void CreateNormalSceneMap(DeviceContext context)
@@ -293,6 +304,8 @@ namespace Samples.SceneGodRay
             skySphere.Draw(context);
 
             context.SetRenderTarget(null);
+
+            textureDisplay.Textures.Add(normalSceneRenderTarget.GetShaderResourceView());
         }
 
         void DrawCubeMeshes(DeviceContext context, IEffect effect)
@@ -333,7 +346,7 @@ namespace Samples.SceneGodRay
             if (lightBehindCamera)
             {
                 // ライト位置がカメラの後方ならば、光芒効果を適用しない。
-                spriteBatch.Begin();
+                spriteBatch.Begin(Device.ImmediateContext);
                 spriteBatch.Draw(normalSceneRenderTarget.GetShaderResourceView(), Vector2.Zero, Color.White);
                 spriteBatch.End();
                 return;
@@ -363,39 +376,12 @@ namespace Samples.SceneGodRay
 
             context.Clear(Color.Black);
 
-            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Additive);
+            spriteBatch.Begin(context, SpriteSortMode.Immediate, BlendState.Additive);
             spriteBatch.Draw(normalSceneRenderTarget.GetShaderResourceView(), Vector2.Zero, Color.White);
             spriteBatch.Draw(lightScatteringRenderTarget.GetShaderResourceView(), new Rectangle(0, 0, WindowWidth, WindowHeight), Color.White);
             spriteBatch.End();
-        }
 
-        void DrawInterMapsToScreen()
-        {
-            // 中間マップを画面左上に表示。
-
-            const float scale = 0.2f;
-
-            int w = (int) (WindowWidth * scale);
-            int h = (int) (WindowHeight * scale);
-
-            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque, SamplerState.PointClamp);
-
-            int index;
-            int x;
-
-            index = 0;
-            x = index * w;
-            spriteBatch.Draw(occlusionRenderTarget.GetShaderResourceView(), new Rectangle(x, 0, w, h), Color.White);
-
-            index = 1;
-            x = index * w;
-            spriteBatch.Draw(normalSceneRenderTarget.GetShaderResourceView(), new Rectangle(x, 0, w, h), Color.White);
-
-            index = 2;
-            x = index * w;
-            spriteBatch.Draw(lightScatteringRenderTarget.GetShaderResourceView(), new Rectangle(x, 0, w, h), Color.White);
-
-            spriteBatch.End();
+            textureDisplay.Textures.Add(lightScatteringRenderTarget.GetShaderResourceView());
         }
 
         void InvalidateRenderTargets()
@@ -423,7 +409,7 @@ namespace Samples.SceneGodRay
                 "PageUp/Down: Sample count (" + lightScatteringFilter.SampleCount + ")\n" +
                 "Home/End: Light occlusion & scattering map scale (x " + MapScales[currentMapScaleIndex] + ")";
 
-            spriteBatch.Begin();
+            spriteBatch.Begin(Device.ImmediateContext);
 
             spriteBatch.DrawString(spriteFont, text, new Vector2(33, 352), Color.Black);
             spriteBatch.DrawString(spriteFont, text, new Vector2(32, 352 - 1), Color.Yellow);

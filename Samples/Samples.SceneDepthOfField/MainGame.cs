@@ -3,6 +3,7 @@
 using System;
 using Libra;
 using Libra.Games;
+using Libra.Games.Debugging;
 using Libra.Graphics;
 using Libra.Graphics.Toolkit;
 using Libra.Input;
@@ -53,6 +54,11 @@ namespace Samples.SceneDepthOfField
         /// フォント。
         /// </summary>
         SpriteFont spriteFont;
+
+        /// <summary>
+        /// 中間マップ表示。
+        /// </summary>
+        TextureDisplay textureDisplay;
 
         /// <summary>
         /// 表示カメラ。
@@ -153,11 +159,17 @@ namespace Samples.SceneDepthOfField
             };
             camera.LookAt(initialCameraLookAt);
             camera.Update();
+
+            textureDisplay = new TextureDisplay(this);
+            const float scale = 0.2f;
+            textureDisplay.TextureWidth = (int) (WindowWidth * scale);
+            textureDisplay.TextureHeight = (int) (WindowHeight * scale);
+            Components.Add(textureDisplay);
         }
 
         protected override void LoadContent()
         {
-            spriteBatch = new SpriteBatch(Device.ImmediateContext);
+            spriteBatch = new SpriteBatch(Device);
             spriteFont = content.Load<SpriteFont>("hudFont");
 
             depthMapRenderTarget = Device.CreateRenderTarget();
@@ -229,9 +241,6 @@ namespace Samples.SceneDepthOfField
             // 最終的なシーンをバック バッファへ描画。
             CreateFinalSceneMap(context);
 
-            // 中間マップを描画。
-            DrawInterMapsToScreen();
-
             // HUD のテキストを描画。
             DrawOverlayText();
 
@@ -247,7 +256,7 @@ namespace Samples.SceneDepthOfField
 
             context.SetRenderTarget(null);
 
-            // 被写界深度合成フィルタへ設定。
+            // フィルタへ設定。
             dofCombineFilter.LinearDepthMap = depthMapRenderTarget.GetShaderResourceView();
         }
 
@@ -260,8 +269,10 @@ namespace Samples.SceneDepthOfField
 
             context.SetRenderTarget(null);
 
-            // 被写界深度合成フィルタへ設定。
+            // フィルタへ設定。
             dofCombineFilter.BaseTexture = normalSceneRenderTarget.GetShaderResourceView();
+
+            textureDisplay.Textures.Add(normalSceneRenderTarget.GetShaderResourceView());
         }
 
         void DrawScene(DeviceContext context, IEffect effect)
@@ -306,6 +317,8 @@ namespace Samples.SceneDepthOfField
                 context,
                 normalSceneRenderTarget.GetShaderResourceView(),
                 bluredSceneRenderTarget.GetRenderTargetView());
+
+            textureDisplay.Textures.Add(bluredSceneRenderTarget.GetShaderResourceView());
         }
 
         void CreateFinalSceneMap(DeviceContext context)
@@ -315,35 +328,6 @@ namespace Samples.SceneDepthOfField
             fullScreenQuad.Draw(context);
         }
 
-        void DrawInterMapsToScreen()
-        {
-            // 中間マップを画面左上に表示。
-
-            const float scale = 0.2f;
-
-            int w = (int) (WindowWidth * scale);
-            int h = (int) (WindowHeight * scale);
-
-            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Opaque, SamplerState.PointClamp);
-
-            int index;
-            int x;
-
-            index = 0;
-            x = index * w;
-            spriteBatch.Draw(depthMapRenderTarget.GetShaderResourceView(), new Rectangle(x, 0, w, h), Color.White);
-
-            index = 1;
-            x = index * w;
-            spriteBatch.Draw(normalSceneRenderTarget.GetShaderResourceView(), new Rectangle(x, 0, w, h), Color.White);
-
-            index = 2;
-            x = index * w;
-            spriteBatch.Draw(bluredSceneRenderTarget.GetShaderResourceView(), new Rectangle(x, 0, w, h), Color.White);
-            
-            spriteBatch.End();
-        }
-
         void DrawOverlayText()
         {
             // HUD のテキストを表示。
@@ -351,7 +335,7 @@ namespace Samples.SceneDepthOfField
                 "PageUp/Down: Focus distance (" + dofCombineFilter.FocusDistance + ")\n" +
                 "Home/End: Focus range (" + dofCombineFilter.FocusRange + ")";
 
-            spriteBatch.Begin();
+            spriteBatch.Begin(Device.ImmediateContext);
 
             spriteBatch.DrawString(spriteFont, text, new Vector2(65, 380), Color.Black);
             spriteBatch.DrawString(spriteFont, text, new Vector2(64, 380 - 1), Color.Yellow);

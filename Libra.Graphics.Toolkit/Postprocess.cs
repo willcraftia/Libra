@@ -104,7 +104,7 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        DeviceContext context;
+        Device device;
 
         int width;
 
@@ -170,15 +170,15 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        public Postprocess(DeviceContext context)
+        public Postprocess(Device device)
         {
-            if (context == null) throw new ArgumentNullException("context");
+            if (device == null) throw new ArgumentNullException("device");
 
-            this.context = context;
+            this.device = device;
 
             renderTargetChains = new Dictionary<ulong, RenderTargetChain>(4);
             Filters = new FilterCollection();
-            spriteBatch = new SpriteBatch(context);
+            spriteBatch = new SpriteBatch(device);
 
             width = 1;
             height = 1;
@@ -186,8 +186,9 @@ namespace Libra.Graphics.Toolkit
             multisampleCount = 1;
         }
 
-        public ShaderResourceView Draw(ShaderResourceView texture)
+        public ShaderResourceView Draw(DeviceContext context, ShaderResourceView texture)
         {
+            if (context == null) throw new ArgumentNullException("context");
             if (texture == null) throw new ArgumentNullException("texture");
 
             var currentTexture = texture;
@@ -239,7 +240,7 @@ namespace Libra.Graphics.Toolkit
 
                 context.SetRenderTarget(renderTargetChain.Current.GetRenderTargetView());
 
-                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque, null, null, null, filter.Apply);
+                spriteBatch.Begin(context, SpriteSortMode.Immediate, BlendState.Opaque, null, null, null, filter.Apply);
                 spriteBatch.Draw(currentTexture, new Rectangle(0, 0, currentWidth, currentHeight), Color.White);
                 spriteBatch.End();
 

@@ -153,8 +153,7 @@ namespace Samples.InstancedModel
             constants.DiffuseLight = new Vector4(1.25f, 1.25f, 1.25f, 0);
             constants.AmbientLight = new Vector4(0.25f, 0.25f, 0.25f, 0);
 
-            spriteBatch = new SpriteBatch(Device.ImmediateContext);
-            
+            spriteBatch = new SpriteBatch(Device);
             spriteFont = content.Load<SpriteFont>("Font");
 
             instancedModel = content.Load<Model>("Cats");
@@ -339,7 +338,7 @@ namespace Samples.InstancedModel
                                      instances.Count,
                                      instancingTechnique);
 
-            spriteBatch.Begin();
+            spriteBatch.Begin(Device.ImmediateContext);
 
             spriteBatch.DrawString(spriteFont, text, new Vector2(65, 65), Color.Black);
             spriteBatch.DrawString(spriteFont, text, new Vector2(64, 64), Color.White);

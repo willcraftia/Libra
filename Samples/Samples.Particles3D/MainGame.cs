@@ -91,8 +91,7 @@ namespace Samples.Particles3D
 
         protected override void LoadContent()
         {
-            spriteBatch = new SpriteBatch(Device.ImmediateContext);
-
+            spriteBatch = new SpriteBatch(Device);
             font = content.Load<SpriteFont>("font");
             grid = content.Load<Model>("grid");
         }
@@ -233,7 +232,7 @@ namespace Samples.Particles3D
                                            "Hit the A button or space bar to switch.",
                                            currentState);
 
-            spriteBatch.Begin();
+            spriteBatch.Begin(Device.ImmediateContext);
             spriteBatch.DrawString(font, message, new Vector2(50, 50), Color.White);
             spriteBatch.End();
         }

@@ -87,7 +87,7 @@ namespace Libra.Games.Debugging
 
         protected override void LoadContent()
         {
-            spriteBatch = new SpriteBatch(Device.ImmediateContext);
+            spriteBatch = new SpriteBatch(Device);
             
             base.LoadContent();
         }
@@ -102,15 +102,16 @@ namespace Libra.Games.Debugging
 
         public override void Draw(GameTime gameTime)
         {
-            var viewport = Device.ImmediateContext.Viewport;
-
+            var context = Device.ImmediateContext;
+            
+            var viewport = context.Viewport;
             var rect = new Rectangle(offset.X, offset.Y, textureWidth, textureHeight);
 
             for (int i = 0; i < Textures.Count; i++)
             {
                 var texture = Textures[i];
 
-                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
+                spriteBatch.Begin(context, SpriteSortMode.Immediate, BlendState.Opaque);
                 spriteBatch.Draw(texture, rect, Color.White);
                 spriteBatch.End();
 

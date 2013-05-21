@@ -96,7 +96,7 @@ namespace Samples.LensFlare
 
         protected override void LoadContent()
         {
-            spriteBatch = new SpriteBatch(Device.ImmediateContext);
+            spriteBatch = new SpriteBatch(Device);
 
             glowSprite = (Game as MainGame).Content.Load<Texture2D>("glow");
             glowSpriteView = Device.CreateShaderResourceView();
@@ -196,7 +196,7 @@ namespace Samples.LensFlare
             var origin = new Vector2(glowSprite.Width, glowSprite.Height) / 2;
             float scale = glowSize * 2 / glowSprite.Width;
 
-            spriteBatch.Begin();
+            spriteBatch.Begin(Device.ImmediateContext);
             spriteBatch.Draw(glowSpriteView, lightPosition, null, color, 0, origin, scale);
             spriteBatch.End();
         }
@@ -206,12 +206,13 @@ namespace Samples.LensFlare
             if (lightBehindCamera || occlusionAlpha <= 0)
                 return;
 
-            var viewport = Device.ImmediateContext.Viewport;
+            var context = Device.ImmediateContext;
+            var viewport = context.Viewport;
             var screenCenter = new Vector2(viewport.Width, viewport.Height) / 2;
 
             var flareVector = screenCenter - lightPosition;
 
-            spriteBatch.Begin(0, BlendState.Additive);
+            spriteBatch.Begin(context, SpriteSortMode.Deferred, BlendState.Additive);
 
             foreach (var flare in flares)
             {

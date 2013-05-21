@@ -7,7 +7,14 @@ using Libra.Graphics.Properties;
 
 #endregion
 
-// DirectX Tool Kit より移植。
+// 参考: DirectX Tool Kit (DXTK) SpriteBatch。
+// DKTK との相違点。
+// ・DeviceContext 単位ではなく Device 単位によるインスタンス生成。
+//      複数の DeviceContext を用いる場合は、
+//      DeviceContext 単位で個別にインスタンスを生成して管理すれば良い。
+// ・Libra における Device 単位リソース共有の枠組みの利用。
+//      せめて、Device が GC 回収されるタイミングで破棄したいため。
+//      静的クラスによる管理では破棄がアプリケーション終了時となる。
 
 namespace Libra.Graphics
 {
@@ -58,33 +65,6 @@ namespace Libra.Graphics
                 }
 
                 return indices;
-            }
-        }
-
-        #endregion
-
-        #region SharedContextResource
-
-        sealed class SharedContextResource
-        {
-            public int VertexBufferPosition;
-
-            public VertexBuffer VertexBuffer { get; private set; }
-
-            public ConstantBuffer ConstantBuffer { get; private set; }
-
-            public bool InImmediateMode { get; internal set; }
-
-            public SharedContextResource(DeviceContext context)
-            {
-                var device = context.Device;
-
-                VertexBuffer = device.CreateVertexBuffer();
-                VertexBuffer.Usage = ResourceUsage.Dynamic;
-                VertexBuffer.Initialize(VertexPositionColorTexture.VertexDeclaration, MaxBatchSize * VerticesPerSprite);
-
-                ConstantBuffer = device.CreateConstantBuffer();
-                ConstantBuffer.Initialize<Matrix>();
             }
         }
 
@@ -244,11 +224,19 @@ namespace Libra.Graphics
             new Vector2(1, 1)
         };
 
-        DeviceContext context;
+        Device device;
 
         SharedDeviceResource sharedDeviceResource;
 
-        SharedContextResource sharedContextResource;
+        int vertexBufferPosition;
+
+        VertexBuffer vertexBuffer;
+
+        ConstantBuffer constantBuffer;
+
+        DeviceContext context;
+
+        bool InImmediateMode;
 
         SpriteSortMode sortMode;
 
@@ -276,27 +264,22 @@ namespace Libra.Graphics
 
         RasterizerState previousRasterizerState;
 
-        // コンテキスト毎で縛る。
-        public SpriteBatch(DeviceContext context)
+        public SpriteBatch(Device device)
         {
-            if (context == null) throw new ArgumentNullException("context");
+            if (device == null) throw new ArgumentNullException("device");
 
-            this.context = context;
+            this.device = device;
 
-            sharedDeviceResource = context.Device.GetSharedResource<SpriteBatch, SharedDeviceResource>();
-            sharedContextResource = context.GetSharedResource<SpriteBatch, SharedContextResource>();
+            sharedDeviceResource = device.GetSharedResource<SpriteBatch, SharedDeviceResource>();
+
+            vertexBuffer = device.CreateVertexBuffer();
+            vertexBuffer.Usage = ResourceUsage.Dynamic;
+            vertexBuffer.Initialize(VertexPositionColorTexture.VertexDeclaration, MaxBatchSize * VerticesPerSprite);
+
+            constantBuffer = device.CreateConstantBuffer();
+            constantBuffer.Initialize<Matrix>();
 
             sprites = new List<SpriteInfo>();
-        }
-
-        static SharedDeviceResource CreateDeviceResources(Device device)
-        {
-            return new SharedDeviceResource(device);
-        }
-
-        static SharedContextResource CreateContextResoruces(DeviceContext context)
-        {
-            return new SharedContextResource(context);
         }
 
         // メモ
@@ -308,6 +291,7 @@ namespace Libra.Graphics
         // 使い方の概念については上記サイトを参照。
 
         public void Begin(
+            DeviceContext context,
             SpriteSortMode sortMode = SpriteSortMode.Deferred,
             BlendState blendState = null,
             SamplerState samplerState = null,
@@ -315,10 +299,11 @@ namespace Libra.Graphics
             RasterizerState rasterizerState = null,
             Action<DeviceContext> setCustomShaders = null)
         {
-            Begin(sortMode, blendState, samplerState, depthStencilState, rasterizerState, setCustomShaders, Matrix.Identity);
+            Begin(context, sortMode, blendState, samplerState, depthStencilState, rasterizerState, setCustomShaders, Matrix.Identity);
         }
 
         public void Begin(
+            DeviceContext context,
             SpriteSortMode sortMode,
             BlendState blendState,
             SamplerState samplerState,
@@ -327,9 +312,11 @@ namespace Libra.Graphics
             Action<DeviceContext> setCustomShaders,
             Matrix transformMatrix)
         {
+            if (context == null) throw new ArgumentNullException("context");
             if (inBeginEndPair)
                 throw new InvalidOperationException("Cannot nest Begin calls on a single SpriteBatch");
 
+            this.context = context;
             this.sortMode = sortMode;
             this.blendState = blendState ?? BlendState.AlphaBlend;
             this.samplerState = samplerState ?? SamplerState.LinearClamp;
@@ -340,12 +327,12 @@ namespace Libra.Graphics
 
             if (sortMode == SpriteSortMode.Immediate)
             {
-                if (sharedContextResource.InImmediateMode)
+                if (InImmediateMode)
                     throw new InvalidOperationException("Only one SpriteBatch at a time can use SpriteSortMode.Immediate");
 
                 PrepareForRendering();
 
-                sharedContextResource.InImmediateMode = true;
+                InImmediateMode = true;
             }
 
             inBeginEndPair = true;
@@ -358,11 +345,11 @@ namespace Libra.Graphics
 
             if (sortMode == SpriteSortMode.Immediate)
             {
-                sharedContextResource.InImmediateMode = false;
+                InImmediateMode = false;
             }
             else
             {
-                if (sharedContextResource.InImmediateMode)
+                if (InImmediateMode)
                     throw new InvalidOperationException("Cannot end one SpriteBatch while another is using SpriteSortMode.Immediate");
 
                 PrepareForRendering();
@@ -501,7 +488,7 @@ namespace Libra.Graphics
             context.VertexShader = sharedDeviceResource.VertexShader;
             context.PixelShader = sharedDeviceResource.PixelShader;
 
-            context.SetVertexBuffer(0, sharedContextResource.VertexBuffer);
+            context.SetVertexBuffer(0, vertexBuffer);
             context.IndexBuffer = sharedDeviceResource.IndexBuffer;
 
             Matrix viewportTransform;
@@ -510,14 +497,13 @@ namespace Libra.Graphics
             Matrix finalTransformMatrix;
             Matrix.Multiply(ref transformMatrix, ref viewportTransform, out finalTransformMatrix);
 
-            var constantBuffer = sharedContextResource.ConstantBuffer;
             constantBuffer.SetData(context, finalTransformMatrix);
 
             context.VertexShaderConstantBuffers[0] = constantBuffer;
 
             if (context.Deferred)
             {
-                sharedContextResource.VertexBufferPosition = 0;
+                vertexBufferPosition = 0;
             }
 
             if (setCustomShaders != null)
@@ -594,13 +580,13 @@ namespace Libra.Graphics
             while (0 < count)
             {
                 int batchSize = count;
-                int remainingSpace = MaxBatchSize - sharedContextResource.VertexBufferPosition;
+                int remainingSpace = MaxBatchSize - vertexBufferPosition;
 
                 if (remainingSpace < batchSize)
                 {
                     if (remainingSpace < MinBatchSize)
                     {
-                        sharedContextResource.VertexBufferPosition = 0;
+                        vertexBufferPosition = 0;
                         batchSize = Math.Min(count, MaxBatchSize);
                     }
                     else
@@ -609,21 +595,20 @@ namespace Libra.Graphics
                     }
                 }
 
-                var mapMode = (sharedContextResource.VertexBufferPosition == 0) ?
+                var mapMode = (vertexBufferPosition == 0) ?
                     DeviceContext.MapMode.WriteDiscard : DeviceContext.MapMode.WriteNoOverwrite;
 
                 // TODO
                 //
                 // SharpDX ToolKit によると、x64 では、
                 // Map されたリソースへ直接書き込むと極端に低速になるとのこと。
-                // 要調査。
-                // 恐らく、64 ビット ポインタであるから、ではないだろうか？
+                // x64 で実装する際には要調査。
 
-                var mappedResource = context.Map(sharedContextResource.VertexBuffer, 0, mapMode);
+                var mappedResource = context.Map(vertexBuffer, 0, mapMode);
                 unsafe
                 {
                     var vertices = (VertexPositionColorTexture*) mappedResource.Pointer +
-                        sharedContextResource.VertexBufferPosition * VerticesPerSprite;
+                        vertexBufferPosition * VerticesPerSprite;
 
                     for (int i = 0; i < batchSize; i++)
                     {
@@ -632,14 +617,14 @@ namespace Libra.Graphics
                         vertices += VerticesPerSprite;
                     }
                 }
-                context.Unmap(sharedContextResource.VertexBuffer, 0);
+                context.Unmap(vertexBuffer, 0);
 
-                int startIndexLocation = sharedContextResource.VertexBufferPosition * IndicesPerSprite;
+                int startIndexLocation = vertexBufferPosition * IndicesPerSprite;
                 int indexCount = batchSize * IndicesPerSprite;
 
                 context.DrawIndexed(indexCount, startIndexLocation);
 
-                sharedContextResource.VertexBufferPosition += batchSize;
+                vertexBufferPosition += batchSize;
                 baseSpriteIndex += batchSize;
                 count -= batchSize;
             }
@@ -806,7 +791,6 @@ namespace Libra.Graphics
             if (disposing)
             {
                 sharedDeviceResource = null;
-                sharedContextResource = null;
             }
 
             disposed = true;

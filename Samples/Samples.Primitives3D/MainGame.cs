@@ -60,8 +60,7 @@ namespace Samples.Primitives3D
 
         protected override void LoadContent()
         {
-            spriteBatch = new SpriteBatch(Device.ImmediateContext);
-
+            spriteBatch = new SpriteBatch(Device);
             spriteFont = content.Load<SpriteFont>("hudFont");
 
             primitives.Add(new CubePrimitive(Device));
@@ -119,7 +118,7 @@ namespace Samples.Primitives3D
                        "B or tap bottom left of screen = Change color\n" +
                        "Y or tap bottom right of screen = Toggle wireframe";
 
-            spriteBatch.Begin();
+            spriteBatch.Begin(Device.ImmediateContext);
             spriteBatch.DrawString(spriteFont, text, new Vector2(48, 48), Color.White);
             spriteBatch.End();
 

@@ -216,7 +216,7 @@ namespace Samples.SceneVolumetricFog
 
         protected override void LoadContent()
         {
-            spriteBatch = new SpriteBatch(Device.ImmediateContext);
+            spriteBatch = new SpriteBatch(Device);
             spriteFont = content.Load<SpriteFont>("hudFont");
 
             depthMapRenderTarget = Device.CreateRenderTarget();
@@ -253,7 +253,7 @@ namespace Samples.SceneVolumetricFog
             normalSceneRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
             normalSceneRenderTarget.Initialize();
 
-            postprocess = new Postprocess(Device.ImmediateContext);
+            postprocess = new Postprocess(Device);
             postprocess.Width = WindowWidth;
             postprocess.Height = WindowHeight;
 
@@ -322,7 +322,7 @@ namespace Samples.SceneVolumetricFog
             CreateNormalSceneMap(context);
 
             // ポストプロセスを実行。
-            DoPostprocess();
+            ApplyPostprocess(context);
 
             // 最終的なシーンをバック バッファへ描画。
             CreateFinalSceneMap(context);
@@ -414,9 +414,9 @@ namespace Samples.SceneVolumetricFog
             textureDisplay.Textures.Add(normalSceneRenderTarget.GetShaderResourceView());
         }
 
-        void DoPostprocess()
+        void ApplyPostprocess(DeviceContext context)
         {
-            finalSceneTexture = postprocess.Draw(normalSceneRenderTarget.GetShaderResourceView());
+            finalSceneTexture = postprocess.Draw(context, normalSceneRenderTarget.GetShaderResourceView());
         }
 
         void DrawPrimitiveMesh(DeviceContext context, PrimitiveMesh mesh, Matrix world, Vector3 color)
@@ -480,7 +480,7 @@ namespace Samples.SceneVolumetricFog
 
         void CreateFinalSceneMap(DeviceContext context)
         {
-            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
+            spriteBatch.Begin(context, SpriteSortMode.Immediate, BlendState.Opaque);
             spriteBatch.Draw(finalSceneTexture, Vector2.Zero, Color.White);
             spriteBatch.End();
         }
@@ -497,7 +497,7 @@ namespace Samples.SceneVolumetricFog
                 "[F4] Show/Hide Front Fog Depth Map (" + frontFogDepthMapColorFilter.Enabled + ")\n" +
                 "[F5] Show/Hide Back Fog Depth Map (" + backFogDepthMapColorFilter.Enabled + ")";
 
-            spriteBatch.Begin();
+            spriteBatch.Begin(Device.ImmediateContext);
 
             spriteBatch.DrawString(spriteFont, text, new Vector2(65, 280), Color.Black);
             spriteBatch.DrawString(spriteFont, text, new Vector2(64, 280 - 1), Color.Yellow);

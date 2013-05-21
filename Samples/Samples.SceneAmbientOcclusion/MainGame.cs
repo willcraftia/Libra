@@ -249,7 +249,7 @@ namespace Samples.SceneAmbientOcclusion
 
         protected override void LoadContent()
         {
-            spriteBatch = new SpriteBatch(Device.ImmediateContext);
+            spriteBatch = new SpriteBatch(Device);
             spriteFont = content.Load<SpriteFont>("hudFont");
 
             depthMapRenderTarget = Device.CreateRenderTarget();
@@ -282,12 +282,12 @@ namespace Samples.SceneAmbientOcclusion
             ssaoMap = new SSAOMap(Device);
             ssaoMap.Projection = camera.Projection;
 
-            postprocessSSAOMap = new Postprocess(Device.ImmediateContext);
+            postprocessSSAOMap = new Postprocess(Device);
             postprocessSSAOMap.Width = ssaoMapRenderTarget.Width;
             postprocessSSAOMap.Height = ssaoMapRenderTarget.Height;
             postprocessSSAOMap.Format = SurfaceFormat.Single;
 
-            postprocessScene = new Postprocess(Device.ImmediateContext);
+            postprocessScene = new Postprocess(Device);
             postprocessScene.Width = WindowWidth;
             postprocessScene.Height = WindowHeight;
 
@@ -375,10 +375,10 @@ namespace Samples.SceneAmbientOcclusion
             CreateNormalSceneMap(context);
 
             // 環境光閉塞マップへポストプロセスを適用。
-            DoPostprocessSSAOMap();
+            DoPostprocessSSAOMap(context);
 
             // 通常シーンへポストプロセスを適用。
-            DoPostprocessScene();
+            DoPostprocessScene(context);
 
             // 最終的なシーンをバック バッファへ描画。
             CreateFinalSceneMap(context);
@@ -497,7 +497,7 @@ namespace Samples.SceneAmbientOcclusion
             mesh.Draw(context);
         }
 
-        void DoPostprocessSSAOMap()
+        void DoPostprocessSSAOMap(DeviceContext context)
         {
             postprocessSSAOMap.Filters.Clear();
             for (int i = 0; i < blurIteration; i++)
@@ -506,7 +506,7 @@ namespace Samples.SceneAmbientOcclusion
                 postprocessSSAOMap.Filters.Add(ssaoBlurV);
             }
 
-            var finalSSAOMap = postprocessSSAOMap.Draw(ssaoMapRenderTarget.GetShaderResourceView());
+            var finalSSAOMap = postprocessSSAOMap.Draw(context, ssaoMapRenderTarget.GetShaderResourceView());
 
             // 環境光閉塞マップ合成フィルタへ設定。
             ssaoCombine.SSAOMap = finalSSAOMap;
@@ -516,14 +516,14 @@ namespace Samples.SceneAmbientOcclusion
             textureDisplay.Textures.Add(finalSSAOMap);
         }
 
-        void DoPostprocessScene()
+        void DoPostprocessScene(DeviceContext context)
         {
-            finalSceneTexture = postprocessScene.Draw(normalSceneRenderTarget.GetShaderResourceView());
+            finalSceneTexture = postprocessScene.Draw(context, normalSceneRenderTarget.GetShaderResourceView());
         }
 
         void CreateFinalSceneMap(DeviceContext context)
         {
-            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
+            spriteBatch.Begin(context, SpriteSortMode.Immediate, BlendState.Opaque);
             spriteBatch.Draw(finalSceneTexture, Vector2.Zero, Color.White);
             spriteBatch.End();
         }
@@ -560,7 +560,7 @@ namespace Samples.SceneAmbientOcclusion
                 "[F6] Show/Hide Final SSAO Map (" + linearDepthMapVisualize.Enabled + ")\n" +
                 "[PageUp/Down] Blur Iteration (" + blurIteration + ")";
 
-            spriteBatch.Begin();
+            spriteBatch.Begin(Device.ImmediateContext);
 
             spriteBatch.DrawString(spriteFont, text, new Vector2(65, 340), Color.Black);
             spriteBatch.DrawString(spriteFont, text, new Vector2(64, 340 - 1), Color.Yellow);

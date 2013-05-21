@@ -266,7 +266,7 @@ namespace Samples.ScenePostprocess
 
         protected override void LoadContent()
         {
-            spriteBatch = new SpriteBatch(Device.ImmediateContext);
+            spriteBatch = new SpriteBatch(Device);
             spriteFont = content.Load<SpriteFont>("hudFont");
 
             depthMapRenderTarget = Device.CreateRenderTarget();
@@ -289,7 +289,7 @@ namespace Samples.ScenePostprocess
             normalSceneRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
             normalSceneRenderTarget.Initialize();
 
-            postprocess = new Postprocess(Device.ImmediateContext);
+            postprocess = new Postprocess(Device);
             postprocess.Width = WindowWidth;
             postprocess.Height = WindowHeight;
 
@@ -380,7 +380,7 @@ namespace Samples.ScenePostprocess
             CreateNormalSceneMap(context);
 
             // ポストプロセスを適用。
-            finalSceneTexture = postprocess.Draw(normalSceneRenderTarget.GetShaderResourceView());
+            ApplyPostprocess(context);
 
             // 最終的なシーンをバック バッファへ描画。
             CreateFinalSceneMap(context);
@@ -394,7 +394,6 @@ namespace Samples.ScenePostprocess
         void CreateDepthMap(DeviceContext context)
         {
             context.SetRenderTarget(depthMapRenderTarget.GetRenderTargetView());
-            //context.Clear(Vector4.One);
             context.Clear(new Vector4(float.MaxValue));
 
             DrawScene(context, depthMapEffect);
@@ -441,6 +440,11 @@ namespace Samples.ScenePostprocess
 
             // 中間マップ表示。
             textureDisplay.Textures.Add(normalSceneRenderTarget.GetShaderResourceView());
+        }
+
+        void ApplyPostprocess(DeviceContext context)
+        {
+            finalSceneTexture = postprocess.Draw(context, normalSceneRenderTarget.GetShaderResourceView());
         }
 
         void DrawPrimitiveMesh(DeviceContext context, PrimitiveMesh mesh, Matrix world, Vector3 color)
@@ -492,7 +496,7 @@ namespace Samples.ScenePostprocess
 
         void CreateFinalSceneMap(DeviceContext context)
         {
-            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
+            spriteBatch.Begin(context, SpriteSortMode.Immediate, BlendState.Opaque);
             spriteBatch.Draw(finalSceneTexture, Vector2.Zero, Color.White);
             spriteBatch.End();
         }
@@ -511,7 +515,7 @@ namespace Samples.ScenePostprocess
                 "[5] Radial Blur (" + radialFilter.Enabled + ")\n" +
                 "[6] Normal Edge Detect (" + normalEdgeDetectFilter.Enabled + ")";
 
-            spriteBatch.Begin();
+            spriteBatch.Begin(Device.ImmediateContext);
 
             spriteBatch.DrawString(spriteFont, text, new Vector2(65, 280), Color.Black);
             spriteBatch.DrawString(spriteFont, text, new Vector2(64, 280 - 1), Color.Yellow);
