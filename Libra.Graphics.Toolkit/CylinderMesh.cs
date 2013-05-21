@@ -8,8 +8,8 @@ namespace Libra.Graphics.Toolkit
 {
     public sealed class CylinderMesh : PrimitiveMesh
     {
-        public CylinderMesh(Device device, float height = 1.0f, float diameter = 1.0f, int tessellation = 32)
-            : base(device)
+        public CylinderMesh(DeviceContext context, float height = 1.0f, float diameter = 1.0f, int tessellation = 32)
+            : base(context)
         {
             if (height < 0.0f) throw new ArgumentOutOfRangeException("height");
             if (diameter < 0.0f) throw new ArgumentOutOfRangeException("diameter");

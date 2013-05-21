@@ -207,10 +207,10 @@ namespace Samples.SceneDepthOfField
             basicEffect.PerPixelLighting = true;
             basicEffect.EnableDefaultLighting();
 
-            cubeMesh = new CubeMesh(Device, 20);
-            sphereMesh = new SphereMesh(Device, 20, 32);
-            cylinderMesh = new CylinderMesh(Device, 80, 20, 32);
-            squareMesh = new SquareMesh(Device, 400);
+            cubeMesh = new CubeMesh(Device.ImmediateContext, 20);
+            sphereMesh = new SphereMesh(Device.ImmediateContext, 20, 32);
+            cylinderMesh = new CylinderMesh(Device.ImmediateContext, 80, 20, 32);
+            squareMesh = new SquareMesh(Device.ImmediateContext, 400);
         }
 
         protected override void Update(GameTime gameTime)
@@ -311,7 +311,7 @@ namespace Samples.SceneDepthOfField
             }
 
             effect.Apply(context);
-            mesh.Draw(context);
+            mesh.Draw();
         }
 
         void CreateBluredSceneMap()

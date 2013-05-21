@@ -41,6 +41,11 @@ namespace Samples.SceneGodRay
         XnbManager content;
 
         /// <summary>
+        /// 描画に使用するコンテキスト。
+        /// </summary>
+        DeviceContext context;
+
+        /// <summary>
         /// スプライト バッチ。
         /// </summary>
         SpriteBatch spriteBatch;
@@ -164,7 +169,9 @@ namespace Samples.SceneGodRay
 
         protected override void LoadContent()
         {
-            spriteBatch = new SpriteBatch(Device.ImmediateContext);
+            context = Device.ImmediateContext;
+
+            spriteBatch = new SpriteBatch(context);
             spriteFont = content.Load<SpriteFont>("hudFont");
 
             normalSceneRenderTarget = Device.CreateRenderTarget();
@@ -189,9 +196,9 @@ namespace Samples.SceneGodRay
 
             fullScreenQuad = new FullScreenQuad(Device);
 
-            cubeMesh = new CubeMesh(Device, 10.0f);
+            cubeMesh = new CubeMesh(context, 10.0f);
 
-            skySphere = new SkySphere(Device);
+            skySphere = new SkySphere(context);
             skySphere.Projection = camera.Projection;
             skySphere.SunDirection = -lightDirection;
             skySphere.SunThreshold = 0.99f;
@@ -212,8 +219,6 @@ namespace Samples.SceneGodRay
 
         protected override void Draw(GameTime gameTime)
         {
-            var context = Device.ImmediateContext;
-
             singleColorObjectEffect.View = camera.View;
             skySphere.View = camera.View;
             basicEffect.View = camera.View;
@@ -253,14 +258,14 @@ namespace Samples.SceneGodRay
             // 閉塞マップを作成。
             if (!lightBehindCamera)
             {
-                CreateOcclusionMap(context);
+                CreateOcclusionMap();
             }
 
             // 通常シーンを描画。
-            CreateNormalSceneMap(context);
+            CreateNormalSceneMap();
 
             // 最終的なシーンをバック バッファへ描画。
-            CreateFinalSceneMap(context);
+            CreateFinalSceneMap();
 
             // HUD のテキストを描画。
             DrawOverlayText();
@@ -268,7 +273,7 @@ namespace Samples.SceneGodRay
             base.Draw(gameTime);
         }
 
-        void CreateOcclusionMap(DeviceContext context)
+        void CreateOcclusionMap()
         {
             if (occlusionRenderTarget == null)
             {
@@ -284,31 +289,31 @@ namespace Samples.SceneGodRay
 
             context.Clear(Color.Black);
 
-            DrawCubeMeshes(context, singleColorObjectEffect);
+            DrawCubeMeshes(singleColorObjectEffect);
 
             skySphere.SkyColor = Color.Black.ToVector3();
-            skySphere.Draw(context);
+            skySphere.Draw();
 
             textureDisplay.Textures.Add(occlusionRenderTarget);
         }
 
-        void CreateNormalSceneMap(DeviceContext context)
+        void CreateNormalSceneMap()
         {
             context.SetRenderTarget(normalSceneRenderTarget);
 
             context.Clear(Color.CornflowerBlue);
 
-            DrawCubeMeshes(context, basicEffect);
+            DrawCubeMeshes(basicEffect);
 
             skySphere.SkyColor = Color.CornflowerBlue.ToVector3();
-            skySphere.Draw(context);
+            skySphere.Draw();
 
             context.SetRenderTarget(null);
 
             textureDisplay.Textures.Add(normalSceneRenderTarget);
         }
 
-        void DrawCubeMeshes(DeviceContext context, IEffect effect)
+        void DrawCubeMeshes(IEffect effect)
         {
             var effectMatrices = effect as IEffectMatrices;
 
@@ -335,13 +340,13 @@ namespace Samples.SceneGodRay
                         }
 
                         effect.Apply(context);
-                        cubeMesh.Draw(context);
+                        cubeMesh.Draw();
                     }
                 }
             }
         }
 
-        void CreateFinalSceneMap(DeviceContext context)
+        void CreateFinalSceneMap()
         {
             if (lightBehindCamera)
             {

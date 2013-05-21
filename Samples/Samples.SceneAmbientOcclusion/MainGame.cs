@@ -47,6 +47,11 @@ namespace Samples.SceneAmbientOcclusion
         XnbManager content;
 
         /// <summary>
+        /// 描画に使用するコンテキスト。
+        /// </summary>
+        DeviceContext context;
+
+        /// <summary>
         /// スプライト バッチ。
         /// </summary>
         SpriteBatch spriteBatch;
@@ -249,7 +254,9 @@ namespace Samples.SceneAmbientOcclusion
 
         protected override void LoadContent()
         {
-            spriteBatch = new SpriteBatch(Device.ImmediateContext);
+            context = Device.ImmediateContext;
+
+            spriteBatch = new SpriteBatch(context);
             spriteFont = content.Load<SpriteFont>("hudFont");
 
             depthMapRenderTarget = Device.CreateRenderTarget();
@@ -282,12 +289,12 @@ namespace Samples.SceneAmbientOcclusion
             ssaoMap = new SSAOMap(Device);
             ssaoMap.Projection = camera.Projection;
 
-            postprocessSSAOMap = new Postprocess(Device.ImmediateContext);
+            postprocessSSAOMap = new Postprocess(context);
             postprocessSSAOMap.Width = ssaoMapRenderTarget.Width;
             postprocessSSAOMap.Height = ssaoMapRenderTarget.Height;
             postprocessSSAOMap.Format = SurfaceFormat.Single;
 
-            postprocessScene = new Postprocess(Device.ImmediateContext);
+            postprocessScene = new Postprocess(context);
             postprocessScene.Width = WindowWidth;
             postprocessScene.Height = WindowHeight;
 
@@ -328,10 +335,10 @@ namespace Samples.SceneAmbientOcclusion
             basicEffect.PerPixelLighting = true;
             basicEffect.EnableDefaultLighting();
 
-            cubeMesh = new CubeMesh(Device, 20);
-            sphereMesh = new SphereMesh(Device, 20, 32);
-            cylinderMesh = new CylinderMesh(Device, 80, 20, 32);
-            squareMesh = new SquareMesh(Device, 400);
+            cubeMesh = new CubeMesh(context, 20);
+            sphereMesh = new SphereMesh(context, 20, 32);
+            cylinderMesh = new CylinderMesh(context, 80, 20, 32);
+            squareMesh = new SquareMesh(context, 400);
         }
 
         protected override void Update(GameTime gameTime)
@@ -356,23 +363,21 @@ namespace Samples.SceneAmbientOcclusion
 
         protected override void Draw(GameTime gameTime)
         {
-            var context = Device.ImmediateContext;
-
             // 念のため状態を初期状態へ。
             context.BlendState = BlendState.Opaque;
             context.DepthStencilState = DepthStencilState.Default;
 
             // 深度マップを描画。
-            CreateDepthMap(context);
+            CreateDepthMap();
 
             // 法線マップを描画。
-            CreateNormalMap(context);
+            CreateNormalMap();
 
             // 環境光閉塞マップを描画。
-            CreateSSAOMap(context);
+            CreateSSAOMap();
 
             // 通常シーンを描画。
-            CreateNormalSceneMap(context);
+            CreateNormalSceneMap();
 
             // 環境光閉塞マップへポストプロセスを適用。
             ApplyPostprocessSSAOMap();
@@ -381,7 +386,7 @@ namespace Samples.SceneAmbientOcclusion
             ApplyPostprocessScene();
 
             // 最終的なシーンをバック バッファへ描画。
-            CreateFinalSceneMap(context);
+            CreateFinalSceneMap();
 
             // HUD のテキストを描画。
             if (hudVisible)
@@ -390,12 +395,12 @@ namespace Samples.SceneAmbientOcclusion
             base.Draw(gameTime);
         }
 
-        void CreateDepthMap(DeviceContext context)
+        void CreateDepthMap()
         {
             context.SetRenderTarget(depthMapRenderTarget);
             context.Clear(new Vector4(float.MaxValue));
 
-            DrawScene(context, depthMapEffect);
+            DrawScene(depthMapEffect);
 
             context.SetRenderTarget(null);
 
@@ -405,12 +410,12 @@ namespace Samples.SceneAmbientOcclusion
             linearDepthMapVisualize.LinearDepthMap = depthMapRenderTarget;
         }
 
-        void CreateNormalMap(DeviceContext context)
+        void CreateNormalMap()
         {
             context.SetRenderTarget(normalMapRenderTarget);
             context.Clear(Vector4.One);
 
-            DrawScene(context, normalMapEffect);
+            DrawScene(normalMapEffect);
 
             context.SetRenderTarget(null);
 
@@ -422,7 +427,7 @@ namespace Samples.SceneAmbientOcclusion
             textureDisplay.Textures.Add(normalMapRenderTarget);
         }
 
-        void CreateSSAOMap(DeviceContext context)
+        void CreateSSAOMap()
         {
             context.SetRenderTarget(ssaoMapRenderTarget);
             context.Clear(Vector4.One);
@@ -438,12 +443,12 @@ namespace Samples.SceneAmbientOcclusion
             textureDisplay.Textures.Add(ssaoMapRenderTarget);
         }
 
-        void CreateNormalSceneMap(DeviceContext context)
+        void CreateNormalSceneMap()
         {
             context.SetRenderTarget(normalSceneRenderTarget);
             context.Clear(Color.CornflowerBlue);
 
-            DrawScene(context, basicEffect);
+            DrawScene(basicEffect);
 
             context.SetRenderTarget(null);
 
@@ -451,14 +456,14 @@ namespace Samples.SceneAmbientOcclusion
             textureDisplay.Textures.Add(normalSceneRenderTarget);
         }
 
-        void DrawPrimitiveMesh(DeviceContext context, PrimitiveMesh mesh, Matrix world, Vector3 color)
+        void DrawPrimitiveMesh(PrimitiveMesh mesh, Matrix world, Vector3 color)
         {
             basicEffect.DiffuseColor = color;
 
-            DrawPrimitiveMesh(context, mesh, world, color, basicEffect);
+            DrawPrimitiveMesh(mesh, world, color, basicEffect);
         }
 
-        void DrawScene(DeviceContext context, IEffect effect)
+        void DrawScene(IEffect effect)
         {
             var effectMatrices = effect as IEffectMatrices;
             if (effectMatrices != null)
@@ -467,19 +472,19 @@ namespace Samples.SceneAmbientOcclusion
                 effectMatrices.Projection = camera.Projection;
             }
 
-            DrawPrimitiveMesh(context, cubeMesh, Matrix.CreateTranslation(-85, 10, -20), new Vector3(1, 0, 0), effect);
-            DrawPrimitiveMesh(context, cubeMesh, Matrix.CreateTranslation(-60, 10, -20), new Vector3(1, 0, 0), effect);
-            DrawPrimitiveMesh(context, cubeMesh, Matrix.CreateTranslation(-40, 10, 0), new Vector3(1, 0, 0), effect);
-            DrawPrimitiveMesh(context, sphereMesh, Matrix.CreateTranslation(10, 10, -60), new Vector3(0, 1, 0), effect);
-            DrawPrimitiveMesh(context, sphereMesh, Matrix.CreateTranslation(0, 10, -40), new Vector3(0, 1, 0), effect);
+            DrawPrimitiveMesh(cubeMesh, Matrix.CreateTranslation(-85, 10, -20), new Vector3(1, 0, 0), effect);
+            DrawPrimitiveMesh(cubeMesh, Matrix.CreateTranslation(-60, 10, -20), new Vector3(1, 0, 0), effect);
+            DrawPrimitiveMesh(cubeMesh, Matrix.CreateTranslation(-40, 10, 0), new Vector3(1, 0, 0), effect);
+            DrawPrimitiveMesh(sphereMesh, Matrix.CreateTranslation(10, 10, -60), new Vector3(0, 1, 0), effect);
+            DrawPrimitiveMesh(sphereMesh, Matrix.CreateTranslation(0, 10, -40), new Vector3(0, 1, 0), effect);
             for (float z = -180; z <= 180; z += 40)
             {
-                DrawPrimitiveMesh(context, cylinderMesh, Matrix.CreateTranslation(-180, 40, z), new Vector3(0, 0, 1), effect);
+                DrawPrimitiveMesh(cylinderMesh, Matrix.CreateTranslation(-180, 40, z), new Vector3(0, 0, 1), effect);
             }
-            DrawPrimitiveMesh(context, squareMesh, Matrix.Identity, new Vector3(0.5f), effect);
+            DrawPrimitiveMesh(squareMesh, Matrix.Identity, new Vector3(0.5f), effect);
         }
 
-        void DrawPrimitiveMesh(DeviceContext context, PrimitiveMesh mesh, Matrix world, Vector3 color, IEffect effect)
+        void DrawPrimitiveMesh(PrimitiveMesh mesh, Matrix world, Vector3 color, IEffect effect)
         {
             var effectMatrices = effect as IEffectMatrices;
             if (effectMatrices != null)
@@ -494,7 +499,7 @@ namespace Samples.SceneAmbientOcclusion
             }
 
             effect.Apply(context);
-            mesh.Draw(context);
+            mesh.Draw();
         }
 
         void ApplyPostprocessSSAOMap()
@@ -521,7 +526,7 @@ namespace Samples.SceneAmbientOcclusion
             finalSceneTexture = postprocessScene.Draw(normalSceneRenderTarget);
         }
 
-        void CreateFinalSceneMap(DeviceContext context)
+        void CreateFinalSceneMap()
         {
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
             spriteBatch.Draw(finalSceneTexture, Vector2.Zero, Color.White);

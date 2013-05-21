@@ -16,7 +16,7 @@ namespace Libra.Graphics.Toolkit
 
         int currentIndexCount;
 
-        public Device Device { get; private set; }
+        public DeviceContext Context { get; private set; }
 
         public VertexBuffer VertexBuffer { get; private set; }
 
@@ -27,22 +27,20 @@ namespace Libra.Graphics.Toolkit
             get { return currentVertexCount; }
         }
 
-        protected PrimitiveMesh(Device device)
-        {
-            if (device == null) throw new ArgumentNullException("device");
-
-            Device = device;
-        }
-
-        public void Draw(DeviceContext context)
+        protected PrimitiveMesh(DeviceContext context)
         {
             if (context == null) throw new ArgumentNullException("context");
 
-            context.SetVertexBuffer(VertexBuffer);
-            context.IndexBuffer = IndexBuffer;
-            context.PrimitiveTopology = PrimitiveTopology.TriangleList;
+            Context = context;
+        }
 
-            context.DrawIndexed(IndexBuffer.IndexCount);
+        public void Draw()
+        {
+            Context.SetVertexBuffer(VertexBuffer);
+            Context.IndexBuffer = IndexBuffer;
+            Context.PrimitiveTopology = PrimitiveTopology.TriangleList;
+
+            Context.DrawIndexed(IndexBuffer.IndexCount);
         }
 
         protected void Allocate(int vertexCount, int indexCount)
@@ -65,11 +63,11 @@ namespace Libra.Graphics.Toolkit
 
         protected void Build()
         {
-            VertexBuffer = Device.CreateVertexBuffer();
+            VertexBuffer = Context.Device.CreateVertexBuffer();
             VertexBuffer.Usage = ResourceUsage.Immutable;
             VertexBuffer.Initialize(vertices);
 
-            IndexBuffer = Device.CreateIndexBuffer();
+            IndexBuffer = Context.Device.CreateIndexBuffer();
             IndexBuffer.Format = IndexFormat.SixteenBits;
             IndexBuffer.Usage = ResourceUsage.Immutable;
             IndexBuffer.Initialize(indices);

@@ -8,8 +8,8 @@ namespace Libra.Graphics.Toolkit
 {
     public sealed class SphereMesh : PrimitiveMesh
     {
-        public SphereMesh(Device device, float diameter = 1.0f, int tessellation = 16)
-            : base(device)
+        public SphereMesh(DeviceContext context, float diameter = 1.0f, int tessellation = 16)
+            : base(context)
         {
             if (diameter < 0.0f) throw new ArgumentOutOfRangeException("diameter");
             if (tessellation < 3) throw new ArgumentOutOfRangeException("tessellation");
@@ -81,8 +81,7 @@ namespace Libra.Graphics.Toolkit
                 AddIndex(CurrentVertex - 2 - i);
             }
 
-            //================================================================
-            // Build
+            // ビルド
 
             Build();
         }

@@ -37,6 +37,8 @@ namespace Samples.SceneGodRay
             Name = "SkySphere.DepthReadWithLessEqual"
         };
 
+        DeviceContext context;
+
         SkySphereEffect skySphereEffect;
 
         SphereMesh sphereMesh;
@@ -46,8 +48,6 @@ namespace Samples.SceneGodRay
         Matrix projection;
 
         DirtyFlags dirtyFlags;
-
-        public Device Device { get; private set; }
 
         public Matrix View
         {
@@ -101,20 +101,20 @@ namespace Samples.SceneGodRay
             set { skySphereEffect.SunVisible = value; }
         }
 
-        public SkySphere(Device device)
+        public SkySphere(DeviceContext context)
         {
-            if (device == null) throw new ArgumentNullException("device");
+            if (context == null) throw new ArgumentNullException("context");
 
-            Device = device;
+            this.context = context;
 
-            skySphereEffect = new SkySphereEffect(device);
+            skySphereEffect = new SkySphereEffect(context.Device);
             skySphereEffect.World = Matrix.Identity;
-            sphereMesh = new SphereMesh(device, 1, 32);
+            sphereMesh = new SphereMesh(context, 1, 32);
 
             dirtyFlags |= DirtyFlags.LocalView | DirtyFlags.LocalProjection;
         }
 
-        public void Draw(DeviceContext context)
+        public void Draw()
         {
             if ((dirtyFlags & DirtyFlags.LocalView) != 0)
             {
@@ -146,7 +146,7 @@ namespace Samples.SceneGodRay
             context.RasterizerState = RasterizerState.CullFront;
 
             skySphereEffect.Apply(context);
-            sphereMesh.Draw(context);
+            sphereMesh.Draw();
 
             // デフォルトへ戻す。
             context.DepthStencilState = DepthStencilState.Default;

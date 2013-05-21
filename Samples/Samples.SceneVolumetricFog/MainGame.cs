@@ -46,6 +46,11 @@ namespace Samples.SceneVolumetricFog
         XnbManager content;
 
         /// <summary>
+        /// 描画に使用するコンテキスト。
+        /// </summary>
+        DeviceContext context;
+
+        /// <summary>
         /// スプライト バッチ。
         /// </summary>
         SpriteBatch spriteBatch;
@@ -216,7 +221,9 @@ namespace Samples.SceneVolumetricFog
 
         protected override void LoadContent()
         {
-            spriteBatch = new SpriteBatch(Device.ImmediateContext);
+            context = Device.ImmediateContext;
+
+            spriteBatch = new SpriteBatch(context);
             spriteFont = content.Load<SpriteFont>("hudFont");
 
             depthMapRenderTarget = Device.CreateRenderTarget();
@@ -253,7 +260,7 @@ namespace Samples.SceneVolumetricFog
             normalSceneRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
             normalSceneRenderTarget.Initialize();
 
-            postprocess = new Postprocess(Device.ImmediateContext);
+            postprocess = new Postprocess(context);
             postprocess.Width = WindowWidth;
             postprocess.Height = WindowHeight;
 
@@ -282,11 +289,11 @@ namespace Samples.SceneVolumetricFog
             basicEffect.PerPixelLighting = true;
             basicEffect.EnableDefaultLighting();
 
-            cubeMesh = new CubeMesh(Device, 20);
-            sphereMesh = new SphereMesh(Device, 20, 32);
-            cylinderMesh = new CylinderMesh(Device, 80, 20, 32);
-            squareMesh = new SquareMesh(Device, 400);
-            volumetricFogMesh = new CubeMesh(Device, 400);
+            cubeMesh = new CubeMesh(context, 20);
+            sphereMesh = new SphereMesh(context, 20, 32);
+            cylinderMesh = new CylinderMesh(context, 80, 20, 32);
+            squareMesh = new SquareMesh(context, 400);
+            volumetricFogMesh = new CubeMesh(context, 400);
         }
 
         protected override void Update(GameTime gameTime)
@@ -306,26 +313,24 @@ namespace Samples.SceneVolumetricFog
 
         protected override void Draw(GameTime gameTime)
         {
-            var context = Device.ImmediateContext;
-
             // 念のため状態を初期状態へ。
             context.BlendState = BlendState.Opaque;
             context.DepthStencilState = DepthStencilState.Default;
 
             // 深度マップを描画。
-            CreateDepthMap(context);
+            CreateDepthMap();
 
             // ボリューム フォグ マップを描画。
-            CreateVolumetricFogMap(context);
+            CreateVolumetricFogMap();
 
             // 通常シーンを描画。
-            CreateNormalSceneMap(context);
+            CreateNormalSceneMap();
 
             // ポストプロセスを実行。
             ApplyPostprocess();
 
             // 最終的なシーンをバック バッファへ描画。
-            CreateFinalSceneMap(context);
+            CreateFinalSceneMap();
 
             // HUD のテキストを描画。
             DrawOverlayText();
@@ -333,12 +338,12 @@ namespace Samples.SceneVolumetricFog
             base.Draw(gameTime);
         }
 
-        void CreateDepthMap(DeviceContext context)
+        void CreateDepthMap()
         {
             context.SetRenderTarget(depthMapRenderTarget);
             context.Clear(new Vector4(float.MaxValue));
 
-            DrawScene(context, depthMapEffect);
+            DrawScene(depthMapEffect);
 
             context.SetRenderTarget(null);
 
@@ -348,7 +353,7 @@ namespace Samples.SceneVolumetricFog
             depthMapColorFilter.LinearDepthMap = depthMapRenderTarget;
         }
 
-        void CreateVolumetricFogMap(DeviceContext context)
+        void CreateVolumetricFogMap()
         {
             // 基本的に、ボリューム フォグはフォグ領域の深度のみを必要とするため、
             // フォグ深度マップの初期値は深度 0 で良い。
@@ -362,14 +367,14 @@ namespace Samples.SceneVolumetricFog
 
             context.RasterizerState = RasterizerState.CullBack;
 
-            DrawVolumetricFog(context, fogDepthMapEffect);
+            DrawVolumetricFog(fogDepthMapEffect);
 
             context.SetRenderTarget(backFogDepthMapRenderTarget);
             context.Clear(Vector4.Zero);
 
             context.RasterizerState = RasterizerState.CullFront;
 
-            DrawVolumetricFog(context, fogDepthMapEffect);
+            DrawVolumetricFog(fogDepthMapEffect);
 
             context.SetRenderTarget(null);
 
@@ -388,7 +393,7 @@ namespace Samples.SceneVolumetricFog
 
             context.RasterizerState = RasterizerState.CullNone;
 
-            DrawVolumetricFog(context, volumetricFogMapEffect);
+            DrawVolumetricFog(volumetricFogMapEffect);
 
             context.SetRenderTarget(null);
 
@@ -401,12 +406,12 @@ namespace Samples.SceneVolumetricFog
             textureDisplay.Textures.Add(volumetricFogMapRenderTarget);
         }
 
-        void CreateNormalSceneMap(DeviceContext context)
+        void CreateNormalSceneMap()
         {
             context.SetRenderTarget(normalSceneRenderTarget);
             context.Clear(Color.CornflowerBlue);
 
-            DrawScene(context, basicEffect);
+            DrawScene(basicEffect);
 
             context.SetRenderTarget(null);
 
@@ -419,14 +424,14 @@ namespace Samples.SceneVolumetricFog
             finalSceneTexture = postprocess.Draw(normalSceneRenderTarget);
         }
 
-        void DrawPrimitiveMesh(DeviceContext context, PrimitiveMesh mesh, Matrix world, Vector3 color)
+        void DrawPrimitiveMesh(PrimitiveMesh mesh, Matrix world, Vector3 color)
         {
             basicEffect.DiffuseColor = color;
 
-            DrawPrimitiveMesh(context, mesh, world, color, basicEffect);
+            DrawPrimitiveMesh(mesh, world, color, basicEffect);
         }
 
-        void DrawScene(DeviceContext context, IEffect effect)
+        void DrawScene(IEffect effect)
         {
             var effectMatrices = effect as IEffectMatrices;
             if (effectMatrices != null)
@@ -435,20 +440,20 @@ namespace Samples.SceneVolumetricFog
                 effectMatrices.Projection = camera.Projection;
             }
 
-            DrawPrimitiveMesh(context, cubeMesh, Matrix.CreateTranslation(-40, 10, 40), new Vector3(0, 0, 0), effect);
-            DrawPrimitiveMesh(context, cubeMesh, Matrix.CreateTranslation(-85, 10, -20), new Vector3(1, 0, 0), effect);
-            DrawPrimitiveMesh(context, cubeMesh, Matrix.CreateTranslation(-60, 10, -20), new Vector3(1, 0, 0), effect);
-            DrawPrimitiveMesh(context, cubeMesh, Matrix.CreateTranslation(-40, 10, 0), new Vector3(1, 0, 0), effect);
-            DrawPrimitiveMesh(context, sphereMesh, Matrix.CreateTranslation(10, 10, -60), new Vector3(0, 1, 0), effect);
-            DrawPrimitiveMesh(context, sphereMesh, Matrix.CreateTranslation(0, 10, -40), new Vector3(0, 1, 0), effect);
+            DrawPrimitiveMesh(cubeMesh, Matrix.CreateTranslation(-40, 10, 40), new Vector3(0, 0, 0), effect);
+            DrawPrimitiveMesh(cubeMesh, Matrix.CreateTranslation(-85, 10, -20), new Vector3(1, 0, 0), effect);
+            DrawPrimitiveMesh(cubeMesh, Matrix.CreateTranslation(-60, 10, -20), new Vector3(1, 0, 0), effect);
+            DrawPrimitiveMesh(cubeMesh, Matrix.CreateTranslation(-40, 10, 0), new Vector3(1, 0, 0), effect);
+            DrawPrimitiveMesh(sphereMesh, Matrix.CreateTranslation(10, 10, -60), new Vector3(0, 1, 0), effect);
+            DrawPrimitiveMesh(sphereMesh, Matrix.CreateTranslation(0, 10, -40), new Vector3(0, 1, 0), effect);
             for (float z = -180; z <= 180; z += 40)
             {
-                DrawPrimitiveMesh(context, cylinderMesh, Matrix.CreateTranslation(-180, 40, z), new Vector3(0, 0, 1), effect);
+                DrawPrimitiveMesh(cylinderMesh, Matrix.CreateTranslation(-180, 40, z), new Vector3(0, 0, 1), effect);
             }
-            DrawPrimitiveMesh(context, squareMesh, Matrix.Identity, new Vector3(0.5f), effect);
+            DrawPrimitiveMesh(squareMesh, Matrix.Identity, new Vector3(0.5f), effect);
         }
 
-        void DrawVolumetricFog(DeviceContext context, IEffect effect)
+        void DrawVolumetricFog(IEffect effect)
         {
             var effectMatrices = effect as IEffectMatrices;
             if (effectMatrices != null)
@@ -457,10 +462,10 @@ namespace Samples.SceneVolumetricFog
                 effectMatrices.Projection = camera.Projection;
             }
 
-            DrawPrimitiveMesh(context, volumetricFogMesh, Matrix.CreateTranslation(0, -200 + 40, 0), new Vector3(0, 0, 0), effect);
+            DrawPrimitiveMesh(volumetricFogMesh, Matrix.CreateTranslation(0, -200 + 40, 0), new Vector3(0, 0, 0), effect);
         }
 
-        void DrawPrimitiveMesh(DeviceContext context, PrimitiveMesh mesh, Matrix world, Vector3 color, IEffect effect)
+        void DrawPrimitiveMesh(PrimitiveMesh mesh, Matrix world, Vector3 color, IEffect effect)
         {
             var effectMatrices = effect as IEffectMatrices;
             if (effectMatrices != null)
@@ -474,11 +479,11 @@ namespace Samples.SceneVolumetricFog
                 basicEffect.DiffuseColor = color;
             }
 
-            effect.Apply(context);
-            mesh.Draw(context);
+            effect.Apply(Device.ImmediateContext);
+            mesh.Draw();
         }
 
-        void CreateFinalSceneMap(DeviceContext context)
+        void CreateFinalSceneMap()
         {
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
             spriteBatch.Draw(finalSceneTexture, Vector2.Zero, Color.White);

@@ -8,8 +8,8 @@ namespace Libra.Graphics.Toolkit
 {
     public sealed class SquareMesh : PrimitiveMesh
     {
-        public SquareMesh(Device device, float size = 1.0f)
-            : base(device)
+        public SquareMesh(DeviceContext context, float size = 1.0f)
+            : base(context)
         {
             if (size < 0.0f) throw new ArgumentOutOfRangeException("size");
 

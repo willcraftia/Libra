@@ -18,8 +18,8 @@ namespace Libra.Graphics.Toolkit
             Vector3.Right
         };
 
-        public CubeMesh(Device device, float size = 1.0f)
-            : base(device)
+        public CubeMesh(DeviceContext context, float size = 1.0f)
+            : base(context)
         {
             if (size < 0.0f) throw new ArgumentOutOfRangeException("size");
 
