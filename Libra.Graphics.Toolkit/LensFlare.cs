@@ -18,7 +18,7 @@ namespace Libra.Graphics.Toolkit
             {
                 IndexBuffer = device.CreateIndexBuffer();
                 IndexBuffer.Usage = ResourceUsage.Immutable;
-                IndexBuffer.Initialize(QueryIndices);
+                IndexBuffer.Initialize(Indices);
             }
         }
 
@@ -61,7 +61,7 @@ namespace Libra.Graphics.Toolkit
 
         const float GlowSize = 400;
 
-        static readonly ushort[] QueryIndices =
+        static readonly ushort[] Indices =
         {
             0, 1, 2,
             0, 2, 3
@@ -71,8 +71,6 @@ namespace Libra.Graphics.Toolkit
         {
             ColorWriteChannels = ColorWriteChannels.None
         };
-
-        Device device;
 
         SharedDeviceResource sharedDeviceResource;
 
@@ -122,6 +120,8 @@ namespace Libra.Graphics.Toolkit
 
         DirtyFlags dirtyFlags;
 
+        public DeviceContext Context { get; private set; }
+
         public float QuerySize
         {
             get { return querySize; }
@@ -159,18 +159,18 @@ namespace Libra.Graphics.Toolkit
 
         public bool Enabled { get; set; }
 
-        public LensFlare(Device device, Texture2D glowSprite, Texture2D[] flareSprites)
+        public LensFlare(DeviceContext context, Texture2D glowSprite, Texture2D[] flareSprites)
         {
-            if (device == null) throw new ArgumentNullException("device");
+            if (context == null) throw new ArgumentNullException("context");
             if (glowSprite == null) throw new ArgumentNullException("glowSprite");
             if (flareSprites == null) throw new ArgumentNullException("flareSprites");
 
-            this.device = device;
+            Context = context;
             this.glowSprite = glowSprite;
 
-            sharedDeviceResource = device.GetSharedResource<LensFlare, SharedDeviceResource>();
+            sharedDeviceResource = context.Device.GetSharedResource<LensFlare, SharedDeviceResource>();
 
-            spriteBatch = new SpriteBatch(device.ImmediateContext);
+            spriteBatch = new SpriteBatch(context);
 
             for (int i = 0; i < flares.Length; i++)
             {
@@ -181,12 +181,12 @@ namespace Libra.Graphics.Toolkit
                 flares[i].Texture = flareSprites[index];
             }
 
-            basicEffect = new BasicEffect(device);
+            basicEffect = new BasicEffect(context.Device);
             basicEffect.View = Matrix.Identity;
             basicEffect.VertexColorEnabled = true;
 
-            vertexBuffer = device.CreateVertexBuffer();
-            occlusionQuery = device.CreateOcclusionQuery();
+            vertexBuffer = context.Device.CreateVertexBuffer();
+            occlusionQuery = context.Device.CreateOcclusionQuery();
 
             vertices = new VertexPositionColor[4];
             querySize = 100;
@@ -196,7 +196,7 @@ namespace Libra.Graphics.Toolkit
             Enabled = true;
         }
 
-        void SetVertices(DeviceContext context)
+        void SetVertices()
         {
             if ((dirtyFlags & DirtyFlags.VertexBuffer) != 0)
             {
@@ -204,20 +204,20 @@ namespace Libra.Graphics.Toolkit
                 vertices[1].Position = new Vector3(-querySize * 0.5f, -querySize * 0.5f, -1.0f);
                 vertices[2].Position = new Vector3( querySize * 0.5f, -querySize * 0.5f, -1.0f);
                 vertices[3].Position = new Vector3( querySize * 0.5f,  querySize * 0.5f, -1.0f);
-                vertexBuffer.SetData(context, vertices);
+                vertexBuffer.SetData(Context, vertices);
 
                 dirtyFlags &= ~DirtyFlags.VertexBuffer;
             }
         }
 
-        public void Draw(DeviceContext context)
+        public void Draw()
         {
-            SetVertices(context);
+            SetVertices();
 
             var infiniteView = view;
             infiniteView.Translation = Vector3.Zero;
 
-            var viewport = context.Viewport;
+            var viewport = Context.Viewport;
             var projectedPosition = viewport.Project(-lightDirection, projection, infiniteView, Matrix.Identity);
 
             if (projectedPosition.Z < 0 || 1 < projectedPosition.Z)
@@ -229,13 +229,13 @@ namespace Libra.Graphics.Toolkit
             lightPosition = new Vector2(projectedPosition.X, projectedPosition.Y);
             lightBehindCamera = false;
 
-            UpdateOcclusion(context);
+            UpdateOcclusion();
 
             DrawGlow();
-            DrawFlares(context);
+            DrawFlares();
         }
 
-        void UpdateOcclusion(DeviceContext context)
+        void UpdateOcclusion()
         {
             if (lightBehindCamera) return;
 
@@ -247,7 +247,7 @@ namespace Libra.Graphics.Toolkit
                 occlusionAlpha = Math.Min(occlusionQuery.PixelCount / queryArea, 1);
             }
 
-            var viewport = context.Viewport;
+            var viewport = Context.Viewport;
 
             Matrix world;
             Matrix.CreateTranslation(lightPosition.X, lightPosition.Y, 0, out world);
@@ -257,17 +257,17 @@ namespace Libra.Graphics.Toolkit
 
             basicEffect.World = world;
             basicEffect.Projection = projection;
-            basicEffect.Apply(context);
+            basicEffect.Apply(Context);
 
-            context.BlendState = ColorWriteDisable;
-            context.DepthStencilState = DepthStencilState.DepthRead;
+            Context.BlendState = ColorWriteDisable;
+            Context.DepthStencilState = DepthStencilState.DepthRead;
 
-            occlusionQuery.Begin();
+            occlusionQuery.Begin(Context);
 
-            context.SetVertexBuffer(vertexBuffer);
-            context.IndexBuffer = sharedDeviceResource.IndexBuffer;
-            context.PrimitiveTopology = PrimitiveTopology.TriangleList;
-            context.DrawIndexed(sharedDeviceResource.IndexBuffer.IndexCount);
+            Context.SetVertexBuffer(vertexBuffer);
+            Context.IndexBuffer = sharedDeviceResource.IndexBuffer;
+            Context.PrimitiveTopology = PrimitiveTopology.TriangleList;
+            Context.DrawIndexed(sharedDeviceResource.IndexBuffer.IndexCount);
 
             occlusionQuery.End();
 
@@ -287,11 +287,11 @@ namespace Libra.Graphics.Toolkit
             spriteBatch.End();
         }
 
-        void DrawFlares(DeviceContext context)
+        void DrawFlares()
         {
             if (lightBehindCamera || occlusionAlpha <= 0) return;
 
-            var viewport = context.Viewport;
+            var viewport = Context.Viewport;
 
             var screenCenter = new Vector2(viewport.Width / 2.0f, viewport.Height / 2.0f);
 
