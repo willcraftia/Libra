@@ -120,7 +120,7 @@ namespace Libra.Graphics.Toolkit
         DirtyFlags dirtyFlags;
 
         /// <summary>
-        /// パーティクル存続期間を取得または設定します。
+        /// パーティクル存続期間 (秒) を取得または設定します。
         /// </summary>
         public float Duration
         {
@@ -221,8 +221,6 @@ namespace Libra.Graphics.Toolkit
             get { return constantsPerShader.RotateSpeed.X; }
             set
             {
-                if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
-
                 constantsPerShader.RotateSpeed.X = value;
 
                 dirtyFlags |= DirtyFlags.ConstantsPerShader;
@@ -237,8 +235,6 @@ namespace Libra.Graphics.Toolkit
             get { return constantsPerShader.RotateSpeed.Y; }
             set
             {
-                if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
-
                 constantsPerShader.RotateSpeed.Y = value;
 
                 dirtyFlags |= DirtyFlags.ConstantsPerShader;
@@ -383,7 +379,7 @@ namespace Libra.Graphics.Toolkit
             constantsPerFrame.ViewportScale = Vector2.One;
             constantsPerFrame.CurrentTime = 0.0f;
 
-            dirtyFlags = DirtyFlags.ConstantsPerFrame;
+            dirtyFlags = DirtyFlags.ViewportScale | DirtyFlags.ConstantsPerShader | DirtyFlags.ConstantsPerFrame;
         }
 
         public void Apply(DeviceContext context)

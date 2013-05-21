@@ -5,6 +5,9 @@ using Libra.PackedVector;
 
 #endregion
 
+// Xbox LIVE Indie Games - Particles 3D より移植。
+// http://xbox.create.msdn.com/en-US/education/catalog/sample/particle_3d
+
 namespace Libra.Graphics.Toolkit
 {
     public sealed class ParticleSystem : IDisposable
@@ -88,12 +91,20 @@ namespace Libra.Graphics.Toolkit
         public int MaxParticleCount { get; private set; }
 
         /// <summary>
-        /// システムが有効であるか否かを示す値を取得または設定します。
+        /// システムの更新が有効であるか否かを示す値を取得または設定します。
         /// </summary>
         /// <value>
-        /// true (システムが有効である場合)、false (それ以外の場合)。
+        /// true (システムの更新が有効である場合)、false (それ以外の場合)。
         /// </value>
         public bool Enabled { get; set; }
+
+        /// <summary>
+        /// システムの描画が有効であるか否かを示す値を取得または設定します。
+        /// </summary>
+        /// <value>
+        /// true (システムの描画が有効である場合)、false (それ以外の場合)。
+        /// </value>
+        public bool Visible { get; set; }
 
         /// <summary>
         /// システム名を取得または設定します。
@@ -139,7 +150,7 @@ namespace Libra.Graphics.Toolkit
         public BlendState BlendState { get; set; }
 
         /// <summary>
-        /// パーティクル存続期間を取得または設定します。
+        /// パーティクル存続期間 (秒) を取得または設定します。
         /// </summary>
         public float Duration
         {
@@ -276,7 +287,6 @@ namespace Libra.Graphics.Toolkit
             Context = context;
             MaxParticleCount = maxParticleCount;
 
-            MaxParticleCount = 100;
             EmitterVelocitySensitivity = 1;
             MinHorizontalVelocity = 0;
             MaxHorizontalVelocity = 0;
@@ -318,14 +328,15 @@ namespace Libra.Graphics.Toolkit
             indexBuffer.Initialize(indices);
 
             Enabled = true;
+            Visible = true;
         }
 
-        public void Draw(float elapsedTime)
+        public void Update(TimeSpan elapsedGameTime)
         {
-            //------------------------------------------------------------
-            // パーティクルの状態更新
+            if (!Enabled)
+                return;
 
-            currentTime += elapsedTime;
+            currentTime += (float) elapsedGameTime.TotalSeconds;
 
             RetireActiveParticles();
             FreeRetiredParticles();
@@ -335,14 +346,17 @@ namespace Libra.Graphics.Toolkit
 
             if (firstRetiredParticle == firstActiveParticle)
                 drawCounter = 0;
+        }
+
+        public void Draw()
+        {
+            if (!Visible)
+                return;
 
             if (firstNewParticle != firstFreeParticle)
             {
                 AddNewParticlesToVertexBuffer();
             }
-
-            //------------------------------------------------------------
-            // 描画
 
             if (firstActiveParticle != firstFreeParticle)
             {

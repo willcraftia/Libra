@@ -4,6 +4,9 @@ using System;
 
 #endregion
 
+// Xbox LIVE Indie Games - Particles 3D より移植。
+// http://xbox.create.msdn.com/en-US/education/catalog/sample/particle_3d
+
 namespace Libra.Graphics.Toolkit
 {
     public sealed class ParticleEmitter
@@ -28,8 +31,10 @@ namespace Libra.Graphics.Toolkit
             previousPosition = initialPosition;
         }
 
-        public void Update(float elapsedTime, Vector3 newPosition)
+        public void Update(TimeSpan elapsedGameTime, Vector3 newPosition)
         {
+            float elapsedTime = (float) elapsedGameTime.TotalSeconds;
+
             if (0 < elapsedTime)
             {
                 Vector3 velocity = (newPosition - previousPosition) / elapsedTime;
