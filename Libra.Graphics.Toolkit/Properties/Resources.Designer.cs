@@ -144,6 +144,13 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
+        internal static byte[] HeightToNormalFilterPS {
+            get {
+                object obj = ResourceManager.GetObject("HeightToNormalFilterPS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
         internal static byte[] LightScatteringFilterPS {
             get {
                 object obj = ResourceManager.GetObject("LightScatteringFilterPS", resourceCulture);
@@ -343,6 +350,13 @@ namespace Libra.Graphics.Toolkit.Properties {
         internal static byte[] VolumetricFogMapVS {
             get {
                 object obj = ResourceManager.GetObject("VolumetricFogMapVS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] WaveFilterPS {
+            get {
+                object obj = ResourceManager.GetObject("WaveFilterPS", resourceCulture);
                 return ((byte[])(obj));
             }
         }

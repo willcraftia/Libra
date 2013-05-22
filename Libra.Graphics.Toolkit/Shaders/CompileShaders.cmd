@@ -170,6 +170,16 @@ call :CompileShader LinearDepthMapColorFilter PS %ps_profile%
 ::
 call :CompileShader SSAOMapColorFilter PS %ps_profile%
 
+::
+:: WaveFilter PS
+::
+call :CompileShader WaveFilter PS %ps_profile%
+
+::
+:: HeightToNormalFilter PS
+::
+call :CompileShader HeightToNormalFilter PS %ps_profile%
+
 echo.
 
 if %error% == 0 (
