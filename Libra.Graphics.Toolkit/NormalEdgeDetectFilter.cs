@@ -119,8 +119,8 @@ namespace Libra.Graphics.Toolkit
             {
                 for (int i = 0; i < KernelSize; i++)
                 {
-                    constants.Kernel[i].X = Offsets[i].X / width;
-                    constants.Kernel[i].Y = Offsets[i].Y / width;
+                    constants.Kernel[i].X = Offsets[i].X / (float) width;
+                    constants.Kernel[i].Y = Offsets[i].Y / (float) height;
 
                     dirtyFlags &= ~DirtyFlags.Kernels;
                     dirtyFlags |= DirtyFlags.Constants;
