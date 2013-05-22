@@ -315,12 +315,13 @@ namespace Samples.SceneAmbientOcclusion
             ssaoBlurH = new GaussianFilterPass(ssaoBlur, GaussianFilterDirection.Horizon);
             ssaoBlurV = new GaussianFilterPass(ssaoBlur, GaussianFilterDirection.Vertical);
 
-            const int blurIteration = 3;
+            postprocessSSAOMap.Filters.Add(downFilter);
             for (int i = 0; i < blurIteration; i++)
             {
                 postprocessSSAOMap.Filters.Add(ssaoBlurH);
                 postprocessSSAOMap.Filters.Add(ssaoBlurV);
             }
+            postprocessSSAOMap.Filters.Add(upFilter);
 
             ssaoCombine = new SSAOCombineFilter(Device);
             linearDepthMapVisualize = new LinearDepthMapColorFilter(Device);
