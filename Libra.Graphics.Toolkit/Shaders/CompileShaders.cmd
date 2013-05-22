@@ -180,6 +180,11 @@ call :CompileShader WaveFilter PS %ps_profile%
 ::
 call :CompileShader HeightToNormalFilter PS %ps_profile%
 
+::
+:: HeightToGradientFilter PS
+::
+call :CompileShader HeightToGradientFilter PS %ps_profile%
+
 echo.
 
 if %error% == 0 (

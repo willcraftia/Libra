@@ -144,6 +144,13 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
+        internal static byte[] HeightToGradientFilterPS {
+            get {
+                object obj = ResourceManager.GetObject("HeightToGradientFilterPS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
         internal static byte[] HeightToNormalFilterPS {
             get {
                 object obj = ResourceManager.GetObject("HeightToNormalFilterPS", resourceCulture);

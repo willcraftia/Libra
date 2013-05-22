@@ -41,6 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BezierMesh.cs" />
+    <Compile Include="HeightToGradientFilter.cs" />
     <Compile Include="HeightToNormalFilter.cs" />
     <Compile Include="LensFlare.cs" />
     <Compile Include="LinearFogDepthMapEffect.cs" />
@@ -144,6 +145,7 @@
     <None Include="Shaders\Compiled\CombineFilterPS.bin" />
     <None Include="Shaders\Compiled\DofCombineFilterPS.bin" />
     <None Include="Shaders\Compiled\EdgeFilterPS.bin" />
+    <None Include="Shaders\Compiled\HeightToGradientFilterPS.bin" />
     <None Include="Shaders\Compiled\HeightToNormalFilterPS.bin" />
     <None Include="Shaders\Compiled\LightScatteringFilterPS.bin" />
     <None Include="Shaders\Compiled\LinearDepthMapColorFilterPS.bin" />
@@ -163,6 +165,7 @@
     <None Include="Shaders\Compiled\VolumetricFogMapPS.bin" />
     <None Include="Shaders\Compiled\VolumetricFogMapVS.bin" />
     <None Include="Shaders\Compiled\WaveFilterPS.bin" />
+    <None Include="Shaders\HeightToGradientFilter.hlsl" />
     <None Include="Shaders\HeightToNormalFilter.hlsl" />
     <None Include="Shaders\LinearFogDepthMap.hlsl" />
     <None Include="Shaders\Particle.hlsl" />
