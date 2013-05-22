@@ -11,13 +11,22 @@ namespace Libra.Graphics
     {
         internal event EventHandler BindingToOutputMerger;
 
-        bool initialized;
+        DepthFormat depthFormat;
 
         RenderTargetView renderTargetView;
 
         public bool IsBackBuffer { get; private set; }
 
-        public DepthFormat DepthFormat { get; set; }
+        public DepthFormat DepthFormat
+        {
+            get { return depthFormat; }
+            set
+            {
+                AssertNotInitialized();
+
+                depthFormat = value;
+            }
+        }
 
         public RenderTargetUsage RenderTargetUsage { get; set; }
 
@@ -28,20 +37,20 @@ namespace Libra.Graphics
         {
             IsBackBuffer = isBackBuffer;
 
-            DepthFormat = DepthFormat.None;
+            depthFormat = DepthFormat.None;
             RenderTargetUsage = RenderTargetUsage.Discard;
         }
 
         // バック バッファ用初期化メソッド。
         public void Initialize(SwapChain swapChain, int index)
         {
-            if (initialized) throw new InvalidOperationException("Already initialized.");
+            AssertNotInitialized();
             if (swapChain == null) throw new ArgumentNullException("swapChain");
             if (index < 0) throw new ArgumentOutOfRangeException("index");
 
             InitializeRenderTarget(swapChain, index);
 
-            if (DepthFormat != DepthFormat.None)
+            if (depthFormat != DepthFormat.None)
                 DepthStencil = InitializeDepthStencil();
 
             initialized = true;
@@ -73,7 +82,7 @@ namespace Libra.Graphics
         {
             InitializeRenderTarget();
 
-            if (DepthFormat != DepthFormat.None)
+            if (depthFormat != DepthFormat.None)
                 DepthStencil = InitializeDepthStencil();
         }
 
@@ -81,7 +90,7 @@ namespace Libra.Graphics
         {
             InitializeRenderTarget(stream);
 
-            if (DepthFormat != DepthFormat.None)
+            if (depthFormat != DepthFormat.None)
                 DepthStencil = InitializeDepthStencil();
         }
 

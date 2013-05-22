@@ -10,7 +10,7 @@ namespace Libra.Graphics
 {
     public abstract class Texture2D : Resource
     {
-        bool initialized;
+        internal bool initialized;
 
         int width;
 
@@ -308,12 +308,12 @@ namespace Libra.Graphics
             base.DisposeOverride(disposing);
         }
 
-        void AssertNotInitialized()
+        internal void AssertNotInitialized()
         {
             if (initialized) throw new InvalidOperationException("Already initialized.");
         }
 
-        void AssertInitialized()
+        internal void AssertInitialized()
         {
             if (!initialized) throw new InvalidOperationException("Not initialized.");
         }
