@@ -135,6 +135,40 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
+        public RenderTarget Last
+        {
+            get
+            {
+                if (renderTargetsInvalid)
+                {
+                    ReleaseRenderTargets();
+                    renderTargetsInvalid = false;
+                }
+
+                var lastIndex = currentIndex - 1;
+                if (lastIndex < 0)
+                    lastIndex = renderTargets.Length - 1;
+
+                var last = renderTargets[lastIndex];
+
+                if (last == null)
+                {
+                    last = device.CreateRenderTarget();
+                    last.Width = width;
+                    last.Height = height;
+                    last.Format = format;
+                    last.MultisampleCount = multisampleCount;
+                    last.DepthFormat = depthFormat;
+                    last.RenderTargetUsage = renderTargetUsage;
+                    last.Initialize();
+
+                    renderTargets[lastIndex] = last;
+                }
+
+                return last;
+            }
+        }
+
         public RenderTargetChain(Device device, int renderTargetCount = 2)
         {
             if (device == null) throw new ArgumentNullException("device");
