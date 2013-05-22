@@ -8,29 +8,26 @@ cbuffer Parameters : register(b0)
 Texture2D<float> Texture : register(t0);
 SamplerState TextureSampler : register(s0);
 
-// 高さマップ。
 Texture2D<float> HeightMap : register(t1);
 SamplerState HeightMapSampler : register(s1);
 
 float4 PS(float4 color    : COLOR0,
           float2 texCoord : TEXCOORD0) : SV_Target0
 {
-    // *  - s2 - *
+    // *  - h2 - *
     // |    |    |
-    // s0 - c  - s1
+    // h0 - c  - h1
     // |    |    |
-    // *  - s3 - *
-    float s0 = HeightMap.Sample(HeightMapSampler, texCoord + Kernel[0]);
-    float s1 = HeightMap.Sample(HeightMapSampler, texCoord + Kernel[1]);
-    float s2 = HeightMap.Sample(HeightMapSampler, texCoord + Kernel[2]);
-    float s3 = HeightMap.Sample(HeightMapSampler, texCoord + Kernel[3]);
+    // *  - h3 - *
+    float h0 = HeightMap.Sample(HeightMapSampler, texCoord + Kernel[0]);
+    float h1 = HeightMap.Sample(HeightMapSampler, texCoord + Kernel[1]);
+    float h2 = HeightMap.Sample(HeightMapSampler, texCoord + Kernel[2]);
+    float h3 = HeightMap.Sample(HeightMapSampler, texCoord + Kernel[3]);
 
-    // 以下、右手系で処理。
+    float3 u = float3(1, (h1 - h0) * 0.5, 0);
+    float3 v = float3(0, (h3 - h2) * 0.5, 1);
 
-    float3 u = float3(1.0, (s0 - s1) * 0.5, 0.0);
-    float3 v = float3(0.0, (s3 - s2) * 0.5, 1.0);
+    float3 normal = normalize(cross(v, u));
 
-    float3 normal = normalize(cross(u, v));
-
-    return float4(normal, 0.0);
+    return float4(normal, 0);
 }
