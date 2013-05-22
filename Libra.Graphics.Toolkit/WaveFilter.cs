@@ -49,7 +49,7 @@ namespace Libra.Graphics.Toolkit
 
             public float NewWaveRadius;
 
-            public float NewWaveVeclocity;
+            public float NewWaveVelocity;
         }
 
         #endregion
@@ -60,8 +60,9 @@ namespace Libra.Graphics.Toolkit
         enum DirtyFlags
         {
             Kernel              = (1 << 0),
-            ConstantsPerShader  = (1 << 1),
-            ConstantsPerFrame   = (1 << 2)
+            NewWave             = (1 << 1),
+            ConstantsPerShader  = (1 << 2),
+            ConstantsPerFrame   = (1 << 3)
         }
 
         #endregion
@@ -87,6 +88,12 @@ namespace Libra.Graphics.Toolkit
         ConstantsPerShader constantsPerShader;
 
         ConstantsPerFrame constantsPerFrame;
+
+        Vector2 newWavePosition;
+
+        float newWaveRadius;
+
+        float newWaveVelocity;
 
         int width;
 
@@ -121,12 +128,12 @@ namespace Libra.Graphics.Toolkit
             constantBufferPerFrame = device.CreateConstantBuffer();
             constantBufferPerFrame.Initialize<ConstantsPerFrame>();
 
-            constantsPerShader.Stiffness = 0.0f;
+            constantsPerShader.Stiffness = 0.5f;
             constantsPerShader.Kernel = new Vector4[KernelSize];
 
             constantsPerFrame.NewWavePosition = Vector2.Zero;
             constantsPerFrame.NewWaveRadius = 0.0f;
-            constantsPerFrame.NewWaveVeclocity = 0.0f;
+            constantsPerFrame.NewWaveVelocity = 0.0f;
 
             Enabled = true;
 
@@ -139,13 +146,12 @@ namespace Libra.Graphics.Toolkit
                 position.Y < 0.0f || 1.0f < position.Y)
                 throw new ArgumentOutOfRangeException("position");
             if (radius <= 0.0f) throw new ArgumentOutOfRangeException("radius");
-            if (velocity <= 0.0f) throw new ArgumentOutOfRangeException("velocity");
 
-            constantsPerFrame.NewWavePosition = position;
-            constantsPerFrame.NewWaveRadius = radius;
-            constantsPerFrame.NewWaveVeclocity = velocity;
+            newWavePosition = position;
+            newWaveRadius = radius;
+            newWaveVelocity = velocity;
 
-            dirtyFlags |= DirtyFlags.ConstantsPerFrame;
+            dirtyFlags |= DirtyFlags.NewWave;
         }
 
         public void Apply(DeviceContext context)
@@ -174,6 +180,16 @@ namespace Libra.Graphics.Toolkit
                     dirtyFlags &= ~DirtyFlags.Kernel;
                     dirtyFlags |= DirtyFlags.ConstantsPerShader;
                 }
+            }
+
+            if ((dirtyFlags & DirtyFlags.NewWave) != 0)
+            {
+                constantsPerFrame.NewWavePosition = newWavePosition;
+                constantsPerFrame.NewWaveRadius = newWaveRadius;
+                constantsPerFrame.NewWaveVelocity = newWaveVelocity;
+
+                dirtyFlags &= ~DirtyFlags.NewWave;
+                dirtyFlags |= DirtyFlags.ConstantsPerFrame;
             }
 
             if ((dirtyFlags & DirtyFlags.ConstantsPerShader) != 0)
