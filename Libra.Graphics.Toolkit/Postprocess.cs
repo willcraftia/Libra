@@ -239,7 +239,7 @@ namespace Libra.Graphics.Toolkit
 
                 context.SetRenderTarget(renderTargetChain.Current);
 
-                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque, null, null, null, filter.Apply);
+                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque, null, null, null, filter);
                 spriteBatch.Draw(currentTexture, new Rectangle(0, 0, currentWidth, currentHeight), Color.White);
                 spriteBatch.End();
 

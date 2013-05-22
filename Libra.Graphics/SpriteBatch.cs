@@ -247,7 +247,7 @@ namespace Libra.Graphics
 
         RasterizerState rasterizerState;
 
-        Action<DeviceContext> setCustomShaders;
+        IEffect effect;
 
         Matrix transformMatrix;
 
@@ -288,8 +288,9 @@ namespace Libra.Graphics
         // ひにけにGD - SpriteBatch と Effect
         // http://blogs.msdn.com/b/ito/archive/2010/03/30/spritebatch-and-effect.aspx
         //
-        // ここでは DirectXTK 同様にシェーダ指定をデリゲートとしているが、
-        // 使い方の概念については上記サイトを参照。
+        // エフェクト指定の使い方の概念については上記サイトを参照。
+        // 基本的には XNA と同じだが、XNA ではピクセル シェーダの入力の一部を省略できるに対し、
+        // Libra では頂点シェーダの出力と同一の整列でピクセル シェーダの入力を定義する事が必須。
 
         public void Begin(
             SpriteSortMode sortMode = SpriteSortMode.Deferred,
@@ -297,7 +298,7 @@ namespace Libra.Graphics
             SamplerState samplerState = null,
             DepthStencilState depthStencilState = null,
             RasterizerState rasterizerState = null,
-            Action<DeviceContext> setCustomShaders = null,
+            IEffect effect = null,
             Matrix? transformMatrix = null)
         {
             if (inBeginEndPair)
@@ -308,7 +309,7 @@ namespace Libra.Graphics
             this.samplerState = samplerState ?? SamplerState.LinearClamp;
             this.depthStencilState = depthStencilState ?? DepthStencilState.None;
             this.rasterizerState = rasterizerState ?? RasterizerState.CullBack;
-            this.setCustomShaders = setCustomShaders;
+            this.effect = effect;
             this.transformMatrix = transformMatrix ?? Matrix.Identity;
 
             if (sortMode == SpriteSortMode.Immediate)
@@ -348,7 +349,7 @@ namespace Libra.Graphics
             Context.RasterizerState = previousRasterizerState;
             Context.PixelShaderSamplers[0] = previousSamplerState;
 
-            setCustomShaders = null;
+            effect = null;
 
             inBeginEndPair = false;
         }
@@ -492,9 +493,9 @@ namespace Libra.Graphics
                 vertexBufferPosition = 0;
             }
 
-            if (setCustomShaders != null)
+            if (effect != null)
             {
-                setCustomShaders(Context);
+                effect.Apply(Context);
             }
         }
 

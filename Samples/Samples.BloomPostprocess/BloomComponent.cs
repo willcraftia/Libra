@@ -120,7 +120,7 @@ namespace Samples.BloomPostprocess
             DrawFullscreenQuad(
                 sceneRenderTarget,
                 bloomMapRenderTarget,
-                bloomExtract.Apply,
+                bloomExtract,
                 IntermediateBuffer.PreBloom);
 
             // ガウシアン ブラーの設定。
@@ -132,7 +132,7 @@ namespace Samples.BloomPostprocess
             DrawFullscreenQuad(
                 bloomMapRenderTarget,
                 interBlurRenderTarget,
-                gaussianFilter.Apply,
+                gaussianFilter,
                 IntermediateBuffer.BlurredHorizontally);
 
             // ガウシアン ブラーの垂直パス。
@@ -140,7 +140,7 @@ namespace Samples.BloomPostprocess
             DrawFullscreenQuad(
                 interBlurRenderTarget,
                 bloomMapRenderTarget,
-                gaussianFilter.Apply,
+                gaussianFilter,
                 IntermediateBuffer.BlurredBothWays);
             
             context.SetRenderTarget(null);
@@ -155,27 +155,27 @@ namespace Samples.BloomPostprocess
                 bloomMapRenderTarget,
                 (int) viewport.Width,
                 (int) viewport.Height,
-                bloomCombine.Apply,
+                bloomCombine,
                 IntermediateBuffer.FinalResult);
         }
 
         void DrawFullscreenQuad(Texture2D texture, RenderTarget renderTarget,
-            Action<DeviceContext> applyShader, IntermediateBuffer currentBuffer)
+            IEffect effect, IntermediateBuffer currentBuffer)
         {
             Device.ImmediateContext.SetRenderTarget(renderTarget);
 
-            DrawFullscreenQuad(texture, renderTarget.Width, renderTarget.Height, applyShader, currentBuffer);
+            DrawFullscreenQuad(texture, renderTarget.Width, renderTarget.Height, effect, currentBuffer);
         }
 
         void DrawFullscreenQuad(Texture2D texture, int width, int height,
-            Action<DeviceContext> applyShader, IntermediateBuffer currentBuffer)
+            IEffect effect, IntermediateBuffer currentBuffer)
         {
             if (showBuffer < currentBuffer)
             {
-                applyShader = null;
+                effect = null;
             }
 
-            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Opaque, null, null, null, applyShader);
+            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Opaque, null, null, null, effect);
             spriteBatch.Draw(texture, new Rectangle(0, 0, width, height), Color.White);
             spriteBatch.End();
         }

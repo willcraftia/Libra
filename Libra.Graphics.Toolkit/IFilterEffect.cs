@@ -6,10 +6,8 @@ using System;
 
 namespace Libra.Graphics.Toolkit
 {
-    public interface IFilterEffect
+    public interface IFilterEffect : IEffect
     {
         bool Enabled { get; }
-
-        void Apply(DeviceContext context);
     }
 }
