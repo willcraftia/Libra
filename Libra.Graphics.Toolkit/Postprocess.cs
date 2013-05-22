@@ -19,91 +19,6 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        #region RenderTargetChain
-
-        class RenderTargetChain : IDisposable
-        {
-            Device device;
-
-            int width;
-
-            int height;
-
-            SurfaceFormat format;
-
-            int multisampleCount;
-
-            RenderTarget current;
-
-            RenderTarget reserve;
-
-            public RenderTarget Current
-            {
-                get
-                {
-                    if (current == null)
-                    {
-                        current = device.CreateRenderTarget();
-                        current.Width = width;
-                        current.Height = height;
-                        current.Format = format;
-                        current.MultisampleCount = multisampleCount;
-                        current.Initialize();
-                    }
-
-                    return current;
-                }
-            }
-
-            internal RenderTargetChain(Device device, int width, int height, SurfaceFormat format, int multisampleCount)
-            {
-                this.device = device;
-                this.width = width;
-                this.height = height;
-                this.format = format;
-                this.multisampleCount = multisampleCount;
-            }
-
-            internal void Swap()
-            {
-                var temp = current;
-                current = reserve;
-                reserve = temp;
-            }
-
-            #region IDisposable
-
-            bool disposed;
-
-            ~RenderTargetChain()
-            {
-                Dispose(false);
-            }
-
-            public void Dispose()
-            {
-                Dispose(true);
-                GC.SuppressFinalize(this);
-            }
-
-            void Dispose(bool disposing)
-            {
-                if (disposed) return;
-
-                if (disposing)
-                {
-                    if (current != null) current.Dispose();
-                    if (reserve != null) reserve.Dispose();
-                }
-
-                disposed = true;
-            }
-
-            #endregion
-        }
-
-        #endregion
-
         DeviceContext context;
 
         int width;
@@ -228,13 +143,18 @@ namespace Libra.Graphics.Toolkit
 
                     if (!renderTargetChains.TryGetValue(key, out renderTargetChain))
                     {
-                        renderTargetChain = new RenderTargetChain(context.Device, currentWidth, currentHeight, format, multisampleCount);
+                        renderTargetChain = new RenderTargetChain(context.Device);
+                        renderTargetChain.Width = currentWidth;
+                        renderTargetChain.Height = currentHeight;
+                        renderTargetChain.Format = format;
+                        renderTargetChain.MultisampleCount = multisampleCount;
+
                         renderTargetChains[key] = renderTargetChain;
                     }
                 }
                 else
                 {
-                    renderTargetChain.Swap();
+                    renderTargetChain.Next();
                 }
 
                 context.SetRenderTarget(renderTargetChain.Current);

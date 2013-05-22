@@ -47,6 +47,7 @@
     <Compile Include="ParticleEffect.cs" />
     <Compile Include="ParticleEmitter.cs" />
     <Compile Include="ParticleSystem.cs" />
+    <Compile Include="RenderTargetChain.cs" />
     <Compile Include="SSAOBlurFilter.cs" />
     <Compile Include="SSAOCombineFilter.cs" />
     <Compile Include="SSAOMap.cs" />
