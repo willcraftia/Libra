@@ -91,7 +91,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.SceneAmbientOcclusi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.SceneVolumetricFog", "Samples\Samples.SceneVolumetricFog\Samples.SceneVolumetricFog.csproj", "{FA6BFC1F-B708-4ED8-8038-A06B5AA37889}"
 EndProject
-Project("{96E2B04D-8817-42C6-938A-82C39BA4D311}") = "Samples.SceneVolumetricFogContent", "Samples\Samples.SceneVolumetricFogContent\Samples.SceneVolumetricFogContent.contentproj", "{EB1DDA0C-8FB0-413E-A7FC-A131721C3BF5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.SceneVolumetricFogContent", "Samples\Samples.SceneVolumetricFogContent\Samples.SceneVolumetricFogContent.contentproj", "{EB1DDA0C-8FB0-413E-A7FC-A131721C3BF5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.ProceduralTexturesContent", "Samples\Samples.ProceduralTexturesContent\Samples.ProceduralTexturesContent.contentproj", "{647993F6-F0FE-4960-A9D3-B29CD836F4D3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.ProceduralTextures", "Samples\Samples.ProceduralTextures\Samples.ProceduralTextures.csproj", "{92D92C9E-FF63-469C-8692-9B8AD55B0AD4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -515,6 +519,22 @@ Global
 		{EB1DDA0C-8FB0-413E-A7FC-A131721C3BF5}.Release|Any CPU.ActiveCfg = Debug|Any CPU
 		{EB1DDA0C-8FB0-413E-A7FC-A131721C3BF5}.Release|Mixed Platforms.ActiveCfg = Debug|Any CPU
 		{EB1DDA0C-8FB0-413E-A7FC-A131721C3BF5}.Release|x86.ActiveCfg = Debug|Any CPU
+		{647993F6-F0FE-4960-A9D3-B29CD836F4D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{647993F6-F0FE-4960-A9D3-B29CD836F4D3}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{647993F6-F0FE-4960-A9D3-B29CD836F4D3}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{647993F6-F0FE-4960-A9D3-B29CD836F4D3}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{647993F6-F0FE-4960-A9D3-B29CD836F4D3}.Release|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{647993F6-F0FE-4960-A9D3-B29CD836F4D3}.Release|x86.ActiveCfg = Debug|Any CPU
+		{92D92C9E-FF63-469C-8692-9B8AD55B0AD4}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{92D92C9E-FF63-469C-8692-9B8AD55B0AD4}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{92D92C9E-FF63-469C-8692-9B8AD55B0AD4}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{92D92C9E-FF63-469C-8692-9B8AD55B0AD4}.Debug|x86.ActiveCfg = Debug|x86
+		{92D92C9E-FF63-469C-8692-9B8AD55B0AD4}.Debug|x86.Build.0 = Debug|x86
+		{92D92C9E-FF63-469C-8692-9B8AD55B0AD4}.Release|Any CPU.ActiveCfg = Release|x86
+		{92D92C9E-FF63-469C-8692-9B8AD55B0AD4}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{92D92C9E-FF63-469C-8692-9B8AD55B0AD4}.Release|Mixed Platforms.Build.0 = Release|x86
+		{92D92C9E-FF63-469C-8692-9B8AD55B0AD4}.Release|x86.ActiveCfg = Release|x86
+		{92D92C9E-FF63-469C-8692-9B8AD55B0AD4}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
