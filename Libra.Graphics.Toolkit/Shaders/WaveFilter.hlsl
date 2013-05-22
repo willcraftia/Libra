@@ -44,5 +44,5 @@ float4 PS(float4 color    : COLOR0,
         velocity += NewWaveVeclocity;
     }
 
-    return float4(height, velocity, 0.0, 0.0);
+    return float4(height, velocity, 0, 0);
 }
