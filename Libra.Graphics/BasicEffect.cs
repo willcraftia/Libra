@@ -65,16 +65,20 @@ namespace Libra.Graphics
             {
                 lock (this)
                 {
-                    if (vertexShaders[index] == null)
+                    var vertexShader = vertexShaders[index];
+
+                    if (vertexShader == null)
                     {
                         var definition = VertexShaderDefinitions[index];
 
-                        vertexShaders[index] = device.CreateVertexShader();
-                        vertexShaders[index].Name = definition.Name;
-                        vertexShaders[index].Initialize(definition.Bytecode);
+                        vertexShader = device.CreateVertexShader();
+                        vertexShader.Name = definition.Name;
+                        vertexShader.Initialize(definition.Bytecode);
+
+                        vertexShaders[index] = vertexShader;
                     }
 
-                    return vertexShaders[index];
+                    return vertexShader;
                 }
             }
 
@@ -82,13 +86,20 @@ namespace Libra.Graphics
             {
                 lock (this)
                 {
-                    if (pixelShaders[index] == null)
+                    var pixelShader = pixelShaders[index];
+
+                    if (pixelShader == null)
                     {
-                        pixelShaders[index] = device.CreatePixelShader();
-                        pixelShaders[index].Initialize(PixelShaderDefinitions[index].Bytecode);
+                        var definition = PixelShaderDefinitions[index];
+
+                        pixelShader = device.CreatePixelShader();
+                        pixelShader.Name = definition.Name;
+                        pixelShader.Initialize(PixelShaderDefinitions[index].Bytecode);
+
+                        pixelShaders[index] = pixelShader;
                     }
 
-                    return pixelShaders[index];
+                    return pixelShader;
                 }
             }
         }
