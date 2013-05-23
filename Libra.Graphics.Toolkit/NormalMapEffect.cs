@@ -47,7 +47,7 @@ namespace Libra.Graphics.Toolkit
         {
             ViewProjection      = (1 << 0),
             WorldViewProjection = (1 << 1),
-            WorldView               = (1 << 2),
+            WorldView           = (1 << 2),
             Constants           = (1 << 3)
         }
 
