@@ -22,7 +22,6 @@ cbuffer Parameters : register(b0)
     float4 SampleSphere[MAX_SAMPLE_COUNT]   : packoffset(c2);
 };
 
-// 法線マップは _SNORM フォーマット。
 Texture2D<float>  LinearDepthMap    : register(t0);
 Texture2D<float3> NormalMap         : register(t1);
 Texture2D<float3> RandomNormalMap   : register(t2);
