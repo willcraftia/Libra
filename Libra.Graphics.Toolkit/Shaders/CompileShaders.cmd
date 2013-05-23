@@ -185,6 +185,12 @@ call :CompileShader HeightToNormalFilter PS %ps_profile%
 ::
 call :CompileShader HeightToGradientFilter PS %ps_profile%
 
+::
+:: Water VS/PS
+::
+call :CompileVS Water VS %vs_profile%
+call :CompilePS Water PS %ps_profile%
+
 echo.
 
 if %error% == 0 (
@@ -198,6 +204,20 @@ exit /b
 
 :CompileShader
 set compiler=..\..\Tools.CompileShader\bin\Debug\Tools.CompileShader.exe %1.hlsl Compiled\%1%2.bin %2 %3
+echo.
+echo %compiler%
+%compiler% || set error=1
+exit /b
+
+:CompileVS
+set compiler=..\..\Tools.CompileShader\bin\Debug\Tools.CompileShader.exe %1.vs Compiled\%1%2.bin %2 %3
+echo.
+echo %compiler%
+%compiler% || set error=1
+exit /b
+
+:CompilePS
+set compiler=..\..\Tools.CompileShader\bin\Debug\Tools.CompileShader.exe %1.ps Compiled\%1%2.bin %2 %3
 echo.
 echo %compiler%
 %compiler% || set error=1

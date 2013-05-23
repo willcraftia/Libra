@@ -1,0 +1,53 @@
+Texture2D<float3> SNormalMap    : register(t0);
+Texture2D<float4> ReflectionMap : register(t2);
+Texture2D<float4> RefractionMap : register(t3);
+
+SamplerState SNormalMapSampler      : register(s0);
+SamplerState ReflectionMapSampler   : register(s1);
+SamplerState RefractionMapSampler   : register(s2);
+
+cbuffer Parameters : register(b0)
+{
+    float2 WaterOffset;
+    float  RippleScale;
+};
+
+struct Input
+{
+    float4 Position             : SV_Position;
+    float2 TexCoord             : TEXCOORD0;
+    float4 ReflectionPosition   : TEXCOORD1;
+    float4 RefractionPosition   : TEXCOORD2;
+};
+
+struct Output
+{
+    float4 Color : SV_Target0;
+};
+
+float2 ToTexCoord(float4 position)
+{
+    return position.xy / position.w * float2(0.5, -0.5) + float2(0.5, 0.5);
+}
+
+Output PS(Input input)
+{
+    Output output;
+
+    float2 texCoord = input.TexCoord + WaterOffset;
+
+    float3 normal = SNormalMap.Sample(SNormalMapSampler, input.TexCoord);
+
+    float2 reflectionTexCoord = ToTexCoord(input.ReflectionPosition);
+    float2 refractionTexCoord = ToTexCoord(input.RefractionPosition);
+
+    reflectionTexCoord += normal.xy * RippleScale;
+    refractionTexCoord += normal.xy * RippleScale;
+
+    float4 reflactionColor = ReflectionMap.Sample(ReflectionMapSampler, reflectionTexCoord);
+    float4 refractionColor = RefractionMap.Sample(RefractionMapSampler, reflectionTexCoord);
+
+    output.Color = lerp(reflactionColor, refractionColor, 0.6f);
+
+    return output;
+}

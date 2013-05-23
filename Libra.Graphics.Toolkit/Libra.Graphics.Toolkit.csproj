@@ -218,6 +218,8 @@
     <None Include="Shaders\SSAOMapColorFilter.hlsl" />
     <None Include="Shaders\UpFilter.hlsl" />
     <None Include="Shaders\VolumetricFogMap.hlsl" />
+    <None Include="Shaders\Water.ps" />
+    <None Include="Shaders\Water.vs" />
     <None Include="Shaders\WaveFilter.hlsl" />
   </ItemGroup>
   <ItemGroup />

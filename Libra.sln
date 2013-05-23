@@ -93,9 +93,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.SceneVolumetricFog"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.SceneVolumetricFogContent", "Samples\Samples.SceneVolumetricFogContent\Samples.SceneVolumetricFogContent.contentproj", "{EB1DDA0C-8FB0-413E-A7FC-A131721C3BF5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.ProceduralTexturesContent", "Samples\Samples.ProceduralTexturesContent\Samples.ProceduralTexturesContent.contentproj", "{647993F6-F0FE-4960-A9D3-B29CD836F4D3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.WaterContent", "Samples\Samples.WaterContent\Samples.WaterContent.contentproj", "{647993F6-F0FE-4960-A9D3-B29CD836F4D3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.ProceduralTextures", "Samples\Samples.ProceduralTextures\Samples.ProceduralTextures.csproj", "{92D92C9E-FF63-469C-8692-9B8AD55B0AD4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.Water", "Samples\Samples.Water\Samples.Water.csproj", "{92D92C9E-FF63-469C-8692-9B8AD55B0AD4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
