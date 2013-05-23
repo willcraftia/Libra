@@ -81,11 +81,6 @@ namespace Samples.SceneDepthOfField
         KeyboardState currentKeyboardState;
 
         /// <summary>
-        /// ブラー済みシーンのスケール。
-        /// </summary>
-        float mapScale = 0.5f;
-
-        /// <summary>
         /// 深度マップの描画先レンダ ターゲット。
         /// </summary>
         RenderTarget depthMapRenderTarget;
@@ -96,9 +91,34 @@ namespace Samples.SceneDepthOfField
         RenderTarget normalSceneRenderTarget;
 
         /// <summary>
-        /// ブラー済みシーンの描画先レンダ ターゲット。
+        /// ポストプロセス。
         /// </summary>
-        RenderTarget bluredSceneRenderTarget;
+        Postprocess postprocess;
+
+        /// <summary>
+        /// ダウン フィルタ。
+        /// </summary>
+        DownFilter downFilter;
+
+        /// <summary>
+        /// アップ フィルタ。
+        /// </summary>
+        UpFilter upFilter;
+
+        /// <summary>
+        /// ガウシアン フィルタ。
+        /// </summary>
+        GaussianFilter gaussianFilter;
+
+        /// <summary>
+        /// ガウシアン フィルタ 水平パス。
+        /// </summary>
+        GaussianFilterPass gaussianFilterH;
+
+        /// <summary>
+        /// ガウシアン フィルタ 垂直パス。
+        /// </summary>
+        GaussianFilterPass gaussianFilterV;
 
         /// <summary>
         /// 線形深度マップ エフェクト。
@@ -106,19 +126,14 @@ namespace Samples.SceneDepthOfField
         LinearDepthMapEffect depthMapEffect;
 
         /// <summary>
-        /// ガウシアン フィルタ。
-        /// </summary>
-        GaussianFilterSuite gaussianFilter;
-
-        /// <summary>
-        /// FullScreenQuad。
-        /// </summary>
-        FullScreenQuad fullScreenQuad;
-
-        /// <summary>
         /// 被写界深度合成フィルタ。
         /// </summary>
         DofCombineFilter dofCombineFilter;
+
+        /// <summary>
+        /// ポストプロセス適用後の最終シーン。
+        /// </summary>
+        ShaderResourceView finalSceneTexture;
 
         /// <summary>
         /// メッシュ描画のための基礎エフェクト。
@@ -192,22 +207,26 @@ namespace Samples.SceneDepthOfField
             normalSceneRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
             normalSceneRenderTarget.Initialize();
 
-            bluredSceneRenderTarget = Device.CreateRenderTarget();
-            bluredSceneRenderTarget.Width = (int) (WindowWidth * mapScale);
-            bluredSceneRenderTarget.Height = (int) (WindowWidth * mapScale);
-            bluredSceneRenderTarget.Initialize();
+            postprocess = new Postprocess(context);
+            postprocess.Width = WindowWidth;
+            postprocess.Height = WindowHeight;
 
-            depthMapEffect = new LinearDepthMapEffect(Device);
+            downFilter = new DownFilter(Device);
+            upFilter = new UpFilter(Device);
 
-            gaussianFilter = new GaussianFilterSuite(
-                Device.ImmediateContext,
-                bluredSceneRenderTarget.Width,
-                bluredSceneRenderTarget.Height,
-                bluredSceneRenderTarget.Format);
+            gaussianFilter = new GaussianFilter(Device);
+            gaussianFilterH = new GaussianFilterPass(gaussianFilter, GaussianFilterDirection.Horizon);
+            gaussianFilterV = new GaussianFilterPass(gaussianFilter, GaussianFilterDirection.Vertical);
 
             dofCombineFilter = new DofCombineFilter(Device);
 
-            fullScreenQuad = new FullScreenQuad(context);
+            postprocess.Filters.Add(downFilter);
+            postprocess.Filters.Add(gaussianFilterH);
+            postprocess.Filters.Add(gaussianFilterV);
+            postprocess.Filters.Add(upFilter);
+            postprocess.Filters.Add(dofCombineFilter);
+
+            depthMapEffect = new LinearDepthMapEffect(Device);
 
             basicEffect = new BasicEffect(Device);
             basicEffect.AmbientLightColor = new Vector3(0.15f, 0.15f, 0.15f);
@@ -245,8 +264,8 @@ namespace Samples.SceneDepthOfField
             // 通常シーンを描画。
             CreateNormalSceneMap();
 
-            // ブラー済みシーンを作成。
-            CreateBluredSceneMap();
+            // ポストプロセスを適用。
+            ApplyPostprocess();
 
             // 最終的なシーンをバック バッファへ描画。
             CreateFinalSceneMap();
@@ -285,6 +304,18 @@ namespace Samples.SceneDepthOfField
             textureDisplay.Textures.Add(normalSceneRenderTarget);
         }
 
+        void ApplyPostprocess()
+        {
+            finalSceneTexture = postprocess.Draw(normalSceneRenderTarget);
+        }
+
+        void CreateFinalSceneMap()
+        {
+            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
+            spriteBatch.Draw(finalSceneTexture, Vector2.Zero, Color.White);
+            spriteBatch.End();
+        }
+
         void DrawScene(IEffect effect)
         {
             var effectMatrices = effect as IEffectMatrices;
@@ -319,20 +350,6 @@ namespace Samples.SceneDepthOfField
 
             effect.Apply(context);
             mesh.Draw();
-        }
-
-        void CreateBluredSceneMap()
-        {
-            gaussianFilter.Filter(normalSceneRenderTarget, bluredSceneRenderTarget);
-
-            textureDisplay.Textures.Add(bluredSceneRenderTarget);
-        }
-
-        void CreateFinalSceneMap()
-        {
-            context.PixelShaderResources[0] = bluredSceneRenderTarget;
-            dofCombineFilter.Apply(context);
-            fullScreenQuad.Draw();
         }
 
         void DrawOverlayText()
