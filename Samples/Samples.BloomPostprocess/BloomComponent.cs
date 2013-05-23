@@ -13,28 +13,6 @@ namespace Samples.BloomPostprocess
 {
     public sealed class BloomComponent : DrawableGameComponent
     {
-        SpriteBatch spriteBatch;
-
-        BloomExtractFilter bloomExtract;
-
-        BloomCombineFilter bloomCombine;
-
-        GaussianFilter gaussianFilter;
-
-        RenderTarget sceneRenderTarget;
-
-        RenderTarget bloomMapRenderTarget;
-        
-        RenderTarget interBlurRenderTarget;
-
-        BloomSettings settings = BloomSettings.PresetSettings[0];
-
-        public BloomSettings Settings
-        {
-            get { return settings; }
-            set { settings = value; }
-        }
-
         public enum IntermediateBuffer
         {
             PreBloom,
@@ -43,13 +21,45 @@ namespace Samples.BloomPostprocess
             FinalResult,
         }
 
+        DeviceContext context;
+
+        SpriteBatch spriteBatch;
+
+        Postprocess postprocess;
+
+        BloomExtractFilter bloomExtractFilter;
+
+        BloomCombineFilter bloomCombineFilter;
+
+        GaussianFilter gaussianFilter;
+
+        GaussianFilterPass gaussianFilterH;
+
+        GaussianFilterPass gaussianFilterV;
+
+        DownFilter downFilter;
+
+        UpFilter upFilter;
+
+        RenderTarget sceneRenderTarget;
+
+        ShaderResourceView finalSceneTexture;
+
+        BloomSettings settings = BloomSettings.PresetSettings[0];
+
+        IntermediateBuffer showBuffer = IntermediateBuffer.FinalResult;
+
+        public BloomSettings Settings
+        {
+            get { return settings; }
+            set { settings = value; }
+        }
+
         public IntermediateBuffer ShowBuffer
         {
             get { return showBuffer; }
             set { showBuffer = value; }
         }
-
-        IntermediateBuffer showBuffer = IntermediateBuffer.FinalResult;
 
         public BloomComponent(Game game)
             : base(game)
@@ -60,123 +70,86 @@ namespace Samples.BloomPostprocess
 
         protected override void LoadContent()
         {
-            spriteBatch = new SpriteBatch(Device.ImmediateContext);
+            context = Device.ImmediateContext;
 
-            bloomExtract = new BloomExtractFilter(Device);
-            bloomCombine = new BloomCombineFilter(Device);
+            spriteBatch = new SpriteBatch(context);
+
+            bloomExtractFilter = new BloomExtractFilter(Device);
+            bloomCombineFilter = new BloomCombineFilter(Device);
             gaussianFilter = new GaussianFilter(Device);
+            gaussianFilterH = new GaussianFilterPass(gaussianFilter, GaussianFilterDirection.Horizon);
+            gaussianFilterV = new GaussianFilterPass(gaussianFilter, GaussianFilterDirection.Vertical);
+            downFilter = new DownFilter(Device);
+            downFilter.WidthScale = 0.5f;
+            downFilter.HeightScale = 0.5f;
+            upFilter = new UpFilter(Device);
+            upFilter.WidthScale = 2.0f;
+            upFilter.HeightScale = 2.0f;
 
             var backBuffer = Device.BackBuffer;
             var width = backBuffer.Width;
             var height = backBuffer.Height;
             var format = backBuffer.Format;
+            var multisampleCount = backBuffer.MultisampleCount;
+            var depthFormat = backBuffer.DepthFormat;
+
+            postprocess = new Postprocess(context);
+            postprocess.Width = width;
+            postprocess.Height = height;
+            postprocess.Format = format;
+            postprocess.MultisampleCount = multisampleCount;
+            postprocess.Filters.Add(downFilter);
+            postprocess.Filters.Add(bloomExtractFilter);
+            postprocess.Filters.Add(gaussianFilterH);
+            postprocess.Filters.Add(gaussianFilterV);
+            postprocess.Filters.Add(upFilter);
+            postprocess.Filters.Add(bloomCombineFilter);
 
             sceneRenderTarget = Device.CreateRenderTarget();
             sceneRenderTarget.Width = width;
             sceneRenderTarget.Height = height;
-            sceneRenderTarget.MultisampleCount = backBuffer.MultisampleCount;
+            sceneRenderTarget.MultisampleCount = multisampleCount;
             sceneRenderTarget.Format = format;
-            sceneRenderTarget.DepthFormat = backBuffer.DepthFormat;
+            sceneRenderTarget.DepthFormat = depthFormat;
             sceneRenderTarget.Initialize();
-
-            width /= 2;
-            height /= 2;
-
-            bloomMapRenderTarget = Device.CreateRenderTarget();
-            bloomMapRenderTarget.Width = width;
-            bloomMapRenderTarget.Height = height;
-            bloomMapRenderTarget.Format = format;
-            bloomMapRenderTarget.Initialize();
-
-            interBlurRenderTarget = Device.CreateRenderTarget();
-            interBlurRenderTarget.Width = width;
-            interBlurRenderTarget.Height = height;
-            interBlurRenderTarget.Format = format;
-            interBlurRenderTarget.Initialize();
-        }
-
-        protected override void UnloadContent()
-        {
-            sceneRenderTarget.Dispose();
-            bloomMapRenderTarget.Dispose();
-            interBlurRenderTarget.Dispose();
         }
 
         public void BeginDraw()
         {
             if (Visible)
             {
-                Device.ImmediateContext.SetRenderTarget(sceneRenderTarget);
+                context.SetRenderTarget(sceneRenderTarget);
             }
         }
 
         public override void Draw(GameTime gameTime)
         {
-            var context = Device.ImmediateContext;
-            var viewport = context.Viewport;
+            gaussianFilterH.Enabled = false;
+            gaussianFilterV.Enabled = false;
+            bloomCombineFilter.Enabled = false;
 
-            // ブルーム マップの生成。
-            bloomExtract.Threshold = Settings.BloomThreshold;
-            DrawFullscreenQuad(
-                sceneRenderTarget,
-                bloomMapRenderTarget,
-                bloomExtract,
-                IntermediateBuffer.PreBloom);
+            if (IntermediateBuffer.BlurredHorizontally <= showBuffer)
+                gaussianFilterH.Enabled = true;
 
-            // ガウシアン ブラーの設定。
+            if (IntermediateBuffer.BlurredBothWays <= showBuffer)
+                gaussianFilterV.Enabled = true;
+
+            if (IntermediateBuffer.FinalResult == showBuffer)
+                bloomCombineFilter.Enabled = true;
+
+            bloomCombineFilter.BaseIntensity = Settings.BaseIntensity;
+            bloomCombineFilter.BaseSaturation = Settings.BaseSaturation;
+            bloomCombineFilter.BloomIntensity = Settings.BloomIntensity;
+            bloomCombineFilter.BloomSaturation = Settings.BloomSaturation;
+            bloomCombineFilter.BaseTexture = sceneRenderTarget;
+
             // XNA の BlurAamount はガウス関数の sigma そのものに一致。
             gaussianFilter.Sigma = Settings.BlurAmount;
 
-            // ガウシアン ブラーの水平パス。
-            gaussianFilter.Direction = GaussianFilterDirection.Horizon;
-            DrawFullscreenQuad(
-                bloomMapRenderTarget,
-                interBlurRenderTarget,
-                gaussianFilter,
-                IntermediateBuffer.BlurredHorizontally);
+            finalSceneTexture = postprocess.Draw(sceneRenderTarget);
 
-            // ガウシアン ブラーの垂直パス。
-            gaussianFilter.Direction = GaussianFilterDirection.Vertical;
-            DrawFullscreenQuad(
-                interBlurRenderTarget,
-                bloomMapRenderTarget,
-                gaussianFilter,
-                IntermediateBuffer.BlurredBothWays);
-            
-            context.SetRenderTarget(null);
-
-            // ブルーム マップとシーンを合成。
-            bloomCombine.BaseIntensity = Settings.BaseIntensity;
-            bloomCombine.BaseSaturation = Settings.BaseSaturation;
-            bloomCombine.BloomIntensity = Settings.BloomIntensity;
-            bloomCombine.BloomSaturation = Settings.BloomSaturation;
-            bloomCombine.BaseTexture = sceneRenderTarget;
-            DrawFullscreenQuad(
-                bloomMapRenderTarget,
-                (int) viewport.Width,
-                (int) viewport.Height,
-                bloomCombine,
-                IntermediateBuffer.FinalResult);
-        }
-
-        void DrawFullscreenQuad(Texture2D texture, RenderTarget renderTarget,
-            IEffect effect, IntermediateBuffer currentBuffer)
-        {
-            Device.ImmediateContext.SetRenderTarget(renderTarget);
-
-            DrawFullscreenQuad(texture, renderTarget.Width, renderTarget.Height, effect, currentBuffer);
-        }
-
-        void DrawFullscreenQuad(Texture2D texture, int width, int height,
-            IEffect effect, IntermediateBuffer currentBuffer)
-        {
-            if (showBuffer < currentBuffer)
-            {
-                effect = null;
-            }
-
-            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Opaque, null, null, null, effect);
-            spriteBatch.Draw(texture, new Rectangle(0, 0, width, height), Color.White);
+            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
+            spriteBatch.Draw(finalSceneTexture, Vector2.Zero, Color.White);
             spriteBatch.End();
         }
     }
