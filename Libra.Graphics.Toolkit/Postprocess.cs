@@ -31,7 +31,7 @@ namespace Libra.Graphics.Toolkit
 
         Dictionary<ulong, RenderTargetChain> renderTargetChains;
 
-        SpriteBatch spriteBatch;
+        FullScreenQuad fullScreenQuad;
 
         public FilterCollection Filters { get; private set; }
 
@@ -93,7 +93,7 @@ namespace Libra.Graphics.Toolkit
 
             renderTargetChains = new Dictionary<ulong, RenderTargetChain>(4);
             Filters = new FilterCollection();
-            spriteBatch = new SpriteBatch(context);
+            fullScreenQuad = new FullScreenQuad(context);
 
             width = 1;
             height = 1;
@@ -112,6 +112,11 @@ namespace Libra.Graphics.Toolkit
 
             int lastWidth = width;
             int lastHeight = height;
+
+            var previousBlendState = context.BlendState;
+            var previousDepthStencilState = context.DepthStencilState;
+            var previousRasterizerState = context.RasterizerState;
+            var previousSamplerState = context.PixelShaderSamplers[0];
 
             RenderTargetChain renderTargetChain = null;
 
@@ -159,14 +164,26 @@ namespace Libra.Graphics.Toolkit
 
                 context.SetRenderTarget(renderTargetChain.Current);
 
-                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque, null, null, null, filter);
-                spriteBatch.Draw(currentTexture, new Rectangle(0, 0, currentWidth, currentHeight), Color.White);
-                spriteBatch.End();
+                context.BlendState = BlendState.Opaque;
+                context.DepthStencilState = DepthStencilState.None;
+                context.RasterizerState = RasterizerState.CullBack;
+                context.PixelShaderSamplers[0] = SamplerState.LinearClamp;
+                context.PixelShaderResources[0] = currentTexture;
+                
+                filter.Apply(context);
+                
+                fullScreenQuad.Draw();
 
                 context.SetRenderTarget(null);
 
                 currentTexture = renderTargetChain.Current;
             }
+
+            // ステートを以前の状態へ戻す。
+            context.BlendState = previousBlendState;
+            context.DepthStencilState = previousDepthStencilState;
+            context.RasterizerState = previousRasterizerState;
+            context.PixelShaderSamplers[0] = previousSamplerState;
 
             return currentTexture;
         }
@@ -218,7 +235,7 @@ namespace Libra.Graphics.Toolkit
                         disposable.Dispose();
                 }
 
-                spriteBatch.Dispose();
+                fullScreenQuad.Dispose();
             }
 
             disposed = true;
