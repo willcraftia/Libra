@@ -30,18 +30,22 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        #region Constants
+        #region ConstantsVS
 
-        [StructLayout(LayoutKind.Explicit, Size = 144)]
-        public struct Constants
+        public struct ConstantsVS
         {
-            [FieldOffset(0)]
             public Matrix WorldViewProjection;
 
-            [FieldOffset(64)]
             public Matrix WorldView;
+        }
 
-            [FieldOffset(128)]
+        #endregion
+
+        #region ConstantsPS
+
+        [StructLayout(LayoutKind.Sequential, Size = 16)]
+        public struct ConstantsPS
+        {
             public float Density;
         }
 
@@ -55,7 +59,8 @@ namespace Libra.Graphics.Toolkit
             ViewProjection      = (1 << 0),
             WorldView           = (1 << 1),
             WorldViewProjection = (1 << 2),
-            Constants           = (1 << 3)
+            ConstantsVS         = (1 << 3),
+            ConstantsPS         = (1 << 4)
         }
 
         #endregion
@@ -64,9 +69,13 @@ namespace Libra.Graphics.Toolkit
 
         SharedDeviceResource sharedDeviceResource;
 
-        ConstantBuffer constantBuffer;
+        ConstantBuffer constantBufferVS;
 
-        Constants constants;
+        ConstantBuffer constantBufferPS;
+
+        ConstantsVS constantsVS;
+
+        ConstantsPS constantsPS;
 
         Matrix world;
 
@@ -113,14 +122,14 @@ namespace Libra.Graphics.Toolkit
 
         public float Density
         {
-            get { return constants.Density; }
+            get { return constantsPS.Density; }
             set
             {
                 if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
 
-                constants.Density = value;
+                constantsPS.Density = value;
 
-                dirtyFlags |= DirtyFlags.Constants;
+                dirtyFlags |= DirtyFlags.ConstantsPS;
             }
         }
 
@@ -140,21 +149,24 @@ namespace Libra.Graphics.Toolkit
 
             sharedDeviceResource = device.GetSharedResource<VolumetricFogMapEffect, SharedDeviceResource>();
 
-            constantBuffer = device.CreateConstantBuffer();
-            constantBuffer.Initialize<Constants>();
+            constantBufferVS = device.CreateConstantBuffer();
+            constantBufferVS.Initialize<ConstantsVS>();
+            constantBufferPS = device.CreateConstantBuffer();
+            constantBufferPS.Initialize<ConstantsPS>();
 
             world = Matrix.Identity;
             view = Matrix.Identity;
             projection = Matrix.Identity;
             viewProjection = Matrix.Identity;
-            constants.WorldViewProjection = Matrix.Identity;
-            constants.WorldView = Matrix.Identity;
-            constants.Density = 0.01f;
+
+            constantsVS.WorldViewProjection = Matrix.Identity;
+            constantsVS.WorldView = Matrix.Identity;
+            constantsPS.Density = 0.01f;
 
             FrontFogDepthMapSampler = SamplerState.LinearClamp;
             BackFogDepthMapSampler = SamplerState.LinearClamp;
 
-            dirtyFlags = DirtyFlags.Constants;
+            dirtyFlags = DirtyFlags.ConstantsVS | DirtyFlags.ConstantsPS;
         }
 
         public void Apply(DeviceContext context)
@@ -172,10 +184,10 @@ namespace Libra.Graphics.Toolkit
                 Matrix worldView;
                 Matrix.Multiply(ref world, ref view, out worldView);
 
-                Matrix.Transpose(ref worldView, out constants.WorldView);
+                Matrix.Transpose(ref worldView, out constantsVS.WorldView);
 
                 dirtyFlags &= ~DirtyFlags.WorldView;
-                dirtyFlags |= DirtyFlags.Constants;
+                dirtyFlags |= DirtyFlags.ConstantsVS;
             }
 
             if ((dirtyFlags & DirtyFlags.WorldViewProjection) != 0)
@@ -183,23 +195,30 @@ namespace Libra.Graphics.Toolkit
                 Matrix worldViewProjection;
                 Matrix.Multiply(ref world, ref viewProjection, out worldViewProjection);
 
-                Matrix.Transpose(ref worldViewProjection, out constants.WorldViewProjection);
+                Matrix.Transpose(ref worldViewProjection, out constantsVS.WorldViewProjection);
 
                 dirtyFlags &= ~DirtyFlags.WorldViewProjection;
-                dirtyFlags |= DirtyFlags.Constants;
+                dirtyFlags |= DirtyFlags.ConstantsVS;
             }
 
-            if ((dirtyFlags & DirtyFlags.Constants) != 0)
+            if ((dirtyFlags & DirtyFlags.ConstantsVS) != 0)
             {
-                constantBuffer.SetData(context, constants);
+                constantBufferVS.SetData(context, constantsVS);
 
-                dirtyFlags &= ~DirtyFlags.Constants;
+                dirtyFlags &= ~DirtyFlags.ConstantsVS;
             }
 
-            context.VertexShaderConstantBuffers[0] = constantBuffer;
+            if ((dirtyFlags & DirtyFlags.ConstantsPS) != 0)
+            {
+                constantBufferPS.SetData(context, constantsPS);
+
+                dirtyFlags &= ~DirtyFlags.ConstantsPS;
+            }
+
+            context.VertexShaderConstantBuffers[0] = constantBufferVS;
             context.VertexShader = sharedDeviceResource.VertexShader;
 
-            context.PixelShaderConstantBuffers[0] = constantBuffer;
+            context.PixelShaderConstantBuffers[0] = constantBufferPS;
             context.PixelShader = sharedDeviceResource.PixelShader;
 
             context.PixelShaderResources[0] = FrontFogDepthMap;
@@ -230,7 +249,7 @@ namespace Libra.Graphics.Toolkit
             if (disposing)
             {
                 sharedDeviceResource = null;
-                constantBuffer.Dispose();
+                constantBufferVS.Dispose();
             }
 
             disposed = true;

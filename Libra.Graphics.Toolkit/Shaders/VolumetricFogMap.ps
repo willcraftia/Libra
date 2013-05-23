@@ -1,9 +1,7 @@
 cbuffer Parameters : register(b0)
 {
-    float4x4 WorldViewProjection    : packoffset(c0);
-    float4x4 WorldView              : packoffset(c4);
     // 線形深度を用いている場合、深度 1 に対する密度を表す。
-    float    Density                : packoffset(c8);
+    float Density;
 };
 
 Texture2D<float> FrontFogDepthMap   : register(t0);
@@ -15,7 +13,7 @@ SamplerState BackFogDepthMapSampler     : register(s1);
 struct Input
 {
     float4 Position     : SV_Position;
-    float4 PositionWVP  : POSITION_WVP;
+    float4 PositionWVP  : TEXCOORD0;
 };
 
 float4 PS(Input input) : SV_Target0
