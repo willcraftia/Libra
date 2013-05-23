@@ -30,10 +30,20 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        #region Constants
+        #region ConstantsVS
+
+        [StructLayout(LayoutKind.Sequential, Size = 16)]
+        public struct ConstantsVS
+        {
+            public Vector2 FocalLength;
+        }
+
+        #endregion
+
+        #region ConstantsPS
 
         [StructLayout(LayoutKind.Explicit, Size = 32 + 16 * MaxSampleCount)]
-        public struct Constants
+        public struct ConstantsPS
         {
             [FieldOffset(0)]
             public Vector2 FocalLength;
@@ -68,7 +78,8 @@ namespace Libra.Graphics.Toolkit
             RandomNormals   = (1 << 1),
             SampleSphere    = (1 << 2),
             Projection      = (1 << 3),
-            Constants       = (1 << 4)
+            ConstantsVS     = (1 << 4),
+            ConstantsPS     = (1 << 5)
         }
 
         #endregion
@@ -79,9 +90,13 @@ namespace Libra.Graphics.Toolkit
 
         SharedDeviceResource sharedDeviceResource;
 
-        ConstantBuffer constantBuffer;
+        ConstantBuffer constantBufferVS;
 
-        Constants constants;
+        ConstantBuffer constantBufferPS;
+
+        ConstantsVS constantsVS;
+
+        ConstantsPS constantsPS;
 
         int seed;
 
@@ -108,53 +123,53 @@ namespace Libra.Graphics.Toolkit
 
         public float Strength
         {
-            get { return constants.Strength; }
+            get { return constantsPS.Strength; }
             set
             {
                 if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
 
-                constants.Strength = value;
+                constantsPS.Strength = value;
 
-                dirtyFlags |= DirtyFlags.Constants;
+                dirtyFlags |= DirtyFlags.ConstantsPS;
             }
         }
 
         public float Attenuation
         {
-            get { return constants.Attenuation; }
+            get { return constantsPS.Attenuation; }
             set
             {
                 if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
 
-                constants.Attenuation = value;
+                constantsPS.Attenuation = value;
 
-                dirtyFlags |= DirtyFlags.Constants;
+                dirtyFlags |= DirtyFlags.ConstantsPS;
             }
         }
 
         public float Radius
         {
-            get { return constants.Radius; }
+            get { return constantsPS.Radius; }
             set
             {
                 if (value <= 0.0f) throw new ArgumentOutOfRangeException("value");
 
-                constants.Radius = value;
+                constantsPS.Radius = value;
 
-                dirtyFlags |= DirtyFlags.Constants;
+                dirtyFlags |= DirtyFlags.ConstantsPS;
             }
         }
 
         public int SampleCount
         {
-            get { return (int) constants.SampleCount; }
+            get { return (int) constantsPS.SampleCount; }
             set
             {
                 if (value < 1 || MaxSampleCount < value) throw new ArgumentOutOfRangeException("value");
 
-                constants.SampleCount = value;
+                constantsPS.SampleCount = value;
 
-                dirtyFlags |= DirtyFlags.Constants;
+                dirtyFlags |= DirtyFlags.ConstantsPS;
             }
         }
 
@@ -187,18 +202,23 @@ namespace Libra.Graphics.Toolkit
 
             sharedDeviceResource = context.Device.GetSharedResource<SSAOMap, SharedDeviceResource>();
 
-            constantBuffer = context.Device.CreateConstantBuffer();
-            constantBuffer.Initialize<Constants>();
+            constantBufferVS = context.Device.CreateConstantBuffer();
+            constantBufferVS.Initialize<ConstantsVS>();
+
+            constantBufferPS = context.Device.CreateConstantBuffer();
+            constantBufferPS.Initialize<ConstantsPS>();
 
             seed = 0;
 
-            constants.FocalLength = Vector2.One;
-            constants.Strength = 5.0f;
-            constants.Attenuation = 0.5f;
-            constants.Radius = 10.0f;
-            constants.FarClipDistance = 1000.0f;
-            constants.SampleCount = 8;
-            constants.SampleSphere = new Vector4[MaxSampleCount];
+            constantsVS.FocalLength = Vector2.One;
+
+            constantsPS.FocalLength = Vector2.One;
+            constantsPS.Strength = 5.0f;
+            constantsPS.Attenuation = 0.5f;
+            constantsPS.Radius = 10.0f;
+            constantsPS.FarClipDistance = 1000.0f;
+            constantsPS.SampleCount = 8;
+            constantsPS.SampleSphere = new Vector4[MaxSampleCount];
 
             LinearDepthMapSampler = SamplerState.PointClamp;
             NormalMapSampler = SamplerState.PointClamp;
@@ -206,7 +226,7 @@ namespace Libra.Graphics.Toolkit
             Enabled = true;
 
             dirtyFlags = DirtyFlags.Random | DirtyFlags.RandomNormals | DirtyFlags.SampleSphere |
-                DirtyFlags.Projection | DirtyFlags.Constants;
+                DirtyFlags.Projection | DirtyFlags.ConstantsVS | DirtyFlags.ConstantsPS;
         }
 
         public void Draw()
@@ -231,17 +251,24 @@ namespace Libra.Graphics.Toolkit
             SetSampleSphere();
             SetProjection();
 
-            if ((dirtyFlags & DirtyFlags.Constants) != 0)
+            if ((dirtyFlags & DirtyFlags.ConstantsVS) != 0)
             {
-                constantBuffer.SetData(Context, constants);
+                constantBufferVS.SetData(Context, constantsVS);
 
-                dirtyFlags &= ~DirtyFlags.Constants;
+                dirtyFlags &= ~DirtyFlags.ConstantsVS;
             }
 
-            Context.VertexShaderConstantBuffers[0] = constantBuffer;
+            if ((dirtyFlags & DirtyFlags.ConstantsPS) != 0)
+            {
+                constantBufferPS.SetData(Context, constantsPS);
+
+                dirtyFlags &= ~DirtyFlags.ConstantsPS;
+            }
+
+            Context.VertexShaderConstantBuffers[0] = constantBufferVS;
             Context.VertexShader = sharedDeviceResource.VertexShader;
 
-            Context.PixelShaderConstantBuffers[0] = constantBuffer;
+            Context.PixelShaderConstantBuffers[0] = constantBufferPS;
             Context.PixelShader = sharedDeviceResource.PixelShader;
 
             Context.PixelShaderResources[0] = LinearDepthMap;
@@ -310,11 +337,11 @@ namespace Libra.Graphics.Toolkit
                     // 単位球面内のランダム点。
                     Vector3.Multiply(ref vector, scale, out vector);
 
-                    constants.SampleSphere[i] = new Vector4(vector, 0);
+                    constantsPS.SampleSphere[i] = new Vector4(vector, 0);
                 }
 
                 dirtyFlags &= ~DirtyFlags.SampleSphere;
-                dirtyFlags |= DirtyFlags.Constants;
+                dirtyFlags |= DirtyFlags.ConstantsPS;
             }
         }
 
@@ -322,12 +349,14 @@ namespace Libra.Graphics.Toolkit
         {
             if ((dirtyFlags & DirtyFlags.Projection) != 0)
             {
-                constants.FocalLength.X = projection.M11;
-                constants.FocalLength.Y = projection.M22;
-                constants.FarClipDistance = projection.PerspectiveFarClipDistance;
+                constantsVS.FocalLength.X = projection.M11;
+                constantsVS.FocalLength.Y = projection.M22;
+                constantsPS.FocalLength.X = projection.M11;
+                constantsPS.FocalLength.Y = projection.M22;
+                constantsPS.FarClipDistance = projection.PerspectiveFarClipDistance;
 
                 dirtyFlags &= ~DirtyFlags.Projection;
-                dirtyFlags |= DirtyFlags.Constants;
+                dirtyFlags |= DirtyFlags.ConstantsVS | DirtyFlags.ConstantsPS;
             }
         }
 
@@ -363,7 +392,7 @@ namespace Libra.Graphics.Toolkit
             if (disposing)
             {
                 sharedDeviceResource = null;
-                constantBuffer.Dispose();
+                constantBufferPS.Dispose();
             }
 
             disposed = true;
