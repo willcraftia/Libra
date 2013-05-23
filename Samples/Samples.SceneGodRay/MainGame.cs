@@ -194,7 +194,7 @@ namespace Samples.SceneGodRay
             lightScatteringFilter.Density = 2.0f;
             lightScatteringFilter.Exposure = 2.0f;
 
-            fullScreenQuad = new FullScreenQuad(Device);
+            fullScreenQuad = new FullScreenQuad(context);
 
             cubeMesh = new CubeMesh(context, 10.0f);
 
@@ -374,7 +374,7 @@ namespace Samples.SceneGodRay
             lightScatteringFilter.Texture = occlusionRenderTarget;
             lightScatteringFilter.Apply(context);
 
-            fullScreenQuad.Draw(context);
+            fullScreenQuad.Draw();
 
             // 光芒マップと通常シーンを加算混合。
             context.SetRenderTarget(null);

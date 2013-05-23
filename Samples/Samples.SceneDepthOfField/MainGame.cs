@@ -46,6 +46,11 @@ namespace Samples.SceneDepthOfField
         XnbManager content;
 
         /// <summary>
+        /// 描画に使用するデバイス コンテキスト。
+        /// </summary>
+        DeviceContext context;
+
+        /// <summary>
         /// スプライト バッチ。
         /// </summary>
         SpriteBatch spriteBatch;
@@ -169,7 +174,9 @@ namespace Samples.SceneDepthOfField
 
         protected override void LoadContent()
         {
-            spriteBatch = new SpriteBatch(Device.ImmediateContext);
+            context = Device.ImmediateContext;
+
+            spriteBatch = new SpriteBatch(context);
             spriteFont = content.Load<SpriteFont>("hudFont");
 
             depthMapRenderTarget = Device.CreateRenderTarget();
@@ -200,17 +207,17 @@ namespace Samples.SceneDepthOfField
 
             dofCombineFilter = new DofCombineFilter(Device);
 
-            fullScreenQuad = new FullScreenQuad(Device);
+            fullScreenQuad = new FullScreenQuad(context);
 
             basicEffect = new BasicEffect(Device);
             basicEffect.AmbientLightColor = new Vector3(0.15f, 0.15f, 0.15f);
             basicEffect.PerPixelLighting = true;
             basicEffect.EnableDefaultLighting();
 
-            cubeMesh = new CubeMesh(Device.ImmediateContext, 20);
-            sphereMesh = new SphereMesh(Device.ImmediateContext, 20, 32);
-            cylinderMesh = new CylinderMesh(Device.ImmediateContext, 80, 20, 32);
-            squareMesh = new SquareMesh(Device.ImmediateContext, 400);
+            cubeMesh = new CubeMesh(context, 20);
+            sphereMesh = new SphereMesh(context, 20, 32);
+            cylinderMesh = new CylinderMesh(context, 80, 20, 32);
+            squareMesh = new SquareMesh(context, 400);
         }
 
         protected override void Update(GameTime gameTime)
@@ -233,16 +240,16 @@ namespace Samples.SceneDepthOfField
             context.DepthStencilState = DepthStencilState.Default;
 
             // 深度マップを作成。
-            CreateDepthMap(context);
+            CreateDepthMap();
 
             // 通常シーンを描画。
-            CreateNormalSceneMap(context);
+            CreateNormalSceneMap();
 
             // ブラー済みシーンを作成。
             CreateBluredSceneMap();
 
             // 最終的なシーンをバック バッファへ描画。
-            CreateFinalSceneMap(context);
+            CreateFinalSceneMap();
 
             // HUD のテキストを描画。
             DrawOverlayText();
@@ -250,12 +257,12 @@ namespace Samples.SceneDepthOfField
             base.Draw(gameTime);
         }
 
-        void CreateDepthMap(DeviceContext context)
+        void CreateDepthMap()
         {
             context.SetRenderTarget(depthMapRenderTarget);
             context.Clear(new Vector4(float.MaxValue));
 
-            DrawScene(context, depthMapEffect);
+            DrawScene(depthMapEffect);
 
             context.SetRenderTarget(null);
 
@@ -263,12 +270,12 @@ namespace Samples.SceneDepthOfField
             dofCombineFilter.LinearDepthMap = depthMapRenderTarget;
         }
 
-        void CreateNormalSceneMap(DeviceContext context)
+        void CreateNormalSceneMap()
         {
             context.SetRenderTarget(normalSceneRenderTarget);
             context.Clear(Color.CornflowerBlue);
 
-            DrawScene(context, basicEffect);
+            DrawScene(basicEffect);
 
             context.SetRenderTarget(null);
 
@@ -278,7 +285,7 @@ namespace Samples.SceneDepthOfField
             textureDisplay.Textures.Add(normalSceneRenderTarget);
         }
 
-        void DrawScene(DeviceContext context, IEffect effect)
+        void DrawScene(IEffect effect)
         {
             var effectMatrices = effect as IEffectMatrices;
             if (effectMatrices != null)
@@ -287,16 +294,16 @@ namespace Samples.SceneDepthOfField
                 effectMatrices.Projection = camera.Projection;
             }
 
-            DrawPrimitiveMesh(context, cubeMesh, Matrix.CreateTranslation(-40, 10, 0), new Vector3(1, 0, 0), effect);
-            DrawPrimitiveMesh(context, sphereMesh, Matrix.CreateTranslation(0, 10, -40), new Vector3(0, 1, 0), effect);
+            DrawPrimitiveMesh(cubeMesh, Matrix.CreateTranslation(-40, 10, 0), new Vector3(1, 0, 0), effect);
+            DrawPrimitiveMesh(sphereMesh, Matrix.CreateTranslation(0, 10, -40), new Vector3(0, 1, 0), effect);
             for (float z = -180; z <= 180; z += 40)
             {
-                DrawPrimitiveMesh(context, cylinderMesh, Matrix.CreateTranslation(-180, 40, z), new Vector3(0, 0, 1), effect);
+                DrawPrimitiveMesh(cylinderMesh, Matrix.CreateTranslation(-180, 40, z), new Vector3(0, 0, 1), effect);
             }
-            DrawPrimitiveMesh(context, squareMesh, Matrix.Identity, new Vector3(0.5f), effect);
+            DrawPrimitiveMesh(squareMesh, Matrix.Identity, new Vector3(0.5f), effect);
         }
 
-        void DrawPrimitiveMesh(DeviceContext context, PrimitiveMesh mesh, Matrix world, Vector3 color, IEffect effect)
+        void DrawPrimitiveMesh(PrimitiveMesh mesh, Matrix world, Vector3 color, IEffect effect)
         {
             var effectMatrices = effect as IEffectMatrices;
             if (effectMatrices != null)
@@ -321,11 +328,11 @@ namespace Samples.SceneDepthOfField
             textureDisplay.Textures.Add(bluredSceneRenderTarget);
         }
 
-        void CreateFinalSceneMap(DeviceContext context)
+        void CreateFinalSceneMap()
         {
             context.PixelShaderResources[0] = bluredSceneRenderTarget;
             dofCombineFilter.Apply(context);
-            fullScreenQuad.Draw(context);
+            fullScreenQuad.Draw();
         }
 
         void DrawOverlayText()

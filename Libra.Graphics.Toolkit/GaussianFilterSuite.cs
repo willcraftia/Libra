@@ -8,23 +8,9 @@ namespace Libra.Graphics.Toolkit
 {
     public sealed class GaussianFilterSuite : IDisposable
     {
-        #region SharedDeviceResource
-
-        sealed class SharedDeviceResource
-        {
-            public FullScreenQuad FullScreenQuad { get; private set; }
-
-            public SharedDeviceResource(Device device)
-            {
-                FullScreenQuad = new FullScreenQuad(device);
-            }
-        }
-
-        #endregion
-
         DeviceContext context;
 
-        SharedDeviceResource sharedDeviceResource;
+        FullScreenQuad fullScreenQuad;
 
         GaussianFilter gaussianFilter;
 
@@ -58,7 +44,7 @@ namespace Libra.Graphics.Toolkit
             Width = width;
             Height = height;
 
-            sharedDeviceResource = context.Device.GetSharedResource<GaussianFilterSuite, SharedDeviceResource>();
+            fullScreenQuad = new FullScreenQuad(context);
 
             gaussianFilter = new GaussianFilter(context.Device);
 
@@ -105,7 +91,7 @@ namespace Libra.Graphics.Toolkit
 
             context.PixelShaderResources[0] = source;
 
-            sharedDeviceResource.FullScreenQuad.Draw(context);
+            fullScreenQuad.Draw();
         }
 
         #region IDisposable
@@ -129,7 +115,7 @@ namespace Libra.Graphics.Toolkit
 
             if (disposing)
             {
-                sharedDeviceResource = null;
+                fullScreenQuad.Dispose();
                 gaussianFilter.Dispose();
                 backingRenderTarget.Dispose();
             }

@@ -25,19 +25,21 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
+        DeviceContext context;
+
         SharedDeviceResource sharedDeviceResource;
 
-        public FullScreenQuad(Device device)
-        {
-            if (device == null) throw new ArgumentNullException("device");
-
-            sharedDeviceResource = device.GetSharedResource<FullScreenQuad, SharedDeviceResource>();
-        }
-
-        public void Draw(DeviceContext context)
+        public FullScreenQuad(DeviceContext context)
         {
             if (context == null) throw new ArgumentNullException("context");
 
+            this.context = context;
+
+            sharedDeviceResource = context.Device.GetSharedResource<FullScreenQuad, SharedDeviceResource>();
+        }
+
+        public void Draw()
+        {
             context.VertexShader = sharedDeviceResource.VertexShader;
             context.PrimitiveTopology = PrimitiveTopology.TriangleList;
             context.Draw(3);
