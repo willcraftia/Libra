@@ -34,27 +34,27 @@ call :CompilePS VolumetricFogCombineFilter PS %ps_profile%
 call :CompilePS WaveFilter PS %ps_profile%
 
 ::
-:: Effects
+:: Effect like
 ::
-call :CompileShader DepthMap VS %vs_profile%
-call :CompileShader DepthMap PS %ps_profile%
-call :CompileShader LinearDepthMap VS %vs_profile%
-call :CompileShader LinearDepthMap PS %ps_profile%
-call :CompileShader LinearFogDepthMap VS %vs_profile%
-call :CompileShader LinearFogDepthMap PS %ps_profile%
-call :CompileShader NormalMap VS %vs_profile%
-call :CompileShader NormalMap PS %ps_profile%
-call :CompileShader ShadowMap VS %vs_profile%
-call :CompileShader ShadowMap BasicPS %ps_profile%
-call :CompileShader ShadowMap VariancePS %ps_profile%
-call :CompileShader SingleColorObject VS %vs_profile%
-call :CompileShader SingleColorObject PS %ps_profile%
-call :CompileShader SSAOMap VS %vs_profile%
-call :CompileShader SSAOMap PS %ps_profile%
-call :CompileShader Particle VS %vs_profile%
-call :CompileShader Particle PS %ps_profile%
-call :CompileShader VolumetricFogMap VS %vs_profile%
-call :CompileShader VolumetricFogMap PS %ps_profile%
+call :CompileVS DepthMap VS %vs_profile%
+call :CompilePS DepthMap PS %ps_profile%
+call :CompileVS LinearDepthMap VS %vs_profile%
+call :CompilePS LinearDepthMap PS %ps_profile%
+call :CompileVS LinearFogDepthMap VS %vs_profile%
+call :CompilePS LinearFogDepthMap PS %ps_profile%
+call :CompileVS NormalMap VS %vs_profile%
+call :CompilePS NormalMap PS %ps_profile%
+call :CompileVS ShadowMap VS %vs_profile%
+call :CompilePS ShadowMap BasicPS %ps_profile%
+call :CompilePS ShadowMap VariancePS %ps_profile%
+call :CompileVS SingleColorObject VS %vs_profile%
+call :CompilePS SingleColorObject PS %ps_profile%
+call :CompileVS SSAOMap VS %vs_profile%
+call :CompilePS SSAOMap PS %ps_profile%
+call :CompileVS Particle VS %vs_profile%
+call :CompilePS Particle PS %ps_profile%
+call :CompileVS VolumetricFogMap VS %vs_profile%
+call :CompilePS VolumetricFogMap PS %ps_profile%
 call :CompileVS Water VS %vs_profile%
 call :CompilePS Water PS %ps_profile%
 

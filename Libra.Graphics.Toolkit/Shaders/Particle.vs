@@ -26,10 +26,7 @@ cbuffer PerFrame : register(b1)
     float    CurrentTime        : packoffset(c8.z);
 };
 
-Texture2D Texture : register(t0);
-sampler Sampler : register(s0);
-
-struct VSInput
+struct Input
 {
     // D3D11 では float2 で パック型 Short2 を受け取る事ができない。
     // int2 (ないしは vector<int, 2>) ならば正しく受け取れる。
@@ -41,7 +38,7 @@ struct VSInput
     float  Time     : TIME;
 };
 
-struct VSOutput
+struct Output
 {
     float4 Position : SV_Position;
     float4 Color    : COLOR;
@@ -95,9 +92,9 @@ float2x2 ComputeParticleRotation(float randomValue, float age)
     return float2x2(c, -s, s, c);
 }
 
-VSOutput VS(VSInput input)
+Output VS(Input input)
 {
-    VSOutput output;
+    Output output;
 
     float age = CurrentTime - input.Time;
 
@@ -116,9 +113,4 @@ VSOutput VS(VSInput input)
     output.TexCoord = ((float2) input.Corner + 1.0f) / 2.0f;
 
     return output;
-}
-
-float4 PS(VSOutput input) : SV_Target
-{
-    return Texture.Sample(Sampler, input.TexCoord) * input.Color;
 }

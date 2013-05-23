@@ -30,25 +30,14 @@ Texture2D<float3> RandomNormalMap   : register(t2);
 SamplerState LinearDepthMapSampler  : register(s0);
 SamplerState NormalMapSampler       : register(s1);
 
-struct VSOutput
+struct Input
 {
     float4 Position : SV_Position;
     float2 TexCoord : TEXCOORD0;
     float3 ViewRay  : TEXCOORD1;
 };
 
-VSOutput VS(uint id : SV_VertexID)
-{
-    VSOutput output;
-
-    output.TexCoord = float2((id << 1) & 2, id & 2);
-    output.Position = float4(output.TexCoord * float2(2, -2) + float2(-1, 1), 0, 1);
-    output.ViewRay = float3(output.Position.xy / FocalLength, 1);
-
-    return output;
-}
-
-float4 PS(VSOutput input) : SV_Target
+float4 PS(Input input) : SV_Target
 {
     // [“xB
     float depth = LinearDepthMap.SampleLevel(LinearDepthMapSampler, input.TexCoord, 0);

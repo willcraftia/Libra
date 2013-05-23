@@ -1,0 +1,17 @@
+// Xbox LIVE Indie Games - Particles 3D ÇÊÇËà⁄êAÅB
+// http://xbox.create.msdn.com/en-US/education/catalog/sample/particle_3d
+
+Texture2D Texture : register(t0);
+sampler Sampler : register(s0);
+
+struct Input
+{
+    float4 Position : SV_Position;
+    float4 Color    : COLOR;
+    float2 TexCoord : TEXCOORD;
+};
+
+float4 PS(Input input) : SV_Target
+{
+    return Texture.Sample(Sampler, input.TexCoord) * input.Color;
+}

@@ -1,0 +1,10 @@
+struct Input
+{
+    float4 Position : SV_Position;
+    float3 Normal   : NORMAL;
+};
+
+float4 PS(Input input) : SV_Target0
+{
+    return float4(normalize(input.Normal), 1);
+}

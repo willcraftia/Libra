@@ -4,23 +4,20 @@ cbuffer Parameters : register(b0)
     float4x4 WorldView;
 };
 
-struct VSOutput
+struct Output
 {
     float4 Position     : SV_Position;
-    float4 PositionWV   : POSITION_WV;
+    float4 PositionWV   : TEXCOORD0;
+    float4 PositionWVP  : TEXCOORD1;
 };
 
-VSOutput VS(float4 position : SV_Position)
+Output VS(float4 position : SV_Position)
 {
-    VSOutput output;
+    Output output;
 
     output.Position = mul(position, WorldViewProjection);
     output.PositionWV = mul(position, WorldView);
+    output.PositionWVP = output.Position;
 
     return output;
-}
-
-float4 PS(VSOutput input) : SV_Target0
-{
-    return float4(-input.PositionWV.z, 0, 0, 0);
 }

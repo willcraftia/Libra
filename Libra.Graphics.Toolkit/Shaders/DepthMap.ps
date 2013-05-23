@@ -1,0 +1,11 @@
+struct Input
+{
+    float4 Position     : SV_Position;
+    float4 PositionWVP  : TEXCOORD0;
+};
+
+float4 PS(Input input) : SV_Target0
+{
+    float depth = input.PositionWVP.z / input.PositionWVP.w;
+    return float4(depth, 0, 0, 0);
+}

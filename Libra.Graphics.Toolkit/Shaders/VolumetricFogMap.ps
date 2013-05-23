@@ -12,23 +12,13 @@ Texture2D<float> BackFogDepthMap    : register(t1);
 SamplerState FrontFogDepthMapSampler    : register(s0);
 SamplerState BackFogDepthMapSampler     : register(s1);
 
-struct VSOutput
+struct Input
 {
     float4 Position     : SV_Position;
     float4 PositionWVP  : POSITION_WVP;
 };
 
-VSOutput VS(float4 position : SV_Position)
-{
-    VSOutput output;
-
-    output.Position = mul(position, WorldViewProjection);
-    output.PositionWVP = output.Position;
-
-    return output;
-}
-
-float4 PS(VSOutput input) : SV_Target0
+float4 PS(Input input) : SV_Target0
 {
     float2 texCoord = input.PositionWVP.xy / input.PositionWVP.w * float2(0.5, -0.5) + float2(0.5, 0.5);
 

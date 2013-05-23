@@ -1,0 +1,10 @@
+struct Input
+{
+    float4 Position     : SV_Position;
+    float4 PositionWV   : TEXCOORD0;
+};
+
+float4 PS(Input input) : SV_Target0
+{
+    return float4(-input.PositionWV.z, 0, 0, 0);
+}
