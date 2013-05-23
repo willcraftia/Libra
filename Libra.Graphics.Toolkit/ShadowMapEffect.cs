@@ -15,20 +15,20 @@ namespace Libra.Graphics.Toolkit
         {
             public VertexShader VertexShader { get; private set; }
 
-            public PixelShader BasicPixelShader { get; private set; }
+            public PixelShader DepthMapPixelShader { get; private set; }
 
-            public PixelShader VariancePixelShader { get; private set; }
+            public PixelShader DepthVarianceMapPixelShader { get; private set; }
 
             public SharedDeviceResource(Device device)
             {
                 VertexShader = device.CreateVertexShader();
-                VertexShader.Initialize(Resources.ShadowMapVS);
+                VertexShader.Initialize(Resources.DepthMapVS);
 
-                BasicPixelShader = device.CreatePixelShader();
-                BasicPixelShader.Initialize(Resources.ShadowMapBasicPS);
+                DepthMapPixelShader = device.CreatePixelShader();
+                DepthMapPixelShader.Initialize(Resources.DepthMapPS);
 
-                VariancePixelShader = device.CreatePixelShader();
-                VariancePixelShader.Initialize(Resources.ShadowMapVariancePS);
+                DepthVarianceMapPixelShader = device.CreatePixelShader();
+                DepthVarianceMapPixelShader.Initialize(Resources.DepthVarianceMapPS);
             }
         }
 
@@ -163,11 +163,11 @@ namespace Libra.Graphics.Toolkit
 
             if (Form == ShadowMapForm.Variance)
             {
-                context.PixelShader = sharedDeviceResource.VariancePixelShader;
+                context.PixelShader = sharedDeviceResource.DepthVarianceMapPixelShader;
             }
             else
             {
-                context.PixelShader = sharedDeviceResource.BasicPixelShader;
+                context.PixelShader = sharedDeviceResource.DepthMapPixelShader;
             }
         }
 

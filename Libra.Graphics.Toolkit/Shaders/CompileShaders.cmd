@@ -38,15 +38,13 @@ call :CompilePS WaveFilter PS %ps_profile%
 ::
 call :CompileVS DepthMap VS %vs_profile%
 call :CompilePS DepthMap PS %ps_profile%
+call :CompilePS DepthVarianceMap PS %ps_profile%
 call :CompileVS LinearDepthMap VS %vs_profile%
 call :CompilePS LinearDepthMap PS %ps_profile%
 call :CompileVS LinearFogDepthMap VS %vs_profile%
 call :CompilePS LinearFogDepthMap PS %ps_profile%
 call :CompileVS NormalMap VS %vs_profile%
 call :CompilePS NormalMap PS %ps_profile%
-call :CompileVS ShadowMap VS %vs_profile%
-call :CompilePS ShadowMap BasicPS %ps_profile%
-call :CompilePS ShadowMap VariancePS %ps_profile%
 call :CompileVS SingleColorObject VS %vs_profile%
 call :CompilePS SingleColorObject PS %ps_profile%
 call :CompileVS SSAOMap VS %vs_profile%

@@ -145,6 +145,7 @@
     <None Include="Shaders\Compiled\CombineFilterPS.bin" />
     <None Include="Shaders\Compiled\DepthMapPS.bin" />
     <None Include="Shaders\Compiled\DepthMapVS.bin" />
+    <None Include="Shaders\Compiled\DepthVarianceMapPS.bin" />
     <None Include="Shaders\Compiled\DofCombineFilterPS.bin" />
     <None Include="Shaders\Compiled\EdgeFilterPS.bin" />
     <None Include="Shaders\Compiled\HeightToGradientFilterPS.bin" />
@@ -178,7 +179,7 @@
     <None Include="Shaders\NormalMap.ps" />
     <None Include="Shaders\Particle.ps" />
     <None Include="Shaders\Particle.vs" />
-    <None Include="Shaders\ShadowMap.ps" />
+    <None Include="Shaders\DepthVarianceMap.ps" />
     <None Include="Shaders\SingleColorObject.ps" />
     <None Include="Shaders\SSAOMap.ps" />
     <None Include="Shaders\VolumetricFogCombineFilter.ps" />
@@ -198,9 +199,6 @@
     <None Include="Shaders\Compiled\NormalMapPS.bin" />
     <None Include="Shaders\Compiled\NormalMapVS.bin" />
     <None Include="Shaders\Compiled\RadialFilterPS.bin" />
-    <None Include="Shaders\Compiled\ShadowMapBasicPS.bin" />
-    <None Include="Shaders\Compiled\ShadowMapVariancePS.bin" />
-    <None Include="Shaders\Compiled\ShadowMapVS.bin" />
     <None Include="Shaders\Compiled\SingleColorObjectPS.bin" />
     <None Include="Shaders\Compiled\SingleColorObjectVS.bin" />
     <None Include="Shaders\Compiled\UpFilterPS.bin" />
@@ -222,7 +220,6 @@
     <None Include="Shaders\RadialFilter.ps" />
     <None Include="Shaders\ScanlineFilter.ps" />
     <None Include="Shaders\SingleColorObject.vs" />
-    <None Include="Shaders\ShadowMap.vs" />
     <None Include="Shaders\SSAOMapColorFilter.ps" />
     <None Include="Shaders\UpFilter.ps" />
     <None Include="Shaders\VolumetricFogMap.ps" />

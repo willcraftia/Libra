@@ -102,6 +102,13 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
+        internal static byte[] DepthVarianceMapPS {
+            get {
+                object obj = ResourceManager.GetObject("DepthVarianceMapPS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
         internal static byte[] DirectTextureDrawPS {
             get {
                 object obj = ResourceManager.GetObject("DirectTextureDrawPS", resourceCulture);
@@ -259,27 +266,6 @@ namespace Libra.Graphics.Toolkit.Properties {
         internal static byte[] ScanlineFilterPS {
             get {
                 object obj = ResourceManager.GetObject("ScanlineFilterPS", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        internal static byte[] ShadowMapBasicPS {
-            get {
-                object obj = ResourceManager.GetObject("ShadowMapBasicPS", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        internal static byte[] ShadowMapVariancePS {
-            get {
-                object obj = ResourceManager.GetObject("ShadowMapVariancePS", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        internal static byte[] ShadowMapVS {
-            get {
-                object obj = ResourceManager.GetObject("ShadowMapVS", resourceCulture);
                 return ((byte[])(obj));
             }
         }
