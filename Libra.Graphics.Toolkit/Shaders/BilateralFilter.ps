@@ -1,15 +1,20 @@
 #define MAX_RADIUS 7
 #define MAX_KERNEL_SIZE (MAX_RADIUS * 2 + 1)
 
-cbuffer Parameters : register(b0)
+cbuffer PerShader : register(b0)
 {
-    // 色の重み
-    float ColorSigma                : packoffset(c0);
+    // 色の重みを決定する標準偏差
+    float ColorSigma                    : packoffset(c0);
     // カーネル サイズ
-    float KernelSize                : packoffset(c0.y);
-    // xy = テクセル オフセット
-    // z  = 空間の重み
-    float3 Kernel[MAX_KERNEL_SIZE]  : packoffset(c1);
+    float KernelSize                    : packoffset(c0.y);
+    // 空間の重み
+    float SpaceWeights[MAX_KERNEL_SIZE] : packoffset(c1);
+};
+
+cbuffer PerRenderTarget : register(b1)
+{
+    // テクセル オフセット
+    float2 Offsets[MAX_KERNEL_SIZE];
 };
 
 Texture2D<float4> Texture : register(t0);
@@ -25,12 +30,7 @@ float4 PS(float4 color    : COLOR0,
 
     for (int i = 0; i < KernelSize; i++)
     {
-        float3 kernel = Kernel[i];
-
-        float2 offset = kernel.xy;
-        float spaceWeight = kernel.z;
-
-        float4 sample = Texture.Sample(TextureSampler, texCoord + offset);
+        float4 sample = Texture.Sample(TextureSampler, texCoord + Offsets[i]);
 
         // 色の差から色の重みを算出。
         // 色差の式は状況により変更しても良い。
@@ -38,7 +38,7 @@ float4 PS(float4 color    : COLOR0,
         float colorWeight = exp(-closeness * closeness / (2 * ColorSigma * ColorSigma));
 
         // 重み = 空間の重み * 色の重み
-        float weight = spaceWeight * colorWeight;
+        float weight = SpaceWeights[i] * colorWeight;
 
         totalColor += sample * weight;
         totalWeight += weight;
