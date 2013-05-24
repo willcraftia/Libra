@@ -29,18 +29,18 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        #region VSConstants
+        #region ParametersPerObjectVS
 
-        public struct VSConstants
+        public struct ParametersPerObjectVS
         {
             public Matrix WorldViewProjection;
         }
 
         #endregion
 
-        #region PSConstants
+        #region ParametersPerObjectPS
 
-        public struct PSConstants
+        public struct ParametersPerObjectPS
         {
             public Vector4 Color;
         }
@@ -52,10 +52,10 @@ namespace Libra.Graphics.Toolkit
         [Flags]
         enum DirtyFlags
         {
-            ViewProjection      = (1 << 0),
-            WorldViewProjection = (1 << 1),
-            VSConstants         = (1 << 2),
-            PSConstants         = (1 << 3)
+            ConstantBufferPerObjectVS   = (1 << 0),
+            ConstantBufferPerObjectPS   = (1 << 1),
+            ViewProjection              = (1 << 2),
+            WorldViewProjection         = (1 << 3)
         }
 
         #endregion
@@ -64,13 +64,13 @@ namespace Libra.Graphics.Toolkit
 
         SharedDeviceResource sharedDeviceResource;
 
-        ConstantBuffer vsConstantBuffer;
+        ConstantBuffer constantBufferPerObjectVS;
 
-        ConstantBuffer psConstantBuffer;
+        ConstantBuffer constantBufferPerObjectPS;
 
-        VSConstants vsConstants;
+        ParametersPerObjectVS parametersPerObjectVS;
 
-        PSConstants psConstants;
+        ParametersPerObjectPS parametersPerObjectPS;
 
         Matrix world;
 
@@ -117,12 +117,12 @@ namespace Libra.Graphics.Toolkit
 
         public Vector4 Color
         {
-            get { return psConstants.Color; }
+            get { return parametersPerObjectPS.Color; }
             set
             {
-                psConstants.Color = value;
+                parametersPerObjectPS.Color = value;
 
-                dirtyFlags |= DirtyFlags.PSConstants;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObjectPS;
             }
         }
 
@@ -134,21 +134,21 @@ namespace Libra.Graphics.Toolkit
 
             sharedDeviceResource = device.GetSharedResource<SingleColorObjectEffect, SharedDeviceResource>();
 
-            vsConstantBuffer = device.CreateConstantBuffer();
-            vsConstantBuffer.Initialize<VSConstants>();
+            constantBufferPerObjectVS = device.CreateConstantBuffer();
+            constantBufferPerObjectVS.Initialize<ParametersPerObjectVS>();
 
-            psConstantBuffer = device.CreateConstantBuffer();
-            psConstantBuffer.Initialize<PSConstants>();
+            constantBufferPerObjectPS = device.CreateConstantBuffer();
+            constantBufferPerObjectPS.Initialize<ParametersPerObjectPS>();
 
             world = Matrix.Identity;
             view = Matrix.Identity;
             projection = Matrix.Identity;
             viewProjection = Matrix.Identity;
 
-            vsConstants.WorldViewProjection = Matrix.Identity;
-            psConstants.Color = Vector4.Zero;
+            parametersPerObjectVS.WorldViewProjection = Matrix.Identity;
+            parametersPerObjectPS.Color = Vector4.Zero;
 
-            dirtyFlags = DirtyFlags.VSConstants | DirtyFlags.PSConstants;
+            dirtyFlags = DirtyFlags.ConstantBufferPerObjectVS | DirtyFlags.ConstantBufferPerObjectPS;
         }
 
         public void Apply(DeviceContext context)
@@ -166,29 +166,30 @@ namespace Libra.Graphics.Toolkit
                 Matrix worldViewProjection;
                 Matrix.Multiply(ref world, ref viewProjection, out worldViewProjection);
 
-                Matrix.Transpose(ref worldViewProjection, out vsConstants.WorldViewProjection);
+                Matrix.Transpose(ref worldViewProjection, out parametersPerObjectVS.WorldViewProjection);
 
                 dirtyFlags &= ~DirtyFlags.WorldViewProjection;
-                dirtyFlags |= DirtyFlags.VSConstants;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObjectVS;
             }
 
-            if ((dirtyFlags & DirtyFlags.VSConstants) != 0)
+            if ((dirtyFlags & DirtyFlags.ConstantBufferPerObjectVS) != 0)
             {
-                vsConstantBuffer.SetData(context, vsConstants);
+                constantBufferPerObjectVS.SetData(context, parametersPerObjectVS);
 
-                dirtyFlags &= ~DirtyFlags.VSConstants;
+                dirtyFlags &= ~DirtyFlags.ConstantBufferPerObjectVS;
             }
 
-            if ((dirtyFlags & DirtyFlags.PSConstants) != 0)
+            if ((dirtyFlags & DirtyFlags.ConstantBufferPerObjectPS) != 0)
             {
-                psConstantBuffer.SetData(context, psConstants);
+                constantBufferPerObjectPS.SetData(context, parametersPerObjectPS);
 
-                dirtyFlags &= ~DirtyFlags.PSConstants;
+                dirtyFlags &= ~DirtyFlags.ConstantBufferPerObjectPS;
             }
 
-            context.VertexShaderConstantBuffers[0] = vsConstantBuffer;
+            context.VertexShaderConstantBuffers[0] = constantBufferPerObjectVS;
             context.VertexShader = sharedDeviceResource.VertexShader;
-            context.PixelShaderConstantBuffers[0] = psConstantBuffer;
+
+            context.PixelShaderConstantBuffers[0] = constantBufferPerObjectPS;
             context.PixelShader = sharedDeviceResource.PixelShader;
         }
 
@@ -214,7 +215,7 @@ namespace Libra.Graphics.Toolkit
             if (disposing)
             {
                 sharedDeviceResource = null;
-                vsConstantBuffer.Dispose();
+                constantBufferPerObjectVS.Dispose();
             }
 
             disposed = true;
