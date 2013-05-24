@@ -30,9 +30,9 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        #region ConstantsVS
+        #region ParametersPerObjectVS
 
-        public struct ConstantsVS
+        public struct ParametersPerObjectVS
         {
             public Matrix WorldViewProjection;
 
@@ -41,10 +41,10 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        #region ConstantsPS
+        #region ParametersPerObjectPS
 
         [StructLayout(LayoutKind.Sequential, Size = 16)]
-        public struct ConstantsPS
+        public struct ParametersPerObjectPS
         {
             public float Density;
         }
@@ -56,11 +56,11 @@ namespace Libra.Graphics.Toolkit
         [Flags]
         enum DirtyFlags
         {
-            ViewProjection      = (1 << 0),
-            WorldView           = (1 << 1),
-            WorldViewProjection = (1 << 2),
-            ConstantsVS         = (1 << 3),
-            ConstantsPS         = (1 << 4)
+            ConstantBufferPerObjectVS   = (1 << 0),
+            ConstantBufferPerObjectPS   = (1 << 1),
+            ViewProjection              = (1 << 2),
+            WorldView                   = (1 << 3),
+            WorldViewProjection         = (1 << 4)
         }
 
         #endregion
@@ -69,13 +69,13 @@ namespace Libra.Graphics.Toolkit
 
         SharedDeviceResource sharedDeviceResource;
 
-        ConstantBuffer constantBufferVS;
+        ConstantBuffer constantBufferPerObjectVS;
 
-        ConstantBuffer constantBufferPS;
+        ConstantBuffer constantBufferPerObjectPS;
 
-        ConstantsVS constantsVS;
+        ParametersPerObjectVS parametersPerObjectVS;
 
-        ConstantsPS constantsPS;
+        ParametersPerObjectPS parametersPerObjectPS;
 
         Matrix world;
 
@@ -122,14 +122,14 @@ namespace Libra.Graphics.Toolkit
 
         public float Density
         {
-            get { return constantsPS.Density; }
+            get { return parametersPerObjectPS.Density; }
             set
             {
                 if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
 
-                constantsPS.Density = value;
+                parametersPerObjectPS.Density = value;
 
-                dirtyFlags |= DirtyFlags.ConstantsPS;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObjectPS;
             }
         }
 
@@ -149,24 +149,24 @@ namespace Libra.Graphics.Toolkit
 
             sharedDeviceResource = device.GetSharedResource<VolumetricFogMapEffect, SharedDeviceResource>();
 
-            constantBufferVS = device.CreateConstantBuffer();
-            constantBufferVS.Initialize<ConstantsVS>();
-            constantBufferPS = device.CreateConstantBuffer();
-            constantBufferPS.Initialize<ConstantsPS>();
+            constantBufferPerObjectVS = device.CreateConstantBuffer();
+            constantBufferPerObjectVS.Initialize<ParametersPerObjectVS>();
+            constantBufferPerObjectPS = device.CreateConstantBuffer();
+            constantBufferPerObjectPS.Initialize<ParametersPerObjectPS>();
 
             world = Matrix.Identity;
             view = Matrix.Identity;
             projection = Matrix.Identity;
             viewProjection = Matrix.Identity;
 
-            constantsVS.WorldViewProjection = Matrix.Identity;
-            constantsVS.WorldView = Matrix.Identity;
-            constantsPS.Density = 0.01f;
+            parametersPerObjectVS.WorldViewProjection = Matrix.Identity;
+            parametersPerObjectVS.WorldView = Matrix.Identity;
+            parametersPerObjectPS.Density = 0.01f;
 
             FrontFogDepthMapSampler = SamplerState.LinearClamp;
             BackFogDepthMapSampler = SamplerState.LinearClamp;
 
-            dirtyFlags = DirtyFlags.ConstantsVS | DirtyFlags.ConstantsPS;
+            dirtyFlags = DirtyFlags.ConstantBufferPerObjectVS | DirtyFlags.ConstantBufferPerObjectPS;
         }
 
         public void Apply(DeviceContext context)
@@ -184,10 +184,10 @@ namespace Libra.Graphics.Toolkit
                 Matrix worldView;
                 Matrix.Multiply(ref world, ref view, out worldView);
 
-                Matrix.Transpose(ref worldView, out constantsVS.WorldView);
+                Matrix.Transpose(ref worldView, out parametersPerObjectVS.WorldView);
 
                 dirtyFlags &= ~DirtyFlags.WorldView;
-                dirtyFlags |= DirtyFlags.ConstantsVS;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObjectVS;
             }
 
             if ((dirtyFlags & DirtyFlags.WorldViewProjection) != 0)
@@ -195,30 +195,30 @@ namespace Libra.Graphics.Toolkit
                 Matrix worldViewProjection;
                 Matrix.Multiply(ref world, ref viewProjection, out worldViewProjection);
 
-                Matrix.Transpose(ref worldViewProjection, out constantsVS.WorldViewProjection);
+                Matrix.Transpose(ref worldViewProjection, out parametersPerObjectVS.WorldViewProjection);
 
                 dirtyFlags &= ~DirtyFlags.WorldViewProjection;
-                dirtyFlags |= DirtyFlags.ConstantsVS;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObjectVS;
             }
 
-            if ((dirtyFlags & DirtyFlags.ConstantsVS) != 0)
+            if ((dirtyFlags & DirtyFlags.ConstantBufferPerObjectVS) != 0)
             {
-                constantBufferVS.SetData(context, constantsVS);
+                constantBufferPerObjectVS.SetData(context, parametersPerObjectVS);
 
-                dirtyFlags &= ~DirtyFlags.ConstantsVS;
+                dirtyFlags &= ~DirtyFlags.ConstantBufferPerObjectVS;
             }
 
-            if ((dirtyFlags & DirtyFlags.ConstantsPS) != 0)
+            if ((dirtyFlags & DirtyFlags.ConstantBufferPerObjectPS) != 0)
             {
-                constantBufferPS.SetData(context, constantsPS);
+                constantBufferPerObjectPS.SetData(context, parametersPerObjectPS);
 
-                dirtyFlags &= ~DirtyFlags.ConstantsPS;
+                dirtyFlags &= ~DirtyFlags.ConstantBufferPerObjectPS;
             }
 
-            context.VertexShaderConstantBuffers[0] = constantBufferVS;
+            context.VertexShaderConstantBuffers[0] = constantBufferPerObjectVS;
             context.VertexShader = sharedDeviceResource.VertexShader;
 
-            context.PixelShaderConstantBuffers[0] = constantBufferPS;
+            context.PixelShaderConstantBuffers[0] = constantBufferPerObjectPS;
             context.PixelShader = sharedDeviceResource.PixelShader;
 
             context.PixelShaderResources[0] = FrontFogDepthMap;
@@ -249,7 +249,7 @@ namespace Libra.Graphics.Toolkit
             if (disposing)
             {
                 sharedDeviceResource = null;
-                constantBufferVS.Dispose();
+                constantBufferPerObjectVS.Dispose();
             }
 
             disposed = true;
