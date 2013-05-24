@@ -47,7 +47,6 @@ call :CompileVS NormalMap VS %vs_profile%
 call :CompilePS NormalMap PS %ps_profile%
 call :CompileVS SingleColorObject VS %vs_profile%
 call :CompilePS SingleColorObject PS %ps_profile%
-call :CompileVS SSAOMap VS %vs_profile%
 call :CompilePS SSAOMap PS %ps_profile%
 call :CompileVS Particle VS %vs_profile%
 call :CompilePS Particle PS %ps_profile%
@@ -60,6 +59,7 @@ call :CompilePS Water PS %ps_profile%
 :: FullScreenQuad
 ::
 call :CompileVS FullScreenQuad VS %vs_profile%
+call :CompileVS FullScreenQuadViewRay VS %vs_profile%
 
 echo.
 

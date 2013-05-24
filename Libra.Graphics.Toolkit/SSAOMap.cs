@@ -15,14 +15,10 @@ namespace Libra.Graphics.Toolkit
 
         sealed class SharedDeviceResource
         {
-            public VertexShader VertexShader { get; private set; }
-
             public PixelShader PixelShader { get; private set; }
 
             public SharedDeviceResource(Device device)
             {
-                VertexShader = device.CreateVertexShader();
-                VertexShader.Initialize(Resources.SSAOMapVS);
                 PixelShader = device.CreatePixelShader();
                 PixelShader.Initialize(Resources.SSAOMapPS);
             }
@@ -44,10 +40,10 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        #region ParametersPerObjectPS
+        #region ParametersPerObject
 
         [StructLayout(LayoutKind.Explicit, Size = 16 + 16 * MaxSampleCount)]
-        public struct ParametersPerObjectPS
+        public struct ParametersPerObject
         {
             [FieldOffset(0)]
             public float Strength;
@@ -72,12 +68,11 @@ namespace Libra.Graphics.Toolkit
         [Flags]
         enum DirtyFlags
         {
-            ConstantBufferPerCamera     = (1 << 0),
-            ConstantBufferPerObjectPS   = (1 << 1),
-            Random                      = (1 << 2),
-            RandomNormals               = (1 << 3),
-            SampleSphere                = (1 << 4),
-            Projection                  = (1 << 5),
+            ConstantBufferPerCamera = (1 << 0),
+            ConstantBufferPerObject = (1 << 1),
+            Random                  = (1 << 2),
+            RandomNormals           = (1 << 3),
+            SampleSphere            = (1 << 4)
         }
 
         #endregion
@@ -88,14 +83,15 @@ namespace Libra.Graphics.Toolkit
 
         SharedDeviceResource sharedDeviceResource;
 
-        // Per-camera は VS/PS 共通。
+        FullScreenQuad fullScreenQuad;
+
+        ConstantBuffer constantBufferPerObject;
+
         ConstantBuffer constantBufferPerCamera;
 
-        ConstantBuffer constantBufferPerObjectPS;
+        ParametersPerObject parametersPerObject;
 
         ParametersPerCamera parametersPerCamera;
-
-        ParametersPerObjectPS parametersPerObjectPS;
 
         int seed;
 
@@ -122,53 +118,53 @@ namespace Libra.Graphics.Toolkit
 
         public float Strength
         {
-            get { return parametersPerObjectPS.Strength; }
+            get { return parametersPerObject.Strength; }
             set
             {
                 if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
 
-                parametersPerObjectPS.Strength = value;
+                parametersPerObject.Strength = value;
 
-                dirtyFlags |= DirtyFlags.ConstantBufferPerObjectPS;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObject;
             }
         }
 
         public float Attenuation
         {
-            get { return parametersPerObjectPS.Attenuation; }
+            get { return parametersPerObject.Attenuation; }
             set
             {
                 if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
 
-                parametersPerObjectPS.Attenuation = value;
+                parametersPerObject.Attenuation = value;
 
-                dirtyFlags |= DirtyFlags.ConstantBufferPerObjectPS;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObject;
             }
         }
 
         public float Radius
         {
-            get { return parametersPerObjectPS.Radius; }
+            get { return parametersPerObject.Radius; }
             set
             {
                 if (value <= 0.0f) throw new ArgumentOutOfRangeException("value");
 
-                parametersPerObjectPS.Radius = value;
+                parametersPerObject.Radius = value;
 
-                dirtyFlags |= DirtyFlags.ConstantBufferPerObjectPS;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObject;
             }
         }
 
         public int SampleCount
         {
-            get { return (int) parametersPerObjectPS.SampleCount; }
+            get { return (int) parametersPerObject.SampleCount; }
             set
             {
                 if (value < 1 || MaxSampleCount < value) throw new ArgumentOutOfRangeException("value");
 
-                parametersPerObjectPS.SampleCount = value;
+                parametersPerObject.SampleCount = value;
 
-                dirtyFlags |= DirtyFlags.ConstantBufferPerObjectPS;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObject;
             }
         }
 
@@ -178,8 +174,12 @@ namespace Libra.Graphics.Toolkit
             set
             {
                 projection = value;
+                fullScreenQuad.Projection = projection;
+                parametersPerCamera.FocalLength.X = projection.M11;
+                parametersPerCamera.FocalLength.Y = projection.M22;
+                parametersPerCamera.FarClipDistance = projection.PerspectiveFarClipDistance;
 
-                dirtyFlags |= DirtyFlags.Projection;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerCamera;
             }
         }
 
@@ -201,22 +201,25 @@ namespace Libra.Graphics.Toolkit
 
             sharedDeviceResource = context.Device.GetSharedResource<SSAOMap, SharedDeviceResource>();
 
+            fullScreenQuad = new FullScreenQuad(context);
+            fullScreenQuad.ViewRayEnabled = true;
+
+            constantBufferPerObject = context.Device.CreateConstantBuffer();
+            constantBufferPerObject.Initialize<ParametersPerObject>();
+
             constantBufferPerCamera = context.Device.CreateConstantBuffer();
             constantBufferPerCamera.Initialize<ParametersPerCamera>();
-
-            constantBufferPerObjectPS = context.Device.CreateConstantBuffer();
-            constantBufferPerObjectPS.Initialize<ParametersPerObjectPS>();
 
             seed = 0;
 
             parametersPerCamera.FocalLength = Vector2.One;
             parametersPerCamera.FarClipDistance = 1000.0f;
 
-            parametersPerObjectPS.Strength = 5.0f;
-            parametersPerObjectPS.Attenuation = 0.5f;
-            parametersPerObjectPS.Radius = 10.0f;
-            parametersPerObjectPS.SampleCount = 8;
-            parametersPerObjectPS.SampleSphere = new Vector4[MaxSampleCount];
+            parametersPerObject.Strength = 5.0f;
+            parametersPerObject.Attenuation = 0.5f;
+            parametersPerObject.Radius = 10.0f;
+            parametersPerObject.SampleCount = 8;
+            parametersPerObject.SampleSphere = new Vector4[MaxSampleCount];
 
             LinearDepthMapSampler = SamplerState.PointClamp;
             NormalMapSampler = SamplerState.PointClamp;
@@ -225,19 +228,17 @@ namespace Libra.Graphics.Toolkit
 
             dirtyFlags =
                 DirtyFlags.ConstantBufferPerCamera |
-                DirtyFlags.ConstantBufferPerObjectPS |
+                DirtyFlags.ConstantBufferPerObject |
                 DirtyFlags.Random |
                 DirtyFlags.RandomNormals |
-                DirtyFlags.SampleSphere |
-                DirtyFlags.Projection;
+                DirtyFlags.SampleSphere;
         }
 
         public void Draw()
         {
             Apply();
 
-            Context.PrimitiveTopology = PrimitiveTopology.TriangleList;
-            Context.Draw(3);
+            fullScreenQuad.Draw();
         }
 
         void Apply()
@@ -252,7 +253,13 @@ namespace Libra.Graphics.Toolkit
 
             SetRandomNormals();
             SetSampleSphere();
-            SetProjection();
+
+            if ((dirtyFlags & DirtyFlags.ConstantBufferPerObject) != 0)
+            {
+                constantBufferPerObject.SetData(Context, parametersPerObject);
+
+                dirtyFlags &= ~DirtyFlags.ConstantBufferPerObject;
+            }
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerCamera) != 0)
             {
@@ -261,17 +268,7 @@ namespace Libra.Graphics.Toolkit
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerCamera;
             }
 
-            if ((dirtyFlags & DirtyFlags.ConstantBufferPerObjectPS) != 0)
-            {
-                constantBufferPerObjectPS.SetData(Context, parametersPerObjectPS);
-
-                dirtyFlags &= ~DirtyFlags.ConstantBufferPerObjectPS;
-            }
-
-            Context.VertexShaderConstantBuffers[0] = constantBufferPerCamera;
-            Context.VertexShader = sharedDeviceResource.VertexShader;
-
-            Context.PixelShaderConstantBuffers[0] = constantBufferPerObjectPS;
+            Context.PixelShaderConstantBuffers[0] = constantBufferPerObject;
             Context.PixelShaderConstantBuffers[1] = constantBufferPerCamera;
             Context.PixelShader = sharedDeviceResource.PixelShader;
 
@@ -341,24 +338,11 @@ namespace Libra.Graphics.Toolkit
                     // 単位球面内のランダム点。
                     Vector3.Multiply(ref vector, scale, out vector);
 
-                    parametersPerObjectPS.SampleSphere[i] = new Vector4(vector, 0);
+                    parametersPerObject.SampleSphere[i] = new Vector4(vector, 0);
                 }
 
                 dirtyFlags &= ~DirtyFlags.SampleSphere;
-                dirtyFlags |= DirtyFlags.ConstantBufferPerObjectPS;
-            }
-        }
-
-        void SetProjection()
-        {
-            if ((dirtyFlags & DirtyFlags.Projection) != 0)
-            {
-                parametersPerCamera.FocalLength.X = projection.M11;
-                parametersPerCamera.FocalLength.Y = projection.M22;
-                parametersPerCamera.FarClipDistance = projection.PerspectiveFarClipDistance;
-
-                dirtyFlags &= ~DirtyFlags.Projection;
-                dirtyFlags |= DirtyFlags.ConstantBufferPerCamera | DirtyFlags.ConstantBufferPerObjectPS;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObject;
             }
         }
 
@@ -394,7 +378,7 @@ namespace Libra.Graphics.Toolkit
             if (disposing)
             {
                 sharedDeviceResource = null;
-                constantBufferPerObjectPS.Dispose();
+                constantBufferPerObject.Dispose();
             }
 
             disposed = true;

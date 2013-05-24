@@ -148,6 +148,7 @@
     <None Include="Shaders\Compiled\DepthVarianceMapPS.bin" />
     <None Include="Shaders\Compiled\DofCombineFilterPS.bin" />
     <None Include="Shaders\Compiled\EdgeFilterPS.bin" />
+    <None Include="Shaders\Compiled\FullScreenQuadViewRayVS.bin" />
     <None Include="Shaders\Compiled\HeightToGradientFilterPS.bin" />
     <None Include="Shaders\Compiled\HeightToNormalFilterPS.bin" />
     <None Include="Shaders\Compiled\LightScatteringFilterPS.bin" />
@@ -165,7 +166,6 @@
     <None Include="Shaders\Compiled\SSAOCombineFilterPS.bin" />
     <None Include="Shaders\Compiled\SSAOMapColorFilterPS.bin" />
     <None Include="Shaders\Compiled\SSAOMapPS.bin" />
-    <None Include="Shaders\Compiled\SSAOMapVS.bin" />
     <None Include="Shaders\Compiled\VolumetricFogCombineFilterPS.bin" />
     <None Include="Shaders\Compiled\VolumetricFogMapPS.bin" />
     <None Include="Shaders\Compiled\VolumetricFogMapVS.bin" />
@@ -185,7 +185,7 @@
     <None Include="Shaders\VolumetricFogCombineFilter.ps" />
     <None Include="Shaders\SSAOBlurFilter.ps" />
     <None Include="Shaders\SSAOCombineFilter.ps" />
-    <None Include="Shaders\SSAOMap.vs" />
+    <None Include="Shaders\FullScreenQuadViewRay.vs" />
     <None Include="Shaders\BilateralFilter.ps" />
     <None Include="Shaders\BloomCombineFilter.ps" />
     <None Include="Shaders\BloomExtractFilter.ps" />

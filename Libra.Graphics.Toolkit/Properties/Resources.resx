@@ -157,9 +157,6 @@
   <data name="SSAOMapPS" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Shaders\Compiled\SSAOMapPS.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="SSAOMapVS" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Shaders\Compiled\SSAOMapVS.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
   <data name="BloomCombineFilterPS" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Shaders\Compiled\BloomCombineFilterPS.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
@@ -243,5 +240,8 @@
   </data>
   <data name="DepthVarianceMapPS" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Shaders\Compiled\DepthVarianceMapPS.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="FullScreenQuadViewRayVS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Shaders\Compiled\FullScreenQuadViewRayVS.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
 </root>

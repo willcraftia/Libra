@@ -137,6 +137,13 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
+        internal static byte[] FullScreenQuadViewRayVS {
+            get {
+                object obj = ResourceManager.GetObject("FullScreenQuadViewRayVS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
         internal static byte[] FullScreenQuadVS {
             get {
                 object obj = ResourceManager.GetObject("FullScreenQuadVS", resourceCulture);
@@ -308,13 +315,6 @@ namespace Libra.Graphics.Toolkit.Properties {
         internal static byte[] SSAOMapPS {
             get {
                 object obj = ResourceManager.GetObject("SSAOMapPS", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        internal static byte[] SSAOMapVS {
-            get {
-                object obj = ResourceManager.GetObject("SSAOMapVS", resourceCulture);
                 return ((byte[])(obj));
             }
         }
