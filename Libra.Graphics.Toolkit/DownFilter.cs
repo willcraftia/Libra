@@ -159,10 +159,10 @@ namespace Libra.Graphics.Toolkit
                 {
                     parametersPerRenderTarget.Offsets[i].X = Offsets[i].X / (float) viewportWidth;
                     parametersPerRenderTarget.Offsets[i].Y = Offsets[i].Y / (float) viewportHeight;
-
-                    dirtyFlags &= ~DirtyFlags.Offsets;
-                    dirtyFlags |= DirtyFlags.ConstantBufferPerRenderTarget;
                 }
+
+                dirtyFlags &= ~DirtyFlags.Offsets;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerRenderTarget;
             }
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerRenderTarget) != 0)
