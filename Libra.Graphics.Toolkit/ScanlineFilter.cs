@@ -25,10 +25,10 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        #region Constants
+        #region ParametersPerShader
 
         [StructLayout(LayoutKind.Sequential, Size = 16)]
-        public struct Constants
+        public struct ParametersPerShader
         {
             public float Density;
 
@@ -42,7 +42,7 @@ namespace Libra.Graphics.Toolkit
         [Flags]
         enum DirtyFlags
         {
-            Constants = (1 << 0)
+            ConstantBufferPerShader = (1 << 0)
         }
 
         #endregion
@@ -51,33 +51,33 @@ namespace Libra.Graphics.Toolkit
 
         SharedDeviceResource sharedDeviceResource;
 
-        ConstantBuffer constantBuffer;
+        ConstantBuffer constantBufferPerShader;
 
-        Constants constants;
+        ParametersPerShader parametersPerShader;
 
         DirtyFlags dirtyFlags;
 
         public float Density
         {
-            get { return constants.Density; }
+            get { return parametersPerShader.Density; }
             set
             {
-                constants.Density = value;
+                parametersPerShader.Density = value;
 
-                dirtyFlags |= DirtyFlags.Constants;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerShader;
             }
         }
 
         public float Brightness
         {
-            get { return constants.Brightness; }
+            get { return parametersPerShader.Brightness; }
             set
             {
                 if (value < 0.0f || 1.0f < value) throw new ArgumentOutOfRangeException("value");
 
-                constants.Brightness = value;
+                parametersPerShader.Brightness = value;
 
-                dirtyFlags |= DirtyFlags.Constants;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerShader;
             }
         }
 
@@ -91,29 +91,29 @@ namespace Libra.Graphics.Toolkit
 
             sharedDeviceResource = device.GetSharedResource<ScanlineFilter, SharedDeviceResource>();
 
-            constantBuffer = device.CreateConstantBuffer();
-            constantBuffer.Initialize<Constants>();
+            constantBufferPerShader = device.CreateConstantBuffer();
+            constantBufferPerShader.Initialize<ParametersPerShader>();
 
-            constants.Density = MathHelper.PiOver2;
-            constants.Brightness = 0.75f;
+            parametersPerShader.Density = MathHelper.PiOver2;
+            parametersPerShader.Brightness = 0.75f;
 
             Enabled = true;
 
-            dirtyFlags = DirtyFlags.Constants;
+            dirtyFlags = DirtyFlags.ConstantBufferPerShader;
         }
 
         public void Apply(DeviceContext context)
         {
             if (context == null) throw new ArgumentNullException("context");
 
-            if ((dirtyFlags & DirtyFlags.Constants) != 0)
+            if ((dirtyFlags & DirtyFlags.ConstantBufferPerShader) != 0)
             {
-                constantBuffer.SetData(context, constants);
+                constantBufferPerShader.SetData(context, parametersPerShader);
 
-                dirtyFlags &= ~DirtyFlags.Constants;
+                dirtyFlags &= ~DirtyFlags.ConstantBufferPerShader;
             }
 
-            context.PixelShaderConstantBuffers[0] = constantBuffer;
+            context.PixelShaderConstantBuffers[0] = constantBufferPerShader;
             context.PixelShader = sharedDeviceResource.PixelShader;
         }
 
@@ -139,7 +139,7 @@ namespace Libra.Graphics.Toolkit
             if (disposing)
             {
                 sharedDeviceResource = null;
-                constantBuffer.Dispose();
+                constantBufferPerShader.Dispose();
             }
 
             disposed = true;
