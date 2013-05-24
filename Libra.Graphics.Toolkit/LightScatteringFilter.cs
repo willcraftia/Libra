@@ -25,28 +25,35 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        #region Constants
+        #region ParametersPerShader
 
         [StructLayout(LayoutKind.Explicit)]
-        public struct Constants
+        public struct ParametersPerShader
         {
             [FieldOffset(0)]
             public int SampleCount;
 
             [FieldOffset(16)]
-            public Vector2 ScreenLightPosition;
-
-            [FieldOffset(32)]
             public float Density;
 
-            [FieldOffset(36)]
+            [FieldOffset(20)]
             public float Decay;
 
-            [FieldOffset(40)]
+            [FieldOffset(24)]
             public float Weight;
 
-            [FieldOffset(44)]
+            [FieldOffset(28)]
             public float Exposure;
+        }
+
+        #endregion
+
+        #region ParametersPerFrame
+
+        [StructLayout(LayoutKind.Sequential, Size = 16)]
+        public struct ParametersPerFrame
+        {
+            public Vector2 ScreenLightPosition;
         }
 
         #endregion
@@ -56,7 +63,8 @@ namespace Libra.Graphics.Toolkit
         [Flags]
         enum DirtyFlags
         {
-            Constants = (1 << 2)
+            ConstantBufferPerShader = (1 << 0),
+            ConstantBufferPerFrame  = (1 << 1)
         }
 
         #endregion
@@ -67,85 +75,89 @@ namespace Libra.Graphics.Toolkit
 
         SharedDeviceResource sharedDeviceResource;
 
-        ConstantBuffer constantBuffer;
+        ConstantBuffer constantBufferPerShader;
 
-        Constants constants;
+        ConstantBuffer constantBufferPerFrame;
+
+        ParametersPerShader parametersPerShader;
+
+        ParametersPerFrame parametersPerFrame;
 
         DirtyFlags dirtyFlags;
 
         public int SampleCount
         {
-            get { return constants.SampleCount; }
+            get { return parametersPerShader.SampleCount; }
             set
             {
                 if (value < 0 || MaxSampleCount < value) throw new ArgumentOutOfRangeException("value");
 
-                constants.SampleCount = value;
+                parametersPerShader.SampleCount = value;
 
-                dirtyFlags |= DirtyFlags.Constants;
-            }
-        }
-
-        public Vector2 ScreenLightPosition
-        {
-            get { return constants.ScreenLightPosition; }
-            set
-            {
-                constants.ScreenLightPosition = value;
-
-                dirtyFlags |= DirtyFlags.Constants;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerShader;
             }
         }
 
         public float Density
         {
-            get { return constants.Density; }
+            get { return parametersPerShader.Density; }
             set
             {
                 if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
 
-                constants.Density = value;
+                parametersPerShader.Density = value;
 
-                dirtyFlags |= DirtyFlags.Constants;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerShader;
             }
         }
 
         public float Decay
         {
-            get { return constants.Decay; }
+            get { return parametersPerShader.Decay; }
             set
             {
                 if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
 
-                constants.Decay = value;
+                parametersPerShader.Decay = value;
 
-                dirtyFlags |= DirtyFlags.Constants;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerShader;
             }
         }
 
         public float Weight
         {
-            get { return constants.Weight; }
+            get { return parametersPerShader.Weight; }
             set
             {
                 if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
 
-                constants.Weight = value;
+                parametersPerShader.Weight = value;
 
-                dirtyFlags |= DirtyFlags.Constants;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerShader;
             }
         }
 
         public float Exposure
         {
-            get { return constants.Exposure; }
+            get { return parametersPerShader.Exposure; }
             set
             {
                 if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
 
-                constants.Exposure = value;
+                parametersPerShader.Exposure = value;
 
-                dirtyFlags |= DirtyFlags.Constants;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerShader;
+            }
+        }
+
+        public Vector2 ScreenLightPosition
+        {
+            get { return parametersPerFrame.ScreenLightPosition; }
+            set
+            {
+                parametersPerFrame.ScreenLightPosition = value;
+
+                dirtyFlags |= DirtyFlags.ConstantBufferPerFrame;
             }
         }
 
@@ -161,31 +173,45 @@ namespace Libra.Graphics.Toolkit
 
             sharedDeviceResource = device.GetSharedResource<LightScatteringFilter, SharedDeviceResource>();
 
-            constantBuffer = device.CreateConstantBuffer();
-            constantBuffer.Initialize<Constants>();
+            constantBufferPerShader = device.CreateConstantBuffer();
+            constantBufferPerShader.Initialize<ParametersPerShader>();
 
-            constants.SampleCount = 100;
-            constants.ScreenLightPosition = Vector2.Zero;
-            constants.Density = 1.0f;
-            constants.Decay = 0.9f;
-            constants.Weight = 0.5f;
-            constants.Exposure = 1.0f;
+            constantBufferPerFrame = device.CreateConstantBuffer();
+            constantBufferPerFrame.Initialize<ParametersPerFrame>();
+
+            parametersPerShader.SampleCount = 100;
+            parametersPerShader.Density = 1.0f;
+            parametersPerShader.Decay = 0.9f;
+            parametersPerShader.Weight = 0.5f;
+            parametersPerShader.Exposure = 1.0f;
+
+            parametersPerFrame.ScreenLightPosition = Vector2.Zero;
 
             Enabled = true;
 
-            dirtyFlags |= DirtyFlags.Constants;
+            dirtyFlags =
+                DirtyFlags.ConstantBufferPerShader |
+                DirtyFlags.ConstantBufferPerFrame;
         }
 
         public void Apply(DeviceContext context)
         {
-            if ((dirtyFlags & DirtyFlags.Constants) != 0)
+            if ((dirtyFlags & DirtyFlags.ConstantBufferPerShader) != 0)
             {
-                constantBuffer.SetData(context, constants);
+                constantBufferPerShader.SetData(context, parametersPerShader);
 
-                dirtyFlags &= ~DirtyFlags.Constants;
+                dirtyFlags &= ~DirtyFlags.ConstantBufferPerShader;
             }
 
-            context.PixelShaderConstantBuffers[0] = constantBuffer;
+            if ((dirtyFlags & DirtyFlags.ConstantBufferPerFrame) != 0)
+            {
+                constantBufferPerFrame.SetData(context, parametersPerFrame);
+
+                dirtyFlags &= ~DirtyFlags.ConstantBufferPerFrame;
+            }
+
+            context.PixelShaderConstantBuffers[0] = constantBufferPerShader;
+            context.PixelShaderConstantBuffers[1] = constantBufferPerFrame;
             context.PixelShader = sharedDeviceResource.PixelShader;
 
             context.PixelShaderResources[0] = Texture;
@@ -214,7 +240,8 @@ namespace Libra.Graphics.Toolkit
             if (disposing)
             {
                 sharedDeviceResource = null;
-                constantBuffer.Dispose();
+                constantBufferPerShader.Dispose();
+                constantBufferPerFrame.Dispose();
             }
 
             disposed = true;

@@ -1,13 +1,18 @@
 #define MAX_SAMPLE_COUNT 128
 
-cbuffer Parameters : register(b0)
+cbuffer PerShader : register(b0)
 {
-    int SampleCount             : packoffset(c0);
-    float2 ScreenLightPosition  : packoffset(c1);
-    float Density               : packoffset(c2.x);
-    float Decay                 : packoffset(c2.y);
-    float Weight                : packoffset(c2.z);
-    float Exposure              : packoffset(c2.w);
+    int   SampleCount   : packoffset(c0);
+
+    float Density       : packoffset(c1.x);
+    float Decay         : packoffset(c1.y);
+    float Weight        : packoffset(c1.z);
+    float Exposure      : packoffset(c1.w);
+};
+
+cbuffer PerFrame : register(b1)
+{
+    float2 ScreenLightPosition;
 };
 
 Texture2D<float3> Texture : register(t0);
