@@ -25,15 +25,15 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        #region Constants
+        #region ParametersPerRenderTarget
 
         [StructLayout(LayoutKind.Sequential, Size = 16 * KernelSize)]
-        public struct Constants
+        public struct ParametersPerRenderTarget
         {
             // XY: テクセル オフセット
             // ZW: 整列用ダミー
             [MarshalAs(UnmanagedType.ByValArray, SizeConst = KernelSize)]
-            public Vector4[] Kernel;
+            public Vector4[] Offsets;
         }
 
         #endregion
@@ -43,8 +43,8 @@ namespace Libra.Graphics.Toolkit
         [Flags]
         enum DirtyFlags
         {
-            Kernels     = (1 << 0),
-            Constants   = (1 << 1)
+            ConstantBufferPerRenderTarget   = (1 << 0),
+            Offsets                         = (1 << 1),
         }
 
         #endregion
@@ -63,13 +63,13 @@ namespace Libra.Graphics.Toolkit
 
         SharedDeviceResource sharedDeviceResource;
 
-        ConstantBuffer constantBuffer;
+        ConstantBuffer constantBufferPerRenderTarget;
 
-        Constants constants;
+        ParametersPerRenderTarget parametersPerRenderTarget;
 
-        int width;
+        int viewportWidth;
 
-        int height;
+        int viewportHeight;
 
         DirtyFlags dirtyFlags;
 
@@ -87,16 +87,16 @@ namespace Libra.Graphics.Toolkit
 
             sharedDeviceResource = device.GetSharedResource<NormalEdgeDetectFilter, SharedDeviceResource>();
 
-            constantBuffer = device.CreateConstantBuffer();
-            constantBuffer.Initialize<Constants>();
+            constantBufferPerRenderTarget = device.CreateConstantBuffer();
+            constantBufferPerRenderTarget.Initialize<ParametersPerRenderTarget>();
 
-            constants.Kernel = new Vector4[KernelSize];
+            parametersPerRenderTarget.Offsets = new Vector4[KernelSize];
 
             NormalMapSampler = SamplerState.LinearClamp;
 
             Enabled = true;
 
-            dirtyFlags = DirtyFlags.Kernels | DirtyFlags.Constants;
+            dirtyFlags = DirtyFlags.Offsets | DirtyFlags.ConstantBufferPerRenderTarget;
         }
 
         public void Apply(DeviceContext context)
@@ -107,34 +107,34 @@ namespace Libra.Graphics.Toolkit
             int currentWidth = (int) viewport.Width;
             int currentHeight = (int) viewport.Height;
 
-            if (currentWidth != width || currentHeight != height)
+            if (currentWidth != viewportWidth || currentHeight != viewportHeight)
             {
-                width = currentWidth;
-                height = currentHeight;
+                viewportWidth = currentWidth;
+                viewportHeight = currentHeight;
 
-                dirtyFlags |= DirtyFlags.Kernels;
+                dirtyFlags |= DirtyFlags.Offsets;
             }
 
-            if ((dirtyFlags & DirtyFlags.Kernels) != 0)
+            if ((dirtyFlags & DirtyFlags.Offsets) != 0)
             {
                 for (int i = 0; i < KernelSize; i++)
                 {
-                    constants.Kernel[i].X = Offsets[i].X / (float) width;
-                    constants.Kernel[i].Y = Offsets[i].Y / (float) height;
-
-                    dirtyFlags &= ~DirtyFlags.Kernels;
-                    dirtyFlags |= DirtyFlags.Constants;
+                    parametersPerRenderTarget.Offsets[i].X = Offsets[i].X / (float) viewportWidth;
+                    parametersPerRenderTarget.Offsets[i].Y = Offsets[i].Y / (float) viewportHeight;
                 }
+
+                dirtyFlags &= ~DirtyFlags.Offsets;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerRenderTarget;
             }
 
-            if ((dirtyFlags & DirtyFlags.Constants) != 0)
+            if ((dirtyFlags & DirtyFlags.ConstantBufferPerRenderTarget) != 0)
             {
-                constantBuffer.SetData(context, constants);
+                constantBufferPerRenderTarget.SetData(context, parametersPerRenderTarget);
 
-                dirtyFlags &= ~DirtyFlags.Constants;
+                dirtyFlags &= ~DirtyFlags.ConstantBufferPerRenderTarget;
             }
 
-            context.PixelShaderConstantBuffers[0] = constantBuffer;
+            context.PixelShaderConstantBuffers[0] = constantBufferPerRenderTarget;
             context.PixelShader = sharedDeviceResource.PixelShader;
 
             context.PixelShaderResources[1] = NormalMap;
