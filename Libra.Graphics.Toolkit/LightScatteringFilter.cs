@@ -25,10 +25,10 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        #region ParametersPerShader
+        #region ParametersPerObject
 
         [StructLayout(LayoutKind.Explicit)]
-        public struct ParametersPerShader
+        public struct ParametersPerObject
         {
             [FieldOffset(0)]
             public int SampleCount;
@@ -63,7 +63,7 @@ namespace Libra.Graphics.Toolkit
         [Flags]
         enum DirtyFlags
         {
-            ConstantBufferPerShader = (1 << 0),
+            ConstantBufferPerObject = (1 << 0),
             ConstantBufferPerFrame  = (1 << 1)
         }
 
@@ -75,11 +75,11 @@ namespace Libra.Graphics.Toolkit
 
         SharedDeviceResource sharedDeviceResource;
 
-        ConstantBuffer constantBufferPerShader;
+        ConstantBuffer constantBufferPerObject;
 
         ConstantBuffer constantBufferPerFrame;
 
-        ParametersPerShader parametersPerShader;
+        ParametersPerObject parametersPerObject;
 
         ParametersPerFrame parametersPerFrame;
 
@@ -87,66 +87,66 @@ namespace Libra.Graphics.Toolkit
 
         public int SampleCount
         {
-            get { return parametersPerShader.SampleCount; }
+            get { return parametersPerObject.SampleCount; }
             set
             {
                 if (value < 0 || MaxSampleCount < value) throw new ArgumentOutOfRangeException("value");
 
-                parametersPerShader.SampleCount = value;
+                parametersPerObject.SampleCount = value;
 
-                dirtyFlags |= DirtyFlags.ConstantBufferPerShader;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObject;
             }
         }
 
         public float Density
         {
-            get { return parametersPerShader.Density; }
+            get { return parametersPerObject.Density; }
             set
             {
                 if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
 
-                parametersPerShader.Density = value;
+                parametersPerObject.Density = value;
 
-                dirtyFlags |= DirtyFlags.ConstantBufferPerShader;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObject;
             }
         }
 
         public float Decay
         {
-            get { return parametersPerShader.Decay; }
+            get { return parametersPerObject.Decay; }
             set
             {
                 if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
 
-                parametersPerShader.Decay = value;
+                parametersPerObject.Decay = value;
 
-                dirtyFlags |= DirtyFlags.ConstantBufferPerShader;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObject;
             }
         }
 
         public float Weight
         {
-            get { return parametersPerShader.Weight; }
+            get { return parametersPerObject.Weight; }
             set
             {
                 if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
 
-                parametersPerShader.Weight = value;
+                parametersPerObject.Weight = value;
 
-                dirtyFlags |= DirtyFlags.ConstantBufferPerShader;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObject;
             }
         }
 
         public float Exposure
         {
-            get { return parametersPerShader.Exposure; }
+            get { return parametersPerObject.Exposure; }
             set
             {
                 if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
 
-                parametersPerShader.Exposure = value;
+                parametersPerObject.Exposure = value;
 
-                dirtyFlags |= DirtyFlags.ConstantBufferPerShader;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObject;
             }
         }
 
@@ -173,34 +173,34 @@ namespace Libra.Graphics.Toolkit
 
             sharedDeviceResource = device.GetSharedResource<LightScatteringFilter, SharedDeviceResource>();
 
-            constantBufferPerShader = device.CreateConstantBuffer();
-            constantBufferPerShader.Initialize<ParametersPerShader>();
+            constantBufferPerObject = device.CreateConstantBuffer();
+            constantBufferPerObject.Initialize<ParametersPerObject>();
 
             constantBufferPerFrame = device.CreateConstantBuffer();
             constantBufferPerFrame.Initialize<ParametersPerFrame>();
 
-            parametersPerShader.SampleCount = 100;
-            parametersPerShader.Density = 1.0f;
-            parametersPerShader.Decay = 0.9f;
-            parametersPerShader.Weight = 0.5f;
-            parametersPerShader.Exposure = 1.0f;
+            parametersPerObject.SampleCount = 100;
+            parametersPerObject.Density = 1.0f;
+            parametersPerObject.Decay = 0.9f;
+            parametersPerObject.Weight = 0.5f;
+            parametersPerObject.Exposure = 1.0f;
 
             parametersPerFrame.ScreenLightPosition = Vector2.Zero;
 
             Enabled = true;
 
             dirtyFlags =
-                DirtyFlags.ConstantBufferPerShader |
+                DirtyFlags.ConstantBufferPerObject |
                 DirtyFlags.ConstantBufferPerFrame;
         }
 
         public void Apply(DeviceContext context)
         {
-            if ((dirtyFlags & DirtyFlags.ConstantBufferPerShader) != 0)
+            if ((dirtyFlags & DirtyFlags.ConstantBufferPerObject) != 0)
             {
-                constantBufferPerShader.SetData(context, parametersPerShader);
+                constantBufferPerObject.SetData(context, parametersPerObject);
 
-                dirtyFlags &= ~DirtyFlags.ConstantBufferPerShader;
+                dirtyFlags &= ~DirtyFlags.ConstantBufferPerObject;
             }
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerFrame) != 0)
@@ -210,7 +210,7 @@ namespace Libra.Graphics.Toolkit
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerFrame;
             }
 
-            context.PixelShaderConstantBuffers[0] = constantBufferPerShader;
+            context.PixelShaderConstantBuffers[0] = constantBufferPerObject;
             context.PixelShaderConstantBuffers[1] = constantBufferPerFrame;
             context.PixelShader = sharedDeviceResource.PixelShader;
 
@@ -240,7 +240,7 @@ namespace Libra.Graphics.Toolkit
             if (disposing)
             {
                 sharedDeviceResource = null;
-                constantBufferPerShader.Dispose();
+                constantBufferPerObject.Dispose();
                 constantBufferPerFrame.Dispose();
             }
 

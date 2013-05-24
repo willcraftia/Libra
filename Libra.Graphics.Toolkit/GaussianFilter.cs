@@ -31,10 +31,10 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        #region ParametersPerShader
+        #region ParametersPerObject
 
         [StructLayout(LayoutKind.Explicit, Size = 16 + 16 * MaxKernelSize)]
-        struct ParametersPerShader
+        struct ParametersPerObject
         {
             [FieldOffset(0)]
             public float KernelSize;
@@ -61,7 +61,7 @@ namespace Libra.Graphics.Toolkit
         [Flags]
         enum DirtyFlags
         {
-            ConstantBufferPerShader         = (1 << 0),
+            ConstantBufferPerObject         = (1 << 0),
             ConstantBufferPerRenderTarget   = (1 << 1),
             Weights                         = (1 << 2),
             Offsets                         = (1 << 3),
@@ -81,13 +81,13 @@ namespace Libra.Graphics.Toolkit
 
         SharedDeviceResource sharedDeviceResource;
 
-        ParametersPerShader parametersPerShader;
+        ParametersPerObject parametersPerObject;
 
         ParametersPerRenderTarget parametersPerRenderTargetH;
 
         ParametersPerRenderTarget parametersPerRenderTargetV;
 
-        ConstantBuffer constantBufferPerShader;
+        ConstantBuffer constantBufferPerObject;
 
         ConstantBuffer constantBufferPerRenderTargetH;
 
@@ -115,9 +115,9 @@ namespace Libra.Graphics.Toolkit
                 if (radius == value) return;
 
                 radius = value;
-                parametersPerShader.KernelSize = radius * 2 + 1;
+                parametersPerObject.KernelSize = radius * 2 + 1;
 
-                dirtyFlags |= DirtyFlags.ConstantBufferPerShader;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObject;
             }
         }
 
@@ -146,8 +146,8 @@ namespace Libra.Graphics.Toolkit
 
             sharedDeviceResource = device.GetSharedResource<GaussianFilter, SharedDeviceResource>();
 
-            constantBufferPerShader = device.CreateConstantBuffer();
-            constantBufferPerShader.Initialize<ParametersPerShader>();
+            constantBufferPerObject = device.CreateConstantBuffer();
+            constantBufferPerObject.Initialize<ParametersPerObject>();
 
             constantBufferPerRenderTargetH = device.CreateConstantBuffer();
             constantBufferPerRenderTargetH.Initialize<ParametersPerRenderTarget>();
@@ -155,7 +155,7 @@ namespace Libra.Graphics.Toolkit
             constantBufferPerRenderTargetV = device.CreateConstantBuffer();
             constantBufferPerRenderTargetV.Initialize<ParametersPerRenderTarget>();
 
-            parametersPerShader.Weights = new Vector4[MaxKernelSize];
+            parametersPerObject.Weights = new Vector4[MaxKernelSize];
             parametersPerRenderTargetH.Offsets = new Vector4[MaxKernelSize];
             parametersPerRenderTargetV.Offsets = new Vector4[MaxKernelSize];
 
@@ -164,12 +164,12 @@ namespace Libra.Graphics.Toolkit
             viewportWidth = 1;
             viewportHeight = 1;
 
-            parametersPerShader.KernelSize = radius * 2 + 1;
+            parametersPerObject.KernelSize = radius * 2 + 1;
 
             Enabled = true;
 
             dirtyFlags =
-                DirtyFlags.ConstantBufferPerShader |
+                DirtyFlags.ConstantBufferPerObject |
                 DirtyFlags.ConstantBufferPerRenderTarget |
                 DirtyFlags.Weights |
                 DirtyFlags.Offsets;
@@ -194,11 +194,11 @@ namespace Libra.Graphics.Toolkit
             SetWeights();
             SetOffsets();
 
-            if ((dirtyFlags & DirtyFlags.ConstantBufferPerShader) != 0)
+            if ((dirtyFlags & DirtyFlags.ConstantBufferPerObject) != 0)
             {
-                constantBufferPerShader.SetData(context, parametersPerShader);
+                constantBufferPerObject.SetData(context, parametersPerObject);
 
-                dirtyFlags &= ~DirtyFlags.ConstantBufferPerShader;
+                dirtyFlags &= ~DirtyFlags.ConstantBufferPerObject;
             }
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerRenderTarget) != 0)
@@ -209,7 +209,7 @@ namespace Libra.Graphics.Toolkit
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerRenderTarget;
             }
 
-            context.PixelShaderConstantBuffers[0] = constantBufferPerShader;
+            context.PixelShaderConstantBuffers[0] = constantBufferPerObject;
 
             switch (Direction)
             {
@@ -234,7 +234,7 @@ namespace Libra.Graphics.Toolkit
 
                 var weight = MathHelper.CalculateGaussian(sigma, 0);
 
-                parametersPerShader.Weights[0].X = weight;
+                parametersPerObject.Weights[0].X = weight;
 
                 totalWeight += weight;
 
@@ -247,18 +247,18 @@ namespace Libra.Graphics.Toolkit
                     weight = MathHelper.CalculateGaussian(sigma, i + 1);
                     totalWeight += weight * 2;
 
-                    parametersPerShader.Weights[left].X = weight;
-                    parametersPerShader.Weights[right].X = weight;
+                    parametersPerObject.Weights[left].X = weight;
+                    parametersPerObject.Weights[right].X = weight;
                 }
 
                 float inverseTotalWeights = 1.0f / totalWeight;
                 for (int i = 0; i < MaxKernelSize; i++)
                 {
-                    parametersPerShader.Weights[i].X *= inverseTotalWeights;
+                    parametersPerObject.Weights[i].X *= inverseTotalWeights;
                 }
 
                 dirtyFlags &= ~DirtyFlags.Weights;
-                dirtyFlags |= DirtyFlags.ConstantBufferPerShader;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObject;
             }
         }
 
@@ -316,7 +316,7 @@ namespace Libra.Graphics.Toolkit
             if (disposing)
             {
                 sharedDeviceResource = null;
-                constantBufferPerShader.Dispose();
+                constantBufferPerObject.Dispose();
                 constantBufferPerRenderTargetH.Dispose();
                 constantBufferPerRenderTargetV.Dispose();
             }

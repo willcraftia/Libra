@@ -25,10 +25,10 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        #region ParametersPerShader
+        #region ParametersPerObject
 
         [StructLayout(LayoutKind.Sequential, Size = 16)]
-        public struct ParametersPerShader
+        public struct ParametersPerObject
         {
             public float Stiffness;
         }
@@ -66,7 +66,7 @@ namespace Libra.Graphics.Toolkit
         [Flags]
         enum DirtyFlags
         {
-            ConstantBufferPerShader         = (1 << 0),
+            ConstantBufferPerObject         = (1 << 0),
             ConstantBufferPerRenderTarget   = (1 << 1),
             ConstantBufferPerFrame          = (1 << 2),
             Offsets                         = (1 << 3),
@@ -89,13 +89,13 @@ namespace Libra.Graphics.Toolkit
 
         SharedDeviceResource sharedDeviceResource;
 
-        ConstantBuffer constantBufferPerShader;
+        ConstantBuffer constantBufferPerObject;
 
         ConstantBuffer constantBufferPerRenderTarget;
 
         ConstantBuffer constantBufferPerFrame;
 
-        ParametersPerShader parametersPerShader;
+        ParametersPerObject parametersPerObject;
 
         ParametersPerRenderTarget parametersPerRenderTarget;
 
@@ -115,12 +115,12 @@ namespace Libra.Graphics.Toolkit
 
         public float Stiffness
         {
-            get { return parametersPerShader.Stiffness; }
+            get { return parametersPerObject.Stiffness; }
             set
             {
-                parametersPerShader.Stiffness = value;
+                parametersPerObject.Stiffness = value;
 
-                dirtyFlags |= DirtyFlags.ConstantBufferPerShader;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObject;
             }
         }
 
@@ -134,8 +134,8 @@ namespace Libra.Graphics.Toolkit
 
             sharedDeviceResource = device.GetSharedResource<WaveFilter, SharedDeviceResource>();
 
-            constantBufferPerShader = device.CreateConstantBuffer();
-            constantBufferPerShader.Initialize<ParametersPerShader>();
+            constantBufferPerObject = device.CreateConstantBuffer();
+            constantBufferPerObject.Initialize<ParametersPerObject>();
 
             constantBufferPerRenderTarget = device.CreateConstantBuffer();
             constantBufferPerRenderTarget.Initialize<ParametersPerRenderTarget>();
@@ -143,7 +143,7 @@ namespace Libra.Graphics.Toolkit
             constantBufferPerFrame = device.CreateConstantBuffer();
             constantBufferPerFrame.Initialize<ParametersPerFrame>();
 
-            parametersPerShader.Stiffness = 0.5f;
+            parametersPerObject.Stiffness = 0.5f;
 
             parametersPerRenderTarget.Offsets = new Vector4[KernelSize];
 
@@ -154,7 +154,7 @@ namespace Libra.Graphics.Toolkit
             Enabled = true;
 
             dirtyFlags =
-                DirtyFlags.ConstantBufferPerShader |
+                DirtyFlags.ConstantBufferPerObject |
                 DirtyFlags.ConstantBufferPerRenderTarget |
                 DirtyFlags.ConstantBufferPerFrame |
                 DirtyFlags.Offsets;
@@ -212,11 +212,11 @@ namespace Libra.Graphics.Toolkit
                 dirtyFlags |= DirtyFlags.ConstantBufferPerFrame;
             }
 
-            if ((dirtyFlags & DirtyFlags.ConstantBufferPerShader) != 0)
+            if ((dirtyFlags & DirtyFlags.ConstantBufferPerObject) != 0)
             {
-                constantBufferPerShader.SetData(context, parametersPerShader);
+                constantBufferPerObject.SetData(context, parametersPerObject);
 
-                dirtyFlags &= ~DirtyFlags.ConstantBufferPerShader;
+                dirtyFlags &= ~DirtyFlags.ConstantBufferPerObject;
             }
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerRenderTarget) != 0)
@@ -233,7 +233,7 @@ namespace Libra.Graphics.Toolkit
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerFrame;
             }
 
-            context.PixelShaderConstantBuffers[0] = constantBufferPerShader;
+            context.PixelShaderConstantBuffers[0] = constantBufferPerObject;
             context.PixelShaderConstantBuffers[1] = constantBufferPerRenderTarget;
             context.PixelShaderConstantBuffers[2] = constantBufferPerFrame;
             context.PixelShader = sharedDeviceResource.PixelShader;
@@ -261,7 +261,7 @@ namespace Libra.Graphics.Toolkit
             if (disposing)
             {
                 sharedDeviceResource = null;
-                constantBufferPerShader.Dispose();
+                constantBufferPerObject.Dispose();
                 constantBufferPerRenderTarget.Dispose();
                 constantBufferPerFrame.Dispose();
             }

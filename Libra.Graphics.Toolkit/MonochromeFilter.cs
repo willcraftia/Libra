@@ -25,10 +25,10 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        #region ParametersPerShader
+        #region ParametersPerObject
 
         [StructLayout(LayoutKind.Sequential, Size = 16)]
-        public struct ParametersPerShader
+        public struct ParametersPerObject
         {
             public float Cb;
 
@@ -42,7 +42,7 @@ namespace Libra.Graphics.Toolkit
         [Flags]
         enum DirtyFlags
         {
-            ConstantBufferPerShader = (1 << 0)
+            ConstantBufferPerObject = (1 << 0)
         }
 
         #endregion
@@ -51,35 +51,35 @@ namespace Libra.Graphics.Toolkit
 
         SharedDeviceResource sharedDeviceResource;
 
-        ConstantBuffer constantBufferPerShader;
+        ConstantBuffer constantBufferPerObject;
 
-        ParametersPerShader parametersPerShader;
+        ParametersPerObject parametersPerObject;
 
         DirtyFlags dirtyFlags;
 
         public float Cb
         {
-            get { return parametersPerShader.Cb; }
+            get { return parametersPerObject.Cb; }
             set
             {
                 if (value < -1.0f || 1.0f < value) throw new ArgumentOutOfRangeException("value");
 
-                parametersPerShader.Cb = value;
+                parametersPerObject.Cb = value;
 
-                dirtyFlags |= DirtyFlags.ConstantBufferPerShader;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObject;
             }
         }
 
         public float Cr
         {
-            get { return parametersPerShader.Cr; }
+            get { return parametersPerObject.Cr; }
             set
             {
                 if (value < -1.0f || 1.0f < value) throw new ArgumentOutOfRangeException("value");
 
-                parametersPerShader.Cr = value;
+                parametersPerObject.Cr = value;
 
-                dirtyFlags |= DirtyFlags.ConstantBufferPerShader;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObject;
             }
         }
 
@@ -93,16 +93,16 @@ namespace Libra.Graphics.Toolkit
 
             sharedDeviceResource = device.GetSharedResource<MonochromeFilter, SharedDeviceResource>();
 
-            constantBufferPerShader = device.CreateConstantBuffer();
-            constantBufferPerShader.Initialize<ParametersPerShader>();
+            constantBufferPerObject = device.CreateConstantBuffer();
+            constantBufferPerObject.Initialize<ParametersPerObject>();
 
             // グレー スケール。
-            parametersPerShader.Cb = 0.0f;
-            parametersPerShader.Cr = 0.0f;
+            parametersPerObject.Cb = 0.0f;
+            parametersPerObject.Cr = 0.0f;
 
             Enabled = true;
 
-            dirtyFlags = DirtyFlags.ConstantBufferPerShader;
+            dirtyFlags = DirtyFlags.ConstantBufferPerObject;
         }
 
         public void SetupGrayscale()
@@ -121,14 +121,14 @@ namespace Libra.Graphics.Toolkit
         {
             if (context == null) throw new ArgumentNullException("context");
 
-            if ((dirtyFlags & DirtyFlags.ConstantBufferPerShader) != 0)
+            if ((dirtyFlags & DirtyFlags.ConstantBufferPerObject) != 0)
             {
-                constantBufferPerShader.SetData(context, parametersPerShader);
+                constantBufferPerObject.SetData(context, parametersPerObject);
 
-                dirtyFlags &= ~DirtyFlags.ConstantBufferPerShader;
+                dirtyFlags &= ~DirtyFlags.ConstantBufferPerObject;
             }
 
-            context.PixelShaderConstantBuffers[0] = constantBufferPerShader;
+            context.PixelShaderConstantBuffers[0] = constantBufferPerObject;
             context.PixelShader = sharedDeviceResource.PixelShader;
         }
 
@@ -154,7 +154,7 @@ namespace Libra.Graphics.Toolkit
             if (disposing)
             {
                 sharedDeviceResource = null;
-                constantBufferPerShader.Dispose();
+                constantBufferPerObject.Dispose();
             }
 
             disposed = true;

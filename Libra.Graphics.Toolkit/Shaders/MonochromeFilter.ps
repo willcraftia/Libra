@@ -19,7 +19,7 @@
 // Grayscale:  Cb = 0, Cr = 0
 // Sepia Tone: Cb = -0.1, Cr = 0.1
 //
-cbuffer PerShader : register(b0)
+cbuffer PerObject : register(b0)
 {
     float Cb : packoffset(c0.x);
     float Cr : packoffset(c0.y);

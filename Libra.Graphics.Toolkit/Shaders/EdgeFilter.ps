@@ -1,6 +1,6 @@
 #define KERNEL_SIZE 4
 
-cbuffer PerShader : register(b0)
+cbuffer PerObject : register(b0)
 {
     float3 EdgeColor            : packoffset(c0);
     float  EdgeIntensity        : packoffset(c0.w);

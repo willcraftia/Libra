@@ -28,7 +28,7 @@ namespace Libra.Graphics.Toolkit
 
         SharedDeviceResource sharedDeviceResource;
 
-        ConstantBuffer constantBuffer;
+        ConstantBuffer constantBufferPerObject;
 
         float baseIntensity;
 
@@ -38,7 +38,7 @@ namespace Libra.Graphics.Toolkit
 
         float bloomSaturation;
 
-        bool constantBufferDirty;
+        bool constantBufferPerObjectDirty;
 
         public float BaseIntensity
         {
@@ -51,7 +51,7 @@ namespace Libra.Graphics.Toolkit
 
                 baseIntensity = value;
 
-                constantBufferDirty = true;
+                constantBufferPerObjectDirty = true;
             }
         }
 
@@ -66,7 +66,7 @@ namespace Libra.Graphics.Toolkit
 
                 baseSaturation = value;
 
-                constantBufferDirty = true;
+                constantBufferPerObjectDirty = true;
             }
         }
 
@@ -81,7 +81,7 @@ namespace Libra.Graphics.Toolkit
 
                 bloomIntensity = value;
 
-                constantBufferDirty = true;
+                constantBufferPerObjectDirty = true;
             }
         }
 
@@ -96,7 +96,7 @@ namespace Libra.Graphics.Toolkit
 
                 bloomSaturation = value;
 
-                constantBufferDirty = true;
+                constantBufferPerObjectDirty = true;
             }
         }
 
@@ -114,8 +114,8 @@ namespace Libra.Graphics.Toolkit
 
             sharedDeviceResource = device.GetSharedResource<BloomCombineFilter, SharedDeviceResource>();
 
-            constantBuffer = device.CreateConstantBuffer();
-            constantBuffer.Initialize(16);
+            constantBufferPerObject = device.CreateConstantBuffer();
+            constantBufferPerObject.Initialize(16);
 
             BaseTextureSampler = SamplerState.LinearClamp;
 
@@ -124,7 +124,7 @@ namespace Libra.Graphics.Toolkit
             bloomIntensity = 1.0f;
             bloomSaturation = 1.0f;
 
-            constantBufferDirty = true;
+            constantBufferPerObjectDirty = true;
 
             Enabled = true;
         }
@@ -133,15 +133,15 @@ namespace Libra.Graphics.Toolkit
         {
             if (context == null) throw new ArgumentNullException("context");
 
-            if (constantBufferDirty)
+            if (constantBufferPerObjectDirty)
             {
                 var data = new Vector4(baseIntensity, baseSaturation, bloomIntensity, bloomSaturation);
-                constantBuffer.SetData(context, data);
+                constantBufferPerObject.SetData(context, data);
 
-                constantBufferDirty = false;
+                constantBufferPerObjectDirty = false;
             }
 
-            context.PixelShaderConstantBuffers[0] = constantBuffer;
+            context.PixelShaderConstantBuffers[0] = constantBufferPerObject;
             context.PixelShaderResources[1] = BaseTexture;
             context.PixelShaderSamplers[1] = BaseTextureSampler;
             context.PixelShader = sharedDeviceResource.PixelShader;
@@ -169,7 +169,7 @@ namespace Libra.Graphics.Toolkit
             if (disposing)
             {
                 sharedDeviceResource = null;
-                constantBuffer.Dispose();
+                constantBufferPerObject.Dispose();
             }
 
             disposed = true;

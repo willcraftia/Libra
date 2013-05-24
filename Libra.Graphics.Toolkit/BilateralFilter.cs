@@ -25,10 +25,10 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        #region ParametersPerShader
+        #region ParametersPerObject
 
         [StructLayout(LayoutKind.Explicit, Size = 16 + 16 * MaxKernelSize)]
-        struct ParametersPerShader
+        struct ParametersPerObject
         {
             [FieldOffset(0)]
             public float ColorSigma;
@@ -62,7 +62,7 @@ namespace Libra.Graphics.Toolkit
         [Flags]
         enum DirtyFlags
         {
-            ConstantBufferPerShader         = (1 << 0),
+            ConstantBufferPerObject         = (1 << 0),
             ConstantBufferPerRenderTarget   = (1 << 1),
             SpaceWeights                    = (1 << 2),
             Offsets                         = (1 << 3),
@@ -84,13 +84,13 @@ namespace Libra.Graphics.Toolkit
 
         SharedDeviceResource sharedDeviceResource;
 
-        ParametersPerShader parametersPerShader;
+        ParametersPerObject parametersPerObject;
 
         ParametersPerRenderTarget parametersPerRenderTargetH;
 
         ParametersPerRenderTarget parametersPerRenderTargetV;
 
-        ConstantBuffer constantBufferPerShader;
+        ConstantBuffer constantBufferPerObject;
 
         ConstantBuffer constantBuffferPerRenderTargetH;
 
@@ -116,9 +116,9 @@ namespace Libra.Graphics.Toolkit
                 if (value < 1 || MaxRadius < value) throw new ArgumentOutOfRangeException("value");
 
                 radius = value;
-                parametersPerShader.KernelSize = radius * 2 + 1;
+                parametersPerObject.KernelSize = radius * 2 + 1;
 
-                dirtyFlags |= DirtyFlags.ConstantBufferPerShader;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObject;
             }
         }
 
@@ -137,14 +137,14 @@ namespace Libra.Graphics.Toolkit
 
         public float ColorSigma
         {
-            get { return parametersPerShader.ColorSigma; }
+            get { return parametersPerObject.ColorSigma; }
             set
             {
                 if (value < float.Epsilon) throw new ArgumentOutOfRangeException("value");
 
-                parametersPerShader.ColorSigma = value;
+                parametersPerObject.ColorSigma = value;
 
-                dirtyFlags |= DirtyFlags.ConstantBufferPerShader;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObject;
             }
         }
 
@@ -158,8 +158,8 @@ namespace Libra.Graphics.Toolkit
 
             sharedDeviceResource = device.GetSharedResource<BilateralFilter, SharedDeviceResource>();
 
-            constantBufferPerShader = device.CreateConstantBuffer();
-            constantBufferPerShader.Initialize<ParametersPerShader>();
+            constantBufferPerObject = device.CreateConstantBuffer();
+            constantBufferPerObject.Initialize<ParametersPerObject>();
 
             constantBuffferPerRenderTargetH = device.CreateConstantBuffer();
             constantBuffferPerRenderTargetH.Initialize<ParametersPerRenderTarget>();
@@ -167,7 +167,7 @@ namespace Libra.Graphics.Toolkit
             constantBuffferPerRenderTargetV = device.CreateConstantBuffer();
             constantBuffferPerRenderTargetV.Initialize<ParametersPerRenderTarget>();
 
-            parametersPerShader.SpaceWeights = new Vector4[MaxKernelSize];
+            parametersPerObject.SpaceWeights = new Vector4[MaxKernelSize];
             parametersPerRenderTargetH.Offsets = new Vector4[MaxKernelSize];
             parametersPerRenderTargetV.Offsets = new Vector4[MaxKernelSize];
 
@@ -176,13 +176,13 @@ namespace Libra.Graphics.Toolkit
             viewportWidth = 1;
             viewportHeight = 1;
 
-            parametersPerShader.KernelSize = radius * 2 + 1;
-            parametersPerShader.ColorSigma = DefaultColorSigma;
+            parametersPerObject.KernelSize = radius * 2 + 1;
+            parametersPerObject.ColorSigma = DefaultColorSigma;
 
             Enabled = true;
 
             dirtyFlags =
-                DirtyFlags.ConstantBufferPerShader |
+                DirtyFlags.ConstantBufferPerObject |
                 DirtyFlags.ConstantBufferPerRenderTarget |
                 DirtyFlags.SpaceWeights |
                 DirtyFlags.Offsets;
@@ -207,11 +207,11 @@ namespace Libra.Graphics.Toolkit
             SetSpaceWeights();
             SetOffsets();
 
-            if ((dirtyFlags & DirtyFlags.ConstantBufferPerShader) != 0)
+            if ((dirtyFlags & DirtyFlags.ConstantBufferPerObject) != 0)
             {
-                constantBufferPerShader.SetData(context, parametersPerShader);
+                constantBufferPerObject.SetData(context, parametersPerObject);
 
-                dirtyFlags &= ~DirtyFlags.ConstantBufferPerShader;
+                dirtyFlags &= ~DirtyFlags.ConstantBufferPerObject;
             }
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerRenderTarget) != 0)
@@ -222,7 +222,7 @@ namespace Libra.Graphics.Toolkit
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerRenderTarget;
             }
 
-            context.PixelShaderConstantBuffers[0] = constantBufferPerShader;
+            context.PixelShaderConstantBuffers[0] = constantBufferPerObject;
 
             switch (Direction)
             {
@@ -249,7 +249,7 @@ namespace Libra.Graphics.Toolkit
 
                 var weight = MathHelper.CalculateGaussian(spaceSigma, 0);
 
-                parametersPerShader.SpaceWeights[0].X = weight;
+                parametersPerObject.SpaceWeights[0].X = weight;
 
                 for (int i = 0; i < MaxKernelSize / 2; i++)
                 {
@@ -259,12 +259,12 @@ namespace Libra.Graphics.Toolkit
 
                     weight = MathHelper.CalculateGaussian(spaceSigma, i + 1);
 
-                    parametersPerShader.SpaceWeights[left].X = weight;
-                    parametersPerShader.SpaceWeights[right].X = weight;
+                    parametersPerObject.SpaceWeights[left].X = weight;
+                    parametersPerObject.SpaceWeights[right].X = weight;
                 }
 
                 dirtyFlags &= ~DirtyFlags.SpaceWeights;
-                dirtyFlags |= DirtyFlags.ConstantBufferPerShader;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObject;
             }
         }
 
@@ -322,7 +322,7 @@ namespace Libra.Graphics.Toolkit
             if (disposing)
             {
                 sharedDeviceResource = null;
-                constantBufferPerShader.Dispose();
+                constantBufferPerObject.Dispose();
                 constantBuffferPerRenderTargetH.Dispose();
                 constantBuffferPerRenderTargetV.Dispose();
             }

@@ -28,9 +28,9 @@ namespace Libra.Graphics.Toolkit
 
         SharedDeviceResource sharedDeviceResource;
 
-        ConstantBuffer constantBuffer;
+        ConstantBuffer constantBufferPerObject;
 
-        bool constantBufferDirty;
+        bool constantBufferPerObjectDirty;
 
         float threshold;
 
@@ -45,7 +45,7 @@ namespace Libra.Graphics.Toolkit
 
                 threshold = value;
 
-                constantBufferDirty = true;
+                constantBufferPerObjectDirty = true;
             }
         }
 
@@ -59,12 +59,12 @@ namespace Libra.Graphics.Toolkit
 
             sharedDeviceResource = device.GetSharedResource<BloomExtractFilter, SharedDeviceResource>();
 
-            constantBuffer = device.CreateConstantBuffer();
-            constantBuffer.Initialize(16);
+            constantBufferPerObject = device.CreateConstantBuffer();
+            constantBufferPerObject.Initialize(16);
 
             threshold = 0.25f;
 
-            constantBufferDirty = true;
+            constantBufferPerObjectDirty = true;
 
             Enabled = true;
         }
@@ -73,14 +73,14 @@ namespace Libra.Graphics.Toolkit
         {
             if (context == null) throw new ArgumentNullException("context");
 
-            if (constantBufferDirty)
+            if (constantBufferPerObjectDirty)
             {
-                constantBuffer.SetData(context, threshold);
+                constantBufferPerObject.SetData(context, threshold);
 
-                constantBufferDirty = false;
+                constantBufferPerObjectDirty = false;
             }
 
-            context.PixelShaderConstantBuffers[0] = constantBuffer;
+            context.PixelShaderConstantBuffers[0] = constantBufferPerObject;
             context.PixelShader = sharedDeviceResource.PixelShader;
         }
 
@@ -106,7 +106,7 @@ namespace Libra.Graphics.Toolkit
             if (disposing)
             {
                 sharedDeviceResource = null;
-                constantBuffer.Dispose();
+                constantBufferPerObject.Dispose();
             }
 
             disposed = true;

@@ -25,10 +25,10 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        #region ParametersPerShader
+        #region ParametersPerObject
 
         [StructLayout(LayoutKind.Sequential, Size = 16)]
-        struct ParametersPerShader
+        struct ParametersPerObject
         {
             public Vector3 FogColor;
         }
@@ -40,7 +40,7 @@ namespace Libra.Graphics.Toolkit
         [Flags]
         enum DirtyFlags
         {
-            ConstantBufferPerShader = (1 << 0)
+            ConstantBufferPerObject = (1 << 0)
         }
 
         #endregion
@@ -49,20 +49,20 @@ namespace Libra.Graphics.Toolkit
 
         SharedDeviceResource sharedDeviceResource;
 
-        ConstantBuffer constantBufferPerShader;
+        ConstantBuffer constantBufferPerObject;
 
-        ParametersPerShader parametersPerShader;
+        ParametersPerObject parametersPerObject;
 
         DirtyFlags dirtyFlags;
 
         public Vector3 FogColor
         {
-            get { return parametersPerShader.FogColor; }
+            get { return parametersPerObject.FogColor; }
             set
             {
-                parametersPerShader.FogColor = value;
+                parametersPerObject.FogColor = value;
 
-                dirtyFlags |= DirtyFlags.ConstantBufferPerShader;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObject;
             }
         }
 
@@ -80,28 +80,28 @@ namespace Libra.Graphics.Toolkit
 
             sharedDeviceResource = device.GetSharedResource<VolumetricFogCombineFilter, SharedDeviceResource>();
 
-            constantBufferPerShader = device.CreateConstantBuffer();
-            constantBufferPerShader.Initialize<ParametersPerShader>();
+            constantBufferPerObject = device.CreateConstantBuffer();
+            constantBufferPerObject.Initialize<ParametersPerObject>();
 
-            parametersPerShader.FogColor = Vector3.One;
+            parametersPerObject.FogColor = Vector3.One;
 
             VolumetricFogMapSampler = SamplerState.LinearClamp;
 
             Enabled = true;
 
-            dirtyFlags = DirtyFlags.ConstantBufferPerShader;
+            dirtyFlags = DirtyFlags.ConstantBufferPerObject;
         }
 
         public void Apply(DeviceContext context)
         {
-            if ((dirtyFlags & DirtyFlags.ConstantBufferPerShader) != 0)
+            if ((dirtyFlags & DirtyFlags.ConstantBufferPerObject) != 0)
             {
-                constantBufferPerShader.SetData(context, parametersPerShader);
+                constantBufferPerObject.SetData(context, parametersPerObject);
 
-                dirtyFlags &= ~DirtyFlags.ConstantBufferPerShader;
+                dirtyFlags &= ~DirtyFlags.ConstantBufferPerObject;
             }
 
-            context.PixelShaderConstantBuffers[0] = constantBufferPerShader;
+            context.PixelShaderConstantBuffers[0] = constantBufferPerObject;
             context.PixelShader = sharedDeviceResource.PixelShader;
 
             context.PixelShaderResources[1] = VolumetricFogMap;
@@ -130,7 +130,7 @@ namespace Libra.Graphics.Toolkit
             if (disposing)
             {
                 sharedDeviceResource = null;
-                constantBufferPerShader.Dispose();
+                constantBufferPerObject.Dispose();
             }
 
             disposed = true;
