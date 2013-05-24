@@ -30,7 +30,7 @@ namespace Libra.Graphics.Toolkit
 
         ConstantBuffer constantBuffer;
 
-        bool constantsDirty;
+        bool constantBufferDirty;
 
         float threshold;
 
@@ -45,7 +45,7 @@ namespace Libra.Graphics.Toolkit
 
                 threshold = value;
 
-                constantsDirty = true;
+                constantBufferDirty = true;
             }
         }
 
@@ -64,7 +64,7 @@ namespace Libra.Graphics.Toolkit
 
             threshold = 0.25f;
 
-            constantsDirty = true;
+            constantBufferDirty = true;
 
             Enabled = true;
         }
@@ -73,11 +73,11 @@ namespace Libra.Graphics.Toolkit
         {
             if (context == null) throw new ArgumentNullException("context");
 
-            if (constantsDirty)
+            if (constantBufferDirty)
             {
                 constantBuffer.SetData(context, threshold);
 
-                constantsDirty = false;
+                constantBufferDirty = false;
             }
 
             context.PixelShaderConstantBuffers[0] = constantBuffer;
