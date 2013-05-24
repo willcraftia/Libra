@@ -1,12 +1,17 @@
 #define MAX_RADIUS 7
 #define MAX_KERNEL_SIZE (MAX_RADIUS * 2 + 1)
 
-cbuffer Parameters : register(b0)
+cbuffer PerShader : register(b0)
 {
     float KernelSize                : packoffset(c0);
-    // xy = offset
-    // z  = weight
-    float3 Kernel[MAX_KERNEL_SIZE]  : packoffset(c1);
+    // 重み
+    float Weights[MAX_KERNEL_SIZE]  : packoffset(c1);
+};
+
+cbuffer PerRenderTarget : register(b1)
+{
+    // テクセル オフセット
+    float2 Offsets[MAX_KERNEL_SIZE];
 };
 
 Texture2D Texture : register(t0);
@@ -19,10 +24,7 @@ float4 PS(float4 color    : COLOR0,
 
     for (int i = 0; i < KernelSize; i++)
     {
-        float3 kernel = Kernel[i];
-        float2 offset = kernel.xy;
-        float weight = kernel.z;
-        c += Texture.Sample(TextureSampler, texCoord + offset) * weight;
+        c += Texture.Sample(TextureSampler, texCoord + Offsets[i]) * Weights[i];
     }
 
     return c;

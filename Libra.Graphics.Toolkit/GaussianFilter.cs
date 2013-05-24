@@ -31,19 +31,27 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        #region Constants
+        #region ParametersPerShader
 
         [StructLayout(LayoutKind.Explicit, Size = 16 + 16 * MaxKernelSize)]
-        struct Constants
+        struct ParametersPerShader
         {
             [FieldOffset(0)]
             public float KernelSize;
 
-            // XY: テクセル オフセット
-            // Z:  重み
-            // W:  整列用ダミー
             [FieldOffset(16), MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxKernelSize)]
-            public Vector4[] Kernel;
+            public Vector4[] Weights;
+        }
+
+        #endregion
+
+        #region ParametersPerRenderTarget
+
+        [StructLayout(LayoutKind.Sequential, Size = 16 * MaxKernelSize)]
+        struct ParametersPerRenderTarget
+        {
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxKernelSize)]
+            public Vector4[] Offsets;
         }
 
         #endregion
@@ -53,10 +61,10 @@ namespace Libra.Graphics.Toolkit
         [Flags]
         enum DirtyFlags
         {
-            KernelSize      = (1 << 0),
-            KernelOffsets   = (1 << 1),
-            KernelWeights   = (1 << 2),
-            Constants       = (1 << 3)
+            ConstantBufferPerShader         = (1 << 0),
+            ConstantBufferPerRenderTarget   = (1 << 1),
+            Weights                         = (1 << 2),
+            Offsets                         = (1 << 3),
         }
 
         #endregion
@@ -73,25 +81,25 @@ namespace Libra.Graphics.Toolkit
 
         SharedDeviceResource sharedDeviceResource;
 
-        Constants constants;
+        ParametersPerShader parametersPerShader;
 
-        ConstantBuffer horizontalConstantBuffer;
+        ParametersPerRenderTarget parametersPerRenderTargetH;
 
-        ConstantBuffer verticalConstantBufffer;
+        ParametersPerRenderTarget parametersPerRenderTargetV;
 
-        int kernelSize;
+        ConstantBuffer constantBufferPerShader;
 
-        Vector4[] kernelH;
+        ConstantBuffer constantBufferPerRenderTargetH;
 
-        Vector4[] kernelV;
+        ConstantBuffer constantBufferPerRenderTargetV;
 
         int radius;
 
         float sigma;
 
-        int width;
+        int viewportWidth;
 
-        int height;
+        int viewportHeight;
 
         DirtyFlags dirtyFlags;
 
@@ -107,8 +115,9 @@ namespace Libra.Graphics.Toolkit
                 if (radius == value) return;
 
                 radius = value;
+                parametersPerShader.KernelSize = radius * 2 + 1;
 
-                dirtyFlags |= DirtyFlags.KernelSize | DirtyFlags.KernelWeights;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerShader;
             }
         }
 
@@ -123,7 +132,7 @@ namespace Libra.Graphics.Toolkit
 
                 sigma = value;
 
-                dirtyFlags |= DirtyFlags.KernelWeights;
+                dirtyFlags |= DirtyFlags.Weights;
             }
         }
 
@@ -137,23 +146,33 @@ namespace Libra.Graphics.Toolkit
 
             sharedDeviceResource = device.GetSharedResource<GaussianFilter, SharedDeviceResource>();
 
-            horizontalConstantBuffer = device.CreateConstantBuffer();
-            horizontalConstantBuffer.Initialize<Constants>();
+            constantBufferPerShader = device.CreateConstantBuffer();
+            constantBufferPerShader.Initialize<ParametersPerShader>();
 
-            verticalConstantBufffer = device.CreateConstantBuffer();
-            verticalConstantBufffer.Initialize<Constants>();
+            constantBufferPerRenderTargetH = device.CreateConstantBuffer();
+            constantBufferPerRenderTargetH.Initialize<ParametersPerRenderTarget>();
 
-            kernelH = new Vector4[MaxKernelSize];
-            kernelV = new Vector4[MaxKernelSize];
+            constantBufferPerRenderTargetV = device.CreateConstantBuffer();
+            constantBufferPerRenderTargetV.Initialize<ParametersPerRenderTarget>();
+
+            parametersPerShader.Weights = new Vector4[MaxKernelSize];
+            parametersPerRenderTargetH.Offsets = new Vector4[MaxKernelSize];
+            parametersPerRenderTargetV.Offsets = new Vector4[MaxKernelSize];
 
             radius = DefaultRadius;
             sigma = DefaultSigma;
-            width = 1;
-            height = 1;
+            viewportWidth = 1;
+            viewportHeight = 1;
+
+            parametersPerShader.KernelSize = radius * 2 + 1;
 
             Enabled = true;
 
-            dirtyFlags |= DirtyFlags.KernelSize | DirtyFlags.KernelOffsets | DirtyFlags.KernelWeights;
+            dirtyFlags =
+                DirtyFlags.ConstantBufferPerShader |
+                DirtyFlags.ConstantBufferPerRenderTarget |
+                DirtyFlags.Weights |
+                DirtyFlags.Offsets;
         }
 
         public void Apply(DeviceContext context)
@@ -164,105 +183,62 @@ namespace Libra.Graphics.Toolkit
             int currentWidth = (int) viewport.Width;
             int currentHeight = (int) viewport.Height;
 
-            if (currentWidth != width || currentHeight != height)
+            if (currentWidth != viewportWidth || currentHeight != viewportHeight)
             {
-                width = currentWidth;
-                height = currentHeight;
+                viewportWidth = currentWidth;
+                viewportHeight = currentHeight;
 
-                dirtyFlags |= DirtyFlags.KernelOffsets;
+                dirtyFlags |= DirtyFlags.Offsets;
             }
 
-            SetKernelSize();
-            SetKernelOffsets();
-            SetKernelWeights();
+            SetWeights();
+            SetOffsets();
 
-            if ((dirtyFlags & DirtyFlags.Constants) != 0)
+            if ((dirtyFlags & DirtyFlags.ConstantBufferPerShader) != 0)
             {
-                constants.Kernel = kernelH;
-                horizontalConstantBuffer.SetData(context, constants);
+                constantBufferPerShader.SetData(context, parametersPerShader);
 
-                constants.Kernel = kernelV;
-                verticalConstantBufffer.SetData(context, constants);
-
-                dirtyFlags &= ~DirtyFlags.Constants;
+                dirtyFlags &= ~DirtyFlags.ConstantBufferPerShader;
             }
 
-            // 定数バッファの設定。
+            if ((dirtyFlags & DirtyFlags.ConstantBufferPerRenderTarget) != 0)
+            {
+                constantBufferPerRenderTargetH.SetData(context, parametersPerRenderTargetH);
+                constantBufferPerRenderTargetV.SetData(context, parametersPerRenderTargetV);
+
+                dirtyFlags &= ~DirtyFlags.ConstantBufferPerRenderTarget;
+            }
+
+            context.PixelShaderConstantBuffers[0] = constantBufferPerShader;
+
             switch (Direction)
             {
                 case GaussianFilterDirection.Horizon:
-                    context.PixelShaderConstantBuffers[0] = horizontalConstantBuffer;
+                    context.PixelShaderConstantBuffers[1] = constantBufferPerRenderTargetH;
                     break;
                 case GaussianFilterDirection.Vertical:
-                    context.PixelShaderConstantBuffers[0] = verticalConstantBufffer;
+                    context.PixelShaderConstantBuffers[1] = constantBufferPerRenderTargetV;
                     break;
                 default:
                     throw new InvalidOperationException("Unknown direction: " + Direction);
             }
 
-            // ピクセル シェーダの設定。
             context.PixelShader = sharedDeviceResource.PixelShader;
         }
 
-        void SetKernelSize()
+        void SetWeights()
         {
-            if ((dirtyFlags & DirtyFlags.KernelSize) != 0)
-            {
-                kernelSize = radius * 2 + 1;
-                constants.KernelSize = kernelSize;
-
-                dirtyFlags &= ~DirtyFlags.KernelSize;
-                dirtyFlags |= DirtyFlags.KernelOffsets | DirtyFlags.KernelWeights | DirtyFlags.Constants;
-            }
-        }
-
-        void SetKernelOffsets()
-        {
-            if ((dirtyFlags & DirtyFlags.KernelOffsets) != 0)
-            {
-                var dx = 1.0f / (float) width;
-                var dy = 1.0f / (float) height;
-
-                kernelH[0].X = 0.0f;
-                kernelV[0].Y = 0.0f;
-
-                for (int i = 0; i < kernelSize / 2; i++)
-                {
-                    int baseIndex = i * 2;
-                    int left = baseIndex + 1;
-                    int right = baseIndex + 2;
-
-                    // XNA BloomPostprocess サンプルに従ってオフセットを決定。
-                    float sampleOffset = i * 2 + 1.5f;
-                    var offsetX = dx * sampleOffset;
-                    var offsetY = dy * sampleOffset;
-
-                    kernelH[left].X = offsetX;
-                    kernelH[right].X = -offsetX;
-
-                    kernelV[left].Y = offsetY;
-                    kernelV[right].Y = -offsetY;
-                }
-
-                dirtyFlags &= ~DirtyFlags.KernelOffsets;
-                dirtyFlags |= DirtyFlags.Constants;
-            }
-        }
-
-        void SetKernelWeights()
-        {
-            if ((dirtyFlags & DirtyFlags.KernelWeights) != 0)
+            if ((dirtyFlags & DirtyFlags.Weights) != 0)
             {
                 var totalWeight = 0.0f;
 
                 var weight = MathHelper.CalculateGaussian(sigma, 0);
 
-                kernelH[0].Z = weight;
-                kernelV[0].Z = weight;
+                parametersPerShader.Weights[0].X = weight;
 
                 totalWeight += weight;
 
-                for (int i = 0; i < kernelSize / 2; i++)
+                for (int i = 0; i < MaxKernelSize / 2; i++)
                 {
                     int baseIndex = i * 2;
                     int left = baseIndex + 1;
@@ -271,22 +247,50 @@ namespace Libra.Graphics.Toolkit
                     weight = MathHelper.CalculateGaussian(sigma, i + 1);
                     totalWeight += weight * 2;
 
-                    kernelH[left].Z = weight;
-                    kernelH[right].Z = weight;
-
-                    kernelV[left].Z = weight;
-                    kernelV[right].Z = weight;
+                    parametersPerShader.Weights[left].X = weight;
+                    parametersPerShader.Weights[right].X = weight;
                 }
 
                 float inverseTotalWeights = 1.0f / totalWeight;
-                for (int i = 0; i < kernelSize; i++)
+                for (int i = 0; i < MaxKernelSize; i++)
                 {
-                    kernelH[i].Z *= inverseTotalWeights;
-                    kernelV[i].Z *= inverseTotalWeights;
+                    parametersPerShader.Weights[i].X *= inverseTotalWeights;
                 }
 
-                dirtyFlags &= ~DirtyFlags.KernelWeights;
-                dirtyFlags |= DirtyFlags.Constants;
+                dirtyFlags &= ~DirtyFlags.Weights;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerShader;
+            }
+        }
+
+        void SetOffsets()
+        {
+            if ((dirtyFlags & DirtyFlags.Offsets) != 0)
+            {
+                var dx = 1.0f / (float) viewportWidth;
+                var dy = 1.0f / (float) viewportHeight;
+
+                parametersPerRenderTargetH.Offsets[0].X = 0.0f;
+                parametersPerRenderTargetV.Offsets[0].Y = 0.0f;
+
+                for (int i = 0; i < MaxKernelSize / 2; i++)
+                {
+                    int baseIndex = i * 2;
+                    int left = baseIndex + 1;
+                    int right = baseIndex + 2;
+
+                    float sampleOffset = i * 2 + 1.5f;
+                    var offsetX = dx * sampleOffset;
+                    var offsetY = dy * sampleOffset;
+
+                    parametersPerRenderTargetH.Offsets[left].X = offsetX;
+                    parametersPerRenderTargetH.Offsets[right].X = -offsetX;
+
+                    parametersPerRenderTargetV.Offsets[left].Y = offsetY;
+                    parametersPerRenderTargetV.Offsets[right].Y = -offsetY;
+                }
+
+                dirtyFlags &= ~DirtyFlags.Offsets;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerRenderTarget;
             }
         }
 
@@ -312,8 +316,9 @@ namespace Libra.Graphics.Toolkit
             if (disposing)
             {
                 sharedDeviceResource = null;
-                horizontalConstantBuffer.Dispose();
-                verticalConstantBufffer.Dispose();
+                constantBufferPerShader.Dispose();
+                constantBufferPerRenderTargetH.Dispose();
+                constantBufferPerRenderTargetV.Dispose();
             }
 
             disposed = true;
