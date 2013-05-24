@@ -38,7 +38,7 @@ namespace Libra.Graphics.Toolkit
 
         float bloomSaturation;
 
-        bool constantsDirty;
+        bool constantBufferDirty;
 
         public float BaseIntensity
         {
@@ -51,7 +51,7 @@ namespace Libra.Graphics.Toolkit
 
                 baseIntensity = value;
 
-                constantsDirty = true;
+                constantBufferDirty = true;
             }
         }
 
@@ -66,7 +66,7 @@ namespace Libra.Graphics.Toolkit
 
                 baseSaturation = value;
 
-                constantsDirty = true;
+                constantBufferDirty = true;
             }
         }
 
@@ -81,7 +81,7 @@ namespace Libra.Graphics.Toolkit
 
                 bloomIntensity = value;
 
-                constantsDirty = true;
+                constantBufferDirty = true;
             }
         }
 
@@ -96,7 +96,7 @@ namespace Libra.Graphics.Toolkit
 
                 bloomSaturation = value;
 
-                constantsDirty = true;
+                constantBufferDirty = true;
             }
         }
 
@@ -124,7 +124,7 @@ namespace Libra.Graphics.Toolkit
             bloomIntensity = 1.0f;
             bloomSaturation = 1.0f;
 
-            constantsDirty = true;
+            constantBufferDirty = true;
 
             Enabled = true;
         }
@@ -133,12 +133,12 @@ namespace Libra.Graphics.Toolkit
         {
             if (context == null) throw new ArgumentNullException("context");
 
-            if (constantsDirty)
+            if (constantBufferDirty)
             {
                 var data = new Vector4(baseIntensity, baseSaturation, bloomIntensity, bloomSaturation);
                 constantBuffer.SetData(context, data);
 
-                constantsDirty = false;
+                constantBufferDirty = false;
             }
 
             context.PixelShaderConstantBuffers[0] = constantBuffer;
