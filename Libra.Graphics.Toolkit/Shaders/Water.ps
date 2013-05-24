@@ -1,16 +1,16 @@
-Texture2D<float3> SNormalMap    : register(t0);
-Texture2D<float4> ReflectionMap : register(t2);
-Texture2D<float4> RefractionMap : register(t3);
-
-SamplerState SNormalMapSampler      : register(s0);
-SamplerState ReflectionMapSampler   : register(s1);
-SamplerState RefractionMapSampler   : register(s2);
-
-cbuffer Parameters : register(b0)
+cbuffer PerObject : register(b0)
 {
     float2 WaterOffset;
     float  RippleScale;
 };
+
+Texture2D<float3> NormalMap     : register(t0);
+Texture2D<float4> ReflectionMap : register(t2);
+Texture2D<float4> RefractionMap : register(t3);
+
+SamplerState NormalMapSampler       : register(s0);
+SamplerState ReflectionMapSampler   : register(s1);
+SamplerState RefractionMapSampler   : register(s2);
 
 struct Input
 {
@@ -36,7 +36,7 @@ Output PS(Input input)
 
     float2 texCoord = input.TexCoord + WaterOffset;
 
-    float3 normal = SNormalMap.Sample(SNormalMapSampler, input.TexCoord);
+    float3 normal = NormalMap.Sample(NormalMapSampler, input.TexCoord);
 
     float2 reflectionTexCoord = ToTexCoord(input.ReflectionPosition);
     float2 refractionTexCoord = ToTexCoord(input.RefractionPosition);
