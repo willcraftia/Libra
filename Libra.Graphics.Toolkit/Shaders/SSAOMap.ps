@@ -34,9 +34,9 @@ SamplerState NormalMapSampler       : register(s1);
 
 struct Input
 {
-    float4 Position : SV_Position;
     float2 TexCoord : TEXCOORD0;
     float3 ViewRay  : TEXCOORD1;
+    float4 Position : SV_Position;
 };
 
 float4 PS(Input input) : SV_Target

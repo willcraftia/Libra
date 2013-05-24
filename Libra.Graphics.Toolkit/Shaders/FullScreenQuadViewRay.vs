@@ -5,9 +5,9 @@ cbuffer PerCamera : register(b0)
 
 struct Output
 {
-    float4 Position : SV_Position;
     float2 TexCoord : TEXCOORD0;
     float3 ViewRay  : TEXCOORD1;
+    float4 Position : SV_Position;
 };
 
 Output VS(uint id : SV_VertexID)
