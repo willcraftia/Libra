@@ -28,53 +28,17 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        #region Constants
-
-        struct Constants
-        {
-            // X = scale
-            // Y = distance
-            public Vector4 Focus;
-        }
-
-        #endregion
-
-        #region DirtyFlags
-
-        [Flags]
-        enum DirtyFlags
-        {
-            FocusScale  = (1 << 0),
-            Constants   = (1 << 2)
-        }
-
-        #endregion
-
         Device device;
 
         SharedDeviceResource sharedDeviceResource;
 
         ConstantBuffer constantBuffer;
 
-        Constants constants;
-
         float focusRange;
 
-        DirtyFlags dirtyFlags;
+        float focusDistance;
 
-        /// <summary>
-        /// 焦点距離を取得または設定します。
-        /// </summary>
-        public float FocusDistance
-        {
-            get { return constants.Focus.Y; }
-            set
-            {
-                constants.Focus.Y = value;
-
-                dirtyFlags |= DirtyFlags.Constants;
-            }
-        }
+        bool constantBufferDirty;
 
         /// <summary>
         /// 焦点範囲を取得または設定します。
@@ -86,7 +50,21 @@ namespace Libra.Graphics.Toolkit
             {
                 focusRange = value;
 
-                dirtyFlags |= DirtyFlags.FocusScale;
+                constantBufferDirty = true;
+            }
+        }
+
+        /// <summary>
+        /// 焦点距離を取得または設定します。
+        /// </summary>
+        public float FocusDistance
+        {
+            get { return focusDistance; }
+            set
+            {
+                focusDistance = value;
+
+                constantBufferDirty = true;
             }
         }
 
@@ -115,35 +93,28 @@ namespace Libra.Graphics.Toolkit
             sharedDeviceResource = device.GetSharedResource<DofCombineFilter, SharedDeviceResource>();
 
             constantBuffer = device.CreateConstantBuffer();
-            constantBuffer.Initialize<Constants>();
+            constantBuffer.Initialize(16);
 
             focusRange = 200.0f;
-
-            constants.Focus.Y = 10.0f;
+            focusDistance = 10.0f;
 
             BaseTextureSampler = SamplerState.LinearClamp;
             LinearDepthMapSampler = SamplerState.LinearClamp;
 
             Enabled = true;
 
-            dirtyFlags = DirtyFlags.FocusScale | DirtyFlags.Constants;
+            constantBufferDirty = true;
         }
 
         public void Apply(DeviceContext context)
         {
-            if ((dirtyFlags & DirtyFlags.FocusScale) != 0)
+            if (constantBufferDirty)
             {
-                constants.Focus.X = 1.0f / focusRange;
+                var data = new Vector4(1.0f / focusRange, focusDistance, 0.0f, 0.0f);
 
-                dirtyFlags &= ~DirtyFlags.FocusScale;
-                dirtyFlags |= DirtyFlags.Constants;
-            }
+                constantBuffer.SetData(context, data);
 
-            if ((dirtyFlags & DirtyFlags.Constants) != 0)
-            {
-                constantBuffer.SetData(context, constants);
-
-                dirtyFlags &= ~DirtyFlags.Constants;
+                constantBufferDirty = false;
             }
 
             context.PixelShaderConstantBuffers[0] = constantBuffer;
