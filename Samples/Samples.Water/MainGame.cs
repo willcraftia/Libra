@@ -115,6 +115,8 @@ namespace Samples.Water
 
         HeightToGradientFilter heightToGradientFilter;
 
+        FullScreenQuad fullScreenQuad;
+
         /// <summary>
         /// 正方形メッシュ。
         /// </summary>
@@ -199,6 +201,8 @@ namespace Samples.Water
             heightToNormalFilter = new HeightToNormalFilter(Device);
             heightToGradientFilter = new HeightToGradientFilter(Device);
 
+            fullScreenQuad = new FullScreenQuad(context);
+
             squareMesh = new SquareMesh(context, 400);
         }
 
@@ -260,14 +264,21 @@ namespace Samples.Water
         void CreateWaveMap()
         {
             waveRenderTargetChain.Next();
+
             context.SetRenderTarget(waveRenderTargetChain.Current);
             context.Clear(Vector4.Zero);
 
-            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque, null, null, null, waveFilter);
-            spriteBatch.Draw(waveRenderTargetChain.Last, Vector2.Zero, Color.White);
-            spriteBatch.End();
+            context.DepthStencilState = DepthStencilState.None;
+            context.PixelShaderResources[0] = waveRenderTargetChain.Last;
+
+            waveFilter.Apply(context);
+
+            fullScreenQuad.Draw();
 
             context.SetRenderTarget(null);
+
+            context.DepthStencilState = null;
+            context.PixelShaderResources[0] = null;
 
             heightToNormalFilter.HeightMap = waveRenderTargetChain.Current;
             heightToGradientFilter.HeightMap = waveRenderTargetChain.Current;
@@ -280,9 +291,17 @@ namespace Samples.Water
             context.SetRenderTarget(waveNormalMapRenderTarget);
             context.Clear(Vector3.Up.ToVector4());
 
-            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque, null, null, null, heightToNormalFilter);
-            spriteBatch.Draw(waveRenderTargetChain.Current, Vector2.Zero, Color.White);
-            spriteBatch.End();
+            context.DepthStencilState = DepthStencilState.None;
+            context.PixelShaderResources[0] = waveRenderTargetChain.Current;
+
+            heightToNormalFilter.Apply(context);
+
+            fullScreenQuad.Draw();
+
+            context.SetRenderTarget(null);
+
+            context.DepthStencilState = null;
+            context.PixelShaderResources[0] = null;
 
             context.SetRenderTarget(null);
 
@@ -294,10 +313,18 @@ namespace Samples.Water
             context.SetRenderTarget(waveGradientMapRenderTarget);
             context.Clear(Vector3.Up.ToVector4());
 
-            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque, null, null, null, heightToGradientFilter);
-            spriteBatch.Draw(waveRenderTargetChain.Current, Vector2.Zero, Color.White);
-            spriteBatch.End();
+            context.DepthStencilState = DepthStencilState.None;
+            context.PixelShaderResources[0] = waveRenderTargetChain.Current;
 
+            heightToGradientFilter.Apply(context);
+
+            fullScreenQuad.Draw();
+
+            context.SetRenderTarget(null);
+
+            context.DepthStencilState = null;
+            context.PixelShaderResources[0] = null;
+            
             context.SetRenderTarget(null);
 
             textureDisplay.Textures.Add(waveGradientMapRenderTarget);
