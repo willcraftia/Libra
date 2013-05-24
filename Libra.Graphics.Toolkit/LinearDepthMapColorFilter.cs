@@ -25,10 +25,10 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        #region Constants
+        #region ParametersPerCamera
 
         [StructLayout(LayoutKind.Explicit, Size = 16)]
-        struct Constants
+        struct ParametersPerCamera
         {
             [FieldOffset(0)]
             public float NearClipDistance;
@@ -44,7 +44,7 @@ namespace Libra.Graphics.Toolkit
         [Flags]
         enum DirtyFlags
         {
-            Constants = (1 << 0)
+            ConstantBufferPerCamera = (1 << 0)
         }
 
         #endregion
@@ -53,35 +53,35 @@ namespace Libra.Graphics.Toolkit
 
         SharedDeviceResource sharedDeviceResource;
 
-        ConstantBuffer constantBuffer;
+        ConstantBuffer constantBufferPerCamera;
 
-        Constants constants;
+        ParametersPerCamera parametersPerCamera;
 
         DirtyFlags dirtyFlags;
 
         public float NearClipDistance
         {
-            get { return constants.NearClipDistance; }
+            get { return parametersPerCamera.NearClipDistance; }
             set
             {
                 if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
 
-                constants.NearClipDistance = value;
+                parametersPerCamera.NearClipDistance = value;
 
-                dirtyFlags |= DirtyFlags.Constants;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerCamera;
             }
         }
 
         public float FarClipDistance
         {
-            get { return constants.FarClipDistance; }
+            get { return parametersPerCamera.FarClipDistance; }
             set
             {
                 if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
 
-                constants.FarClipDistance = value;
+                parametersPerCamera.FarClipDistance = value;
 
-                dirtyFlags |= DirtyFlags.Constants;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerCamera;
             }
         }
 
@@ -99,31 +99,31 @@ namespace Libra.Graphics.Toolkit
 
             sharedDeviceResource = device.GetSharedResource<LinearDepthMapColorFilter, SharedDeviceResource>();
 
-            constantBuffer = device.CreateConstantBuffer();
-            constantBuffer.Initialize<Constants>();
+            constantBufferPerCamera = device.CreateConstantBuffer();
+            constantBufferPerCamera.Initialize<ParametersPerCamera>();
 
-            constants.NearClipDistance = 1.0f;
-            constants.FarClipDistance = 1000.0f;
+            parametersPerCamera.NearClipDistance = 1.0f;
+            parametersPerCamera.FarClipDistance = 1000.0f;
 
             LinearDepthMapSampler = SamplerState.PointClamp;
 
             Enabled = true;
 
-            dirtyFlags |= DirtyFlags.Constants;
+            dirtyFlags = DirtyFlags.ConstantBufferPerCamera;
         }
 
         public void Apply(DeviceContext context)
         {
             if (context == null) throw new ArgumentNullException("context");
 
-            if ((dirtyFlags & DirtyFlags.Constants) != 0)
+            if ((dirtyFlags & DirtyFlags.ConstantBufferPerCamera) != 0)
             {
-                constantBuffer.SetData(context, constants);
+                constantBufferPerCamera.SetData(context, parametersPerCamera);
 
-                dirtyFlags &= ~DirtyFlags.Constants;
+                dirtyFlags &= ~DirtyFlags.ConstantBufferPerCamera;
             }
 
-            context.PixelShaderConstantBuffers[0] = constantBuffer;
+            context.PixelShaderConstantBuffers[0] = constantBufferPerCamera;
             context.PixelShader = sharedDeviceResource.PixelShader;
 
             context.PixelShaderResources[1] = LinearDepthMap;
