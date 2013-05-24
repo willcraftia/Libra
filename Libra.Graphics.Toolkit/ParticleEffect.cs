@@ -30,10 +30,10 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        #region ConstantsPerShader
+        #region ParametersPerObject
 
-        [StructLayout(LayoutKind.Explicit, Size = 96)]
-        struct ConstantsPerShader
+        [StructLayout(LayoutKind.Explicit)]
+        struct ParametersPerObject
         {
             [FieldOffset(0)]
             public float Duration;
@@ -65,10 +65,10 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        #region ConstantsPerFrame
+        #region ParametersPerCamera
 
         [StructLayout(LayoutKind.Explicit, Size = 144)]
-        public struct ConstantsPerFrame
+        public struct ParametersPerCamera
         {
             [FieldOffset(0)]
             public Matrix ViewProjection;
@@ -78,8 +78,15 @@ namespace Libra.Graphics.Toolkit
 
             [FieldOffset(128)]
             public Vector2 ViewportScale;
+        }
 
-            [FieldOffset(136)]
+        #endregion
+
+        #region ParametersPerFrame
+
+        [StructLayout(LayoutKind.Sequential, Size = 16)]
+        public struct ParametersPerFrame
+        {
             public float CurrentTime;
         }
 
@@ -90,11 +97,12 @@ namespace Libra.Graphics.Toolkit
         [Flags]
         enum DirtyFlags
         {
-            ViewProjection      = (1 << 0),
-            Projection          = (1 << 1),
-            ViewportScale       = (1 << 2),
-            ConstantsPerShader  = (1 << 3),
-            ConstantsPerFrame   = (1 << 4)
+            ConstantBufferPerObject = (1 << 0),
+            ConstantBufferPerCamera = (1 << 1),
+            ConstantBufferPerFrame  = (1 << 2),
+            ViewProjection          = (1 << 3),
+            Projection              = (1 << 4),
+            ViewportScale           = (1 << 5)
         }
 
         #endregion
@@ -103,13 +111,17 @@ namespace Libra.Graphics.Toolkit
 
         SharedDeviceResource sharedDeviceResource;
 
-        ConstantBuffer constantBufferPerShader;
+        ConstantBuffer constantBufferPerObject;
+
+        ConstantBuffer constantBufferPerCamera;
 
         ConstantBuffer constantBufferPerFrame;
 
-        ConstantsPerShader constantsPerShader;
+        ParametersPerObject parametersPerObject;
 
-        ConstantsPerFrame constantsPerFrame;
+        ParametersPerCamera parametersPerCamera;
+
+        ParametersPerFrame parametersPerFrame;
 
         Matrix view;
 
@@ -124,14 +136,14 @@ namespace Libra.Graphics.Toolkit
         /// </summary>
         public float Duration
         {
-            get { return constantsPerShader.Duration; }
+            get { return parametersPerObject.Duration; }
             set
             {
                 if (value <= 0.0f) throw new ArgumentOutOfRangeException("value");
 
-                constantsPerShader.Duration = value;
+                parametersPerObject.Duration = value;
 
-                dirtyFlags |= DirtyFlags.ConstantsPerShader;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObject;
             }
         }
 
@@ -141,14 +153,14 @@ namespace Libra.Graphics.Toolkit
         /// </summary>
         public float DurationRandomness
         {
-            get { return constantsPerShader.DurationRandomness; }
+            get { return parametersPerObject.DurationRandomness; }
             set
             {
                 if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
 
-                constantsPerShader.DurationRandomness = value;
+                parametersPerObject.DurationRandomness = value;
 
-                dirtyFlags |= DirtyFlags.ConstantsPerShader;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObject;
             }
         }
 
@@ -157,12 +169,12 @@ namespace Libra.Graphics.Toolkit
         /// </summary>
         public Vector3 Gravity
         {
-            get { return constantsPerShader.Gravity; }
+            get { return parametersPerObject.Gravity; }
             set
             {
-                constantsPerShader.Gravity = value;
+                parametersPerObject.Gravity = value;
 
-                dirtyFlags |= DirtyFlags.ConstantsPerShader;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObject;
             }
         }
 
@@ -174,14 +186,14 @@ namespace Libra.Graphics.Toolkit
         /// </summary>
         public float EndVelocity
         {
-            get { return constantsPerShader.EndVelocity; }
+            get { return parametersPerObject.EndVelocity; }
             set
             {
                 if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
 
-                constantsPerShader.EndVelocity = value;
+                parametersPerObject.EndVelocity = value;
 
-                dirtyFlags |= DirtyFlags.ConstantsPerShader;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObject;
             }
         }
 
@@ -190,12 +202,12 @@ namespace Libra.Graphics.Toolkit
         /// </summary>
         public Vector4 MinColor
         {
-            get { return constantsPerShader.MinColor; }
+            get { return parametersPerObject.MinColor; }
             set
             {
-                constantsPerShader.MinColor = value;
+                parametersPerObject.MinColor = value;
 
-                dirtyFlags |= DirtyFlags.ConstantsPerShader;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObject;
             }
         }
 
@@ -204,12 +216,12 @@ namespace Libra.Graphics.Toolkit
         /// </summary>
         public Vector4 MaxColor
         {
-            get { return constantsPerShader.MaxColor; }
+            get { return parametersPerObject.MaxColor; }
             set
             {
-                constantsPerShader.MaxColor = value;
+                parametersPerObject.MaxColor = value;
 
-                dirtyFlags |= DirtyFlags.ConstantsPerShader;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObject;
             }
         }
 
@@ -218,12 +230,12 @@ namespace Libra.Graphics.Toolkit
         /// </summary>
         public float MinRotateSpeed
         {
-            get { return constantsPerShader.RotateSpeed.X; }
+            get { return parametersPerObject.RotateSpeed.X; }
             set
             {
-                constantsPerShader.RotateSpeed.X = value;
+                parametersPerObject.RotateSpeed.X = value;
 
-                dirtyFlags |= DirtyFlags.ConstantsPerShader;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObject;
             }
         }
 
@@ -232,12 +244,12 @@ namespace Libra.Graphics.Toolkit
         /// </summary>
         public float MaxRotateSpeed
         {
-            get { return constantsPerShader.RotateSpeed.Y; }
+            get { return parametersPerObject.RotateSpeed.Y; }
             set
             {
-                constantsPerShader.RotateSpeed.Y = value;
+                parametersPerObject.RotateSpeed.Y = value;
 
-                dirtyFlags |= DirtyFlags.ConstantsPerShader;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObject;
             }
         }
 
@@ -246,14 +258,14 @@ namespace Libra.Graphics.Toolkit
         /// </summary>
         public float MinStartSize
         {
-            get { return constantsPerShader.StartSize.X; }
+            get { return parametersPerObject.StartSize.X; }
             set
             {
                 if (value <= 0.0f) throw new ArgumentOutOfRangeException("value");
 
-                constantsPerShader.StartSize.X = value;
+                parametersPerObject.StartSize.X = value;
 
-                dirtyFlags |= DirtyFlags.ConstantsPerShader;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObject;
             }
         }
 
@@ -262,14 +274,14 @@ namespace Libra.Graphics.Toolkit
         /// </summary>
         public float MaxStartSize
         {
-            get { return constantsPerShader.StartSize.Y; }
+            get { return parametersPerObject.StartSize.Y; }
             set
             {
                 if (value <= 0.0f) throw new ArgumentOutOfRangeException("value");
 
-                constantsPerShader.StartSize.Y = value;
+                parametersPerObject.StartSize.Y = value;
 
-                dirtyFlags |= DirtyFlags.ConstantsPerShader;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObject;
             }
         }
 
@@ -278,14 +290,14 @@ namespace Libra.Graphics.Toolkit
         /// </summary>
         public float MinEndSize
         {
-            get { return constantsPerShader.EndSize.X; }
+            get { return parametersPerObject.EndSize.X; }
             set
             {
                 if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
 
-                constantsPerShader.EndSize.X = value;
+                parametersPerObject.EndSize.X = value;
 
-                dirtyFlags |= DirtyFlags.ConstantsPerShader;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObject;
             }
         }
 
@@ -294,14 +306,14 @@ namespace Libra.Graphics.Toolkit
         /// </summary>
         public float MaxEndSize
         {
-            get { return constantsPerShader.EndSize.Y; }
+            get { return parametersPerObject.EndSize.Y; }
             set
             {
                 if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
 
-                constantsPerShader.EndSize.Y = value;
+                parametersPerObject.EndSize.Y = value;
 
-                dirtyFlags |= DirtyFlags.ConstantsPerShader;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObject;
             }
         }
 
@@ -338,12 +350,12 @@ namespace Libra.Graphics.Toolkit
         /// </summary>
         public float CurrentTime
         {
-            get { return constantsPerFrame.CurrentTime; }
+            get { return parametersPerFrame.CurrentTime; }
             set
             {
-                constantsPerFrame.CurrentTime = value;
+                parametersPerFrame.CurrentTime = value;
 
-                dirtyFlags |= DirtyFlags.ConstantsPerFrame;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerFrame;
             }
         }
 
@@ -355,31 +367,34 @@ namespace Libra.Graphics.Toolkit
 
             sharedDeviceResource = device.GetSharedResource<ParticleEffect, SharedDeviceResource>();
 
-            constantBufferPerShader = device.CreateConstantBuffer();
-            constantBufferPerShader.Initialize<ConstantsPerShader>();
+            constantBufferPerObject = device.CreateConstantBuffer();
+            constantBufferPerObject.Initialize<ParametersPerObject>();
+            constantBufferPerCamera = device.CreateConstantBuffer();
+            constantBufferPerCamera.Initialize<ParametersPerCamera>();
             constantBufferPerFrame = device.CreateConstantBuffer();
-            constantBufferPerFrame.Initialize<ConstantsPerFrame>();
+            constantBufferPerFrame.Initialize<ParametersPerFrame>();
 
             view = Matrix.Identity;
             projection = Matrix.Identity;
             viewProjection = Matrix.Identity;
 
-            constantsPerShader.Duration = 1.0f;
-            constantsPerShader.DurationRandomness = 0.0f;
-            constantsPerShader.Gravity = Vector3.Zero;
-            constantsPerShader.EndVelocity = 1.0f;
-            constantsPerShader.MinColor = Vector4.One;
-            constantsPerShader.MaxColor = Vector4.One;
-            constantsPerShader.RotateSpeed = Vector2.Zero;
-            constantsPerShader.StartSize = new Vector2(100.0f, 100.0f);
-            constantsPerShader.EndSize = new Vector2(100.0f, 100.0f);
+            parametersPerObject.Duration = 1.0f;
+            parametersPerObject.DurationRandomness = 0.0f;
+            parametersPerObject.Gravity = Vector3.Zero;
+            parametersPerObject.EndVelocity = 1.0f;
+            parametersPerObject.MinColor = Vector4.One;
+            parametersPerObject.MaxColor = Vector4.One;
+            parametersPerObject.RotateSpeed = Vector2.Zero;
+            parametersPerObject.StartSize = new Vector2(100.0f, 100.0f);
+            parametersPerObject.EndSize = new Vector2(100.0f, 100.0f);
 
-            constantsPerFrame.ViewProjection = Matrix.Identity;
-            constantsPerFrame.Projection = Matrix.Identity;
-            constantsPerFrame.ViewportScale = Vector2.One;
-            constantsPerFrame.CurrentTime = 0.0f;
+            parametersPerCamera.ViewProjection = Matrix.Identity;
+            parametersPerCamera.Projection = Matrix.Identity;
+            parametersPerCamera.ViewportScale = Vector2.One;
 
-            dirtyFlags = DirtyFlags.ViewportScale | DirtyFlags.ConstantsPerShader | DirtyFlags.ConstantsPerFrame;
+            parametersPerFrame.CurrentTime = 0.0f;
+
+            dirtyFlags = DirtyFlags.ViewportScale | DirtyFlags.ConstantBufferPerObject | DirtyFlags.ConstantBufferPerFrame;
         }
 
         public void Apply(DeviceContext context)
@@ -387,44 +402,52 @@ namespace Libra.Graphics.Toolkit
             if ((dirtyFlags & DirtyFlags.ViewProjection) != 0)
             {
                 Matrix.Multiply(ref view, ref projection, out viewProjection);
-                Matrix.Transpose(ref viewProjection, out constantsPerFrame.ViewProjection);
+                Matrix.Transpose(ref viewProjection, out parametersPerCamera.ViewProjection);
 
                 dirtyFlags &= ~DirtyFlags.ViewProjection;
-                dirtyFlags |= DirtyFlags.ConstantsPerFrame;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerCamera;
             }
 
             if ((dirtyFlags & DirtyFlags.Projection) != 0)
             {
-                Matrix.Transpose(ref projection, out constantsPerFrame.Projection);
+                Matrix.Transpose(ref projection, out parametersPerCamera.Projection);
 
                 dirtyFlags &= ~DirtyFlags.Projection;
-                dirtyFlags |= DirtyFlags.ConstantsPerFrame;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerCamera;
             }
 
             if ((dirtyFlags & DirtyFlags.ViewportScale) != 0)
             {
-                constantsPerFrame.ViewportScale = new Vector2(0.5f / projection.PerspectiveAspectRatio, -0.5f);
+                parametersPerCamera.ViewportScale = new Vector2(0.5f / projection.PerspectiveAspectRatio, -0.5f);
 
                 dirtyFlags &= ~DirtyFlags.ViewportScale;
-                dirtyFlags |= DirtyFlags.ConstantsPerFrame;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerCamera;
             }
 
-            if ((dirtyFlags & DirtyFlags.ConstantsPerShader) != 0)
+            if ((dirtyFlags & DirtyFlags.ConstantBufferPerObject) != 0)
             {
-                constantBufferPerShader.SetData(context, constantsPerShader);
+                constantBufferPerObject.SetData(context, parametersPerObject);
 
-                dirtyFlags &= ~DirtyFlags.ConstantsPerShader;
+                dirtyFlags &= ~DirtyFlags.ConstantBufferPerObject;
             }
 
-            if ((dirtyFlags & DirtyFlags.ConstantsPerFrame) != 0)
+            if ((dirtyFlags & DirtyFlags.ConstantBufferPerCamera) != 0)
             {
-                constantBufferPerFrame.SetData(context, constantsPerFrame);
+                constantBufferPerCamera.SetData(context, parametersPerCamera);
 
-                dirtyFlags &= ~DirtyFlags.ConstantsPerFrame;
+                dirtyFlags &= ~DirtyFlags.ConstantBufferPerCamera;
             }
 
-            context.VertexShaderConstantBuffers[0] = constantBufferPerShader;
-            context.VertexShaderConstantBuffers[1] = constantBufferPerFrame;
+            if ((dirtyFlags & DirtyFlags.ConstantBufferPerFrame) != 0)
+            {
+                constantBufferPerFrame.SetData(context, parametersPerFrame);
+
+                dirtyFlags &= ~DirtyFlags.ConstantBufferPerFrame;
+            }
+
+            context.VertexShaderConstantBuffers[0] = constantBufferPerObject;
+            context.VertexShaderConstantBuffers[1] = constantBufferPerCamera;
+            context.VertexShaderConstantBuffers[2] = constantBufferPerFrame;
             context.VertexShader = sharedDeviceResource.VertexShader;
             context.PixelShader = sharedDeviceResource.PixelShader;
         }
@@ -451,7 +474,8 @@ namespace Libra.Graphics.Toolkit
             if (disposing)
             {
                 sharedDeviceResource = null;
-                constantBufferPerShader.Dispose();
+                constantBufferPerObject.Dispose();
+                constantBufferPerCamera.Dispose();
                 constantBufferPerFrame.Dispose();
             }
 

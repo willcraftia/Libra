@@ -1,7 +1,7 @@
 // Xbox LIVE Indie Games - Particles 3D ÇÊÇËà⁄êAÅB
 // http://xbox.create.msdn.com/en-US/education/catalog/sample/particle_3d
 
-cbuffer PerShader : register(b0)
+cbuffer PerObject : register(b0)
 {
     float  Duration             : packoffset(c0);
     float  DurationRandomness   : packoffset(c0.y);
@@ -18,12 +18,16 @@ cbuffer PerShader : register(b0)
     float2 EndSize              : packoffset(c5.z);
 };
 
-cbuffer PerFrame : register(b1)
+cbuffer PerCamera : register(b1)
 {
     float4x4 ViewProjection     : packoffset(c0);
     float4x4 Projection         : packoffset(c4);
     float2   ViewportScale      : packoffset(c8);
-    float    CurrentTime        : packoffset(c8.z);
+};
+
+cbuffer PerFrame : register(b2)
+{
+    float CurrentTime;
 };
 
 struct Input
