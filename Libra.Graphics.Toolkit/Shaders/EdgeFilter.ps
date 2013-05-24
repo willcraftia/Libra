@@ -1,6 +1,6 @@
 #define KERNEL_SIZE 4
 
-cbuffer Parameters : register(b0)
+cbuffer PerShader : register(b0)
 {
     float3 EdgeColor            : packoffset(c0);
     float  EdgeIntensity        : packoffset(c0.w);
@@ -10,14 +10,20 @@ cbuffer Parameters : register(b0)
     float  NormalThreshold      : packoffset(c1.z);
     float  NormalSensitivity    : packoffset(c1.w);
 
-    float  NearClipDistance     : packoffset(c2.x);
-    float  FarClipDistance      : packoffset(c2.y);
-    float  Attenuation          : packoffset(c2.z);
-
-    float2 Kernel[KERNEL_SIZE]  : packoffset(c3);
+    float  Attenuation          : packoffset(c2);
 };
 
-// 法線マップは _SNORM フォーマット。
+cbuffer PerRenderTarget : register(b1)
+{
+    float2 Offsets[KERNEL_SIZE];
+};
+
+cbuffer PerCamera : register(b2)
+{
+    float NearClipDistance  : packoffset(c0.x);
+    float FarClipDistance   : packoffset(c0.y);
+};
+
 Texture2D<float4> Texture           : register(t0);
 Texture2D<float>  LinearDepthMap    : register(t1);
 Texture2D<float3> NormalMap         : register(t2);
@@ -50,7 +56,7 @@ float4 PS(float4 color    : COLOR0,
     [unroll]
     for (int i = 0; i < KERNEL_SIZE; i++)
     {
-        float2 sampleTexCoord = texCoord + Kernel[i];
+        float2 sampleTexCoord = texCoord + Offsets[i];
 
         float sampleDepth = LinearDepthMap.SampleLevel(LinearDepthMapSampler, sampleTexCoord, 0);
         float3 sampleNormal = NormalMap.SampleLevel(NormalMapSampler, sampleTexCoord, 0);

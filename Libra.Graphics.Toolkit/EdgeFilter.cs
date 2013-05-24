@@ -25,10 +25,10 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        #region Constants
+        #region ParametersPerShader
 
-        [StructLayout(LayoutKind.Explicit, Size = 48 + 16 * KernelSize)]
-        public struct Constants
+        [StructLayout(LayoutKind.Explicit, Size = 48)]
+        public struct ParametersPerShader
         {
             [FieldOffset(0)]
             public Vector3 EdgeColor;
@@ -49,18 +49,34 @@ namespace Libra.Graphics.Toolkit
             public float NormalSensitivity;
 
             [FieldOffset(32)]
-            public float NearClipDistance;
-
-            [FieldOffset(36)]
-            public float FarClipDistance;
-
-            [FieldOffset(40)]
             public float Attenuation;
+        }
 
+        #endregion
+
+        #region ParametersPerRenderTarget
+
+        [StructLayout(LayoutKind.Sequential, Size = 16 * KernelSize)]
+        public struct ParametersPerRenderTarget
+        {
             // XY: テクセル オフセット
             // ZW: 整列用ダミー
-            [FieldOffset(48), MarshalAs(UnmanagedType.ByValArray, SizeConst = KernelSize)]
-            public Vector4[] Kernel;
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = KernelSize)]
+            public Vector4[] Offsets;
+        }
+
+        #endregion
+
+        #region ParametersPerCamera
+
+        [StructLayout(LayoutKind.Explicit, Size = 16)]
+        public struct ParametersPerCamera
+        {
+            [FieldOffset(0)]
+            public float NearClipDistance;
+
+            [FieldOffset(4)]
+            public float FarClipDistance;
         }
 
         #endregion
@@ -70,15 +86,17 @@ namespace Libra.Graphics.Toolkit
         [Flags]
         enum DirtyFlags
         {
-            Kernel  = (1 << 0),
-            Constants   = (1 << 1)
+            ConstantsPerShader          = (1 << 0),
+            ConstantsPerRenderTarget    = (1 << 1),
+            ConstantsPerCamera          = (1 << 2),
+            Offsets                     = (1 << 3)
         }
 
         #endregion
 
         const int KernelSize = 4;
 
-        static readonly Vector2[] PixelKernel =
+        static readonly Vector2[] PixelOffsets =
         {
             new Vector2(-1, -1),
             new Vector2( 1,  1),
@@ -90,9 +108,17 @@ namespace Libra.Graphics.Toolkit
 
         SharedDeviceResource sharedDeviceResource;
 
-        ConstantBuffer constantBuffer;
+        ConstantBuffer constantBufferPerShader;
 
-        Constants constants;
+        ConstantBuffer constantBufferPerRenderTarget;
+
+        ConstantBuffer constantBufferPerCamera;
+
+        ParametersPerShader parametersPerShader;
+
+        ParametersPerRenderTarget parametersPerRenderTarget;
+
+        ParametersPerCamera parametersPerCamera;
 
         float edgeWidth;
 
@@ -111,111 +137,111 @@ namespace Libra.Graphics.Toolkit
 
                 edgeWidth = value;
 
-                dirtyFlags |= DirtyFlags.Kernel;
+                dirtyFlags |= DirtyFlags.Offsets;
             }
         }
 
         public float EdgeIntensity
         {
-            get { return constants.EdgeIntensity; }
+            get { return parametersPerShader.EdgeIntensity; }
             set
             {
                 if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
 
-                constants.EdgeIntensity = value;
+                parametersPerShader.EdgeIntensity = value;
 
-                dirtyFlags |= DirtyFlags.Constants;
+                dirtyFlags |= DirtyFlags.ConstantsPerShader;
             }
         }
 
         public float EdgeAttenuation
         {
-            get { return constants.Attenuation; }
+            get { return parametersPerShader.Attenuation; }
             set
             {
                 if (value < 0.0f || 1.0f < value) throw new ArgumentOutOfRangeException("value");
 
-                constants.Attenuation = value;
+                parametersPerShader.Attenuation = value;
 
-                dirtyFlags |= DirtyFlags.Constants;
+                dirtyFlags |= DirtyFlags.ConstantsPerShader;
             }
         }
 
         public float NormalThreshold
         {
-            get { return constants.NormalThreshold; }
+            get { return parametersPerShader.NormalThreshold; }
             set
             {
                 if (value < 0.0f || 1.0f < value) throw new ArgumentOutOfRangeException("value");
 
-                constants.NormalThreshold = value;
+                parametersPerShader.NormalThreshold = value;
 
-                dirtyFlags |= DirtyFlags.Constants;
+                dirtyFlags |= DirtyFlags.ConstantsPerShader;
             }
         }
 
         public float DepthThreshold
         {
-            get { return constants.DepthThreshold; }
+            get { return parametersPerShader.DepthThreshold; }
             set
             {
                 if (value < 0.0f || 1.0f < value) throw new ArgumentOutOfRangeException("value");
 
-                constants.DepthThreshold = value;
+                parametersPerShader.DepthThreshold = value;
 
-                dirtyFlags |= DirtyFlags.Constants;
+                dirtyFlags |= DirtyFlags.ConstantsPerShader;
             }
         }
 
         public float NormalSensitivity
         {
-            get { return constants.NormalSensitivity; }
+            get { return parametersPerShader.NormalSensitivity; }
             set
             {
                 if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
 
-                constants.NormalSensitivity = value;
+                parametersPerShader.NormalSensitivity = value;
 
-                dirtyFlags |= DirtyFlags.Constants;
+                dirtyFlags |= DirtyFlags.ConstantsPerShader;
             }
         }
 
         public float DepthSensitivity
         {
-            get { return constants.DepthSensitivity; }
+            get { return parametersPerShader.DepthSensitivity; }
             set
             {
                 if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
 
-                constants.DepthSensitivity = value;
+                parametersPerShader.DepthSensitivity = value;
 
-                dirtyFlags |= DirtyFlags.Constants;
+                dirtyFlags |= DirtyFlags.ConstantsPerShader;
             }
         }
 
         public float NearClipDistance
         {
-            get { return constants.NearClipDistance; }
+            get { return parametersPerCamera.NearClipDistance; }
             set
             {
                 if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
 
-                constants.NearClipDistance = value;
+                parametersPerCamera.NearClipDistance = value;
 
-                dirtyFlags |= DirtyFlags.Constants;
+                dirtyFlags |= DirtyFlags.ConstantsPerCamera;
             }
         }
 
         public float FarClipDistance
         {
-            get { return constants.FarClipDistance; }
+            get { return parametersPerCamera.FarClipDistance; }
             set
             {
                 if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
 
-                constants.FarClipDistance = value;
+                parametersPerCamera.FarClipDistance = value;
 
-                dirtyFlags |= DirtyFlags.Constants;
+                dirtyFlags |= DirtyFlags.ConstantsPerCamera;
             }
         }
 
@@ -237,29 +263,42 @@ namespace Libra.Graphics.Toolkit
 
             sharedDeviceResource = device.GetSharedResource<EdgeFilter, SharedDeviceResource>();
 
-            constantBuffer = device.CreateConstantBuffer();
-            constantBuffer.Initialize<Constants>();
+            constantBufferPerShader = device.CreateConstantBuffer();
+            constantBufferPerShader.Initialize<ParametersPerShader>();
+
+            constantBufferPerRenderTarget = device.CreateConstantBuffer();
+            constantBufferPerRenderTarget.Initialize<ParametersPerRenderTarget>();
+
+            constantBufferPerCamera = device.CreateConstantBuffer();
+            constantBufferPerCamera.Initialize<ParametersPerCamera>();
 
             edgeWidth = 1;
             viewportWidth = 1;
             viewportHeight = 1;
-            constants.EdgeIntensity = 3.0f;
-            constants.EdgeColor = Vector3.Zero;
-            constants.DepthThreshold = 5.0f;
-            constants.DepthSensitivity = 1.0f;
-            constants.NormalThreshold = 0.2f;
-            constants.NormalSensitivity = 10.0f;
-            constants.NearClipDistance = 1.0f;
-            constants.FarClipDistance = 1000.0f;
-            constants.Attenuation = 0.8f;
-            constants.Kernel = new Vector4[KernelSize];
+
+            parametersPerShader.EdgeIntensity = 3.0f;
+            parametersPerShader.EdgeColor = Vector3.Zero;
+            parametersPerShader.DepthThreshold = 5.0f;
+            parametersPerShader.DepthSensitivity = 1.0f;
+            parametersPerShader.NormalThreshold = 0.2f;
+            parametersPerShader.NormalSensitivity = 10.0f;
+            parametersPerShader.Attenuation = 0.8f;
+            
+            parametersPerCamera.NearClipDistance = 1.0f;
+            parametersPerCamera.FarClipDistance = 1000.0f;
+            
+            parametersPerRenderTarget.Offsets = new Vector4[KernelSize];
 
             LinearDepthMapSampler = SamplerState.LinearClamp;
             NormalMapSampler = SamplerState.LinearClamp;
 
             Enabled = true;
 
-            dirtyFlags = DirtyFlags.Kernel | DirtyFlags.Constants;
+            dirtyFlags =
+                DirtyFlags.ConstantsPerShader |
+                DirtyFlags.ConstantsPerRenderTarget |
+                DirtyFlags.ConstantsPerCamera |
+                DirtyFlags.Offsets;
         }
 
         public void Apply(DeviceContext context)
@@ -275,32 +314,48 @@ namespace Libra.Graphics.Toolkit
                 viewportWidth = w;
                 viewportHeight = h;
 
-                dirtyFlags |= DirtyFlags.Kernel;
+                dirtyFlags |= DirtyFlags.Offsets;
             }
 
-            if ((dirtyFlags & DirtyFlags.Kernel) != 0)
+            if ((dirtyFlags & DirtyFlags.Offsets) != 0)
             {
                 float scaleX = edgeWidth / (float) viewportWidth;
                 float scaleY = edgeWidth / (float) viewportHeight;
 
                 for (int i = 0; i < KernelSize; i++)
                 {
-                    constants.Kernel[i].X = PixelKernel[i].X * scaleX;
-                    constants.Kernel[i].Y = PixelKernel[i].Y * scaleY;
+                    parametersPerRenderTarget.Offsets[i].X = PixelOffsets[i].X * scaleX;
+                    parametersPerRenderTarget.Offsets[i].Y = PixelOffsets[i].Y * scaleY;
                 }
 
-                dirtyFlags &= ~DirtyFlags.Kernel;
-                dirtyFlags |= DirtyFlags.Constants;
+                dirtyFlags &= ~DirtyFlags.Offsets;
+                dirtyFlags |= DirtyFlags.ConstantsPerRenderTarget;
             }
 
-            if ((dirtyFlags & DirtyFlags.Constants) != 0)
+            if ((dirtyFlags & DirtyFlags.ConstantsPerShader) != 0)
             {
-                constantBuffer.SetData(context, constants);
+                constantBufferPerShader.SetData(context, parametersPerShader);
 
-                dirtyFlags &= ~DirtyFlags.Constants;
+                dirtyFlags &= ~DirtyFlags.ConstantsPerShader;
             }
 
-            context.PixelShaderConstantBuffers[0] = constantBuffer;
+            if ((dirtyFlags & DirtyFlags.ConstantsPerRenderTarget) != 0)
+            {
+                constantBufferPerRenderTarget.SetData(context, parametersPerRenderTarget);
+
+                dirtyFlags &= ~DirtyFlags.ConstantsPerRenderTarget;
+            }
+
+            if ((dirtyFlags & DirtyFlags.ConstantsPerCamera) != 0)
+            {
+                constantBufferPerCamera.SetData(context, parametersPerCamera);
+
+                dirtyFlags &= ~DirtyFlags.ConstantsPerCamera;
+            }
+
+            context.PixelShaderConstantBuffers[0] = constantBufferPerShader;
+            context.PixelShaderConstantBuffers[1] = constantBufferPerRenderTarget;
+            context.PixelShaderConstantBuffers[2] = constantBufferPerCamera;
             context.PixelShader = sharedDeviceResource.PixelShader;
 
             context.PixelShaderResources[1] = LinearDepthMap;
@@ -331,7 +386,9 @@ namespace Libra.Graphics.Toolkit
             if (disposing)
             {
                 sharedDeviceResource = null;
-                constantBuffer.Dispose();
+                constantBufferPerShader.Dispose();
+                constantBufferPerRenderTarget.Dispose();
+                constantBufferPerCamera.Dispose();
             }
 
             disposed = true;
