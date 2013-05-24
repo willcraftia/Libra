@@ -29,9 +29,9 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        #region Constants
+        #region ParametersPerObject
 
-        public struct Constants
+        public struct ParametersPerObject
         {
             public Matrix WorldViewProjection;
 
@@ -45,10 +45,10 @@ namespace Libra.Graphics.Toolkit
         [Flags]
         enum DirtyFlags
         {
-            ViewProjection      = (1 << 0),
-            WorldView           = (1 << 1),
-            WorldViewProjection = (1 << 2),
-            Constants           = (1 << 3)
+            ConstantBufferPerObject = (1 << 0),
+            ViewProjection          = (1 << 1),
+            WorldView               = (1 << 2),
+            WorldViewProjection     = (1 << 3)
         }
 
         #endregion
@@ -57,9 +57,9 @@ namespace Libra.Graphics.Toolkit
 
         SharedDeviceResource sharedDeviceResource;
 
-        ConstantBuffer constantBuffer;
+        ConstantBuffer constantBufferPerObject;
 
-        Constants constants;
+        ParametersPerObject parametersPerObject;
 
         Matrix world;
 
@@ -116,19 +116,19 @@ namespace Libra.Graphics.Toolkit
 
             sharedDeviceResource = device.GetSharedResource<LinearFogDepthMapEffect, SharedDeviceResource>();
 
-            constantBuffer = device.CreateConstantBuffer();
-            constantBuffer.Initialize<Constants>();
+            constantBufferPerObject = device.CreateConstantBuffer();
+            constantBufferPerObject.Initialize<ParametersPerObject>();
 
             world = Matrix.Identity;
             view = Matrix.Identity;
             projection = Matrix.Identity;
             viewProjection = Matrix.Identity;
-            constants.WorldViewProjection = Matrix.Identity;
-            constants.WorldView = Matrix.Identity;
+            parametersPerObject.WorldViewProjection = Matrix.Identity;
+            parametersPerObject.WorldView = Matrix.Identity;
 
             LinearDepthMapSampler = SamplerState.LinearClamp;
 
-            dirtyFlags = DirtyFlags.Constants;
+            dirtyFlags = DirtyFlags.ConstantBufferPerObject;
         }
 
         public void Apply(DeviceContext context)
@@ -146,10 +146,10 @@ namespace Libra.Graphics.Toolkit
                 Matrix worldView;
                 Matrix.Multiply(ref world, ref view, out worldView);
 
-                Matrix.Transpose(ref worldView, out constants.WorldView);
+                Matrix.Transpose(ref worldView, out parametersPerObject.WorldView);
 
                 dirtyFlags &= ~DirtyFlags.WorldView;
-                dirtyFlags |= DirtyFlags.Constants;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObject;
             }
 
             if ((dirtyFlags & DirtyFlags.WorldViewProjection) != 0)
@@ -157,20 +157,20 @@ namespace Libra.Graphics.Toolkit
                 Matrix worldViewProjection;
                 Matrix.Multiply(ref world, ref viewProjection, out worldViewProjection);
 
-                Matrix.Transpose(ref worldViewProjection, out constants.WorldViewProjection);
+                Matrix.Transpose(ref worldViewProjection, out parametersPerObject.WorldViewProjection);
 
                 dirtyFlags &= ~DirtyFlags.WorldViewProjection;
-                dirtyFlags |= DirtyFlags.Constants;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObject;
             }
 
-            if ((dirtyFlags & DirtyFlags.Constants) != 0)
+            if ((dirtyFlags & DirtyFlags.ConstantBufferPerObject) != 0)
             {
-                constantBuffer.SetData(context, constants);
+                constantBufferPerObject.SetData(context, parametersPerObject);
 
-                dirtyFlags &= ~DirtyFlags.Constants;
+                dirtyFlags &= ~DirtyFlags.ConstantBufferPerObject;
             }
 
-            context.VertexShaderConstantBuffers[0] = constantBuffer;
+            context.VertexShaderConstantBuffers[0] = constantBufferPerObject;
             context.VertexShader = sharedDeviceResource.VertexShader;
             context.PixelShader = sharedDeviceResource.PixelShader;
 
@@ -200,7 +200,7 @@ namespace Libra.Graphics.Toolkit
             if (disposing)
             {
                 sharedDeviceResource = null;
-                constantBuffer.Dispose();
+                constantBufferPerObject.Dispose();
             }
 
             disposed = true;
