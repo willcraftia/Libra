@@ -25,25 +25,32 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        #region ConstantsPerShader
+        #region ParametersPerShader
 
-        [StructLayout(LayoutKind.Explicit, Size = 16 + 16 * KernelSize)]
-        public struct ConstantsPerShader
+        [StructLayout(LayoutKind.Sequential, Size = 16)]
+        public struct ParametersPerShader
         {
-            [FieldOffset(0)]
             public float Stiffness;
+        }
 
+        #endregion
+
+        #region ParametersPerRenderTarget
+
+        [StructLayout(LayoutKind.Sequential, Size = 16 * KernelSize)]
+        public struct ParametersPerRenderTarget
+        {
             // XY: テクセル オフセット
             // ZW: 整列用ダミー
-            [FieldOffset(16), MarshalAs(UnmanagedType.ByValArray, SizeConst = KernelSize)]
-            public Vector4[] Kernel;
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = KernelSize)]
+            public Vector4[] Offsets;
         }
 
         #endregion
 
         #region ConstantsPerFrame
 
-        public struct ConstantsPerFrame
+        public struct ParametersPerFrame
         {
             public Vector2 NewWavePosition;
 
@@ -59,17 +66,18 @@ namespace Libra.Graphics.Toolkit
         [Flags]
         enum DirtyFlags
         {
-            Kernel              = (1 << 0),
-            NewWave             = (1 << 1),
-            ConstantsPerShader  = (1 << 2),
-            ConstantsPerFrame   = (1 << 3)
+            ConstantBufferPerShader         = (1 << 0),
+            ConstantBufferPerRenderTarget   = (1 << 1),
+            ConstantBufferPerFrame          = (1 << 2),
+            Offsets                         = (1 << 3),
+            NewWave                         = (1 << 4),
         }
 
         #endregion
 
         const int KernelSize = 4;
 
-        static readonly Vector2[] Offsets =
+        static readonly Vector2[] PixelOffsets =
         {
             new Vector2( 1.5f,  0.0f),
             new Vector2(-1.5f,  0.0f),
@@ -83,11 +91,15 @@ namespace Libra.Graphics.Toolkit
 
         ConstantBuffer constantBufferPerShader;
 
+        ConstantBuffer constantBufferPerRenderTarget;
+
         ConstantBuffer constantBufferPerFrame;
 
-        ConstantsPerShader constantsPerShader;
+        ParametersPerShader parametersPerShader;
 
-        ConstantsPerFrame constantsPerFrame;
+        ParametersPerRenderTarget parametersPerRenderTarget;
+
+        ParametersPerFrame parametersPerFrame;
 
         Vector2 newWavePosition;
 
@@ -95,20 +107,20 @@ namespace Libra.Graphics.Toolkit
 
         float newWaveVelocity;
 
-        int width;
+        int viewportWidth;
 
-        int height;
+        int viewportHeight;
 
         DirtyFlags dirtyFlags;
 
         public float Stiffness
         {
-            get { return constantsPerShader.Stiffness; }
+            get { return parametersPerShader.Stiffness; }
             set
             {
-                constantsPerShader.Stiffness = value;
+                parametersPerShader.Stiffness = value;
 
-                dirtyFlags |= DirtyFlags.ConstantsPerShader;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerShader;
             }
         }
 
@@ -123,21 +135,29 @@ namespace Libra.Graphics.Toolkit
             sharedDeviceResource = device.GetSharedResource<WaveFilter, SharedDeviceResource>();
 
             constantBufferPerShader = device.CreateConstantBuffer();
-            constantBufferPerShader.Initialize<ConstantsPerShader>();
+            constantBufferPerShader.Initialize<ParametersPerShader>();
+
+            constantBufferPerRenderTarget = device.CreateConstantBuffer();
+            constantBufferPerRenderTarget.Initialize<ParametersPerRenderTarget>();
 
             constantBufferPerFrame = device.CreateConstantBuffer();
-            constantBufferPerFrame.Initialize<ConstantsPerFrame>();
+            constantBufferPerFrame.Initialize<ParametersPerFrame>();
 
-            constantsPerShader.Stiffness = 0.5f;
-            constantsPerShader.Kernel = new Vector4[KernelSize];
+            parametersPerShader.Stiffness = 0.5f;
 
-            constantsPerFrame.NewWavePosition = Vector2.Zero;
-            constantsPerFrame.NewWaveRadius = 0.0f;
-            constantsPerFrame.NewWaveVelocity = 0.0f;
+            parametersPerRenderTarget.Offsets = new Vector4[KernelSize];
+
+            parametersPerFrame.NewWavePosition = Vector2.Zero;
+            parametersPerFrame.NewWaveRadius = 0.0f;
+            parametersPerFrame.NewWaveVelocity = 0.0f;
 
             Enabled = true;
 
-            dirtyFlags = DirtyFlags.Kernel | DirtyFlags.ConstantsPerShader | DirtyFlags.ConstantsPerFrame;
+            dirtyFlags =
+                DirtyFlags.ConstantBufferPerShader |
+                DirtyFlags.ConstantBufferPerRenderTarget |
+                DirtyFlags.ConstantBufferPerFrame |
+                DirtyFlags.Offsets;
         }
 
         public void AddWave(Vector2 position, float radius, float velocity)
@@ -162,52 +182,60 @@ namespace Libra.Graphics.Toolkit
             int currentWidth = (int) viewport.Width;
             int currentHeight = (int) viewport.Height;
 
-            if (currentWidth != width || currentHeight != height)
+            if (currentWidth != viewportWidth || currentHeight != viewportHeight)
             {
-                width = currentWidth;
-                height = currentHeight;
+                viewportWidth = currentWidth;
+                viewportHeight = currentHeight;
 
-                dirtyFlags |= DirtyFlags.Kernel;
+                dirtyFlags |= DirtyFlags.Offsets;
             }
 
-            if ((dirtyFlags & DirtyFlags.Kernel) != 0)
+            if ((dirtyFlags & DirtyFlags.Offsets) != 0)
             {
                 for (int i = 0; i < KernelSize; i++)
                 {
-                    constantsPerShader.Kernel[i].X = Offsets[i].X / (float) width;
-                    constantsPerShader.Kernel[i].Y = Offsets[i].Y / (float) height;
-
-                    dirtyFlags &= ~DirtyFlags.Kernel;
-                    dirtyFlags |= DirtyFlags.ConstantsPerShader;
+                    parametersPerRenderTarget.Offsets[i].X = PixelOffsets[i].X / (float) viewportWidth;
+                    parametersPerRenderTarget.Offsets[i].Y = PixelOffsets[i].Y / (float) viewportHeight;
                 }
+
+                dirtyFlags &= ~DirtyFlags.Offsets;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerRenderTarget;
             }
 
             if ((dirtyFlags & DirtyFlags.NewWave) != 0)
             {
-                constantsPerFrame.NewWavePosition = newWavePosition;
-                constantsPerFrame.NewWaveRadius = newWaveRadius;
-                constantsPerFrame.NewWaveVelocity = newWaveVelocity;
+                parametersPerFrame.NewWavePosition = newWavePosition;
+                parametersPerFrame.NewWaveRadius = newWaveRadius;
+                parametersPerFrame.NewWaveVelocity = newWaveVelocity;
 
                 dirtyFlags &= ~DirtyFlags.NewWave;
-                dirtyFlags |= DirtyFlags.ConstantsPerFrame;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerFrame;
             }
 
-            if ((dirtyFlags & DirtyFlags.ConstantsPerShader) != 0)
+            if ((dirtyFlags & DirtyFlags.ConstantBufferPerShader) != 0)
             {
-                constantBufferPerShader.SetData(context, constantsPerShader);
+                constantBufferPerShader.SetData(context, parametersPerShader);
 
-                dirtyFlags &= ~DirtyFlags.ConstantsPerShader;
+                dirtyFlags &= ~DirtyFlags.ConstantBufferPerShader;
             }
 
-            if ((dirtyFlags & DirtyFlags.ConstantsPerFrame) != 0)
+            if ((dirtyFlags & DirtyFlags.ConstantBufferPerRenderTarget) != 0)
             {
-                constantBufferPerFrame.SetData(context, constantsPerFrame);
+                constantBufferPerRenderTarget.SetData(context, parametersPerRenderTarget);
 
-                dirtyFlags &= ~DirtyFlags.ConstantsPerFrame;
+                dirtyFlags &= ~DirtyFlags.ConstantBufferPerRenderTarget;
+            }
+
+            if ((dirtyFlags & DirtyFlags.ConstantBufferPerFrame) != 0)
+            {
+                constantBufferPerFrame.SetData(context, parametersPerFrame);
+
+                dirtyFlags &= ~DirtyFlags.ConstantBufferPerFrame;
             }
 
             context.PixelShaderConstantBuffers[0] = constantBufferPerShader;
-            context.PixelShaderConstantBuffers[1] = constantBufferPerFrame;
+            context.PixelShaderConstantBuffers[1] = constantBufferPerRenderTarget;
+            context.PixelShaderConstantBuffers[2] = constantBufferPerFrame;
             context.PixelShader = sharedDeviceResource.PixelShader;
         }
 
@@ -233,6 +261,9 @@ namespace Libra.Graphics.Toolkit
             if (disposing)
             {
                 sharedDeviceResource = null;
+                constantBufferPerShader.Dispose();
+                constantBufferPerRenderTarget.Dispose();
+                constantBufferPerFrame.Dispose();
             }
 
             disposed = true;
