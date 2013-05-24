@@ -12,8 +12,7 @@ SamplerState TextureSampler         : register(s0);
 SamplerState BaseTextureSampler     : register(s1);
 SamplerState LinearDepthMapSampler  : register(s2);
 
-float4 PS(float4 color    : COLOR0,
-          float2 texCoord : TEXCOORD0) : SV_Target
+float4 PS(float2 texCoord : TEXCOORD0) : SV_Target
 {
     float4 bluredScene = Texture.Sample(TextureSampler, texCoord);
     float4 normalScene = BaseTexture.Sample(BaseTextureSampler, texCoord);

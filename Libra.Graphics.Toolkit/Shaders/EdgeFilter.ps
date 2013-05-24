@@ -42,8 +42,7 @@ float4 SampleDepthNormal(float2 texCoord)
     return depthNormal;
 }
 
-float4 PS(float4 color    : COLOR0,
-          float2 texCoord : TEXCOORD0) : SV_Target
+float4 PS(float2 texCoord : TEXCOORD0) : SV_Target
 {
     float4 source = Texture.Sample(TextureSampler, texCoord);
 

@@ -11,8 +11,7 @@ SamplerState TextureSampler : register(s0);
 Texture2D<float> LinearDepthMap : register(t1);
 SamplerState LinearDepthMapSampler : register(s1);
 
-float4 PS(float4 color    : COLOR0,
-          float2 texCoord : TEXCOORD0) : SV_Target
+float4 PS(float2 texCoord : TEXCOORD0) : SV_Target
 {
     float z = LinearDepthMap.SampleLevel(LinearDepthMapSampler, texCoord, 0);
 

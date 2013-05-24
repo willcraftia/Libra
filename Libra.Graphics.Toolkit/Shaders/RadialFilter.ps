@@ -21,8 +21,7 @@ cbuffer PerFrame : register(b2)
 Texture2D Texture : register(t0);
 SamplerState TextureSampler : register(s0);
 
-float4 PS(float4 color    : COLOR0,
-          float2 texCoord : TEXCOORD0) : SV_Target0
+float4 PS(float2 texCoord : TEXCOORD0) : SV_Target
 {
     // 放射中心からのベクトル。
     float2 direction = Center - texCoord;

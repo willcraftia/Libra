@@ -12,8 +12,7 @@ SamplerState TextureSampler : register(s0);
 Texture2D<float3> NormalMap : register(t1);
 SamplerState NormalMapSampler : register(s1);
 
-float4 PS(float4 color    : COLOR0,
-          float2 texCoord : TEXCOORD0) : SV_Target
+float4 PS(float2 texCoord : TEXCOORD0) : SV_Target
 {
     float3 source = NormalMap.SampleLevel(NormalMapSampler, texCoord, 0);
     source = normalize(source);

@@ -19,8 +19,7 @@ float4 AdjustSaturation(float4 color, float saturation)
     return lerp(grey, color, saturation);
 }
 
-float4 PS(float4 color    : COLOR0,
-          float2 texCoord : TEXCOORD0) : SV_Target
+float4 PS(float2 texCoord : TEXCOORD0) : SV_Target
 {
     float4 bloom = Texture.Sample(TextureSampler, texCoord);
     float4 base = BaseTexture.Sample(BaseTextureSampler, texCoord);

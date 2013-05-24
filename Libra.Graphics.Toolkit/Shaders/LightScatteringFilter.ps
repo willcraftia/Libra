@@ -18,8 +18,7 @@ cbuffer PerFrame : register(b1)
 Texture2D<float3> Texture : register(t0);
 SamplerState TextureSampler : register(s0);
 
-float4 PS(float4 color    : COLOR0,
-          float2 texCoord : TEXCOORD0) : SV_Target
+float4 PS(float2 texCoord : TEXCOORD0) : SV_Target
 {
     float2 deltaTexCoord = (texCoord - ScreenLightPosition);
     deltaTexCoord *= 1.0f / SampleCount * Density;
