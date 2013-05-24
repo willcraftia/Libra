@@ -1,20 +1,24 @@
 #define MAX_RADIUS 7
 #define MAX_KERNEL_SIZE (MAX_RADIUS * 2 + 1)
 
-cbuffer Parameters : register(b0)
+cbuffer PerShader : register(b0)
 {
     // 深度の重み
-    float DepthSigma                : packoffset(c0);
+    float DepthSigma                    : packoffset(c0);
     // 法線の重み
-    float NormalSigma               : packoffset(c0.y);
+    float NormalSigma                   : packoffset(c0.y);
     // カーネル サイズ
-    float KernelSize                : packoffset(c0.z);
-    // xy = テクセル オフセット
-    // z  = 空間の重み
-    float3 Kernel[MAX_KERNEL_SIZE]  : packoffset(c1);
+    float KernelSize                    : packoffset(c0.z);
+    // 空間の重み
+    float SpaceWeights[MAX_KERNEL_SIZE] : packoffset(c1);
 };
 
-// 法線マップは _SNORM フォーマット。
+cbuffer PerRenderTarget : register(b1)
+{
+    // テクセル オフセット
+    float2 Offsets[MAX_KERNEL_SIZE];
+};
+
 Texture2D<float>  Texture           : register(t0);
 Texture2D<float>  LinearDepthMap    : register(t1);
 Texture2D<float3> NormalMap         : register(t2);
@@ -34,12 +38,7 @@ float4 PS(float4 color    : COLOR0,
 
     for (int i = 0; i < KernelSize; i++)
     {
-        float3 kernel = Kernel[i];
-
-        float2 offset = kernel.xy;
-        float spaceWeight = kernel.z;
-
-        float2 sampleTexCoord = texCoord + offset;
+        float2 sampleTexCoord = texCoord + Offsets[i];
 
         float sampleColor = Texture.Sample(TextureSampler, sampleTexCoord);
         float sampleDepth = LinearDepthMap.Sample(LinearDepthMapSampler, sampleTexCoord);
@@ -54,7 +53,7 @@ float4 PS(float4 color    : COLOR0,
         float normalWeight = exp(-normalCloseness * normalCloseness / (2 * NormalSigma * NormalSigma));
 
         // 重み = 空間の重み * 深度の重み * 法線の重み。
-        float sampleWeight = spaceWeight;
+        float sampleWeight = SpaceWeights[i];
         sampleWeight *= depthWeight;
         sampleWeight *= normalWeight;
 
