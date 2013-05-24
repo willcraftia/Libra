@@ -9,17 +9,20 @@
 
 #define MAX_SAMPLE_COUNT 128
 
-cbuffer Parameters : register(b0)
+cbuffer PerObject : register(b0)
 {
-    float2 FocalLength                      : packoffset(c0);
-    float  SampleCount                      : packoffset(c0.z);
-
-    float  Strength                         : packoffset(c1.x);
-    float  Attenuation                      : packoffset(c1.y);
-    float  Radius                           : packoffset(c1.z);
-    float  FarClipDistance                  : packoffset(c1.w);
+    float  Strength                         : packoffset(c0.x);
+    float  Attenuation                      : packoffset(c0.y);
+    float  Radius                           : packoffset(c0.z);
+    float  SampleCount                      : packoffset(c0.w);
 
     float4 SampleSphere[MAX_SAMPLE_COUNT]   : packoffset(c2);
+};
+
+cbuffer PerCamera : register(b1)
+{
+    float2 FocalLength      : packoffset(c0);
+    float  FarClipDistance  : packoffset(c0.z);
 };
 
 Texture2D<float>  LinearDepthMap    : register(t0);

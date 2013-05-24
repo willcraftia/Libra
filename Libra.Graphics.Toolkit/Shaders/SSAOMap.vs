@@ -1,4 +1,4 @@
-cbuffer Parameters : register(b0)
+cbuffer PerCamera : register(b0)
 {
     float2 FocalLength;
 };
