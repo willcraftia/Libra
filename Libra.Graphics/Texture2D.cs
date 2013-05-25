@@ -200,6 +200,7 @@ namespace Libra.Graphics
 
         public void SetData<T>(DeviceContext context, int level, T[] data, int startIndex, int elementCount) where T : struct
         {
+            AssertInitialized();
             if (context == null) throw new ArgumentNullException("context");
             if (data == null) throw new ArgumentNullException("data");
             if (startIndex < 0) throw new ArgumentOutOfRangeException("startIndex");
