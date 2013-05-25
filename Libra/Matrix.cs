@@ -1167,9 +1167,12 @@ namespace Libra
 
         public static void CreateReflection(ref Plane plane, out Matrix result)
         {
-            float x = plane.Normal.X;
-            float y = plane.Normal.Y;
-            float z = plane.Normal.Z;
+            Plane p;
+            Plane.Normalize(ref plane, out p);
+
+            float x = p.Normal.X;
+            float y = p.Normal.Y;
+            float z = p.Normal.Z;
             float x2 = -2.0f * x;
             float y2 = -2.0f * y;
             float z2 = -2.0f * z;
@@ -1186,9 +1189,9 @@ namespace Libra
             result.M32 = y2 * z;
             result.M33 = (z2 * z) + 1.0f;
             result.M34 = 0.0f;
-            result.M41 = x2 * plane.D;
-            result.M42 = y2 * plane.D;
-            result.M43 = z2 * plane.D;
+            result.M41 = x2 * p.D;
+            result.M42 = y2 * p.D;
+            result.M43 = z2 * p.D;
             result.M44 = 1.0f;
         }
 
