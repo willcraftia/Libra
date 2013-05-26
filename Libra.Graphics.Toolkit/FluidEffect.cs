@@ -183,14 +183,17 @@ namespace Libra.Graphics.Toolkit
             
             parametersPerObjectVS.WorldViewProjection = Matrix.Identity;
             parametersPerObjectVS.WorldReflectionProjection = Matrix.Identity;
-            parametersPerObjectPS.RippleScale = 0.1f;
+            parametersPerObjectPS.RippleScale = 0.01f;
             parametersPerFramePS.WaterOffset = Vector2.Zero;
 
             NormalMapSampler = SamplerState.LinearWrap;
             ReflectionMapSampler = SamplerState.LinearClamp;
             RefractionMapSampler = SamplerState.LinearClamp;
 
-            dirtyFlags = DirtyFlags.ConstantBufferPerObjectVS;
+            dirtyFlags =
+                DirtyFlags.ConstantBufferPerObjectVS |
+                DirtyFlags.ConstantBufferPerObjectPS |
+                DirtyFlags.ConstantBufferPerFramePS;
         }
 
         public void Apply(DeviceContext context)
