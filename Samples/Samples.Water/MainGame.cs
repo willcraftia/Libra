@@ -183,10 +183,6 @@ namespace Samples.Water
         /// </summary>
         bool hudVisible;
 
-        Texture2D pseudoReflectionMap;
-
-        Texture2D pseudoRefractionMap;
-
         public MainGame()
         {
             graphicsManager = new GraphicsManager(this);
@@ -273,6 +269,7 @@ namespace Samples.Water
             basicEffect.EnableDefaultLighting();
 
             waveFilter = new WaveFilter(Device);
+            //waveFilter.Stiffness = 0.1f;
             heightToNormalFilter = new HeightToNormalFilter(Device);
             heightToGradientFilter = new HeightToGradientFilter(Device);
 
@@ -296,19 +293,6 @@ namespace Samples.Water
             sphereMesh = new SphereMesh(context, 20, 32);
             cylinderMesh = new CylinderMesh(context, 80, 20, 32);
             squareMesh = new SquareMesh(context, 400);
-
-            // TODO
-            pseudoReflectionMap = Device.CreateTexture2D();
-            pseudoReflectionMap.Width = 2;
-            pseudoReflectionMap.Height = 2;
-            pseudoReflectionMap.Initialize();
-            pseudoReflectionMap.SetData(context, Color.White, Color.Red, Color.Red, Color.White);
-
-            pseudoRefractionMap = Device.CreateTexture2D();
-            pseudoRefractionMap.Width = 2;
-            pseudoRefractionMap.Height = 2;
-            pseudoRefractionMap.Initialize();
-            pseudoRefractionMap.SetData(context, Color.Green, Color.Blue, Color.Blue, Color.Green);
         }
 
         protected override void Update(GameTime gameTime)
@@ -322,11 +306,11 @@ namespace Samples.Water
             elapsedNewWaveTime += (float) gameTime.ElapsedGameTime.TotalSeconds;
             if (newWaveInterval <= elapsedNewWaveTime)
             {
-                var position = new Vector2(0.6f, 0.3f);
-                //var position = new Vector2((float) Random.NextDouble(), (float) Random.NextDouble());
+                //var position = new Vector2(0.6f, 0.3f);
+                var position = new Vector2((float) Random.NextDouble(), (float) Random.NextDouble());
                 var radius = Random.Next(1, 20) / 128.0f;
-                var velocity = (float) Random.NextDouble();
-                //var velocity = 0.01f;
+                //var velocity = (float) Random.NextDouble();
+                var velocity = (float) Random.NextDouble() * 0.1f;
 
                 waveFilter.AddWave(position, radius, velocity);
 
@@ -520,11 +504,9 @@ namespace Samples.Water
 
             context.SetRenderTarget(null);
 
-            textureDisplay.Textures.Add(reflectionSceneRenderTarget);
-
-            // TODO
-            //fluidEffect.ReflectionMap = pseudoReflectionMap;
             fluidEffect.ReflectionMap = reflectionSceneRenderTarget;
+
+            textureDisplay.Textures.Add(reflectionSceneRenderTarget);
         }
 
         void CreateRefractionMap()
@@ -536,11 +518,9 @@ namespace Samples.Water
 
             context.SetRenderTarget(null);
 
-            textureDisplay.Textures.Add(refractionSceneRenderTarget);
-
-            // TODO
-            //fluidEffect.RefractionMap = pseudoRefractionMap;
             fluidEffect.RefractionMap = refractionSceneRenderTarget;
+
+            textureDisplay.Textures.Add(refractionSceneRenderTarget);
         }
 
         void DrawSceneWithoutFluid(IEffect effect, ref Matrix view)
@@ -579,6 +559,8 @@ namespace Samples.Water
             context.IndexBuffer = fluidIndexBuffer;
 
             context.DrawIndexed(fluidIndexBuffer.IndexCount);
+
+            DrawSceneWithoutFluid(basicEffect, ref camera.View);
 
             //DrawPrimitiveMesh(squareMesh, Matrix.Identity, new Vector3(0.5f), fluidEffect);
         }
