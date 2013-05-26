@@ -117,6 +117,28 @@ namespace Samples.Water
 
         FullScreenQuad fullScreenQuad;
 
+        FluidEffect fluidEffect;
+
+        // 流体面メッシュの頂点。
+        VertexPositionTexture[] fluidVertices =
+        {
+            new VertexPositionTexture(new Vector3(-100, 0,  100), new Vector2(0, 1)),
+            new VertexPositionTexture(new Vector3(-100, 0, -100), new Vector2(0, 0)),
+            new VertexPositionTexture(new Vector3( 100, 0, -100), new Vector2(1, 0)),
+            new VertexPositionTexture(new Vector3( 100, 0,  100), new Vector2(1, 1)),
+        };
+
+        // 流体面メッシュのインデックス。
+        ushort[] fluidIndices =
+        {
+            0, 1, 2,
+            0, 2, 3
+        };
+
+        VertexBuffer fluidVertexBuffer;
+
+        IndexBuffer fluidIndexBuffer;
+
         /// <summary>
         /// 正方形メッシュ。
         /// </summary>
@@ -130,6 +152,10 @@ namespace Samples.Water
         /// HUD テキストを表示するか否かを示す値。
         /// </summary>
         bool hudVisible;
+
+        Texture2D pseudoReflectionMap;
+
+        Texture2D pseudoRefractionMap;
 
         public MainGame()
         {
@@ -203,7 +229,28 @@ namespace Samples.Water
 
             fullScreenQuad = new FullScreenQuad(context);
 
+            fluidEffect = new FluidEffect(Device);
+
+            fluidVertexBuffer = Device.CreateVertexBuffer();
+            fluidVertexBuffer.Initialize(fluidVertices);
+
+            fluidIndexBuffer = Device.CreateIndexBuffer();
+            fluidIndexBuffer.Initialize(fluidIndices);
+
             squareMesh = new SquareMesh(context, 400);
+
+            // TODO
+            pseudoReflectionMap = Device.CreateTexture2D();
+            pseudoReflectionMap.Width = 2;
+            pseudoReflectionMap.Height = 2;
+            pseudoReflectionMap.Initialize();
+            pseudoReflectionMap.SetData(context, Color.White, Color.Red, Color.Red, Color.White);
+
+            pseudoRefractionMap = Device.CreateTexture2D();
+            pseudoRefractionMap.Width = 2;
+            pseudoRefractionMap.Height = 2;
+            pseudoRefractionMap.Initialize();
+            pseudoRefractionMap.SetData(context, Color.Green, Color.Blue, Color.Blue, Color.Green);
         }
 
         protected override void Update(GameTime gameTime)
@@ -250,9 +297,11 @@ namespace Samples.Water
             CreateWaveNormalMap();
             CreateWaveGradientMap();
 
+            CreateReflectionMap();
+            CreateRefractionMap();
+
             // シーンを描画。
-            context.Clear(Color.CornflowerBlue);
-            DrawScene(basicEffect);
+            DrawScene();
 
             // HUD のテキストを描画。
             if (hudVisible)
@@ -305,6 +354,8 @@ namespace Samples.Water
 
             context.SetRenderTarget(null);
 
+            fluidEffect.NormalMap = waveNormalMapRenderTarget;
+
             textureDisplay.Textures.Add(waveNormalMapRenderTarget);
         }
 
@@ -330,23 +381,33 @@ namespace Samples.Water
             textureDisplay.Textures.Add(waveGradientMapRenderTarget);
         }
 
-        void DrawPrimitiveMesh(PrimitiveMesh mesh, Matrix world, Vector3 color)
+        void CreateReflectionMap()
         {
-            basicEffect.DiffuseColor = color;
-
-            DrawPrimitiveMesh(mesh, world, color, basicEffect);
+            // TODO
+            fluidEffect.ReflectionMap = pseudoReflectionMap;
         }
 
-        void DrawScene(IEffect effect)
+        void CreateRefractionMap()
         {
-            var effectMatrices = effect as IEffectMatrices;
-            if (effectMatrices != null)
-            {
-                effectMatrices.View = camera.View;
-                effectMatrices.Projection = camera.Projection;
-            }
+            // TODO
+            fluidEffect.RefractionMap = pseudoRefractionMap;
+        }
 
-            DrawPrimitiveMesh(squareMesh, Matrix.Identity, new Vector3(0.5f), effect);
+        void DrawScene()
+        {
+            context.Clear(Color.CornflowerBlue);
+
+            fluidEffect.World = Matrix.Identity;
+            fluidEffect.View = camera.View;
+            fluidEffect.Projection = camera.Projection;
+            fluidEffect.Apply(context);
+
+            context.SetVertexBuffer(fluidVertexBuffer);
+            context.IndexBuffer = fluidIndexBuffer;
+
+            context.DrawIndexed(fluidIndexBuffer.IndexCount);
+
+            //DrawPrimitiveMesh(squareMesh, Matrix.Identity, new Vector3(0.5f), fluidEffect);
         }
 
         void DrawPrimitiveMesh(PrimitiveMesh mesh, Matrix world, Vector3 color, IEffect effect)

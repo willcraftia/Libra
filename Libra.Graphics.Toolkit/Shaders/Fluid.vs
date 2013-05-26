@@ -12,10 +12,10 @@ struct Input
 
 struct Output
 {
-    float4 Position             : SV_Position;
-    float2 TexCoord             : TEXCOORD0;
-    float4 ReflectionPosition   : TEXCOORD1;
-    float4 RefractionPosition   : TEXCOORD2;
+    float4 Position     : SV_Position;
+    float2 TexCoord     : TEXCOORD0;
+    float4 PositionWVP  : TEXCOORD1;
+    float4 PositionWRP  : TEXCOORD2;
 };
 
 Output VS(Input input)
@@ -24,8 +24,8 @@ Output VS(Input input)
 
     output.Position = mul(input.Position, WorldViewProjection);
     output.TexCoord = input.TexCoord;
-    output.ReflectionPosition = mul(input.Position, WorldReflectionProjection);
-    output.RefractionPosition = output.Position;
+    output.PositionWVP = output.Position;
+    output.PositionWRP = mul(input.Position, WorldReflectionProjection);
 
     return output;
 }

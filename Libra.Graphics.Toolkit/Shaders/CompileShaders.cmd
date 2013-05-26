@@ -39,6 +39,8 @@ call :CompilePS WaveFilter PS %ps_profile%
 call :CompileVS DepthMap VS %vs_profile%
 call :CompilePS DepthMap PS %ps_profile%
 call :CompilePS DepthVarianceMap PS %ps_profile%
+call :CompileVS Fluid VS %vs_profile%
+call :CompilePS Fluid PS %ps_profile%
 call :CompileVS LinearDepthMap VS %vs_profile%
 call :CompilePS LinearDepthMap PS %ps_profile%
 call :CompileVS LinearFogDepthMap VS %vs_profile%
@@ -52,8 +54,6 @@ call :CompileVS Particle VS %vs_profile%
 call :CompilePS Particle PS %ps_profile%
 call :CompileVS VolumetricFogMap VS %vs_profile%
 call :CompilePS VolumetricFogMap PS %ps_profile%
-call :CompileVS Water VS %vs_profile%
-call :CompilePS Water PS %ps_profile%
 
 ::
 :: FullScreenQuad

@@ -41,6 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BezierMesh.cs" />
+    <Compile Include="FluidEffect.cs" />
     <Compile Include="HeightToGradientFilter.cs" />
     <Compile Include="HeightToNormalFilter.cs" />
     <Compile Include="LensFlare.cs" />
@@ -148,6 +149,8 @@
     <None Include="Shaders\Compiled\DepthVarianceMapPS.bin" />
     <None Include="Shaders\Compiled\DofCombineFilterPS.bin" />
     <None Include="Shaders\Compiled\EdgeFilterPS.bin" />
+    <None Include="Shaders\Compiled\FluidPS.bin" />
+    <None Include="Shaders\Compiled\FluidVS.bin" />
     <None Include="Shaders\Compiled\FullScreenQuadViewRayVS.bin" />
     <None Include="Shaders\Compiled\HeightToGradientFilterPS.bin" />
     <None Include="Shaders\Compiled\HeightToNormalFilterPS.bin" />
@@ -171,6 +174,8 @@
     <None Include="Shaders\Compiled\VolumetricFogMapVS.bin" />
     <None Include="Shaders\Compiled\WaveFilterPS.bin" />
     <None Include="Shaders\DepthMap.ps" />
+    <None Include="Shaders\Fluid.ps" />
+    <None Include="Shaders\Fluid.vs" />
     <None Include="Shaders\HeightToGradientFilter.ps" />
     <None Include="Shaders\HeightToNormalFilter.ps" />
     <None Include="Shaders\LinearDepthMap.ps" />
@@ -224,8 +229,6 @@
     <None Include="Shaders\UpFilter.ps" />
     <None Include="Shaders\VolumetricFogMap.ps" />
     <None Include="Shaders\VolumetricFogMap.vs" />
-    <None Include="Shaders\Water.ps" />
-    <None Include="Shaders\Water.vs" />
     <None Include="Shaders\WaveFilter.ps" />
   </ItemGroup>
   <ItemGroup />

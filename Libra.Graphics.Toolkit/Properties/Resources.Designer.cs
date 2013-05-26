@@ -137,6 +137,20 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
+        internal static byte[] FluidPS {
+            get {
+                object obj = ResourceManager.GetObject("FluidPS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] FluidVS {
+            get {
+                object obj = ResourceManager.GetObject("FluidVS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
         internal static byte[] FullScreenQuadViewRayVS {
             get {
                 object obj = ResourceManager.GetObject("FullScreenQuadViewRayVS", resourceCulture);
