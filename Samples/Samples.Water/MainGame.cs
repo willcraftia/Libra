@@ -6,6 +6,7 @@ using Libra;
 using Libra.Games;
 using Libra.Games.Debugging;
 using Libra.Graphics;
+using Libra.Graphics.Compiler;
 using Libra.Graphics.Toolkit;
 using Libra.Input;
 using Libra.Xnb;
@@ -104,6 +105,10 @@ namespace Samples.Water
 
         RenderTarget waveGradientMapRenderTarget;
 
+        RenderTarget reflectionSceneRenderTarget;
+
+        RenderTarget refractionSceneRenderTarget;
+
         /// <summary>
         /// メッシュ描画のための基礎エフェクト。
         /// </summary>
@@ -118,6 +123,8 @@ namespace Samples.Water
         FullScreenQuad fullScreenQuad;
 
         FluidEffect fluidEffect;
+
+        ClippingEffect clippingEffect;
 
         // 流体面メッシュの頂点。
         VertexPositionTexture[] fluidVertices =
@@ -140,9 +147,32 @@ namespace Samples.Water
         IndexBuffer fluidIndexBuffer;
 
         /// <summary>
+        /// 立方体メッシュ。
+        /// </summary>
+        CubeMesh cubeMesh;
+
+        /// <summary>
+        /// 球メッシュ。
+        /// </summary>
+        SphereMesh sphereMesh;
+
+        /// <summary>
+        /// 円柱メッシュ。
+        /// </summary>
+        CylinderMesh cylinderMesh;
+
+        /// <summary>
         /// 正方形メッシュ。
         /// </summary>
         SquareMesh squareMesh;
+
+        Matrix fluidWorld = Matrix.CreateTranslation(0, 5, 0);
+
+        Plane fluidPlane;
+
+        Plane clipPlane;
+
+        Matrix reflectionView = Matrix.Identity;
 
         float newWaveInterval = 3.0f;
 
@@ -176,6 +206,13 @@ namespace Samples.Water
             };
             camera.LookAt(InitialCameraLookAt);
             camera.Update();
+
+            // 流体面。
+            Plane localFluidPlane = new Plane(Vector3.Up, 0.0f);
+            Plane.Transform(ref localFluidPlane, ref fluidWorld, out fluidPlane);
+
+            Plane localeClipPlane = new Plane(Vector3.Down, 0.0f);
+            Plane.Transform(ref localeClipPlane, ref fluidWorld, out clipPlane);
 
             textureDisplay = new TextureDisplay(this);
             Components.Add(textureDisplay);
@@ -218,6 +255,18 @@ namespace Samples.Water
             waveGradientMapRenderTarget.Format = SurfaceFormat.Vector2;
             waveGradientMapRenderTarget.Initialize();
 
+            reflectionSceneRenderTarget = Device.CreateRenderTarget();
+            reflectionSceneRenderTarget.Width = WindowWidth;
+            reflectionSceneRenderTarget.Height = WindowHeight;
+            reflectionSceneRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
+            reflectionSceneRenderTarget.Initialize();
+
+            refractionSceneRenderTarget = Device.CreateRenderTarget();
+            refractionSceneRenderTarget.Width = WindowWidth;
+            refractionSceneRenderTarget.Height = WindowHeight;
+            refractionSceneRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
+            refractionSceneRenderTarget.Initialize();
+
             basicEffect = new BasicEffect(Device);
             basicEffect.AmbientLightColor = new Vector3(0.15f, 0.15f, 0.15f);
             basicEffect.PerPixelLighting = true;
@@ -231,12 +280,21 @@ namespace Samples.Water
 
             fluidEffect = new FluidEffect(Device);
 
+            clippingEffect = new ClippingEffect(Device);
+            clippingEffect.AmbientLightColor = new Vector3(0.15f, 0.15f, 0.15f);
+            clippingEffect.EnableDefaultLighting();
+            //clippingEffect.ClipPlane0 = new Vector4(-fluidPlane.Normal, fluidPlane.D);
+            clippingEffect.ClipPlane0 = clipPlane.ToVector4();
+
             fluidVertexBuffer = Device.CreateVertexBuffer();
             fluidVertexBuffer.Initialize(fluidVertices);
 
             fluidIndexBuffer = Device.CreateIndexBuffer();
             fluidIndexBuffer.Initialize(fluidIndices);
 
+            cubeMesh = new CubeMesh(context, 20);
+            sphereMesh = new SphereMesh(context, 20, 32);
+            cylinderMesh = new CylinderMesh(context, 80, 20, 32);
             squareMesh = new SquareMesh(context, 400);
 
             // TODO
@@ -381,25 +439,140 @@ namespace Samples.Water
             textureDisplay.Textures.Add(waveGradientMapRenderTarget);
         }
 
+        static void CreateReflectionView(ref Matrix eyeView, ref Plane plane, out Matrix result)
+        {
+            // 流体面に対して裏側に位置する仮想カメラを算出し、
+            // 反射される空間を描画するためのカメラとして用いる。
+
+            // 表示カメラのワールド行列。
+            Matrix eyeWorld;
+            Matrix.Invert(ref eyeView, out eyeWorld);
+
+            // 表示カメラ位置。
+            Vector3 eyePosition = eyeWorld.Translation;
+
+            // 反射仮想カメラ位置。
+            Vector3 position;
+            CalculateVirtualEyePosition(ref plane, ref eyePosition, out position);
+
+            // 表示カメラ方向。
+            Vector3 eyeDirection = eyeWorld.Forward;
+
+            // 反射仮想カメラ方向。
+            Vector3 direction;
+            CalculateVirtualEyeDirection(ref plane, ref eyeDirection, out direction);
+
+            // 反射仮想カメラ up ベクトル。
+            Vector3 up = Vector3.Up;
+            if (1.0f - MathHelper.ZeroTolerance < Math.Abs(Vector3.Dot(up, direction)))
+            {
+                // カメラ方向と並行になるならば z 方向を設定。
+                up = Vector3.Forward;
+            }
+
+            // 反射仮想カメラのビュー行列。
+            Matrix.CreateLook(ref position, ref direction, ref up, out result);
+        }
+
+        static void CalculateVirtualEyePosition(ref Plane plane, ref Vector3 eyePosition, out Vector3 result)
+        {
+            // v  : eyePosition
+            // v' : result
+            // n  : plane の法線
+            // d  : v から p までの距離
+            //
+            // v' = v - 2 * d * n
+            //
+            // つまり v を n の逆方向へ (2 * d) の距離を移動させた点が v'。
+
+            float distance;
+            plane.DotCoordinate(ref eyePosition, out distance);
+
+            result = eyePosition - 2.0f * distance * plane.Normal;
+        }
+
+        static void CalculateVirtualEyeDirection(ref Plane plane, ref Vector3 eyeDirection, out Vector3 result)
+        {
+            // f  : eyeDirection
+            // f' : result
+            // n  : plane の法線
+            // d  : f から p までの距離 (負値)
+            //
+            // f' = f - 2 * d * n
+            //
+            // d は負値であるため、f' = f + 2 * (abs(d)) * n と考えても良い。
+            // f は単位ベクトルであるため、距離算出では plane.D を考慮しなくて良い。
+
+            float distance;
+            Vector3.Dot(ref eyeDirection, ref plane.Normal, out distance);
+
+            result = eyeDirection - 2.0f * distance * plane.Normal;
+        }
+
         void CreateReflectionMap()
         {
+            CreateReflectionView(ref camera.View, ref fluidPlane, out reflectionView);
+
+            context.SetRenderTarget(reflectionSceneRenderTarget);
+            context.Clear(Color.CornflowerBlue);
+
+            DrawSceneWithoutFluid(basicEffect, ref reflectionView);
+
+            context.SetRenderTarget(null);
+
+            textureDisplay.Textures.Add(reflectionSceneRenderTarget);
+
             // TODO
-            fluidEffect.ReflectionMap = pseudoReflectionMap;
+            //fluidEffect.ReflectionMap = pseudoReflectionMap;
+            fluidEffect.ReflectionMap = reflectionSceneRenderTarget;
         }
 
         void CreateRefractionMap()
         {
+            context.SetRenderTarget(refractionSceneRenderTarget);
+            context.Clear(Color.CornflowerBlue);
+
+            DrawSceneWithoutFluid(clippingEffect, ref camera.View);
+
+            context.SetRenderTarget(null);
+
+            textureDisplay.Textures.Add(refractionSceneRenderTarget);
+
             // TODO
-            fluidEffect.RefractionMap = pseudoRefractionMap;
+            //fluidEffect.RefractionMap = pseudoRefractionMap;
+            fluidEffect.RefractionMap = refractionSceneRenderTarget;
+        }
+
+        void DrawSceneWithoutFluid(IEffect effect, ref Matrix view)
+        {
+            var effectMatrices = effect as IEffectMatrices;
+            if (effectMatrices != null)
+            {
+                effectMatrices.View = view;
+                effectMatrices.Projection = camera.Projection;
+            }
+
+            DrawPrimitiveMesh(cubeMesh, Matrix.CreateTranslation(-40, 10, 40), new Vector3(0, 0, 0), effect);
+            DrawPrimitiveMesh(cubeMesh, Matrix.CreateTranslation(-85, 10, -20), new Vector3(1, 0, 0), effect);
+            DrawPrimitiveMesh(cubeMesh, Matrix.CreateTranslation(-60, 10, -20), new Vector3(1, 0, 0), effect);
+            DrawPrimitiveMesh(cubeMesh, Matrix.CreateTranslation(-40, 10, 0), new Vector3(1, 0, 0), effect);
+            DrawPrimitiveMesh(sphereMesh, Matrix.CreateTranslation(10, 10, -60), new Vector3(0, 1, 0), effect);
+            DrawPrimitiveMesh(sphereMesh, Matrix.CreateTranslation(0, 10, -40), new Vector3(0, 1, 0), effect);
+            for (float z = -180; z <= 180; z += 40)
+            {
+                DrawPrimitiveMesh(cylinderMesh, Matrix.CreateTranslation(-180, 40, z), new Vector3(0, 0, 1), effect);
+            }
+            DrawPrimitiveMesh(squareMesh, Matrix.Identity, new Vector3(0.5f), effect);
         }
 
         void DrawScene()
         {
             context.Clear(Color.CornflowerBlue);
 
-            fluidEffect.World = Matrix.Identity;
+            fluidEffect.World = fluidWorld;
             fluidEffect.View = camera.View;
             fluidEffect.Projection = camera.Projection;
+            fluidEffect.ReflectionView = reflectionView;
             fluidEffect.Apply(context);
 
             context.SetVertexBuffer(fluidVertexBuffer);
@@ -422,6 +595,12 @@ namespace Samples.Water
             if (basicEffect != null)
             {
                 basicEffect.DiffuseColor = color;
+            }
+
+            var clippingEffect = effect as ClippingEffect;
+            if (clippingEffect != null)
+            {
+                clippingEffect.DiffuseColor = color;
             }
 
             effect.Apply(context);

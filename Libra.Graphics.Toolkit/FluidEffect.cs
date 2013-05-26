@@ -98,6 +98,8 @@ namespace Libra.Graphics.Toolkit
 
         Matrix projection;
 
+        Matrix reflectionView;
+        
         Matrix viewProjection;
 
         DirtyFlags dirtyFlags;
@@ -135,6 +137,17 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
+        public Matrix ReflectionView
+        {
+            get { return reflectionView; }
+            set
+            {
+                reflectionView = value;
+
+                dirtyFlags |= DirtyFlags.WorldReflectionProjection;
+            }
+        }
+
         public ShaderResourceView NormalMap { get; set; }
 
         public ShaderResourceView ReflectionMap { get; set; }
@@ -165,6 +178,7 @@ namespace Libra.Graphics.Toolkit
             world = Matrix.Identity;
             view = Matrix.Identity;
             projection = Matrix.Identity;
+            reflectionView = Matrix.Identity;
             viewProjection = Matrix.Identity;
             
             parametersPerObjectVS.WorldViewProjection = Matrix.Identity;
@@ -202,47 +216,9 @@ namespace Libra.Graphics.Toolkit
 
             if ((dirtyFlags & DirtyFlags.WorldReflectionProjection) != 0)
             {
-                // 流体面に対して裏側に位置する仮想カメラを算出し、
-                // 反射される空間を描画するためのカメラとして用いる。
-
-                // 流体面。
-                Plane localPlane = new Plane(Vector3.Up, 0.0f);
-                Plane plane;
-                Plane.Transform(ref localPlane, ref world, out plane);
-
-                // 表示カメラのワールド行列。
-                Matrix eyeWorld;
-                Matrix.Invert(ref view, out eyeWorld);
-
-                // 表示カメラ位置。
-                Vector3 eyePosition = eyeWorld.Translation;
-                
-                // 反射仮想カメラ位置。
-                Vector3 virtualEyePosition;
-                CalculateVirtualEyePosition(ref plane, ref eyePosition, out virtualEyePosition);
-
-                // 表示カメラ方向。
-                Vector3 eyeDirection = eyeWorld.Forward;
-
-                // 反射仮想カメラ方向。
-                Vector3 virtualEyeDirection;
-                CalculateVirtualEyeDirection(ref plane, ref eyeDirection, out virtualEyeDirection);
-
-                // 反射仮想カメラ up ベクトル。
-                Vector3 virtualUpWS = Vector3.Up;
-                if (1.0f - MathHelper.ZeroTolerance < Math.Abs(Vector3.Dot(virtualUpWS, virtualEyeDirection)))
-                {
-                    // カメラ方向と並行になるならば z 方向を設定。
-                    virtualUpWS = Vector3.Forward;
-                }
-
-                // 反射仮想カメラのビュー行列。
-                Matrix reflection;
-                Matrix.CreateLook(ref virtualEyePosition, ref virtualEyeDirection, ref virtualUpWS, out reflection);
-
                 // 反射仮想カメラのビュー×射影行列。
                 Matrix reflectionProjection;
-                Matrix.Multiply(ref reflection, ref projection, out reflectionProjection);
+                Matrix.Multiply(ref reflectionView, ref projection, out reflectionProjection);
 
                 // 反射仮想カメラのワールド×ビュー×射影行列。
                 Matrix worldReflectionProjection;
@@ -288,41 +264,6 @@ namespace Libra.Graphics.Toolkit
             context.PixelShaderSamplers[0] = NormalMapSampler;
             context.PixelShaderSamplers[1] = ReflectionMapSampler;
             context.PixelShaderSamplers[2] = RefractionMapSampler;
-        }
-
-        void CalculateVirtualEyePosition(ref Plane plane, ref Vector3 eyePosition, out Vector3 result)
-        {
-            // v  : eyePosition
-            // v' : result
-            // n  : plane の法線
-            // d  : v から p までの距離
-            //
-            // v' = v - 2 * d * n
-            //
-            // つまり v を n の逆方向へ (2 * d) の距離を移動させた点が v'。
-
-            float distance;
-            plane.DotCoordinate(ref eyePosition, out distance);
-
-            result = eyePosition - 2.0f * distance * plane.Normal;
-        }
-
-        void CalculateVirtualEyeDirection(ref Plane plane, ref Vector3 eyeDirection, out Vector3 result)
-        {
-            // f  : eyeDirection
-            // f' : result
-            // n  : plane の法線
-            // d  : f から p までの距離 (負値)
-            //
-            // f' = f - 2 * d * n
-            //
-            // d は負値であるため、f' = f + 2 * (abs(d)) * n と考えても良い。
-            // f は単位ベクトルであるため、距離算出では plane.D を考慮しなくて良い。
-
-            float distance;
-            Vector3.Dot(ref eyeDirection, ref plane.Normal, out distance);
-
-            result = eyeDirection - 2.0f * distance * plane.Normal;
         }
 
         #region IDisposable
