@@ -31,6 +31,14 @@ namespace Libra
             D = d;
         }
 
+        public Plane(Vector4 value)
+        {
+            Normal.X = value.X;
+            Normal.Y = value.Y;
+            Normal.Z = value.Z;
+            D = value.W;
+        }
+
         // 法線が normal、点 point を含む平面。
         public Plane(Vector3 normal, Vector3 point)
         {
@@ -253,6 +261,11 @@ namespace Libra
             result.Normal.Y = ((x * (xy + wz)) + (y * ((1.0f - xx) - zz))) + (z * (yz - wx));
             result.Normal.Z = ((x * (xz - wy)) + (y * (yz + wx))) + (z * ((1.0f - xx) - yy));
             result.D = plane.D;
+        }
+
+        public Vector4 ToVector4()
+        {
+            return new Vector4(Normal, D);
         }
 
         #region operator
