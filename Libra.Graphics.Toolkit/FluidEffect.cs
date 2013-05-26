@@ -34,6 +34,8 @@ namespace Libra.Graphics.Toolkit
 
         struct ParametersPerObjectVS
         {
+            public Matrix World;
+
             public Matrix WorldViewProjection;
 
             public Matrix WorldReflectionProjection;
@@ -41,12 +43,32 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        #region ParametersPerObjectPS
+        #region ParametersPerCameraPS
 
         [StructLayout(LayoutKind.Sequential, Size = 16)]
+        struct ParametersPerCameraPS
+        {
+            public Vector3 EyePosition;
+        }
+
+        #endregion
+
+        #region ParametersPerObjectPS
+
+        [StructLayout(LayoutKind.Explicit)]
         struct ParametersPerObjectPS
         {
+            [FieldOffset(0)]
             public float RippleScale;
+
+            [FieldOffset(4)]
+            public Vector3 FluidColor;
+
+            [FieldOffset(16)]
+            public Vector3 FluidDeepColor;
+
+            [FieldOffset(28)]
+            public float FluidDeepColorDistance;
         }
 
         #endregion
@@ -67,11 +89,14 @@ namespace Libra.Graphics.Toolkit
         enum DirtyFlags
         {
             ConstantBufferPerObjectVS   = (1 << 0),
-            ConstantBufferPerObjectPS   = (1 << 1),
-            ConstantBufferPerFramePS    = (1 << 2),
-            ViewProjection              = (1 << 3),
-            WorldViewProjection         = (1 << 4),
-            WorldReflectionProjection   = (1 << 5),
+            ConstantBufferPerCameraPS   = (1 << 1),
+            ConstantBufferPerObjectPS   = (1 << 2),
+            ConstantBufferPerFramePS    = (1 << 3),
+            EyePosition                 = (1 << 4),
+            World                       = (1 << 5),
+            ViewProjection              = (1 << 6),
+            WorldViewProjection         = (1 << 7),
+            WorldReflectionProjection   = (1 << 8),
         }
 
         #endregion
@@ -82,11 +107,15 @@ namespace Libra.Graphics.Toolkit
 
         ConstantBuffer constantBufferPerObjectVS;
 
+        ConstantBuffer constantBufferPerCameraPS;
+
         ConstantBuffer constantBufferPerObjectPS;
 
         ConstantBuffer constantBufferPerFramePS;
 
         ParametersPerObjectVS parametersPerObjectVS;
+
+        ParametersPerCameraPS parametersPerCameraPS;
 
         ParametersPerObjectPS parametersPerObjectPS;
 
@@ -111,7 +140,9 @@ namespace Libra.Graphics.Toolkit
             {
                 world = value;
 
-                dirtyFlags |= DirtyFlags.WorldViewProjection;
+                dirtyFlags |=
+                    DirtyFlags.World |
+                    DirtyFlags.WorldViewProjection;
             }
         }
 
@@ -122,7 +153,10 @@ namespace Libra.Graphics.Toolkit
             {
                 view = value;
 
-                dirtyFlags |= DirtyFlags.ViewProjection | DirtyFlags.WorldReflectionProjection;
+                dirtyFlags |=
+                    DirtyFlags.EyePosition |
+                    DirtyFlags.ViewProjection |
+                    DirtyFlags.WorldReflectionProjection;
             }
         }
 
@@ -133,7 +167,9 @@ namespace Libra.Graphics.Toolkit
             {
                 projection = value;
 
-                dirtyFlags |= DirtyFlags.ViewProjection | DirtyFlags.WorldReflectionProjection;
+                dirtyFlags |=
+                    DirtyFlags.ViewProjection |
+                    DirtyFlags.WorldReflectionProjection;
             }
         }
 
@@ -170,6 +206,8 @@ namespace Libra.Graphics.Toolkit
 
             constantBufferPerObjectVS = device.CreateConstantBuffer();
             constantBufferPerObjectVS.Initialize<ParametersPerObjectVS>();
+            constantBufferPerCameraPS = device.CreateConstantBuffer();
+            constantBufferPerCameraPS.Initialize<ParametersPerCameraPS>();
             constantBufferPerObjectPS = device.CreateConstantBuffer();
             constantBufferPerObjectPS.Initialize<ParametersPerObjectPS>();
             constantBufferPerFramePS = device.CreateConstantBuffer();
@@ -180,9 +218,13 @@ namespace Libra.Graphics.Toolkit
             projection = Matrix.Identity;
             reflectionView = Matrix.Identity;
             viewProjection = Matrix.Identity;
-            
+
+            parametersPerCameraPS.EyePosition = Vector3.Zero;
             parametersPerObjectVS.WorldViewProjection = Matrix.Identity;
             parametersPerObjectVS.WorldReflectionProjection = Matrix.Identity;
+            parametersPerObjectPS.FluidColor = new Vector3(0.0f, 0.55f, 0.515f);
+            parametersPerObjectPS.FluidDeepColor = new Vector3(0.0f, 0.15f, 0.115f);
+            parametersPerObjectPS.FluidDeepColorDistance = 50.0f;
             parametersPerObjectPS.RippleScale = 0.01f;
             parametersPerFramePS.WaterOffset = Vector2.Zero;
 
@@ -192,12 +234,32 @@ namespace Libra.Graphics.Toolkit
 
             dirtyFlags =
                 DirtyFlags.ConstantBufferPerObjectVS |
+                DirtyFlags.ConstantBufferPerCameraPS |
                 DirtyFlags.ConstantBufferPerObjectPS |
                 DirtyFlags.ConstantBufferPerFramePS;
         }
 
         public void Apply(DeviceContext context)
         {
+            if ((dirtyFlags & DirtyFlags.EyePosition) != 0)
+            {
+                Matrix inverseView;
+                Matrix.Invert(ref view, out inverseView);
+
+                parametersPerCameraPS.EyePosition = inverseView.Translation;
+
+                dirtyFlags &= ~DirtyFlags.EyePosition;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerCameraPS;
+            }
+
+            if ((dirtyFlags & DirtyFlags.World) != 0)
+            {
+                Matrix.Transpose(ref world, out parametersPerObjectVS.World);
+
+                dirtyFlags &= ~DirtyFlags.World;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObjectVS;
+            }
+
             if ((dirtyFlags & DirtyFlags.ViewProjection) != 0)
             {
                 Matrix.Multiply(ref view, ref projection, out viewProjection);
@@ -241,6 +303,13 @@ namespace Libra.Graphics.Toolkit
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerObjectVS;
             }
 
+            if ((dirtyFlags & DirtyFlags.ConstantBufferPerCameraPS) != 0)
+            {
+                constantBufferPerCameraPS.SetData(context, parametersPerCameraPS);
+
+                dirtyFlags &= ~DirtyFlags.ConstantBufferPerCameraPS;
+            }
+
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerObjectPS) != 0)
             {
                 constantBufferPerObjectPS.SetData(context, parametersPerObjectPS);
@@ -259,8 +328,9 @@ namespace Libra.Graphics.Toolkit
             context.VertexShaderConstantBuffers[0] = constantBufferPerObjectVS;
 
             context.PixelShader = sharedDeviceResource.PixelShader;
-            context.PixelShaderConstantBuffers[0] = constantBufferPerObjectPS;
-            context.PixelShaderConstantBuffers[1] = constantBufferPerFramePS;
+            context.PixelShaderConstantBuffers[0] = constantBufferPerCameraPS;
+            context.PixelShaderConstantBuffers[1] = constantBufferPerObjectPS;
+            context.PixelShaderConstantBuffers[2] = constantBufferPerFramePS;
             context.PixelShaderResources[0] = NormalMap;
             context.PixelShaderResources[1] = ReflectionMap;
             context.PixelShaderResources[2] = RefractionMap;

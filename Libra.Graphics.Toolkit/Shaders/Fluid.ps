@@ -1,16 +1,24 @@
-cbuffer PerObject : register(b0)
+cbuffer PerCamera : register(b0)
 {
-    float RippleScale;
+    float3 EyePosition;
 };
 
-cbuffer PerFrame : register(b1)
+cbuffer PerObject : register(b1)
+{
+    float  RippleScale              : packoffset(c0);
+    float3 FluidColor               : packoffset(c0.y);
+    float3 FluidDeepColor           : packoffset(c1);
+    float  FluidDeepColorDistance   : packoffset(c1.w);
+};
+
+cbuffer PerFrame : register(b2)
 {
     float2 WaterOffset;
 };
 
 Texture2D<float3> NormalMap     : register(t0);
-Texture2D<float4> ReflectionMap : register(t1);
-Texture2D<float4> RefractionMap : register(t2);
+Texture2D<float3> ReflectionMap : register(t1);
+Texture2D<float3> RefractionMap : register(t2);
 
 SamplerState NormalMapSampler       : register(s0);
 SamplerState ReflectionMapSampler   : register(s1);
@@ -20,8 +28,9 @@ struct Input
 {
     float4 Position     : SV_Position;
     float2 TexCoord     : TEXCOORD0;
-    float4 PositionWVP  : TEXCOORD1;
-    float4 PositionWRP  : TEXCOORD2;
+    float4 PositionW    : TEXCOORD1;
+    float4 PositionWVP  : TEXCOORD2;
+    float4 PositionWRP  : TEXCOORD3;
 };
 
 struct Output
@@ -32,6 +41,13 @@ struct Output
 float2 ToTexCoord(float4 position)
 {
     return position.xy / position.w * float2(0.5, -0.5) + float2(0.5, 0.5);
+}
+
+// フレネルの式 (Fresnel term): Schlick の近似 (Schlick's approximation)
+float Fresnel(float nDotL, float reflectionCoeff)
+{
+    float fresnel = reflectionCoeff + (1.0f - reflectionCoeff) * pow(1.0f - nDotL, 5.0);
+    return max(0, fresnel);
 }
 
 Output PS(Input input)
@@ -46,13 +62,37 @@ Output PS(Input input)
     float2 reflectionTexCoord = ToTexCoord(input.PositionWRP);
     float2 refractionTexCoord = ToTexCoord(input.PositionWVP);
 
-    reflectionTexCoord += normal.xy * RippleScale;
-    refractionTexCoord += normal.xy * RippleScale;
+    reflectionTexCoord += normal.xz * RippleScale;
+    refractionTexCoord += normal.xz * RippleScale;
 
-    float4 reflactionColor = ReflectionMap.Sample(ReflectionMapSampler, reflectionTexCoord);
-    float4 refractionColor = RefractionMap.Sample(RefractionMapSampler, refractionTexCoord);
+    float3 reflactionColor = ReflectionMap.Sample(ReflectionMapSampler, reflectionTexCoord);
+    float3 refractionColor = RefractionMap.Sample(RefractionMapSampler, refractionTexCoord);
 
-    output.Color = lerp(reflactionColor, refractionColor, 0.6f);
+    float3 positionToEye = EyePosition - input.PositionW.xyz;
+    float eyeDistance = length(positionToEye);
+
+    float3 e = normalize(positionToEye);
+    float nDotL = max(0, dot(e, normal));
+    float fresnel = Fresnel(nDotL, 0.3);
+
+    // 視点が遠い程に屈折は見えなくなり、深い流体の色となる。
+    // 完全に深い流体の色とする距離の閾値が FluidDeepColorDistance。
+
+    float distanceScale = saturate(FluidDeepColorDistance / eyeDistance);
+    float3 deepColor = lerp(FluidDeepColor, refractionColor, distanceScale);
+
+    // 視点と法線が垂直に近い程に流体の色が見える。
+    // 並行、すなわち、真上から見る程に、流体の色よりも流体の中が見える。
+
+    float facing = 1 - nDotL;
+    float3 color = lerp(deepColor, FluidColor, facing);
+
+    // フレネルの式に従い反射による色を決定し、これまでの流体の色と合成。
+
+    output.Color = float4(fresnel * reflactionColor + color, 1);
+
+    // 以下はフレネルの式のテスト用。
+    // output.Color = lerp(reflactionColor, refractionColor, fresnel);
 
     return output;
 }
