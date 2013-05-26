@@ -118,7 +118,6 @@ namespace Libra.Graphics
             MaterialColor           = 0x10,
             FogVector               = 0x20,
             FogEnable               = 0x40,
-            //AlphaTest               = 0x80
         }
 
         #endregion
@@ -133,15 +132,7 @@ namespace Libra.Graphics
             // 最終的には StructLayout で Size を明示しないと保証できない。
             // 全フィールドを 16 バイト基準の型 (Vector4 や Matrix) に揃えると、
             // 単純に 16 バイトの倍数サイズが確定する。
-            // 見通しも良いので、これが最善と思われる。
-            // (Direct Math で XMVECTOR や XMMATRIX に揃える事と同じ)。
-            //
-            // 配列を MarshalAs(ByValArray) で定義することはしない。
-            // Marshal.SizeOf では期待のサイズを測れるが、
-            // SharpDX の Utilities.SizeOf でもある sizeof ではポインタ サイズとなる。
-            // これらの混在も怖い。
-            // このため、基本的にはポインタを避けるため、配列を用いない。
-            // 
+            // これは、Direct Math で XMVECTOR や XMMATRIX に揃える事と同じである。
 
             public Vector4 DiffuseColor;
 
@@ -462,8 +453,6 @@ namespace Libra.Graphics
             9,      // pixel lighting + texture + vertex color
             9,      // pixel lighting + texture + vertex color, no fog
         };
-
-        //static readonly Dictionary<Device, DeviceResources> ResourcesByDevice = new Dictionary<Device, DeviceResources>();
 
         static BasicEffect()
         {
