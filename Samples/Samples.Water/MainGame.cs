@@ -289,9 +289,8 @@ namespace Samples.Water
             fullScreenQuad = new FullScreenQuad(context);
 
             fluidEffect = new FluidEffect(Device);
-            fluidEffect.FluidDeepColorDistance = 50.0f;
-            fluidEffect.FluidColorEnabled = true;
-            fluidEffect.FluidDeepColorEnabled = true;
+            fluidEffect.FluidColorBlendDistance = 50.0f;
+            fluidEffect.FluidColorBlendEnabled = true;
 
             clippingEffect = new ClippingEffect(Device);
             clippingEffect.AmbientLightColor = new Vector3(0.15f, 0.15f, 0.15f);

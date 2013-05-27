@@ -59,22 +59,22 @@ namespace Libra.Graphics.Toolkit
         struct ParametersPerObjectPS
         {
             [FieldOffset(0)]
-            public float RippleScale;
-
-            [FieldOffset(4)]
             public Vector3 FluidColor;
 
-            [FieldOffset(16)]
-            public Vector3 FluidDeepColor;
+            [FieldOffset(12)]
+            public bool FluidColorBlendEnabled;
 
-            [FieldOffset(28)]
-            public float FluidDeepColorDistance;
+            [FieldOffset(16)]
+            public float FluidColorBlendDistance;
+
+            [FieldOffset(20)]
+            public float RippleScale;
 
             [FieldOffset(32)]
-            public bool FluidColorEnabled;
+            public bool RefractionMapEnabled;
 
             [FieldOffset(36)]
-            public bool FluidDeepColorEnabled;
+            public bool ReflectionMapEnabled;
 
             [FieldOffset(40)]
             public float ReflectionCoeff;
@@ -151,6 +151,10 @@ namespace Libra.Graphics.Toolkit
 
         float refractiveIndex2;
 
+        ShaderResourceView reflectionMap;
+
+        ShaderResourceView refractionMap;
+
         DirtyFlags dirtyFlags;
 
         public Matrix World
@@ -204,17 +208,6 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        public float RippleScale
-        {
-            get { return parametersPerObjectPS.RippleScale; }
-            set
-            {
-                parametersPerObjectPS.RippleScale = value;
-
-                dirtyFlags |= DirtyFlags.ConstantBufferPerObjectPS;
-            }
-        }
-
         public Vector3 FluidColor
         {
             get { return parametersPerObjectPS.FluidColor; }
@@ -226,45 +219,34 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        public Vector3 FluidDeepColor
+        public bool FluidColorBlendEnabled
         {
-            get { return parametersPerObjectPS.FluidDeepColor; }
+            get { return parametersPerObjectPS.FluidColorBlendEnabled; }
             set
             {
-                parametersPerObjectPS.FluidDeepColor = value;
+                parametersPerObjectPS.FluidColorBlendEnabled = value;
 
                 dirtyFlags |= DirtyFlags.ConstantBufferPerObjectPS;
             }
         }
 
-        public float FluidDeepColorDistance
+        public float FluidColorBlendDistance
         {
-            get { return parametersPerObjectPS.FluidDeepColorDistance; }
+            get { return parametersPerObjectPS.FluidColorBlendDistance; }
             set
             {
-                parametersPerObjectPS.FluidDeepColorDistance = value;
+                parametersPerObjectPS.FluidColorBlendDistance = value;
 
                 dirtyFlags |= DirtyFlags.ConstantBufferPerObjectPS;
             }
         }
 
-        public bool FluidColorEnabled
+        public float RippleScale
         {
-            get { return parametersPerObjectPS.FluidColorEnabled; }
+            get { return parametersPerObjectPS.RippleScale; }
             set
             {
-                parametersPerObjectPS.FluidColorEnabled = value;
-
-                dirtyFlags |= DirtyFlags.ConstantBufferPerObjectPS;
-            }
-        }
-
-        public bool FluidDeepColorEnabled
-        {
-            get { return parametersPerObjectPS.FluidDeepColorEnabled; }
-            set
-            {
-                parametersPerObjectPS.FluidDeepColorEnabled = value;
+                parametersPerObjectPS.RippleScale = value;
 
                 dirtyFlags |= DirtyFlags.ConstantBufferPerObjectPS;
             }
@@ -309,9 +291,31 @@ namespace Libra.Graphics.Toolkit
 
         public ShaderResourceView NormalMap { get; set; }
 
-        public ShaderResourceView ReflectionMap { get; set; }
+        public ShaderResourceView ReflectionMap
+        {
+            get { return reflectionMap; }
+            set
+            {
+                reflectionMap = value;
+                
+                parametersPerObjectPS.ReflectionMapEnabled = (value != null);
 
-        public ShaderResourceView RefractionMap { get; set; }
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObjectPS;
+            }
+        }
+
+        public ShaderResourceView RefractionMap
+        {
+            get { return refractionMap; }
+            set
+            {
+                refractionMap = value;
+
+                parametersPerObjectPS.RefractionMapEnabled = (value != null);
+
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObjectPS;
+            }
+        }
 
         public SamplerState NormalMapSampler { get; set; }
 
@@ -348,10 +352,8 @@ namespace Libra.Graphics.Toolkit
             parametersPerObjectVS.WorldViewProjection = Matrix.Identity;
             parametersPerObjectVS.WorldReflectionProjection = Matrix.Identity;
             parametersPerObjectPS.FluidColor = new Vector3(0.0f, 0.55f, 0.515f);
-            parametersPerObjectPS.FluidDeepColor = new Vector3(0.0f, 0.15f, 0.115f);
-            parametersPerObjectPS.FluidDeepColorDistance = 50.0f;
-            parametersPerObjectPS.FluidColorEnabled = false;
-            parametersPerObjectPS.FluidDeepColorEnabled = false;
+            parametersPerObjectPS.FluidColorBlendDistance = 50.0f;
+            parametersPerObjectPS.FluidColorBlendEnabled = false;
             parametersPerObjectPS.RippleScale = 0.01f;
             parametersPerFramePS.Offset = Vector2.Zero;
 
@@ -471,8 +473,8 @@ namespace Libra.Graphics.Toolkit
             context.PixelShaderConstantBuffers[1] = constantBufferPerObjectPS;
             context.PixelShaderConstantBuffers[2] = constantBufferPerFramePS;
             context.PixelShaderResources[0] = NormalMap;
-            context.PixelShaderResources[1] = ReflectionMap;
-            context.PixelShaderResources[2] = RefractionMap;
+            context.PixelShaderResources[1] = reflectionMap;
+            context.PixelShaderResources[2] = refractionMap;
             context.PixelShaderSamplers[0] = NormalMapSampler;
             context.PixelShaderSamplers[1] = ReflectionMapSampler;
             context.PixelShaderSamplers[2] = RefractionMapSampler;

@@ -9,12 +9,12 @@ cbuffer PerCamera : register(b0)
 
 cbuffer PerObject : register(b1)
 {
-    float  RippleScale              : packoffset(c0);
-    float3 FluidColor               : packoffset(c0.y);
-    float3 FluidDeepColor           : packoffset(c1);
-    float  FluidDeepColorDistance   : packoffset(c1.w);
-    bool   FluidColorEnabled        : packoffset(c2);
-    bool   FluidDeepColorEnabled    : packoffset(c2.y);
+    float3 FluidColor               : packoffset(c0);
+    bool   FluidColorBlendEnabled   : packoffset(c0.w);
+    float  FluidColorBlendDistance  : packoffset(c1);
+    float  RippleScale              : packoffset(c1.y);
+    bool   RefractionMapEnabled     : packoffset(c2);
+    bool   ReflectionMapEnabled     : packoffset(c2.y);
     float  ReflectionCoeff          : packoffset(c2.z);
 };
 
@@ -68,50 +68,59 @@ Output PS(Input input)
 
     float3 positionToEye = EyePosition - input.PositionW.xyz;
     float eyeDistance = length(positionToEye);
-
-    float3 color;
-
-    // 屈折マップ。
-    float2 refractionTexCoord = ToTexCoord(input.PositionWVP);
-    refractionTexCoord += normal.xz * RippleScale;
-    float3 refractionColor = RefractionMap.Sample(RefractionMapSampler, refractionTexCoord);
-
-    if (FluidDeepColorEnabled)
-    {
-        // 視点が遠い程に屈折は見えなくなり、深い流体の色となる。
-        // 深い流体の色を掛け合わせ始める距離が FluidDeepColorDistance。
-
-        float distanceScale = saturate(FluidDeepColorDistance / eyeDistance);
-        color = lerp(FluidDeepColor, refractionColor, distanceScale);
-    }
-    else
-    {
-        color = refractionColor;
-    }
-
     float3 e = normalize(positionToEye);
     float nDotL = dot(e, normal);
 
-    if (FluidColorEnabled)
-    {
-        // 視点と法線が垂直に近い程に流体の色が見える。
-        // 並行、すなわち、真上から見る程に、流体の色よりも流体の中が見える。
+    float3 color;
 
-        float facing = 1 - nDotL;
-        color = lerp(color, FluidColor, facing);
+    if (RefractionMapEnabled)
+    {
+        // 屈折マップ。
+        float2 refractionTexCoord = ToTexCoord(input.PositionWVP);
+        refractionTexCoord += normal.xz * RippleScale;
+        float3 refractionColor = RefractionMap.Sample(RefractionMapSampler, refractionTexCoord);
+
+        if (FluidColorBlendEnabled)
+        {
+            // 視点が遠い程に屈折は見えなくなり流体の色となる。
+            // 流体の色を掛け合わせ始める距離が FluidColorBlendDistance。
+
+            float distanceScale = saturate(FluidColorBlendDistance / eyeDistance);
+            color = lerp(FluidColor, refractionColor, distanceScale);
+
+            // 視点と法線が垂直に近い程に流体の色が見える。
+            // 並行、すなわち、真上から見る程に、流体の色よりも流体の中が見える。
+
+            float facing = 1 - nDotL;
+            color = lerp(color, FluidColor, facing);
+        }
+        else
+        {
+            color = refractionColor;
+        }
+    }
+    else
+    {
+        // 屈折マップ未使用ならば流体色を設定。
+        color = FluidColor;
     }
 
-    // 反射マップ。
-    float2 reflectionTexCoord = ToTexCoord(input.PositionWRP);
-    reflectionTexCoord += normal.xz * RippleScale;
-    float3 reflactionColor = ReflectionMap.Sample(ReflectionMapSampler, reflectionTexCoord);
+    if (ReflectionMapEnabled)
+    {
+        // 反射マップ。
+        float2 reflectionTexCoord = ToTexCoord(input.PositionWRP);
+        reflectionTexCoord += normal.xz * RippleScale;
+        float3 reflactionColor = ReflectionMap.Sample(ReflectionMapSampler, reflectionTexCoord);
 
-    // フレネルの式に従い反射による色を決定し、これまでの流体の色と合成。
-    float fresnel = Fresnel(nDotL, ReflectionCoeff);
-    output.Color = float4(fresnel * reflactionColor + color, 1);
-
-    // 以下はフレネルの式のテスト用。
-//    output.Color = float4(lerp(reflactionColor, refractionColor, fresnel), 1);
+        // フレネルの式に従い反射による色を決定し、これまでの流体色と合成。
+        float fresnel = Fresnel(nDotL, ReflectionCoeff);
+        output.Color = float4(fresnel * reflactionColor + color, 1);
+    }
+    else
+    {
+        // 反射マップ未使用ならば、これまでの流体色を設定。
+        output.Color = float4(color, 1);
+    }
 
     return output;
 }
