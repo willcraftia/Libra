@@ -12,13 +12,19 @@ namespace Libra.Graphics
 
         public static readonly SamplerState AnisotropicWrap;
 
+        public static readonly SamplerState AnisotropicMirror;
+
         public static readonly SamplerState LinearClamp;
 
         public static readonly SamplerState LinearWrap;
 
+        public static readonly SamplerState LinearMirror;
+
         public static readonly SamplerState PointClamp;
 
         public static readonly SamplerState PointWrap;
+
+        public static readonly SamplerState PointMirror;
 
         TextureFilter filter;
 
@@ -157,6 +163,15 @@ namespace Libra.Graphics
                 Name = "AnisotropicWrap"
             };
 
+            AnisotropicMirror = new SamplerState
+            {
+                Filter = TextureFilter.Anisotropic,
+                AddressU = TextureAddressMode.Mirror,
+                AddressV = TextureAddressMode.Mirror,
+                AddressW = TextureAddressMode.Mirror,
+                Name = "AnisotropicMirror"
+            };
+
             LinearClamp = new SamplerState
             {
                 Name = "LinearClamp"
@@ -168,6 +183,14 @@ namespace Libra.Graphics
                 AddressV = TextureAddressMode.Wrap,
                 AddressW = TextureAddressMode.Wrap,
                 Name = "LinearWrap"
+            };
+
+            LinearMirror = new SamplerState
+            {
+                AddressU = TextureAddressMode.Mirror,
+                AddressV = TextureAddressMode.Mirror,
+                AddressW = TextureAddressMode.Mirror,
+                Name = "LinearMirror"
             };
 
             PointClamp = new SamplerState
@@ -183,6 +206,15 @@ namespace Libra.Graphics
                 AddressV = TextureAddressMode.Wrap,
                 AddressW = TextureAddressMode.Wrap,
                 Name = "PointWrap"
+            };
+
+            PointMirror = new SamplerState
+            {
+                Filter = TextureFilter.MinMagMipPoint,
+                AddressU = TextureAddressMode.Mirror,
+                AddressV = TextureAddressMode.Mirror,
+                AddressW = TextureAddressMode.Mirror,
+                Name = "PointMirror"
             };
         }
 
