@@ -399,8 +399,6 @@ namespace Samples.Water
             context.Clear(Vector3.Up.ToVector4());
 
             context.DepthStencilState = DepthStencilState.None;
-            //context.PixelShaderResources[0] = waveRenderTargetChain.Current;
-            //context.PixelShaderSamplers[0] = SamplerState.LinearWrap;
 
             heightToNormalConverter.HeightMapSampler = SamplerState.LinearWrap;
             heightToNormalConverter.Apply(context);
@@ -425,8 +423,6 @@ namespace Samples.Water
             context.Clear(Vector3.Up.ToVector4());
 
             context.DepthStencilState = DepthStencilState.None;
-            //context.PixelShaderResources[0] = waveRenderTargetChain.Current;
-            //context.PixelShaderSamplers[0] = SamplerState.LinearWrap;
 
             heightToGradientConverter.HeightMapSampler = SamplerState.LinearWrap;
             heightToGradientConverter.Apply(context);
