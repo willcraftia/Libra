@@ -327,11 +327,9 @@ namespace Samples.Water
             elapsedNewWaveTime += elapsedTime;
             if (newWaveInterval <= elapsedNewWaveTime)
             {
-                //var position = new Vector2(0.6f, 0.3f);
                 var position = new Vector2((float) Random.NextDouble(), (float) Random.NextDouble());
                 var radius = Random.Next(1, 20) / 128.0f;
-                //var velocity = (float) Random.NextDouble();
-                var velocity = (float) Random.NextDouble() * 0.1f;
+                var velocity = (float) Random.NextDouble() * 0.05f;
 
                 waveFilter.AddWave(position, radius, velocity);
 
