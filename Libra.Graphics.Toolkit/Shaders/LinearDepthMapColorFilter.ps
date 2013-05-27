@@ -4,10 +4,7 @@ cbuffer PerCamera : register(b0)
     float FarClipDistance   : packoffset(c0.y);
 };
 
-// ダミー。
-Texture2D<float4> Texture : register(t0);
-SamplerState TextureSampler : register(s0);
-
+// ダンプ描画フィルタではレジスタ #0 を使用しない。
 Texture2D<float> LinearDepthMap : register(t1);
 SamplerState LinearDepthMapSampler : register(s1);
 

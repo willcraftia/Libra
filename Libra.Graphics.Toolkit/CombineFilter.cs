@@ -34,6 +34,10 @@ namespace Libra.Graphics.Toolkit
 
         public bool Enabled { get; set; }
 
+        public ShaderResourceView Texture { get; set; }
+
+        public SamplerState TextureSampler { get; set; }
+
         public CombineFilter(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
@@ -51,9 +55,11 @@ namespace Libra.Graphics.Toolkit
         {
             if (context == null) throw new ArgumentNullException("context");
 
-            context.PixelShaderResources[1] = BaseTexture;
-            context.PixelShaderSamplers[1] = BaseTextureSampler;
             context.PixelShader = sharedDeviceResource.PixelShader;
+            context.PixelShaderResources[0] = Texture;
+            context.PixelShaderResources[1] = BaseTexture;
+            context.PixelShaderSamplers[0] = TextureSampler;
+            context.PixelShaderSamplers[1] = BaseTextureSampler;
         }
 
         #region IDisposable

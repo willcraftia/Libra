@@ -138,6 +138,10 @@ namespace Libra.Graphics.Toolkit
 
         public bool Enabled { get; set; }
 
+        public ShaderResourceView Texture { get; set; }
+
+        public SamplerState TextureSampler { get; set; }
+
         public GaussianFilter(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
@@ -209,6 +213,7 @@ namespace Libra.Graphics.Toolkit
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerRenderTarget;
             }
 
+            context.PixelShader = sharedDeviceResource.PixelShader;
             context.PixelShaderConstantBuffers[0] = constantBufferPerObject;
 
             switch (Direction)
@@ -223,7 +228,8 @@ namespace Libra.Graphics.Toolkit
                     throw new InvalidOperationException("Unknown direction: " + Direction);
             }
 
-            context.PixelShader = sharedDeviceResource.PixelShader;
+            context.PixelShaderResources[0] = Texture;
+            context.PixelShaderSamplers[0] = TextureSampler;
         }
 
         void SetWeights()

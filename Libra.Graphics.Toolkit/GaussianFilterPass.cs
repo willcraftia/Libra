@@ -17,6 +17,10 @@ namespace Libra.Graphics.Toolkit
 
         public bool Enabled { get; set; }
 
+        public ShaderResourceView Texture { get; set; }
+
+        public SamplerState TextureSampler { get; set; }
+
         public GaussianFilterPass(IGaussianFilterEffect gaussianFilterEffect, GaussianFilterDirection direction)
         {
             if (gaussianFilterEffect == null) throw new ArgumentNullException("gaussianFilterEffect");
@@ -32,6 +36,8 @@ namespace Libra.Graphics.Toolkit
             if (context == null) throw new ArgumentNullException("context");
 
             GaussianFilterEffect.Direction = Direction;
+            GaussianFilterEffect.Texture = Texture;
+            GaussianFilterEffect.TextureSampler = TextureSampler;
             GaussianFilterEffect.Apply(context);
         }
     }

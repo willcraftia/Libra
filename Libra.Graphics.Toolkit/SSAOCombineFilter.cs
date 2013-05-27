@@ -75,6 +75,10 @@ namespace Libra.Graphics.Toolkit
 
         public bool Enabled { get; set; }
 
+        public ShaderResourceView Texture { get; set; }
+
+        public SamplerState TextureSampler { get; set; }
+
         public SSAOCombineFilter(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
@@ -87,8 +91,6 @@ namespace Libra.Graphics.Toolkit
             constantBufferPerObject.Initialize<ParametersPerObject>();
 
             parametersPerObject.ShadowColor = Vector3.Zero;
-
-            SSAOMapSampler = SamplerState.LinearClamp;
 
             Enabled = true;
 
@@ -104,11 +106,12 @@ namespace Libra.Graphics.Toolkit
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerObject;
             }
 
-            context.PixelShaderConstantBuffers[0] = constantBufferPerObject;
             context.PixelShader = sharedDeviceResource.PixelShader;
-
+            context.PixelShaderConstantBuffers[0] = constantBufferPerObject;
+            context.PixelShaderResources[0] = Texture;
             context.PixelShaderResources[1] = SSAOMap;
             context.PixelShaderSamplers[1] = SSAOMapSampler;
+            context.PixelShaderSamplers[0] = TextureSampler;
         }
 
         #region IDisposable

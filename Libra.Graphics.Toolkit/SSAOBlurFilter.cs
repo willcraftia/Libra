@@ -176,6 +176,10 @@ namespace Libra.Graphics.Toolkit
 
         public bool Enabled { get; set; }
 
+        public ShaderResourceView Texture { get; set; }
+
+        public SamplerState TextureSampler { get; set; }
+
         public SSAOBlurFilter(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
@@ -252,6 +256,7 @@ namespace Libra.Graphics.Toolkit
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerRenderTarget;
             }
 
+            context.PixelShader = sharedDeviceResource.PixelShader;
             context.PixelShaderConstantBuffers[0] = constantBufferPerObject;
 
             switch (Direction)
@@ -266,10 +271,10 @@ namespace Libra.Graphics.Toolkit
                     throw new InvalidOperationException("Unknown direction: " + Direction);
             }
 
-            context.PixelShader = sharedDeviceResource.PixelShader;
-
+            context.PixelShaderResources[0] = Texture;
             context.PixelShaderResources[1] = LinearDepthMap;
             context.PixelShaderResources[2] = NormalMap;
+            context.PixelShaderSamplers[0] = TextureSampler;
             context.PixelShaderSamplers[1] = LinearDepthMapSampler;
             context.PixelShaderSamplers[2] = NormalMapSampler;
         }

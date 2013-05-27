@@ -84,6 +84,10 @@ namespace Libra.Graphics.Toolkit
 
         public bool Enabled { get; set; }
 
+        public ShaderResourceView Texture { get; set; }
+
+        public SamplerState TextureSampler { get; set; }
+
         public DofCombineFilter(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
@@ -97,9 +101,6 @@ namespace Libra.Graphics.Toolkit
 
             focusRange = 200.0f;
             focusDistance = 10.0f;
-
-            BaseTextureSampler = SamplerState.LinearClamp;
-            LinearDepthMapSampler = SamplerState.LinearClamp;
 
             Enabled = true;
 
@@ -117,12 +118,12 @@ namespace Libra.Graphics.Toolkit
                 constantBufferDirty = false;
             }
 
-            context.PixelShaderConstantBuffers[0] = constantBuffer;
             context.PixelShader = sharedDeviceResource.PixelShader;
-
+            context.PixelShaderConstantBuffers[0] = constantBuffer;
+            context.PixelShaderResources[0] = Texture;
             context.PixelShaderResources[1] = BaseTexture;
             context.PixelShaderResources[2] = LinearDepthMap;
-
+            context.PixelShaderSamplers[0] = TextureSampler;
             context.PixelShaderSamplers[1] = BaseTextureSampler;
             context.PixelShaderSamplers[2] = LinearDepthMapSampler;
         }

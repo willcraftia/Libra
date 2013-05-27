@@ -8,7 +8,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class HeightToNormalFilter : IFilterEffect, IDisposable
+    public sealed class HeightToNormalFilter : IEffect, IDisposable
     {
         #region SharedDeviceResource
 
@@ -77,8 +77,6 @@ namespace Libra.Graphics.Toolkit
 
         public SamplerState HeightMapSampler { get; set; }
 
-        public bool Enabled { get; set; }
-
         public HeightToNormalFilter(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
@@ -94,10 +92,6 @@ namespace Libra.Graphics.Toolkit
             viewportHeight = 1;
 
             parametersPerRenderTarget.Offsets = new Vector4[KernelSize];
-
-            HeightMapSampler = SamplerState.LinearClamp;
-
-            Enabled = true;
 
             dirtyFlags = DirtyFlags.Offsets | DirtyFlags.ConstantBufferPerRenderTarget;
         }
@@ -137,11 +131,10 @@ namespace Libra.Graphics.Toolkit
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerRenderTarget;
             }
 
-            context.PixelShaderConstantBuffers[0] = constantBufferPerRenderTarget;
             context.PixelShader = sharedDeviceResource.PixelShader;
-
-            context.PixelShaderResources[1] = HeightMap;
-            context.PixelShaderSamplers[1] = HeightMapSampler;
+            context.PixelShaderConstantBuffers[0] = constantBufferPerRenderTarget;
+            context.PixelShaderResources[0] = HeightMap;
+            context.PixelShaderSamplers[0] = HeightMapSampler;
         }
 
         #region IDisposable

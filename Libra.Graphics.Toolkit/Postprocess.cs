@@ -167,9 +167,9 @@ namespace Libra.Graphics.Toolkit
                 context.BlendState = BlendState.Opaque;
                 context.DepthStencilState = DepthStencilState.None;
                 context.RasterizerState = RasterizerState.CullBack;
-                context.PixelShaderSamplers[0] = SamplerState.LinearClamp;
-                context.PixelShaderResources[0] = currentTexture;
-                
+
+                filter.Texture = currentTexture;
+                filter.TextureSampler = SamplerState.LinearClamp;
                 filter.Apply(context);
                 
                 fullScreenQuad.Draw();

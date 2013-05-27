@@ -32,8 +32,6 @@ namespace Libra.Graphics.Toolkit
 
         float heightScale;
 
-        public bool Enabled { get; set; }
-
         public float WidthScale
         {
             get { return widthScale; }
@@ -56,6 +54,12 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
+        public bool Enabled { get; set; }
+
+        public ShaderResourceView Texture { get; set; }
+
+        public SamplerState TextureSampler { get; set; }
+
         public UpFilter(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
@@ -75,6 +79,8 @@ namespace Libra.Graphics.Toolkit
             if (context == null) throw new ArgumentNullException("context");
 
             context.PixelShader = sharedDeviceResource.PixelShader;
+            context.PixelShaderResources[0] = Texture;
+            context.PixelShaderSamplers[0] = TextureSampler;
         }
 
         #region IDisposable

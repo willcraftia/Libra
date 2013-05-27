@@ -12,7 +12,6 @@ call :CompilePS BilateralFilter PS %ps_profile%
 call :CompilePS BloomCombineFilter PS %ps_profile%
 call :CompilePS BloomExtractFilter PS %ps_profile%
 call :CompilePS CombineFilter PS %ps_profile%
-call :CompilePS DirectTextureDraw PS %ps_profile%
 call :CompilePS DofCombineFilter PS %ps_profile%
 call :CompilePS DownFilter PS %ps_profile%
 call :CompilePS EdgeFilter PS %ps_profile%

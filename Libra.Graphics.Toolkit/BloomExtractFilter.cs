@@ -51,6 +51,10 @@ namespace Libra.Graphics.Toolkit
 
         public bool Enabled { get; set; }
 
+        public ShaderResourceView Texture { get; set; }
+
+        public SamplerState TextureSampler { get; set; }
+
         public BloomExtractFilter(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
@@ -80,8 +84,10 @@ namespace Libra.Graphics.Toolkit
                 constantBufferPerObjectDirty = false;
             }
 
-            context.PixelShaderConstantBuffers[0] = constantBufferPerObject;
             context.PixelShader = sharedDeviceResource.PixelShader;
+            context.PixelShaderConstantBuffers[0] = constantBufferPerObject;
+            context.PixelShaderResources[0] = Texture;
+            context.PixelShaderSamplers[0] = TextureSampler;
         }
 
         #region IDisposable

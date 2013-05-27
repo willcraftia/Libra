@@ -126,6 +126,10 @@ namespace Libra.Graphics.Toolkit
 
         public bool Enabled { get; set; }
 
+        public ShaderResourceView Texture { get; set; }
+
+        public SamplerState TextureSampler { get; set; }
+
         public WaveFilter(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
@@ -233,10 +237,12 @@ namespace Libra.Graphics.Toolkit
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerFrame;
             }
 
+            context.PixelShader = sharedDeviceResource.PixelShader;
             context.PixelShaderConstantBuffers[0] = constantBufferPerObject;
             context.PixelShaderConstantBuffers[1] = constantBufferPerRenderTarget;
             context.PixelShaderConstantBuffers[2] = constantBufferPerFrame;
-            context.PixelShader = sharedDeviceResource.PixelShader;
+            context.PixelShaderResources[0] = Texture;
+            context.PixelShaderSamplers[0] = TextureSampler;
         }
 
         #region IDisposable

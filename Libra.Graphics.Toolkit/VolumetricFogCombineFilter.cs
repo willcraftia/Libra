@@ -72,6 +72,10 @@ namespace Libra.Graphics.Toolkit
 
         public bool Enabled { get; set; }
 
+        public ShaderResourceView Texture { get; set; }
+
+        public SamplerState TextureSampler { get; set; }
+
         public VolumetricFogCombineFilter(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
@@ -84,8 +88,6 @@ namespace Libra.Graphics.Toolkit
             constantBufferPerObject.Initialize<ParametersPerObject>();
 
             parametersPerObject.FogColor = Vector3.One;
-
-            VolumetricFogMapSampler = SamplerState.LinearClamp;
 
             Enabled = true;
 
@@ -101,10 +103,11 @@ namespace Libra.Graphics.Toolkit
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerObject;
             }
 
-            context.PixelShaderConstantBuffers[0] = constantBufferPerObject;
             context.PixelShader = sharedDeviceResource.PixelShader;
-
+            context.PixelShaderConstantBuffers[0] = constantBufferPerObject;
+            context.PixelShaderResources[0] = Texture;
             context.PixelShaderResources[1] = VolumetricFogMap;
+            context.PixelShaderSamplers[0] = TextureSampler;
             context.PixelShaderSamplers[1] = VolumetricFogMapSampler;
         }
 

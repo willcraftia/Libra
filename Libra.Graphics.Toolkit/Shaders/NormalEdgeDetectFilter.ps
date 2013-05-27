@@ -5,10 +5,7 @@ cbuffer PerRenderTarget : register(b0)
     float2 Offsets[KERNEL_SIZE];
 };
 
-// ダミー。
-Texture2D<float4> Texture : register(t0);
-SamplerState TextureSampler : register(s0);
-
+// ダンプ描画フィルタではレジスタ #0 を使用しない。
 Texture2D<float3> NormalMap : register(t1);
 SamplerState NormalMapSampler : register(s1);
 

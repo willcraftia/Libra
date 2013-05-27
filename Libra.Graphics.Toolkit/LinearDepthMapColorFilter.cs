@@ -91,6 +91,18 @@ namespace Libra.Graphics.Toolkit
 
         public bool Enabled { get; set; }
 
+        public ShaderResourceView Texture
+        {
+            get { return null; }
+            set { }
+        }
+
+        public SamplerState TextureSampler
+        {
+            get { return null; }
+            set { }
+        }
+
         public LinearDepthMapColorFilter(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
@@ -123,9 +135,8 @@ namespace Libra.Graphics.Toolkit
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerCamera;
             }
 
-            context.PixelShaderConstantBuffers[0] = constantBufferPerCamera;
             context.PixelShader = sharedDeviceResource.PixelShader;
-
+            context.PixelShaderConstantBuffers[0] = constantBufferPerCamera;
             context.PixelShaderResources[1] = LinearDepthMap;
             context.PixelShaderSamplers[1] = LinearDepthMapSampler;
         }

@@ -64,7 +64,6 @@
     <Compile Include="CylinderMesh.cs" />
     <Compile Include="DepthMapEffect.cs" />
     <Compile Include="DofCombineFilter.cs" />
-    <Compile Include="DirectTextureDraw.cs" />
     <Compile Include="DownFilter.cs" />
     <Compile Include="EdgeFilter.cs" />
     <Compile Include="GaussianFilterPass.cs" />
@@ -196,7 +195,6 @@
     <None Include="Shaders\BloomExtractFilter.ps" />
     <None Include="Shaders\CombineFilter.ps" />
     <None Include="Shaders\Compiled\BilateralFilterPS.bin" />
-    <None Include="Shaders\Compiled\DirectTextureDrawPS.bin" />
     <None Include="Shaders\Compiled\DownFilterPS.bin" />
     <None Include="Shaders\Compiled\FullScreenQuadVS.bin" />
     <None Include="Shaders\Compiled\GaussianFilterPS.bin" />
@@ -210,7 +208,6 @@
     <None Include="Shaders\CompileShaders.cmd" />
     <None Include="Shaders\DepthMap.vs" />
     <None Include="Shaders\DofCombineFilter.ps" />
-    <None Include="Shaders\DirectTextureDraw.ps" />
     <None Include="Shaders\DownFilter.ps" />
     <None Include="Shaders\EdgeFilter.ps" />
     <None Include="Shaders\FullScreenQuad.vs" />

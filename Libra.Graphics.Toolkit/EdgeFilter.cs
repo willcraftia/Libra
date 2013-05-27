@@ -255,6 +255,10 @@ namespace Libra.Graphics.Toolkit
 
         public bool Enabled { get; set; }
 
+        public ShaderResourceView Texture { get; set; }
+
+        public SamplerState TextureSampler { get; set; }
+
         public EdgeFilter(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
@@ -288,9 +292,6 @@ namespace Libra.Graphics.Toolkit
             parametersPerCamera.FarClipDistance = 1000.0f;
             
             parametersPerRenderTarget.Offsets = new Vector4[KernelSize];
-
-            LinearDepthMapSampler = SamplerState.LinearClamp;
-            NormalMapSampler = SamplerState.LinearClamp;
 
             Enabled = true;
 
@@ -353,13 +354,14 @@ namespace Libra.Graphics.Toolkit
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerCamera;
             }
 
+            context.PixelShader = sharedDeviceResource.PixelShader;
             context.PixelShaderConstantBuffers[0] = constantBufferPerObject;
             context.PixelShaderConstantBuffers[1] = constantBufferPerRenderTarget;
             context.PixelShaderConstantBuffers[2] = constantBufferPerCamera;
-            context.PixelShader = sharedDeviceResource.PixelShader;
-
+            context.PixelShaderResources[0] = Texture;
             context.PixelShaderResources[1] = LinearDepthMap;
             context.PixelShaderResources[2] = NormalMap;
+            context.PixelShaderSamplers[0] = TextureSampler;
             context.PixelShaderSamplers[1] = LinearDepthMapSampler;
             context.PixelShaderSamplers[2] = NormalMapSampler;
         }

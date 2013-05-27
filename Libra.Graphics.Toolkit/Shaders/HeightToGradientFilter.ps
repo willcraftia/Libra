@@ -4,12 +4,8 @@ cbuffer PerRenderTarget : register(b0)
     float2 Offsets[4];
 };
 
-// ダミー。
-Texture2D<float> Texture : register(t0);
-SamplerState TextureSampler : register(s0);
-
-Texture2D<float> HeightMap : register(t1);
-SamplerState HeightMapSampler : register(s1);
+Texture2D<float> HeightMap : register(t0);
+SamplerState HeightMapSampler : register(s0);
 
 float4 PS(float2 texCoord : TEXCOORD0) : SV_Target0
 {

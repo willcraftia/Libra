@@ -34,6 +34,18 @@ namespace Libra.Graphics.Toolkit
 
         public bool Enabled { get; set; }
 
+        public ShaderResourceView Texture
+        {
+            get { return null; }
+            set { }
+        }
+
+        public SamplerState TextureSampler
+        {
+            get { return null; }
+            set { }
+        }
+
         public SSAOMapColorFilter(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");

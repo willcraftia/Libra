@@ -269,6 +269,7 @@ namespace Samples.Water
             basicEffect.EnableDefaultLighting();
 
             waveFilter = new WaveFilter(Device);
+            waveFilter.TextureSampler = SamplerState.LinearWrap;
             //waveFilter.Stiffness = 0.1f;
             heightToNormalFilter = new HeightToNormalFilter(Device);
             heightToNormalFilter.HeightMapSampler = SamplerState.LinearMirror;
@@ -360,9 +361,8 @@ namespace Samples.Water
             context.Clear(Vector4.Zero);
 
             context.DepthStencilState = DepthStencilState.None;
-            context.PixelShaderResources[0] = waveRenderTargetChain.Last;
-            context.PixelShaderSamplers[0] = SamplerState.LinearWrap;
 
+            waveFilter.Texture = waveRenderTargetChain.Last;
             waveFilter.Apply(context);
 
             fullScreenQuad.Draw();

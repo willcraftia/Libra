@@ -92,8 +92,6 @@ namespace Libra.Graphics.Toolkit
 
         float heightScale;
 
-        public bool Enabled { get; set; }
-
         public float WidthScale
         {
             get { return widthScale; }
@@ -115,6 +113,12 @@ namespace Libra.Graphics.Toolkit
                 heightScale = value;
             }
         }
+
+        public bool Enabled { get; set; }
+
+        public ShaderResourceView Texture { get; set; }
+
+        public SamplerState TextureSampler { get; set; }
 
         public DownFilter(Device device)
         {
@@ -172,8 +176,10 @@ namespace Libra.Graphics.Toolkit
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerRenderTarget;
             }
 
-            context.PixelShaderConstantBuffers[0] = constantBufferPerRenderTarget;
             context.PixelShader = sharedDeviceResource.PixelShader;
+            context.PixelShaderConstantBuffers[0] = constantBufferPerRenderTarget;
+            context.PixelShaderResources[0] = Texture;
+            context.PixelShaderSamplers[0] = TextureSampler;
         }
 
         #region IDisposable

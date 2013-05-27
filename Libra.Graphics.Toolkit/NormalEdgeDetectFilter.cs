@@ -73,11 +73,23 @@ namespace Libra.Graphics.Toolkit
 
         DirtyFlags dirtyFlags;
 
-        public bool Enabled { get; set; }
-
         public ShaderResourceView NormalMap { get; set; }
 
         public SamplerState NormalMapSampler { get; set; }
+
+        public bool Enabled { get; set; }
+
+        public ShaderResourceView Texture
+        {
+            get { return null; }
+            set { }
+        }
+
+        public SamplerState TextureSampler
+        {
+            get { return null; }
+            set { }
+        }
 
         public NormalEdgeDetectFilter(Device device)
         {
@@ -91,8 +103,6 @@ namespace Libra.Graphics.Toolkit
             constantBufferPerRenderTarget.Initialize<ParametersPerRenderTarget>();
 
             parametersPerRenderTarget.Offsets = new Vector4[KernelSize];
-
-            NormalMapSampler = SamplerState.LinearClamp;
 
             Enabled = true;
 
@@ -134,9 +144,8 @@ namespace Libra.Graphics.Toolkit
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerRenderTarget;
             }
 
-            context.PixelShaderConstantBuffers[0] = constantBufferPerRenderTarget;
             context.PixelShader = sharedDeviceResource.PixelShader;
-
+            context.PixelShaderConstantBuffers[0] = constantBufferPerRenderTarget;
             context.PixelShaderResources[1] = NormalMap;
             context.PixelShaderSamplers[1] = NormalMapSampler;
         }
