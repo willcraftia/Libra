@@ -1,3 +1,7 @@
+// éQçl: GPU Gems 2 - Chapter 19. Generic Refraction Simulation
+//
+// http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter19.html
+
 cbuffer PerCamera : register(b0)
 {
     float3 EyePosition;
@@ -56,7 +60,7 @@ Output PS(Input input)
 
     float2 texCoord = input.TexCoord + WaterOffset;
 
-    float3 normal = NormalMap.Sample(NormalMapSampler, input.TexCoord);
+    float3 normal = NormalMap.SampleLevel(NormalMapSampler, input.TexCoord, 0);
     normal = normalize(normal);
 
     float2 reflectionTexCoord = ToTexCoord(input.PositionWRP);
