@@ -103,8 +103,6 @@ namespace Samples.Water
 
         RenderTarget waveNormalMapRenderTarget;
 
-        RenderTarget waveGradientMapRenderTarget;
-
         RenderTarget reflectionSceneRenderTarget;
 
         RenderTarget refractionSceneRenderTarget;
@@ -117,8 +115,6 @@ namespace Samples.Water
         WaveFilter waveFilter;
 
         HeightToNormalConverter heightToNormalConverter;
-
-        HeightToGradientConverter heightToGradientConverter;
 
         FullScreenQuad fullScreenQuad;
 
@@ -255,12 +251,6 @@ namespace Samples.Water
             waveNormalMapRenderTarget.Format = SurfaceFormat.Vector4;
             waveNormalMapRenderTarget.Initialize();
 
-            waveGradientMapRenderTarget = Device.CreateRenderTarget();
-            waveGradientMapRenderTarget.Width = waveRenderTargetChain.Width;
-            waveGradientMapRenderTarget.Height = waveRenderTargetChain.Height;
-            waveGradientMapRenderTarget.Format = SurfaceFormat.Vector2;
-            waveGradientMapRenderTarget.Initialize();
-
             reflectionSceneRenderTarget = Device.CreateRenderTarget();
             reflectionSceneRenderTarget.Width = WindowWidth;
             reflectionSceneRenderTarget.Height = WindowHeight;
@@ -283,8 +273,6 @@ namespace Samples.Water
             //waveFilter.Stiffness = 0.1f;
             heightToNormalConverter = new HeightToNormalConverter(Device);
             heightToNormalConverter.HeightMapSampler = SamplerState.LinearWrap;
-            heightToGradientConverter = new HeightToGradientConverter(Device);
-            heightToGradientConverter.HeightMapSampler = SamplerState.LinearWrap;
 
             fullScreenQuad = new FullScreenQuad(context);
 
@@ -354,7 +342,6 @@ namespace Samples.Water
 
             CreateWaveMap();
             CreateWaveNormalMap();
-            CreateWaveGradientMap();
 
             CreateReflectionMap();
             CreateRefractionMap();
@@ -389,7 +376,6 @@ namespace Samples.Water
             context.PixelShaderResources[0] = null;
 
             heightToNormalConverter.HeightMap = waveRenderTargetChain.Current;
-            heightToGradientConverter.HeightMap = waveRenderTargetChain.Current;
 
             textureDisplay.Textures.Add(waveRenderTargetChain.Current);
         }
@@ -416,28 +402,6 @@ namespace Samples.Water
             fluidEffect.NormalMap = waveNormalMapRenderTarget;
 
             textureDisplay.Textures.Add(waveNormalMapRenderTarget);
-        }
-
-        void CreateWaveGradientMap()
-        {
-            context.SetRenderTarget(waveGradientMapRenderTarget);
-            context.Clear(Vector3.Up.ToVector4());
-
-            context.DepthStencilState = DepthStencilState.None;
-
-            heightToGradientConverter.HeightMapSampler = SamplerState.LinearWrap;
-            heightToGradientConverter.Apply(context);
-
-            fullScreenQuad.Draw();
-
-            context.SetRenderTarget(null);
-
-            context.DepthStencilState = null;
-            context.PixelShaderResources[0] = null;
-            
-            context.SetRenderTarget(null);
-
-            textureDisplay.Textures.Add(waveGradientMapRenderTarget);
         }
 
         static void CreateReflectionView(ref Matrix eyeView, ref Plane plane, out Matrix result)
