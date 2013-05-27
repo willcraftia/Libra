@@ -228,7 +228,7 @@ namespace Libra.Graphics.Toolkit
             parametersPerObjectPS.RippleScale = 0.01f;
             parametersPerFramePS.WaterOffset = Vector2.Zero;
 
-            NormalMapSampler = SamplerState.LinearWrap;
+            NormalMapSampler = SamplerState.LinearMirror;
             ReflectionMapSampler = SamplerState.LinearClamp;
             RefractionMapSampler = SamplerState.LinearClamp;
 
