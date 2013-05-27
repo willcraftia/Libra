@@ -15,6 +15,7 @@ cbuffer PerObject : register(b1)
     float  FluidDeepColorDistance   : packoffset(c1.w);
     bool   FluidColorEnabled        : packoffset(c2);
     bool   FluidDeepColorEnabled    : packoffset(c2.y);
+    float  ReflectionCoeff          : packoffset(c2.z);
 };
 
 cbuffer PerFrame : register(b2)
@@ -79,7 +80,7 @@ Output PS(Input input)
 
     float3 e = normalize(positionToEye);
     float nDotL = max(0, dot(e, normal));
-    float fresnel = Fresnel(nDotL, 0.3);
+    float fresnel = Fresnel(nDotL, ReflectionCoeff);
 
     float3 color;
 

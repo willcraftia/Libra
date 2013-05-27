@@ -75,6 +75,9 @@ namespace Libra.Graphics.Toolkit
 
             [FieldOffset(36)]
             public bool FluidDeepColorEnabled;
+
+            [FieldOffset(40)]
+            public float ReflectionCoeff;
         }
 
         #endregion
@@ -103,9 +106,16 @@ namespace Libra.Graphics.Toolkit
             ViewProjection              = (1 << 6),
             WorldViewProjection         = (1 << 7),
             WorldReflectionProjection   = (1 << 8),
+            ReflectionCoeff             = (1 << 9)
         }
 
         #endregion
+
+        // 0℃ 1、気圧。
+        public const float RefractiveIndexAir = 1.000292f;
+
+        // 20℃
+        public const float RefracticeIndexWater = 1.3334f;
 
         Device device;
 
@@ -136,6 +146,10 @@ namespace Libra.Graphics.Toolkit
         Matrix reflectionView;
         
         Matrix viewProjection;
+
+        float refractiveIndex1;
+
+        float refractiveIndex2;
 
         DirtyFlags dirtyFlags;
 
@@ -267,6 +281,32 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
+        public float RefractiveIndex1
+        {
+            get { return refractiveIndex1; }
+            set
+            {
+                if (value <= 0.0f) throw new ArgumentOutOfRangeException("value");
+
+                refractiveIndex1 = value;
+
+                dirtyFlags |= DirtyFlags.ReflectionCoeff;
+            }
+        }
+
+        public float RefractiveIndex2
+        {
+            get { return refractiveIndex2; }
+            set
+            {
+                if (value <= 0.0f) throw new ArgumentOutOfRangeException("value");
+
+                refractiveIndex2 = value;
+
+                dirtyFlags |= DirtyFlags.ReflectionCoeff;
+            }
+        }
+
         public ShaderResourceView NormalMap { get; set; }
 
         public ShaderResourceView ReflectionMap { get; set; }
@@ -301,6 +341,8 @@ namespace Libra.Graphics.Toolkit
             projection = Matrix.Identity;
             reflectionView = Matrix.Identity;
             viewProjection = Matrix.Identity;
+            refractiveIndex1 = RefractiveIndexAir;
+            refractiveIndex2 = RefracticeIndexWater;
 
             parametersPerCameraPS.EyePosition = Vector3.Zero;
             parametersPerObjectVS.WorldViewProjection = Matrix.Identity;
@@ -319,7 +361,8 @@ namespace Libra.Graphics.Toolkit
                 DirtyFlags.ConstantBufferPerObjectVS |
                 DirtyFlags.ConstantBufferPerCameraPS |
                 DirtyFlags.ConstantBufferPerObjectPS |
-                DirtyFlags.ConstantBufferPerFramePS;
+                DirtyFlags.ConstantBufferPerFramePS |
+                DirtyFlags.ReflectionCoeff;
         }
 
         public void Apply(DeviceContext context)
@@ -377,6 +420,17 @@ namespace Libra.Graphics.Toolkit
 
                 dirtyFlags &= ~DirtyFlags.WorldReflectionProjection;
                 dirtyFlags |= DirtyFlags.ConstantBufferPerObjectVS;
+            }
+
+            if ((dirtyFlags & DirtyFlags.ReflectionCoeff) != 0)
+            {
+                float r = (refractiveIndex1 - refractiveIndex2) / (refractiveIndex1 + refractiveIndex2);
+                r *= r;
+
+                parametersPerObjectPS.ReflectionCoeff = r;
+
+                dirtyFlags &= ~DirtyFlags.ReflectionCoeff;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObjectPS;
             }
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerObjectVS) != 0)
