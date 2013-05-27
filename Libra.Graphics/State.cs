@@ -33,5 +33,12 @@ namespace Libra.Graphics
         {
             if (frozen) throw new InvalidOperationException("Instance frozen.");
         }
+
+        public override string ToString()
+        {
+            if (string.IsNullOrEmpty(name)) return base.ToString();
+
+            return name;
+        }
     }
 }
