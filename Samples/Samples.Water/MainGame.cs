@@ -129,10 +129,10 @@ namespace Samples.Water
         // 流体面メッシュの頂点。
         VertexPositionTexture[] fluidVertices =
         {
-            new VertexPositionTexture(new Vector3(-100, 0,  100), new Vector2(0, 8)),
-            new VertexPositionTexture(new Vector3(-100, 0, -100), new Vector2(0, 0)),
-            new VertexPositionTexture(new Vector3( 100, 0, -100), new Vector2(8, 0)),
-            new VertexPositionTexture(new Vector3( 100, 0,  100), new Vector2(8, 8)),
+            new VertexPositionTexture(new Vector3(-200, 0,  200), new Vector2(0, 8)),
+            new VertexPositionTexture(new Vector3(-200, 0, -200), new Vector2(0, 0)),
+            new VertexPositionTexture(new Vector3( 200, 0, -200), new Vector2(8, 0)),
+            new VertexPositionTexture(new Vector3( 200, 0,  200), new Vector2(8, 8)),
         };
 
         // 流体面メッシュのインデックス。
@@ -361,7 +361,7 @@ namespace Samples.Water
 
             context.DepthStencilState = DepthStencilState.None;
             context.PixelShaderResources[0] = waveRenderTargetChain.Last;
-            context.PixelShaderSamplers[0] = SamplerState.LinearMirror;
+            context.PixelShaderSamplers[0] = SamplerState.LinearWrap;
 
             waveFilter.Apply(context);
 
@@ -384,8 +384,10 @@ namespace Samples.Water
             context.Clear(Vector3.Up.ToVector4());
 
             context.DepthStencilState = DepthStencilState.None;
-            context.PixelShaderResources[0] = waveRenderTargetChain.Current;
+            //context.PixelShaderResources[0] = waveRenderTargetChain.Current;
+            //context.PixelShaderSamplers[0] = SamplerState.LinearWrap;
 
+            heightToNormalFilter.HeightMapSampler = SamplerState.LinearWrap;
             heightToNormalFilter.Apply(context);
 
             fullScreenQuad.Draw();
@@ -408,8 +410,10 @@ namespace Samples.Water
             context.Clear(Vector3.Up.ToVector4());
 
             context.DepthStencilState = DepthStencilState.None;
-            context.PixelShaderResources[0] = waveRenderTargetChain.Current;
+            //context.PixelShaderResources[0] = waveRenderTargetChain.Current;
+            //context.PixelShaderSamplers[0] = SamplerState.LinearWrap;
 
+            heightToGradientFilter.HeightMapSampler = SamplerState.LinearWrap;
             heightToGradientFilter.Apply(context);
 
             fullScreenQuad.Draw();
