@@ -272,9 +272,9 @@ namespace Samples.Water
             waveFilter.TextureSampler = SamplerState.LinearWrap;
             //waveFilter.Stiffness = 0.1f;
             heightToNormalConverter = new HeightToNormalConverter(Device);
-            heightToNormalConverter.HeightMapSampler = SamplerState.LinearMirror;
+            heightToNormalConverter.HeightMapSampler = SamplerState.LinearWrap;
             heightToGradientConverter = new HeightToGradientConverter(Device);
-            heightToGradientConverter.HeightMapSampler = SamplerState.LinearMirror;
+            heightToGradientConverter.HeightMapSampler = SamplerState.LinearWrap;
 
             fullScreenQuad = new FullScreenQuad(context);
 
