@@ -166,7 +166,13 @@ namespace Samples.Water
         /// </summary>
         SquareMesh squareMesh;
 
-        Matrix fluidWorld = Matrix.CreateRotationZ(-MathHelper.PiOver4) * Matrix.CreateTranslation(0, 5, 0);
+        Matrix fluidTranslation = Matrix.CreateTranslation(0, 10, 0);
+
+        Matrix fluidWorld;
+        
+        Plane localFluidFrontPlane = new Plane(Vector3.Up, 0.0f);
+
+        Plane localeFluidBackPlane = new Plane(Vector3.Down, 0.0f);
 
         Plane fluidFrontPlane;
 
@@ -179,6 +185,8 @@ namespace Samples.Water
         float newWaveInterval = 3.0f;
 
         float elapsedNewWaveTime;
+
+        float fluidRoll;
 
         /// <summary>
         /// HUD テキストを表示するか否かを示す値。
@@ -205,11 +213,8 @@ namespace Samples.Water
             camera.LookAt(InitialCameraLookAt);
             camera.Update();
 
-            // 流体面。
-            Plane localFluidFrontPlane = new Plane(Vector3.Up, 0.0f);
+            fluidWorld = fluidTranslation;
             Plane.Transform(ref localFluidFrontPlane, ref fluidWorld, out fluidFrontPlane);
-
-            Plane localeFluidBackPlane = new Plane(Vector3.Down, 0.0f);
             Plane.Transform(ref localeFluidBackPlane, ref fluidWorld, out fluidBackPlane);
 
             textureDisplay = new TextureDisplay(this);
@@ -287,7 +292,6 @@ namespace Samples.Water
             fluidEffect.FluidDeepColorDistance = 50.0f;
             fluidEffect.FluidColorEnabled = true;
             fluidEffect.FluidDeepColorEnabled = true;
-            fluidEffect.World = fluidWorld;
 
             clippingEffect = new ClippingEffect(Device);
             clippingEffect.AmbientLightColor = new Vector3(0.15f, 0.15f, 0.15f);
@@ -591,6 +595,7 @@ namespace Samples.Water
                 fluidEffect.RefractiveIndex2 = FluidEffect.RefractiveIndexAir;
             }
 
+            fluidEffect.World = fluidWorld;
             fluidEffect.View = camera.View;
             fluidEffect.Projection = camera.Projection;
             fluidEffect.ReflectionView = reflectionView;
@@ -662,6 +667,26 @@ namespace Samples.Water
 
             if (currentKeyboardState.IsKeyUp(Keys.F2) && lastKeyboardState.IsKeyDown(Keys.F2))
                 textureDisplay.Visible = !textureDisplay.Visible;
+
+            if (currentKeyboardState.IsKeyDown(Keys.PageUp))
+            {
+                fluidRoll += 0.005f;
+                fluidRoll %= MathHelper.TwoPi;
+            }
+
+            if (currentKeyboardState.IsKeyDown(Keys.PageDown))
+            {
+                fluidRoll -= 0.005f;
+                fluidRoll %= MathHelper.TwoPi;
+            }
+
+            Matrix fluidRotation;
+            Matrix.CreateFromYawPitchRoll(0, 0, fluidRoll, out fluidRotation);
+
+            Matrix.Multiply(ref fluidRotation, ref fluidTranslation, out fluidWorld);
+
+            Plane.Transform(ref localFluidFrontPlane, ref fluidWorld, out fluidFrontPlane);
+            Plane.Transform(ref localeFluidBackPlane, ref fluidWorld, out fluidBackPlane);
 
             if (currentKeyboardState.IsKeyDown(Keys.Escape))
                 Exit();
