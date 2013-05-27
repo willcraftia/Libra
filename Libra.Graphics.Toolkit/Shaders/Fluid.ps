@@ -13,11 +13,13 @@ cbuffer PerObject : register(b1)
     float3 FluidColor               : packoffset(c0.y);
     float3 FluidDeepColor           : packoffset(c1);
     float  FluidDeepColorDistance   : packoffset(c1.w);
+    bool   FluidColorEnabled        : packoffset(c2);
+    bool   FluidDeepColorEnabled    : packoffset(c2.y);
 };
 
 cbuffer PerFrame : register(b2)
 {
-    float2 WaterOffset;
+    float2 Offset;
 };
 
 Texture2D<float3> NormalMap     : register(t0);
@@ -58,9 +60,9 @@ Output PS(Input input)
 {
     Output output;
 
-    float2 texCoord = input.TexCoord + WaterOffset;
+    float2 texCoord = input.TexCoord + Offset;
 
-    float3 normal = NormalMap.SampleLevel(NormalMapSampler, input.TexCoord, 0);
+    float3 normal = NormalMap.SampleLevel(NormalMapSampler, texCoord, 0);
     normal = normalize(normal);
 
     float2 reflectionTexCoord = ToTexCoord(input.PositionWRP);
@@ -79,24 +81,36 @@ Output PS(Input input)
     float nDotL = max(0, dot(e, normal));
     float fresnel = Fresnel(nDotL, 0.3);
 
-    // 視点が遠い程に屈折は見えなくなり、深い流体の色となる。
-    // 完全に深い流体の色とする距離の閾値が FluidDeepColorDistance。
+    float3 color;
 
-    float distanceScale = saturate(FluidDeepColorDistance / eyeDistance);
-    float3 deepColor = lerp(FluidDeepColor, refractionColor, distanceScale);
+    if (FluidDeepColorEnabled)
+    {
+        // 視点が遠い程に屈折は見えなくなり、深い流体の色となる。
+        // 完全に深い流体の色とする距離の閾値が FluidDeepColorDistance。
 
-    // 視点と法線が垂直に近い程に流体の色が見える。
-    // 並行、すなわち、真上から見る程に、流体の色よりも流体の中が見える。
+        float distanceScale = saturate(FluidDeepColorDistance / eyeDistance);
+        color = lerp(FluidDeepColor, refractionColor, distanceScale);
+    }
+    else
+    {
+        color = refractionColor;
+    }
 
-    float facing = 1 - nDotL;
-    float3 color = lerp(deepColor, FluidColor, facing);
+    if (FluidColorEnabled)
+    {
+        // 視点と法線が垂直に近い程に流体の色が見える。
+        // 並行、すなわち、真上から見る程に、流体の色よりも流体の中が見える。
+
+        float facing = 1 - nDotL;
+        color = lerp(color, FluidColor, facing);
+    }
 
     // フレネルの式に従い反射による色を決定し、これまでの流体の色と合成。
 
     output.Color = float4(fresnel * reflactionColor + color, 1);
 
     // 以下はフレネルの式のテスト用。
-    // output.Color = lerp(reflactionColor, refractionColor, fresnel);
+//    output.Color = float4(lerp(reflactionColor, refractionColor, fresnel), 1);
 
     return output;
 }

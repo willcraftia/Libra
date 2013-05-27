@@ -55,7 +55,7 @@ namespace Libra.Graphics.Toolkit
 
         #region ParametersPerObjectPS
 
-        [StructLayout(LayoutKind.Explicit)]
+        [StructLayout(LayoutKind.Explicit, Size = 48)]
         struct ParametersPerObjectPS
         {
             [FieldOffset(0)]
@@ -69,6 +69,12 @@ namespace Libra.Graphics.Toolkit
 
             [FieldOffset(28)]
             public float FluidDeepColorDistance;
+
+            [FieldOffset(32)]
+            public bool FluidColorEnabled;
+
+            [FieldOffset(36)]
+            public bool FluidDeepColorEnabled;
         }
 
         #endregion
@@ -78,7 +84,7 @@ namespace Libra.Graphics.Toolkit
         [StructLayout(LayoutKind.Sequential, Size = 16)]
         struct ParametersPerFramePS
         {
-            public Vector2 WaterOffset;
+            public Vector2 Offset;
         }
 
         #endregion
@@ -184,6 +190,83 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
+        public float RippleScale
+        {
+            get { return parametersPerObjectPS.RippleScale; }
+            set
+            {
+                parametersPerObjectPS.RippleScale = value;
+
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObjectPS;
+            }
+        }
+
+        public Vector3 FluidColor
+        {
+            get { return parametersPerObjectPS.FluidColor; }
+            set
+            {
+                parametersPerObjectPS.FluidColor = value;
+
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObjectPS;
+            }
+        }
+
+        public Vector3 FluidDeepColor
+        {
+            get { return parametersPerObjectPS.FluidDeepColor; }
+            set
+            {
+                parametersPerObjectPS.FluidDeepColor = value;
+
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObjectPS;
+            }
+        }
+
+        public float FluidDeepColorDistance
+        {
+            get { return parametersPerObjectPS.FluidDeepColorDistance; }
+            set
+            {
+                parametersPerObjectPS.FluidDeepColorDistance = value;
+
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObjectPS;
+            }
+        }
+
+        public bool FluidColorEnabled
+        {
+            get { return parametersPerObjectPS.FluidColorEnabled; }
+            set
+            {
+                parametersPerObjectPS.FluidColorEnabled = value;
+
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObjectPS;
+            }
+        }
+
+        public bool FluidDeepColorEnabled
+        {
+            get { return parametersPerObjectPS.FluidDeepColorEnabled; }
+            set
+            {
+                parametersPerObjectPS.FluidDeepColorEnabled = value;
+
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObjectPS;
+            }
+        }
+
+        public Vector2 Offset
+        {
+            get { return parametersPerFramePS.Offset; }
+            set
+            {
+                parametersPerFramePS.Offset = value;
+
+                dirtyFlags |= DirtyFlags.ConstantBufferPerFramePS;
+            }
+        }
+
         public ShaderResourceView NormalMap { get; set; }
 
         public ShaderResourceView ReflectionMap { get; set; }
@@ -226,7 +309,7 @@ namespace Libra.Graphics.Toolkit
             parametersPerObjectPS.FluidDeepColor = new Vector3(0.0f, 0.15f, 0.115f);
             parametersPerObjectPS.FluidDeepColorDistance = 50.0f;
             parametersPerObjectPS.RippleScale = 0.01f;
-            parametersPerFramePS.WaterOffset = Vector2.Zero;
+            parametersPerFramePS.Offset = Vector2.Zero;
 
             NormalMapSampler = SamplerState.LinearWrap;
             ReflectionMapSampler = SamplerState.LinearClamp;

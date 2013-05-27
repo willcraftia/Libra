@@ -166,7 +166,7 @@ namespace Samples.Water
         /// </summary>
         SquareMesh squareMesh;
 
-        Matrix fluidWorld = Matrix.CreateRotationZ(-MathHelper.PiOver4 / 8) * Matrix.CreateTranslation(0, 5, 0);
+        Matrix fluidWorld = Matrix.CreateRotationZ(-MathHelper.PiOver4 / 16) * Matrix.CreateTranslation(0, 5, 0);
 
         Plane fluidPlane;
 
@@ -279,6 +279,9 @@ namespace Samples.Water
             fullScreenQuad = new FullScreenQuad(context);
 
             fluidEffect = new FluidEffect(Device);
+            fluidEffect.FluidDeepColorDistance = 50.0f;
+            fluidEffect.FluidColorEnabled = true;
+            fluidEffect.FluidDeepColorEnabled = true;
 
             clippingEffect = new ClippingEffect(Device);
             clippingEffect.AmbientLightColor = new Vector3(0.15f, 0.15f, 0.15f);
@@ -304,7 +307,14 @@ namespace Samples.Water
             // 表示カメラの更新。
             UpdateCamera(gameTime);
 
-            elapsedNewWaveTime += (float) gameTime.ElapsedGameTime.TotalSeconds;
+            float elapsedTime = (float) gameTime.ElapsedGameTime.TotalSeconds;
+
+            var offset = fluidEffect.Offset;
+            offset.X += elapsedTime * 1.0f;
+            offset.Y += elapsedTime * 1.0f;
+            fluidEffect.Offset = offset;
+
+            elapsedNewWaveTime += elapsedTime;
             if (newWaveInterval <= elapsedNewWaveTime)
             {
                 //var position = new Vector2(0.6f, 0.3f);
