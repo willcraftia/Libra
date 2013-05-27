@@ -42,8 +42,8 @@
   <ItemGroup>
     <Compile Include="BezierMesh.cs" />
     <Compile Include="FluidEffect.cs" />
-    <Compile Include="HeightToGradientFilter.cs" />
-    <Compile Include="HeightToNormalFilter.cs" />
+    <Compile Include="HeightToGradientConverter.cs" />
+    <Compile Include="HeightToNormalConverter.cs" />
     <Compile Include="LensFlare.cs" />
     <Compile Include="LinearFogDepthMapEffect.cs" />
     <Compile Include="ParticleEffect.cs" />

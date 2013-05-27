@@ -8,7 +8,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class HeightToGradientFilter : IEffect, IDisposable
+    public sealed class HeightToGradientConverter : IEffect, IDisposable
     {
         #region SharedDeviceResource
 
@@ -77,13 +77,13 @@ namespace Libra.Graphics.Toolkit
 
         public SamplerState HeightMapSampler { get; set; }
 
-        public HeightToGradientFilter(Device device)
+        public HeightToGradientConverter(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 
             this.device = device;
 
-            sharedDeviceResource = device.GetSharedResource<HeightToGradientFilter, SharedDeviceResource>();
+            sharedDeviceResource = device.GetSharedResource<HeightToGradientConverter, SharedDeviceResource>();
 
             constantBufferPerRenderTarget = device.CreateConstantBuffer();
             constantBufferPerRenderTarget.Initialize<ParametersPerRenderTarget>();
@@ -143,7 +143,7 @@ namespace Libra.Graphics.Toolkit
 
         bool disposed;
 
-        ~HeightToGradientFilter()
+        ~HeightToGradientConverter()
         {
             Dispose(false);
         }

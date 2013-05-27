@@ -8,7 +8,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class HeightToNormalFilter : IEffect, IDisposable
+    public sealed class HeightToNormalConverter : IEffect, IDisposable
     {
         #region SharedDeviceResource
 
@@ -77,13 +77,13 @@ namespace Libra.Graphics.Toolkit
 
         public SamplerState HeightMapSampler { get; set; }
 
-        public HeightToNormalFilter(Device device)
+        public HeightToNormalConverter(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 
             this.device = device;
 
-            sharedDeviceResource = device.GetSharedResource<HeightToNormalFilter, SharedDeviceResource>();
+            sharedDeviceResource = device.GetSharedResource<HeightToNormalConverter, SharedDeviceResource>();
 
             constantBufferPerRenderTarget = device.CreateConstantBuffer();
             constantBufferPerRenderTarget.Initialize<ParametersPerRenderTarget>();
@@ -141,7 +141,7 @@ namespace Libra.Graphics.Toolkit
 
         bool disposed;
 
-        ~HeightToNormalFilter()
+        ~HeightToNormalConverter()
         {
             Dispose(false);
         }

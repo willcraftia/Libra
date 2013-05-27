@@ -116,9 +116,9 @@ namespace Samples.Water
 
         WaveFilter waveFilter;
 
-        HeightToNormalFilter heightToNormalFilter;
+        HeightToNormalConverter heightToNormalConverter;
 
-        HeightToGradientFilter heightToGradientFilter;
+        HeightToGradientConverter heightToGradientConverter;
 
         FullScreenQuad fullScreenQuad;
 
@@ -271,10 +271,10 @@ namespace Samples.Water
             waveFilter = new WaveFilter(Device);
             waveFilter.TextureSampler = SamplerState.LinearWrap;
             //waveFilter.Stiffness = 0.1f;
-            heightToNormalFilter = new HeightToNormalFilter(Device);
-            heightToNormalFilter.HeightMapSampler = SamplerState.LinearMirror;
-            heightToGradientFilter = new HeightToGradientFilter(Device);
-            heightToGradientFilter.HeightMapSampler = SamplerState.LinearMirror;
+            heightToNormalConverter = new HeightToNormalConverter(Device);
+            heightToNormalConverter.HeightMapSampler = SamplerState.LinearMirror;
+            heightToGradientConverter = new HeightToGradientConverter(Device);
+            heightToGradientConverter.HeightMapSampler = SamplerState.LinearMirror;
 
             fullScreenQuad = new FullScreenQuad(context);
 
@@ -372,8 +372,8 @@ namespace Samples.Water
             context.DepthStencilState = null;
             context.PixelShaderResources[0] = null;
 
-            heightToNormalFilter.HeightMap = waveRenderTargetChain.Current;
-            heightToGradientFilter.HeightMap = waveRenderTargetChain.Current;
+            heightToNormalConverter.HeightMap = waveRenderTargetChain.Current;
+            heightToGradientConverter.HeightMap = waveRenderTargetChain.Current;
 
             textureDisplay.Textures.Add(waveRenderTargetChain.Current);
         }
@@ -387,8 +387,8 @@ namespace Samples.Water
             //context.PixelShaderResources[0] = waveRenderTargetChain.Current;
             //context.PixelShaderSamplers[0] = SamplerState.LinearWrap;
 
-            heightToNormalFilter.HeightMapSampler = SamplerState.LinearWrap;
-            heightToNormalFilter.Apply(context);
+            heightToNormalConverter.HeightMapSampler = SamplerState.LinearWrap;
+            heightToNormalConverter.Apply(context);
 
             fullScreenQuad.Draw();
 
@@ -413,8 +413,8 @@ namespace Samples.Water
             //context.PixelShaderResources[0] = waveRenderTargetChain.Current;
             //context.PixelShaderSamplers[0] = SamplerState.LinearWrap;
 
-            heightToGradientFilter.HeightMapSampler = SamplerState.LinearWrap;
-            heightToGradientFilter.Apply(context);
+            heightToGradientConverter.HeightMapSampler = SamplerState.LinearWrap;
+            heightToGradientConverter.Apply(context);
 
             fullScreenQuad.Draw();
 
