@@ -10,6 +10,8 @@ using Libra.Graphics.Compiler;
 using Libra.Graphics.Toolkit;
 using Libra.Input;
 using Libra.Xnb;
+using Musca;
+using Musca.Toolkit;
 
 #endregion
 
@@ -253,6 +255,16 @@ namespace Samples.Water
         /// </summary>
         float fluidRoll;
 
+        Perlin perlin = new Perlin();
+
+        SumFractal sumFractal = new SumFractal();
+
+        NoiseMap noiseMap = new NoiseMap(128, 128);
+
+        NoiseMapBuilder noiseMapBuilder = new NoiseMapBuilder();
+
+        Texture2D noiseWaveHeightMap;
+
         /// <summary>
         /// HUD テキストを表示するか否かを示す値。
         /// </summary>
@@ -281,6 +293,13 @@ namespace Samples.Water
             fluidWorld = fluidTranslation;
             Plane.Transform(ref localFluidFrontPlane, ref fluidWorld, out fluidFrontPlane);
             Plane.Transform(ref localeFluidBackPlane, ref fluidWorld, out fluidBackPlane);
+
+            // ノイズ設定。
+            perlin.Seed = 999;
+            sumFractal.Source = perlin;
+            noiseMapBuilder.Source = sumFractal;
+            noiseMapBuilder.Destination = noiseMap;
+            noiseMapBuilder.SeamlessEnabled = true;
 
             textureDisplay = new TextureDisplay(this);
             const float scale = 0.2f;
@@ -363,6 +382,16 @@ namespace Samples.Water
             sphereMesh = new SphereMesh(context, 20, 32);
             cylinderMesh = new CylinderMesh(context, 80, 20, 32);
             squareMesh = new SquareMesh(context, 400);
+
+            // ノイズによる波ハイトマップの生成。
+            noiseMapBuilder.Build();
+
+            noiseWaveHeightMap = Device.CreateTexture2D();
+            noiseWaveHeightMap.Width = noiseMap.Width;
+            noiseWaveHeightMap.Height = noiseMap.Height;
+            noiseWaveHeightMap.Format = SurfaceFormat.Single;
+            noiseWaveHeightMap.Initialize();
+            noiseWaveHeightMap.SetData(context, noiseMap.Values);
         }
 
         protected override void Update(GameTime gameTime)
@@ -430,6 +459,8 @@ namespace Samples.Water
             if (hudVisible)
                 DrawOverlayText();
 
+            textureDisplay.Textures.Add(noiseWaveHeightMap);
+
             base.Draw(gameTime);
         }
 
@@ -452,7 +483,8 @@ namespace Samples.Water
             context.DepthStencilState = null;
             context.PixelShaderResources[0] = null;
 
-            heightToNormalConverter.HeightMap = waveRenderTargetChain.Current;
+            //heightToNormalConverter.HeightMap = waveRenderTargetChain.Current;
+            heightToNormalConverter.HeightMap = noiseWaveHeightMap;
 
             textureDisplay.Textures.Add(waveRenderTargetChain.Current);
         }
