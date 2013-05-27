@@ -129,10 +129,10 @@ namespace Samples.Water
         // 流体面メッシュの頂点。
         VertexPositionTexture[] fluidVertices =
         {
-            new VertexPositionTexture(new Vector3(-100, 0,  100), new Vector2(0, 1)),
+            new VertexPositionTexture(new Vector3(-100, 0,  100), new Vector2(0, 8)),
             new VertexPositionTexture(new Vector3(-100, 0, -100), new Vector2(0, 0)),
-            new VertexPositionTexture(new Vector3( 100, 0, -100), new Vector2(1, 0)),
-            new VertexPositionTexture(new Vector3( 100, 0,  100), new Vector2(1, 1)),
+            new VertexPositionTexture(new Vector3( 100, 0, -100), new Vector2(8, 0)),
+            new VertexPositionTexture(new Vector3( 100, 0,  100), new Vector2(8, 8)),
         };
 
         // 流体面メッシュのインデックス。
@@ -166,11 +166,11 @@ namespace Samples.Water
         /// </summary>
         SquareMesh squareMesh;
 
-        Matrix fluidWorld = Matrix.CreateTranslation(0, 5, 0);
+        Matrix fluidWorld = Matrix.CreateRotationZ(-MathHelper.PiOver4 / 8) * Matrix.CreateTranslation(0, 5, 0);
 
         Plane fluidPlane;
 
-        Plane clipPlane;
+        Plane refractionClipPlane;
 
         Matrix reflectionView = Matrix.Identity;
 
@@ -208,7 +208,7 @@ namespace Samples.Water
             Plane.Transform(ref localFluidPlane, ref fluidWorld, out fluidPlane);
 
             Plane localeClipPlane = new Plane(Vector3.Down, 0.0f);
-            Plane.Transform(ref localeClipPlane, ref fluidWorld, out clipPlane);
+            Plane.Transform(ref localeClipPlane, ref fluidWorld, out refractionClipPlane);
 
             textureDisplay = new TextureDisplay(this);
             Components.Add(textureDisplay);
@@ -271,7 +271,9 @@ namespace Samples.Water
             waveFilter = new WaveFilter(Device);
             //waveFilter.Stiffness = 0.1f;
             heightToNormalFilter = new HeightToNormalFilter(Device);
+            heightToNormalFilter.HeightMapSampler = SamplerState.LinearMirror;
             heightToGradientFilter = new HeightToGradientFilter(Device);
+            heightToGradientFilter.HeightMapSampler = SamplerState.LinearMirror;
 
             fullScreenQuad = new FullScreenQuad(context);
 
@@ -280,8 +282,6 @@ namespace Samples.Water
             clippingEffect = new ClippingEffect(Device);
             clippingEffect.AmbientLightColor = new Vector3(0.15f, 0.15f, 0.15f);
             clippingEffect.EnableDefaultLighting();
-            //clippingEffect.ClipPlane0 = new Vector4(-fluidPlane.Normal, fluidPlane.D);
-            clippingEffect.ClipPlane0 = clipPlane.ToVector4();
 
             fluidVertexBuffer = Device.CreateVertexBuffer();
             fluidVertexBuffer.Initialize(fluidVertices);
@@ -361,6 +361,7 @@ namespace Samples.Water
 
             context.DepthStencilState = DepthStencilState.None;
             context.PixelShaderResources[0] = waveRenderTargetChain.Last;
+            context.PixelShaderSamplers[0] = SamplerState.LinearMirror;
 
             waveFilter.Apply(context);
 
@@ -500,7 +501,9 @@ namespace Samples.Water
             context.SetRenderTarget(reflectionSceneRenderTarget);
             context.Clear(Color.CornflowerBlue);
 
-            DrawSceneWithoutFluid(basicEffect, ref reflectionView);
+            clippingEffect.ClipPlane0 = fluidPlane.ToVector4();
+
+            DrawSceneWithoutFluid(clippingEffect, ref reflectionView);
 
             context.SetRenderTarget(null);
 
@@ -513,6 +516,8 @@ namespace Samples.Water
         {
             context.SetRenderTarget(refractionSceneRenderTarget);
             context.Clear(Color.CornflowerBlue);
+
+            clippingEffect.ClipPlane0 = refractionClipPlane.ToVector4();
 
             DrawSceneWithoutFluid(clippingEffect, ref camera.View);
 
