@@ -37,7 +37,26 @@ namespace Samples.Water
         /// </summary>
         static readonly Vector3 InitialCameraLookAt = Vector3.Zero;
 
+        /// <summary>
+        /// 乱数生成器。
+        /// </summary>
         static readonly Random Random = new Random();
+
+        // 流体面メッシュの頂点。
+        static readonly VertexPositionTexture[] FluidVertices =
+        {
+            new VertexPositionTexture(new Vector3(-200, 0,  200), new Vector2(0, 8)),
+            new VertexPositionTexture(new Vector3(-200, 0, -200), new Vector2(0, 0)),
+            new VertexPositionTexture(new Vector3( 200, 0, -200), new Vector2(8, 0)),
+            new VertexPositionTexture(new Vector3( 200, 0,  200), new Vector2(8, 8)),
+        };
+
+        // 流体面メッシュのインデックス。
+        static readonly ushort[] FluidIndices =
+        {
+            0, 1, 2,
+            0, 2, 3
+        };
 
         /// <summary>
         /// Libra のグラフィックス マネージャ。
@@ -99,47 +118,64 @@ namespace Samples.Water
         /// </summary>
         RenderTarget normalSceneRenderTarget;
 
-        RenderTargetChain waveRenderTargetChain;
-
+        /// <summary>
+        /// 波法線マップの描画先レンダ ターゲット。
+        /// </summary>
         RenderTarget waveNormalMapRenderTarget;
 
+        /// <summary>
+        /// 反射シーンの描画先レンダ ターゲット。
+        /// </summary>
         RenderTarget reflectionSceneRenderTarget;
 
+        /// <summary>
+        /// 屈折シーンの描画先レンダ ターゲット。
+        /// </summary>
         RenderTarget refractionSceneRenderTarget;
+
+        /// <summary>
+        /// 波マップ ポストプロセスのためのレンダ ターゲット チェイン。
+        /// </summary>
+        RenderTargetChain waveRenderTargetChain;
+
+        /// <summary>
+        /// FullScreenQuad。
+        /// </summary>
+        FullScreenQuad fullScreenQuad;
 
         /// <summary>
         /// メッシュ描画のための基礎エフェクト。
         /// </summary>
         BasicEffect basicEffect;
 
+        /// <summary>
+        /// 波エフェクト。
+        /// </summary>
         WaveFilter waveFilter;
 
+        /// <summary>
+        /// 高低マップから法線マップへの変換器エフェクト。
+        /// </summary>
         HeightToNormalConverter heightToNormalConverter;
 
-        FullScreenQuad fullScreenQuad;
-
+        /// <summary>
+        /// 流体エフェクト。
+        /// </summary>
         FluidEffect fluidEffect;
 
+        /// <summary>
+        /// クリッピング エフェクト。
+        /// </summary>
         ClippingEffect clippingEffect;
 
-        // 流体面メッシュの頂点。
-        VertexPositionTexture[] fluidVertices =
-        {
-            new VertexPositionTexture(new Vector3(-200, 0,  200), new Vector2(0, 8)),
-            new VertexPositionTexture(new Vector3(-200, 0, -200), new Vector2(0, 0)),
-            new VertexPositionTexture(new Vector3( 200, 0, -200), new Vector2(8, 0)),
-            new VertexPositionTexture(new Vector3( 200, 0,  200), new Vector2(8, 8)),
-        };
-
-        // 流体面メッシュのインデックス。
-        ushort[] fluidIndices =
-        {
-            0, 1, 2,
-            0, 2, 3
-        };
-
+        /// <summary>
+        /// 流体面の頂点バッファ。
+        /// </summary>
         VertexBuffer fluidVertexBuffer;
 
+        /// <summary>
+        /// 流体面のインデックス バッファ。
+        /// </summary>
         IndexBuffer fluidIndexBuffer;
 
         /// <summary>
@@ -162,26 +198,59 @@ namespace Samples.Water
         /// </summary>
         SquareMesh squareMesh;
 
+        /// <summary>
+        /// 流体面の移動行列。
+        /// </summary>
         Matrix fluidTranslation = Matrix.CreateTranslation(0, 10, 0);
 
+        /// <summary>
+        /// 流体面のワールド行列。
+        /// </summary>
         Matrix fluidWorld;
         
+        /// <summary>
+        /// ローカル座標系における流体面の表側を表す平面。
+        /// </summary>
         Plane localFluidFrontPlane = new Plane(Vector3.Up, 0.0f);
 
+        /// <summary>
+        /// ローカル座標系における流体面の裏側を表す平面。
+        /// </summary>
         Plane localeFluidBackPlane = new Plane(Vector3.Down, 0.0f);
 
+        /// <summary>
+        /// ワールド座標系における流体面の表側を表す平面。
+        /// </summary>
         Plane fluidFrontPlane;
 
+        /// <summary>
+        /// ワールド座標系における流体面の裏側を表す平面。
+        /// </summary>
         Plane fluidBackPlane;
 
+        /// <summary>
+        /// 反射シーンのビュー行列。
+        /// </summary>
         Matrix reflectionView = Matrix.Identity;
 
+        /// <summary>
+        /// 表示カメラ位置が流体面の表側にあるか否かを示す値。
+        /// </summary>
         bool eyeInFront;
 
+        /// <summary>
+        /// 新しい波を生成する間隔 (秒)。
+        /// </summary>
         float newWaveInterval = 3.0f;
 
+        /// <summary>
+        /// 新しい波を生成してからの経過時間 (秒)。
+        /// </summary>
         float elapsedNewWaveTime;
 
+        /// <summary>
+        /// 流体面のロール (z 軸周りの回転)。
+        /// </summary>
         float fluidRoll;
 
         /// <summary>
@@ -270,7 +339,7 @@ namespace Samples.Water
 
             waveFilter = new WaveFilter(Device);
             waveFilter.TextureSampler = SamplerState.LinearWrap;
-            //waveFilter.Stiffness = 0.1f;
+
             heightToNormalConverter = new HeightToNormalConverter(Device);
             heightToNormalConverter.HeightMapSampler = SamplerState.LinearWrap;
 
@@ -285,10 +354,10 @@ namespace Samples.Water
             clippingEffect.EnableDefaultLighting();
 
             fluidVertexBuffer = Device.CreateVertexBuffer();
-            fluidVertexBuffer.Initialize(fluidVertices);
+            fluidVertexBuffer.Initialize(FluidVertices);
 
             fluidIndexBuffer = Device.CreateIndexBuffer();
-            fluidIndexBuffer.Initialize(fluidIndices);
+            fluidIndexBuffer.Initialize(FluidIndices);
 
             cubeMesh = new CubeMesh(context, 20);
             sphereMesh = new SphereMesh(context, 20, 32);
@@ -306,11 +375,13 @@ namespace Samples.Water
 
             float elapsedTime = (float) gameTime.ElapsedGameTime.TotalSeconds;
 
+            // 時間経過に応じて流体面のテクスチャを移動。
             var offset = fluidEffect.Offset;
             offset.X += elapsedTime * 1.0f;
             offset.Y += elapsedTime * 1.0f;
             fluidEffect.Offset = offset;
 
+            // 一定時間が経過したらランダムな新しい波を追加。
             elapsedNewWaveTime += elapsedTime;
             if (newWaveInterval <= elapsedNewWaveTime)
             {
@@ -340,10 +411,16 @@ namespace Samples.Water
             context.BlendState = BlendState.Opaque;
             context.DepthStencilState = DepthStencilState.Default;
 
+            // 波マップを描画。
             CreateWaveMap();
+
+            // 波マップから法線マップを生成。
             CreateWaveNormalMap();
 
+            // 反射シーンを描画。
             CreateReflectionMap();
+
+            // 屈折シーンを描画。
             CreateRefractionMap();
 
             // シーンを描画。
