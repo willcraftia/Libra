@@ -270,17 +270,6 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        public Vector2 Offset
-        {
-            get { return parametersPerFramePS.Offset; }
-            set
-            {
-                parametersPerFramePS.Offset = value;
-
-                dirtyFlags |= DirtyFlags.ConstantBufferPerFramePS;
-            }
-        }
-
         public float RefractiveIndex1
         {
             get { return refractiveIndex1; }
@@ -304,6 +293,17 @@ namespace Libra.Graphics.Toolkit
                 refractiveIndex2 = value;
 
                 dirtyFlags |= DirtyFlags.ReflectionCoeff;
+            }
+        }
+
+        public Vector2 Offset
+        {
+            get { return parametersPerFramePS.Offset; }
+            set
+            {
+                parametersPerFramePS.Offset = value;
+
+                dirtyFlags |= DirtyFlags.ConstantBufferPerFramePS;
             }
         }
 
@@ -350,6 +350,8 @@ namespace Libra.Graphics.Toolkit
             parametersPerObjectPS.FluidColor = new Vector3(0.0f, 0.55f, 0.515f);
             parametersPerObjectPS.FluidDeepColor = new Vector3(0.0f, 0.15f, 0.115f);
             parametersPerObjectPS.FluidDeepColorDistance = 50.0f;
+            parametersPerObjectPS.FluidColorEnabled = false;
+            parametersPerObjectPS.FluidDeepColorEnabled = false;
             parametersPerObjectPS.RippleScale = 0.01f;
             parametersPerFramePS.Offset = Vector2.Zero;
 

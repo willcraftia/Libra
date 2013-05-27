@@ -66,28 +66,20 @@ Output PS(Input input)
     float3 normal = NormalMap.SampleLevel(NormalMapSampler, texCoord, 0);
     normal = normalize(normal);
 
-    float2 reflectionTexCoord = ToTexCoord(input.PositionWRP);
-    float2 refractionTexCoord = ToTexCoord(input.PositionWVP);
-
-    reflectionTexCoord += normal.xz * RippleScale;
-    refractionTexCoord += normal.xz * RippleScale;
-
-    float3 reflactionColor = ReflectionMap.Sample(ReflectionMapSampler, reflectionTexCoord);
-    float3 refractionColor = RefractionMap.Sample(RefractionMapSampler, refractionTexCoord);
-
     float3 positionToEye = EyePosition - input.PositionW.xyz;
     float eyeDistance = length(positionToEye);
 
-    float3 e = normalize(positionToEye);
-    float nDotL = max(0, dot(e, normal));
-    float fresnel = Fresnel(nDotL, ReflectionCoeff);
-
     float3 color;
+
+    // 屈折マップ。
+    float2 refractionTexCoord = ToTexCoord(input.PositionWVP);
+    refractionTexCoord += normal.xz * RippleScale;
+    float3 refractionColor = RefractionMap.Sample(RefractionMapSampler, refractionTexCoord);
 
     if (FluidDeepColorEnabled)
     {
         // 視点が遠い程に屈折は見えなくなり、深い流体の色となる。
-        // 完全に深い流体の色とする距離の閾値が FluidDeepColorDistance。
+        // 深い流体の色を掛け合わせ始める距離が FluidDeepColorDistance。
 
         float distanceScale = saturate(FluidDeepColorDistance / eyeDistance);
         color = lerp(FluidDeepColor, refractionColor, distanceScale);
@@ -96,6 +88,9 @@ Output PS(Input input)
     {
         color = refractionColor;
     }
+
+    float3 e = normalize(positionToEye);
+    float nDotL = dot(e, normal);
 
     if (FluidColorEnabled)
     {
@@ -106,8 +101,13 @@ Output PS(Input input)
         color = lerp(color, FluidColor, facing);
     }
 
-    // フレネルの式に従い反射による色を決定し、これまでの流体の色と合成。
+    // 反射マップ。
+    float2 reflectionTexCoord = ToTexCoord(input.PositionWRP);
+    reflectionTexCoord += normal.xz * RippleScale;
+    float3 reflactionColor = ReflectionMap.Sample(ReflectionMapSampler, reflectionTexCoord);
 
+    // フレネルの式に従い反射による色を決定し、これまでの流体の色と合成。
+    float fresnel = Fresnel(nDotL, ReflectionCoeff);
     output.Color = float4(fresnel * reflactionColor + color, 1);
 
     // 以下はフレネルの式のテスト用。

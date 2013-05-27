@@ -166,13 +166,15 @@ namespace Samples.Water
         /// </summary>
         SquareMesh squareMesh;
 
-        Matrix fluidWorld = Matrix.CreateRotationZ(-MathHelper.PiOver4 / 16) * Matrix.CreateTranslation(0, 5, 0);
+        Matrix fluidWorld = Matrix.CreateRotationZ(-MathHelper.PiOver4) * Matrix.CreateTranslation(0, 5, 0);
 
-        Plane fluidPlane;
+        Plane fluidFrontPlane;
 
-        Plane refractionClipPlane;
+        Plane fluidBackPlane;
 
         Matrix reflectionView = Matrix.Identity;
+
+        bool eyeInFront;
 
         float newWaveInterval = 3.0f;
 
@@ -204,13 +206,16 @@ namespace Samples.Water
             camera.Update();
 
             // 流体面。
-            Plane localFluidPlane = new Plane(Vector3.Up, 0.0f);
-            Plane.Transform(ref localFluidPlane, ref fluidWorld, out fluidPlane);
+            Plane localFluidFrontPlane = new Plane(Vector3.Up, 0.0f);
+            Plane.Transform(ref localFluidFrontPlane, ref fluidWorld, out fluidFrontPlane);
 
-            Plane localeClipPlane = new Plane(Vector3.Down, 0.0f);
-            Plane.Transform(ref localeClipPlane, ref fluidWorld, out refractionClipPlane);
+            Plane localeFluidBackPlane = new Plane(Vector3.Down, 0.0f);
+            Plane.Transform(ref localeFluidBackPlane, ref fluidWorld, out fluidBackPlane);
 
             textureDisplay = new TextureDisplay(this);
+            const float scale = 0.2f;
+            textureDisplay.TextureWidth = (int) (WindowWidth * scale);
+            textureDisplay.TextureHeight = (int) (WindowHeight * scale);
             Components.Add(textureDisplay);
 
             frameRateMeasure = new FrameRateMeasure(this);
@@ -282,6 +287,7 @@ namespace Samples.Water
             fluidEffect.FluidDeepColorDistance = 50.0f;
             fluidEffect.FluidColorEnabled = true;
             fluidEffect.FluidDeepColorEnabled = true;
+            fluidEffect.World = fluidWorld;
 
             clippingEffect = new ClippingEffect(Device);
             clippingEffect.AmbientLightColor = new Vector3(0.15f, 0.15f, 0.15f);
@@ -328,9 +334,8 @@ namespace Samples.Water
                 elapsedNewWaveTime -= newWaveInterval;
             }
 
-            const float scale = 0.2f;
-            textureDisplay.TextureWidth = (int) (WindowWidth * scale);
-            textureDisplay.TextureHeight = (int) (WindowHeight * scale);
+            // 表示カメラが流体面の表側にあるか否か。
+            eyeInFront = (0 <= fluidFrontPlane.DotCoordinate(camera.Position));
 
             titleBuilder.Length = 0;
             titleBuilder.Append("FPS: ");
@@ -510,12 +515,22 @@ namespace Samples.Water
 
         void CreateReflectionMap()
         {
-            CreateReflectionView(ref camera.View, ref fluidPlane, out reflectionView);
+            //var clipPlane = (eyeInFront) ? fluidFrontPlane : fluidBackPlane;
+            var clipPlane = fluidFrontPlane;
+
+            if (eyeInFront)
+            {
+                CreateReflectionView(ref camera.View, ref clipPlane, out reflectionView);
+            }
+            else
+            {
+                reflectionView = camera.View;
+            }
 
             context.SetRenderTarget(reflectionSceneRenderTarget);
             context.Clear(Color.CornflowerBlue);
 
-            clippingEffect.ClipPlane0 = fluidPlane.ToVector4();
+            clippingEffect.ClipPlane0 = clipPlane.ToVector4();
 
             DrawSceneWithoutFluid(clippingEffect, ref reflectionView);
 
@@ -531,7 +546,8 @@ namespace Samples.Water
             context.SetRenderTarget(refractionSceneRenderTarget);
             context.Clear(Color.CornflowerBlue);
 
-            clippingEffect.ClipPlane0 = refractionClipPlane.ToVector4();
+            var clipPlane = (eyeInFront) ? fluidBackPlane : fluidFrontPlane;
+            clippingEffect.ClipPlane0 = clipPlane.ToVector4();
 
             DrawSceneWithoutFluid(clippingEffect, ref camera.View);
 
@@ -568,7 +584,17 @@ namespace Samples.Water
         {
             context.Clear(Color.CornflowerBlue);
 
-            fluidEffect.World = fluidWorld;
+            if (eyeInFront)
+            {
+                fluidEffect.RefractiveIndex1 = FluidEffect.RefractiveIndexAir;
+                fluidEffect.RefractiveIndex2 = FluidEffect.RefracticeIndexWater;
+            }
+            else
+            {
+                fluidEffect.RefractiveIndex1 = FluidEffect.RefracticeIndexWater;
+                fluidEffect.RefractiveIndex2 = FluidEffect.RefractiveIndexAir;
+            }
+
             fluidEffect.View = camera.View;
             fluidEffect.Projection = camera.Projection;
             fluidEffect.ReflectionView = reflectionView;
@@ -577,11 +603,11 @@ namespace Samples.Water
             context.SetVertexBuffer(fluidVertexBuffer);
             context.IndexBuffer = fluidIndexBuffer;
 
+            context.RasterizerState = RasterizerState.CullNone;
             context.DrawIndexed(fluidIndexBuffer.IndexCount);
+            context.RasterizerState = null;
 
             DrawSceneWithoutFluid(basicEffect, ref camera.View);
-
-            //DrawPrimitiveMesh(squareMesh, Matrix.Identity, new Vector3(0.5f), fluidEffect);
         }
 
         void DrawPrimitiveMesh(PrimitiveMesh mesh, Matrix world, Vector3 color, IEffect effect)
