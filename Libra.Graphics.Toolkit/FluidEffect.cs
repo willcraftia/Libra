@@ -370,10 +370,6 @@ namespace Libra.Graphics.Toolkit
             parametersPerObjectPS.RippleScale = 0.01f;
             parametersPerFramePS.Offset0 = Vector2.Zero;
 
-            NormalMapSampler = SamplerState.LinearWrap;
-            ReflectionMapSampler = SamplerState.LinearClamp;
-            RefractionMapSampler = SamplerState.LinearClamp;
-
             dirtyFlags =
                 DirtyFlags.ConstantBufferPerObjectVS |
                 DirtyFlags.ConstantBufferPerCameraPS |
