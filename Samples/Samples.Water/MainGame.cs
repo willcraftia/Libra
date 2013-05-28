@@ -19,6 +19,12 @@ namespace Samples.Water
 {
     public sealed class MainGame : Game
     {
+        enum FluidType
+        {
+            Ripple,
+            Flow
+        }
+
         /// <summary>
         /// ウィンドウの幅。
         /// </summary>
@@ -44,8 +50,17 @@ namespace Samples.Water
         /// </summary>
         static readonly Random Random = new Random();
 
-        // 流体面メッシュの頂点。
-        static readonly VertexPositionTexture[] FluidVertices =
+        // Ripple 用の流体面メッシュの頂点。
+        static readonly VertexPositionTexture[] RippleVertices =
+        {
+            new VertexPositionTexture(new Vector3(-200, 0,  200), new Vector2(0, 1)),
+            new VertexPositionTexture(new Vector3(-200, 0, -200), new Vector2(0, 0)),
+            new VertexPositionTexture(new Vector3( 200, 0, -200), new Vector2(1, 0)),
+            new VertexPositionTexture(new Vector3( 200, 0,  200), new Vector2(1, 1)),
+        };
+
+        // Flow 用の流体面メッシュの頂点。
+        static readonly VertexPositionTexture[] FlowVertices =
         {
             new VertexPositionTexture(new Vector3(-200, 0,  200), new Vector2(0, 8)),
             new VertexPositionTexture(new Vector3(-200, 0, -200), new Vector2(0, 0)),
@@ -123,7 +138,7 @@ namespace Samples.Water
         /// <summary>
         /// 波法線マップの描画先レンダ ターゲット。
         /// </summary>
-        RenderTarget waveNormalMapRenderTarget;
+        RenderTarget rippleNormalMapRenderTarget;
 
         /// <summary>
         /// 反射シーンの描画先レンダ ターゲット。
@@ -138,7 +153,7 @@ namespace Samples.Water
         /// <summary>
         /// 波マップ ポストプロセスのためのレンダ ターゲット チェイン。
         /// </summary>
-        RenderTargetChain waveRenderTargetChain;
+        RenderTargetChain rippleRenderTargetChain;
 
         /// <summary>
         /// FullScreenQuad。
@@ -171,9 +186,14 @@ namespace Samples.Water
         ClippingEffect clippingEffect;
 
         /// <summary>
-        /// 流体面の頂点バッファ。
+        /// Ripple 用の流体面の頂点バッファ。
         /// </summary>
-        VertexBuffer fluidVertexBuffer;
+        VertexBuffer rippleVertexBuffer;
+
+        /// <summary>
+        /// Flow 用の流体面の頂点バッファ。
+        /// </summary>
+        VertexBuffer flowVertexBuffer;
 
         /// <summary>
         /// 流体面のインデックス バッファ。
@@ -273,6 +293,8 @@ namespace Samples.Water
 
         Texture2D noiseWaveHeightMap;
 
+        FluidType fluidType = FluidType.Ripple;
+
         /// <summary>
         /// HUD テキストを表示するか否かを示す値。
         /// </summary>
@@ -347,16 +369,16 @@ namespace Samples.Water
             normalSceneRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
             normalSceneRenderTarget.Initialize();
 
-            waveRenderTargetChain = new RenderTargetChain(Device);
-            waveRenderTargetChain.Width = 128;
-            waveRenderTargetChain.Height = 128;
-            waveRenderTargetChain.Format = SurfaceFormat.Vector2;
+            rippleRenderTargetChain = new RenderTargetChain(Device);
+            rippleRenderTargetChain.Width = 512;
+            rippleRenderTargetChain.Height = 512;
+            rippleRenderTargetChain.Format = SurfaceFormat.Vector2;
 
-            waveNormalMapRenderTarget = Device.CreateRenderTarget();
-            waveNormalMapRenderTarget.Width = waveRenderTargetChain.Width;
-            waveNormalMapRenderTarget.Height = waveRenderTargetChain.Height;
-            waveNormalMapRenderTarget.Format = SurfaceFormat.Vector4;
-            waveNormalMapRenderTarget.Initialize();
+            rippleNormalMapRenderTarget = Device.CreateRenderTarget();
+            rippleNormalMapRenderTarget.Width = rippleRenderTargetChain.Width;
+            rippleNormalMapRenderTarget.Height = rippleRenderTargetChain.Height;
+            rippleNormalMapRenderTarget.Format = SurfaceFormat.Vector4;
+            rippleNormalMapRenderTarget.Initialize();
 
             reflectionSceneRenderTarget = Device.CreateRenderTarget();
             reflectionSceneRenderTarget.Width = WindowWidth;
@@ -376,10 +398,10 @@ namespace Samples.Water
             basicEffect.EnableDefaultLighting();
 
             fluidRippleFilter = new FluidRippleFilter(Device);
-            fluidRippleFilter.TextureSampler = SamplerState.LinearWrap;
+            fluidRippleFilter.TextureSampler = SamplerState.LinearClamp;
 
             heightToNormalConverter = new HeightToNormalConverter(Device);
-            heightToNormalConverter.HeightMapSampler = SamplerState.LinearWrap;
+            heightToNormalConverter.HeightMapSampler = SamplerState.LinearClamp;
 
             fullScreenQuad = new FullScreenQuad(context);
 
@@ -391,8 +413,10 @@ namespace Samples.Water
             clippingEffect.AmbientLightColor = new Vector3(0.15f, 0.15f, 0.15f);
             clippingEffect.EnableDefaultLighting();
 
-            fluidVertexBuffer = Device.CreateVertexBuffer();
-            fluidVertexBuffer.Initialize(FluidVertices);
+            rippleVertexBuffer = Device.CreateVertexBuffer();
+            rippleVertexBuffer.Initialize(RippleVertices);
+            flowVertexBuffer = Device.CreateVertexBuffer();
+            flowVertexBuffer.Initialize(FlowVertices);
 
             fluidIndexBuffer = Device.CreateIndexBuffer();
             fluidIndexBuffer.Initialize(FluidIndices);
@@ -426,30 +450,36 @@ namespace Samples.Water
 
             float elapsedTime = (float) gameTime.ElapsedGameTime.TotalSeconds;
 
-            // 時間経過に応じて流体面のテクスチャを移動。
-            //normalOffset0.X += elapsedTime * 1.0f;
-            //normalOffset0.Y += elapsedTime * 1.0f;
-            //normalOffset0.X %= 1.0f;
-            //normalOffset0.Y %= 1.0f;
-            //normalOffset1.X += elapsedTime * 0.6f;
-            //normalOffset1.Y += elapsedTime * 0.6f;
-            //normalOffset1.X %= 1.0f;
-            //normalOffset1.Y %= 1.0f;
-
-            fluidEffect.Offset0 = normalOffset0;
-            fluidEffect.Offset1 = normalOffset1;
-
-            // 一定時間が経過したらランダムな新しい波を追加。
-            elapsedNewWaveTime += elapsedTime;
-            if (newWaveInterval <= elapsedNewWaveTime)
+            if (fluidType == FluidType.Flow)
             {
-                var position = new Vector2((float) Random.NextDouble(), (float) Random.NextDouble());
-                var radius = Random.Next(1, 20) / 128.0f;
-                var velocity = (float) Random.NextDouble() * 0.05f;
+                // 時間経過に応じて流体面のテクスチャを移動。
+                //normalOffset0.X += elapsedTime * 1.0f;
+                //normalOffset0.Y += elapsedTime * 1.0f;
+                //normalOffset0.X %= 1.0f;
+                //normalOffset0.Y %= 1.0f;
+                //normalOffset1.X += elapsedTime * 0.6f;
+                //normalOffset1.Y += elapsedTime * 0.6f;
+                //normalOffset1.X %= 1.0f;
+                //normalOffset1.Y %= 1.0f;
 
-                fluidRippleFilter.AddRipple(position, radius, velocity);
+                fluidEffect.Offset0 = normalOffset0;
+                fluidEffect.Offset1 = normalOffset1;
+            }
 
-                elapsedNewWaveTime -= newWaveInterval;
+            if (fluidType == FluidType.Ripple)
+            {
+                // 一定時間が経過したらランダムな新しい波を追加。
+                elapsedNewWaveTime += elapsedTime;
+                if (newWaveInterval <= elapsedNewWaveTime)
+                {
+                    var position = new Vector2((float) Random.NextDouble(), (float) Random.NextDouble());
+                    var radius = Random.Next(1, 20) / 512.0f;
+                    var velocity = (float) Random.NextDouble() * 0.05f;
+
+                    fluidRippleFilter.AddRipple(position, radius, velocity);
+
+                    elapsedNewWaveTime -= newWaveInterval;
+                }
             }
 
             // 表示カメラが流体面の表側にあるか否か。
@@ -469,11 +499,20 @@ namespace Samples.Water
             context.BlendState = BlendState.Opaque;
             context.DepthStencilState = DepthStencilState.Default;
 
-            // 波紋マップを描画。
-            CreateFluidRippleMap();
+            if (fluidType == FluidType.Ripple)
+            {
+                // 波紋マップを描画。
+                CreateFluidRippleMap();
 
-            // 波紋マップから法線マップを生成。
-            CreateFluidNormalMap();
+                // 波紋マップから法線マップを生成。
+                CreateFluidNormalMap();
+
+                // 波紋マップから生成された法線マップを設定。
+                fluidEffect.NormalMap = rippleNormalMapRenderTarget;
+            }
+            else if (fluidType == FluidType.Flow)
+            {
+            }
 
             // 反射シーンを描画。
             CreateReflectionMap();
@@ -495,14 +534,14 @@ namespace Samples.Water
 
         void CreateFluidRippleMap()
         {
-            waveRenderTargetChain.Next();
+            rippleRenderTargetChain.Next();
 
-            context.SetRenderTarget(waveRenderTargetChain.Current);
+            context.SetRenderTarget(rippleRenderTargetChain.Current);
             context.Clear(Vector4.Zero);
 
             context.DepthStencilState = DepthStencilState.None;
 
-            fluidRippleFilter.Texture = waveRenderTargetChain.Last;
+            fluidRippleFilter.Texture = rippleRenderTargetChain.Last;
             fluidRippleFilter.Apply(context);
 
             fullScreenQuad.Draw();
@@ -512,15 +551,15 @@ namespace Samples.Water
             context.DepthStencilState = null;
             context.PixelShaderResources[0] = null;
 
-            heightToNormalConverter.HeightMap = waveRenderTargetChain.Current;
+            heightToNormalConverter.HeightMap = rippleRenderTargetChain.Current;
             //heightToNormalConverter.HeightMap = noiseWaveHeightMap;
 
-            textureDisplay.Textures.Add(waveRenderTargetChain.Current);
+            textureDisplay.Textures.Add(rippleRenderTargetChain.Current);
         }
 
         void CreateFluidNormalMap()
         {
-            context.SetRenderTarget(waveNormalMapRenderTarget);
+            context.SetRenderTarget(rippleNormalMapRenderTarget);
             context.Clear(Vector3.Up.ToVector4());
 
             context.DepthStencilState = DepthStencilState.None;
@@ -537,9 +576,9 @@ namespace Samples.Water
 
             context.SetRenderTarget(null);
 
-            fluidEffect.NormalMap = waveNormalMapRenderTarget;
+            //fluidEffect.NormalMap = fluidNormalMapRenderTarget;
 
-            textureDisplay.Textures.Add(waveNormalMapRenderTarget);
+            textureDisplay.Textures.Add(rippleNormalMapRenderTarget);
         }
 
         static void CreateReflectionView(ref Matrix eyeView, ref Plane plane, out Matrix result)
@@ -700,7 +739,15 @@ namespace Samples.Water
             fluidEffect.ReflectionView = reflectionView;
             fluidEffect.Apply(context);
 
-            context.SetVertexBuffer(fluidVertexBuffer);
+            switch (fluidType)
+            {
+                case FluidType.Ripple:
+                    context.SetVertexBuffer(rippleVertexBuffer);
+                    break;
+                case FluidType.Flow:
+                    context.SetVertexBuffer(flowVertexBuffer);
+                    break;
+            }
             context.IndexBuffer = fluidIndexBuffer;
 
             context.RasterizerState = RasterizerState.CullNone;
