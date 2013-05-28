@@ -360,7 +360,7 @@ namespace Samples.Water
 
         Texture2D flowNormalMap1;
 
-        FluidType fluidType = FluidType.Flow;
+        FluidType fluidType = FluidType.Ripple;
 
         Vector2 normalOffset0;
 
@@ -422,6 +422,44 @@ namespace Samples.Water
             Components.Add(frameRateMeasure);
 
             //IsFixedTimeStep = false;
+
+
+            Vector3 v1 = FlowVertices[0].Position;
+            Vector3 v2 = FlowVertices[1].Position;
+            Vector3 v3 = FlowVertices[2].Position;
+
+            Vector2 w1 = FlowVertices[0].TexCoord;
+            Vector2 w2 = FlowVertices[1].TexCoord;
+            Vector2 w3 = FlowVertices[2].TexCoord;
+
+            float x1 = v2.X - v1.X;
+            float x2 = v3.X - v1.X;
+
+            float y1 = v2.Y - v1.Y;
+            float y2 = v3.Y - v1.Y;
+
+            float z1 = v2.Z - v1.Z;
+            float z2 = v3.Z - v1.Z;
+
+            float s1 = w2.X - w1.X;
+            float s2 = w3.X - w1.X;
+
+            float t1 = w2.Y - w1.Y;
+            float t2 = w3.Y - w1.Y;
+
+            float r = 1.0f / (s1 * t2 - s2 * t1);
+
+            Vector3 sdir = new Vector3((t2 * x1 - t1 * x2) * r, (t2 * y1 - t1 * y2) * r, (t2 * z1 - t1 * z2) * r);
+            Vector3 tdir = new Vector3((s1 * x2 - s2 * x1) * r, (s1 * y2 - s2 * y1) * r, (s1 * z2 - s2 * z1) * r);
+
+            Vector3 normal = Vector3.Up;
+
+            Vector3 tangent = sdir - normal * Vector3.Dot(normal, sdir);
+            tangent.Normalize();
+
+            float tangentdir = (Vector3.Dot(Vector3.Cross(normal, sdir), tdir) >= 0.0f) ? 1.0f : -1.0f;
+
+            Vector3 binormal = Vector3.Cross(normal, tangent) * tangentdir;
 
             hudVisible = true;
         }

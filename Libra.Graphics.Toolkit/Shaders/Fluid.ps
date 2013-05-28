@@ -2,26 +2,25 @@
 //
 // http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter19.html
 
-cbuffer PerCamera : register(b0)
+cbuffer PerObject : register(b0)
 {
-    float3 EyePosition;
+    float4   FluidColor                 : packoffset(c0);
+    bool     FluidColorBlendEnabled     : packoffset(c1);
+    float    FluidColorBlendDistance    : packoffset(c1.y);
+    float    RippleScale                : packoffset(c1.z);
+    bool     RefractionMapEnabled       : packoffset(c2);
+    bool     ReflectionMapEnabled       : packoffset(c2.y);
+    float    ReflectionCoeff            : packoffset(c2.z);
+    float4x4 WorldView                  : packoffset(c3);
 };
 
-cbuffer PerObject : register(b1)
+cbuffer PerFrame : register(b1)
 {
-    float4 FluidColor               : packoffset(c0);
-    bool   FluidColorBlendEnabled   : packoffset(c1);
-    float  FluidColorBlendDistance  : packoffset(c1.y);
-    float  RippleScale              : packoffset(c1.z);
-    bool   RefractionMapEnabled     : packoffset(c2);
-    bool   ReflectionMapEnabled     : packoffset(c2.y);
-    float  ReflectionCoeff          : packoffset(c2.z);
-};
-
-cbuffer PerFrame : register(b2)
-{
-    float2 Offset0;
-    float2 Offset1;
+    float2 Offset0          : packoffset(c0);
+    float2 Offset1          : packoffset(c0.z);
+    float3 SpecularColor    : packoffset(c1);
+    float  SpecularPower    : packoffset(c1.w);
+    float3 LightDirection   : packoffset(c2);
 };
 
 Texture2D<float3> NormalMap0    : register(t0);
@@ -37,7 +36,7 @@ struct Input
 {
     float4 Position     : SV_Position;
     float2 TexCoord     : TEXCOORD0;
-    float4 PositionW    : TEXCOORD1;
+    float4 PositionWV   : TEXCOORD1;
     float4 PositionWVP  : TEXCOORD2;
     float4 PositionWRP  : TEXCOORD3;
 };
@@ -58,17 +57,23 @@ float4 PS(Input input) : SV_Target0
 {
     float2 texCoord0 = input.TexCoord + Offset0;
     float2 texCoord1 = input.TexCoord + Offset1;
-
     float3 normal0 = NormalMap0.SampleLevel(NormalMapSampler, texCoord0, 0);
     float3 normal1 = NormalMap1.SampleLevel(NormalMapSampler, texCoord1, 0);
 
+    // サンプリングした二つの法線の平均。
     float3 normal = (normal0 + normal1) / 2;
-    normal = normalize(normal);
 
-    float3 positionToEye = EyePosition - input.PositionW.xyz;
-    float eyeDistance = length(positionToEye);
-    float3 e = normalize(positionToEye);
-    float nDotL = dot(e, normal);
+    // 法線 (ビュー空間)。
+    float3 N = normalize(mul(normal, (float3x3) WorldView));
+
+    // 面から視点までの距離。
+    float eyeDistance = length(input.PositionWV.xyz);
+
+    // 面から視点への単位ベクトル (ビュー空間)。
+    float3 E = normalize(-input.PositionWV.xyz);
+
+    // 視点と法線のなす角。
+    float nDotL = max(dot(E, N), 0);
 
     float3 color;
 
@@ -115,6 +120,11 @@ float4 PS(Input input) : SV_Target0
         float fresnel = Fresnel(nDotL, ReflectionCoeff);
         color += fresnel * reflactionColor;
     }
+
+    float3 L = mul(-LightDirection, (float3x3) WorldView);
+    float3 R = normalize(reflect(input.PositionWV.xyz, N));
+    float3 specular = pow(max(dot(R, L), 0), SpecularPower) * SpecularColor;
+    color += specular;
 
     return float4(color, FluidColor.a);
 }
