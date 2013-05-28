@@ -120,13 +120,10 @@ Output PS(Input input)
 
         // フレネルの式に従い反射による色を決定し、これまでの流体色と合成。
         float fresnel = Fresnel(nDotL, ReflectionCoeff);
-        output.Color = float4(fresnel * reflactionColor + color, 1);
+        color += fresnel * reflactionColor;
     }
-    else
-    {
-        // 反射マップ未使用ならば、これまでの流体色を設定。
-        output.Color = float4(color, 1);
-    }
+
+    output.Color = float4(color, 1);
 
     return output;
 }
