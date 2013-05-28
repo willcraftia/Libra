@@ -151,9 +151,9 @@ namespace Samples.Water
         BasicEffect basicEffect;
 
         /// <summary>
-        /// 波エフェクト。
+        /// 波紋生成フィルタ。
         /// </summary>
-        WaveFilter waveFilter;
+        FluidRippleFilter fluidRippleFilter;
 
         /// <summary>
         /// 高低マップから法線マップへの変換器エフェクト。
@@ -375,8 +375,8 @@ namespace Samples.Water
             basicEffect.PerPixelLighting = true;
             basicEffect.EnableDefaultLighting();
 
-            waveFilter = new WaveFilter(Device);
-            waveFilter.TextureSampler = SamplerState.LinearWrap;
+            fluidRippleFilter = new FluidRippleFilter(Device);
+            fluidRippleFilter.TextureSampler = SamplerState.LinearWrap;
 
             heightToNormalConverter = new HeightToNormalConverter(Device);
             heightToNormalConverter.HeightMapSampler = SamplerState.LinearWrap;
@@ -427,16 +427,14 @@ namespace Samples.Water
             float elapsedTime = (float) gameTime.ElapsedGameTime.TotalSeconds;
 
             // 時間経過に応じて流体面のテクスチャを移動。
-            normalOffset0.X += elapsedTime * 1.0f;
-            normalOffset0.Y += elapsedTime * 1.0f;
-            normalOffset0.X %= 1.0f;
-            normalOffset0.Y %= 1.0f;
-            normalOffset1.X += elapsedTime * 0.6f;
-            normalOffset1.Y += elapsedTime * 0.6f;
-            //normalOffset1.X += elapsedTime * (float) Random.NextDouble();
-            //normalOffset1.Y += elapsedTime * (float) Random.NextDouble();
-            normalOffset1.X %= 1.0f;
-            normalOffset1.Y %= 1.0f;
+            //normalOffset0.X += elapsedTime * 1.0f;
+            //normalOffset0.Y += elapsedTime * 1.0f;
+            //normalOffset0.X %= 1.0f;
+            //normalOffset0.Y %= 1.0f;
+            //normalOffset1.X += elapsedTime * 0.6f;
+            //normalOffset1.Y += elapsedTime * 0.6f;
+            //normalOffset1.X %= 1.0f;
+            //normalOffset1.Y %= 1.0f;
 
             fluidEffect.Offset0 = normalOffset0;
             fluidEffect.Offset1 = normalOffset1;
@@ -449,7 +447,7 @@ namespace Samples.Water
                 var radius = Random.Next(1, 20) / 128.0f;
                 var velocity = (float) Random.NextDouble() * 0.05f;
 
-                waveFilter.AddWave(position, radius, velocity);
+                fluidRippleFilter.AddRipple(position, radius, velocity);
 
                 elapsedNewWaveTime -= newWaveInterval;
             }
@@ -471,11 +469,11 @@ namespace Samples.Water
             context.BlendState = BlendState.Opaque;
             context.DepthStencilState = DepthStencilState.Default;
 
-            // 波マップを描画。
-            CreateWaveMap();
+            // 波紋マップを描画。
+            CreateFluidRippleMap();
 
-            // 波マップから法線マップを生成。
-            CreateWaveNormalMap();
+            // 波紋マップから法線マップを生成。
+            CreateFluidNormalMap();
 
             // 反射シーンを描画。
             CreateReflectionMap();
@@ -495,7 +493,7 @@ namespace Samples.Water
             base.Draw(gameTime);
         }
 
-        void CreateWaveMap()
+        void CreateFluidRippleMap()
         {
             waveRenderTargetChain.Next();
 
@@ -504,8 +502,8 @@ namespace Samples.Water
 
             context.DepthStencilState = DepthStencilState.None;
 
-            waveFilter.Texture = waveRenderTargetChain.Last;
-            waveFilter.Apply(context);
+            fluidRippleFilter.Texture = waveRenderTargetChain.Last;
+            fluidRippleFilter.Apply(context);
 
             fullScreenQuad.Draw();
 
@@ -514,13 +512,13 @@ namespace Samples.Water
             context.DepthStencilState = null;
             context.PixelShaderResources[0] = null;
 
-            //heightToNormalConverter.HeightMap = waveRenderTargetChain.Current;
-            heightToNormalConverter.HeightMap = noiseWaveHeightMap;
+            heightToNormalConverter.HeightMap = waveRenderTargetChain.Current;
+            //heightToNormalConverter.HeightMap = noiseWaveHeightMap;
 
             textureDisplay.Textures.Add(waveRenderTargetChain.Current);
         }
 
-        void CreateWaveNormalMap()
+        void CreateFluidNormalMap()
         {
             context.SetRenderTarget(waveNormalMapRenderTarget);
             context.Clear(Vector3.Up.ToVector4());

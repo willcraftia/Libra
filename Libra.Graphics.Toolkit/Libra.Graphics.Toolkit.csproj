@@ -109,7 +109,7 @@
     <Compile Include="UpFilter.cs" />
     <Compile Include="VolumetricFogCombineFilter.cs" />
     <Compile Include="VolumetricFogMapEffect.cs" />
-    <Compile Include="WaveFilter.cs" />
+    <Compile Include="FluidRippleFilter.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Libra.Collections\Libra.Collections.csproj">
@@ -149,6 +149,7 @@
     <None Include="Shaders\Compiled\DofCombineFilterPS.bin" />
     <None Include="Shaders\Compiled\EdgeFilterPS.bin" />
     <None Include="Shaders\Compiled\FluidPS.bin" />
+    <None Include="Shaders\Compiled\FluidRippleFilterPS.bin" />
     <None Include="Shaders\Compiled\FluidVS.bin" />
     <None Include="Shaders\Compiled\FullScreenQuadViewRayVS.bin" />
     <None Include="Shaders\Compiled\HeightToGradientFilterPS.bin" />
@@ -171,7 +172,6 @@
     <None Include="Shaders\Compiled\VolumetricFogCombineFilterPS.bin" />
     <None Include="Shaders\Compiled\VolumetricFogMapPS.bin" />
     <None Include="Shaders\Compiled\VolumetricFogMapVS.bin" />
-    <None Include="Shaders\Compiled\WaveFilterPS.bin" />
     <None Include="Shaders\DepthMap.ps" />
     <None Include="Shaders\Fluid.ps" />
     <None Include="Shaders\Fluid.vs" />
@@ -226,7 +226,7 @@
     <None Include="Shaders\UpFilter.ps" />
     <None Include="Shaders\VolumetricFogMap.ps" />
     <None Include="Shaders\VolumetricFogMap.vs" />
-    <None Include="Shaders\WaveFilter.ps" />
+    <None Include="Shaders\FluidRippleFilter.ps" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

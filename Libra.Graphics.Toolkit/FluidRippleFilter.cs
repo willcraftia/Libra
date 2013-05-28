@@ -8,7 +8,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class WaveFilter : IFilterEffect, IDisposable
+    public sealed class FluidRippleFilter : IFilterEffect, IDisposable
     {
         #region SharedDeviceResource
 
@@ -19,7 +19,7 @@ namespace Libra.Graphics.Toolkit
             public SharedDeviceResource(Device device)
             {
                 PixelShader = device.CreatePixelShader();
-                PixelShader.Initialize(Resources.WaveFilterPS);
+                PixelShader.Initialize(Resources.FluidRippleFilterPS);
             }
         }
 
@@ -52,11 +52,11 @@ namespace Libra.Graphics.Toolkit
 
         public struct ParametersPerFrame
         {
-            public Vector2 NewWavePosition;
+            public Vector2 NewPosition;
 
-            public float NewWaveRadius;
+            public float NewRadius;
 
-            public float NewWaveVelocity;
+            public float NewVelocity;
         }
 
         #endregion
@@ -70,7 +70,6 @@ namespace Libra.Graphics.Toolkit
             ConstantBufferPerRenderTarget   = (1 << 1),
             ConstantBufferPerFrame          = (1 << 2),
             Offsets                         = (1 << 3),
-            NewWave                         = (1 << 4),
         }
 
         #endregion
@@ -101,12 +100,6 @@ namespace Libra.Graphics.Toolkit
 
         ParametersPerFrame parametersPerFrame;
 
-        Vector2 newWavePosition;
-
-        float newWaveRadius;
-
-        float newWaveVelocity;
-
         int viewportWidth;
 
         int viewportHeight;
@@ -130,13 +123,13 @@ namespace Libra.Graphics.Toolkit
 
         public SamplerState TextureSampler { get; set; }
 
-        public WaveFilter(Device device)
+        public FluidRippleFilter(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 
             this.device = device;
 
-            sharedDeviceResource = device.GetSharedResource<WaveFilter, SharedDeviceResource>();
+            sharedDeviceResource = device.GetSharedResource<FluidRippleFilter, SharedDeviceResource>();
 
             constantBufferPerObject = device.CreateConstantBuffer();
             constantBufferPerObject.Initialize<ParametersPerObject>();
@@ -151,9 +144,9 @@ namespace Libra.Graphics.Toolkit
 
             parametersPerRenderTarget.Offsets = new Vector4[KernelSize];
 
-            parametersPerFrame.NewWavePosition = Vector2.Zero;
-            parametersPerFrame.NewWaveRadius = 0.0f;
-            parametersPerFrame.NewWaveVelocity = 0.0f;
+            parametersPerFrame.NewPosition = Vector2.Zero;
+            parametersPerFrame.NewRadius = 0.0f;
+            parametersPerFrame.NewVelocity = 0.0f;
 
             Enabled = true;
 
@@ -164,18 +157,18 @@ namespace Libra.Graphics.Toolkit
                 DirtyFlags.Offsets;
         }
 
-        public void AddWave(Vector2 position, float radius, float velocity)
+        public void AddRipple(Vector2 position, float radius, float velocity)
         {
             if (position.X < 0.0f || 1.0f < position.X ||
                 position.Y < 0.0f || 1.0f < position.Y)
                 throw new ArgumentOutOfRangeException("position");
             if (radius <= 0.0f) throw new ArgumentOutOfRangeException("radius");
 
-            newWavePosition = position;
-            newWaveRadius = radius;
-            newWaveVelocity = velocity;
+            parametersPerFrame.NewPosition = position;
+            parametersPerFrame.NewRadius = radius;
+            parametersPerFrame.NewVelocity = velocity;
 
-            dirtyFlags |= DirtyFlags.NewWave;
+            dirtyFlags |= DirtyFlags.ConstantBufferPerFrame;
         }
 
         public void Apply(DeviceContext context)
@@ -204,16 +197,6 @@ namespace Libra.Graphics.Toolkit
 
                 dirtyFlags &= ~DirtyFlags.Offsets;
                 dirtyFlags |= DirtyFlags.ConstantBufferPerRenderTarget;
-            }
-
-            if ((dirtyFlags & DirtyFlags.NewWave) != 0)
-            {
-                parametersPerFrame.NewWavePosition = newWavePosition;
-                parametersPerFrame.NewWaveRadius = newWaveRadius;
-                parametersPerFrame.NewWaveVelocity = newWaveVelocity;
-
-                dirtyFlags &= ~DirtyFlags.NewWave;
-                dirtyFlags |= DirtyFlags.ConstantBufferPerFrame;
             }
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerObject) != 0)
@@ -249,7 +232,7 @@ namespace Libra.Graphics.Toolkit
 
         bool disposed;
 
-        ~WaveFilter()
+        ~FluidRippleFilter()
         {
             Dispose(false);
         }

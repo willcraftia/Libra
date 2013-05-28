@@ -137,6 +137,13 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
+        internal static byte[] FluidRippleFilterPS {
+            get {
+                object obj = ResourceManager.GetObject("FluidRippleFilterPS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
         internal static byte[] FluidVS {
             get {
                 object obj = ResourceManager.GetObject("FluidVS", resourceCulture);
@@ -350,13 +357,6 @@ namespace Libra.Graphics.Toolkit.Properties {
         internal static byte[] VolumetricFogMapVS {
             get {
                 object obj = ResourceManager.GetObject("VolumetricFogMapVS", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        internal static byte[] WaveFilterPS {
-            get {
-                object obj = ResourceManager.GetObject("WaveFilterPS", resourceCulture);
                 return ((byte[])(obj));
             }
         }

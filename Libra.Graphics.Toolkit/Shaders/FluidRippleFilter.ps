@@ -11,12 +11,13 @@ cbuffer PerRenderTarget : register(b1)
 
 cbuffer PerFrame : register(b2)
 {
-    float2 NewWavePosition;
-    float  NewWaveRadius;
-    float  NewWaveVeclocity;
+    // 全てテクスチャ座標系
+    float2 NewPosition;
+    float  NewRadius;
+    float  NewVeclocity;
 };
 
-// 前フレームにおける波マップ。
+// 前フレームにおける波紋マップ。
 // x: 高低
 // y: 速度
 Texture2D<float2> Texture : register(t0);
@@ -37,9 +38,9 @@ float4 PS(float2 texCoord : TEXCOORD0) : SV_Target0
     float velocity = c.y + f;
     float height = c.x + velocity;
 
-    if (distance(NewWavePosition, texCoord) <= NewWaveRadius)
+    if (distance(NewPosition, texCoord) <= NewRadius)
     {
-        velocity += NewWaveVeclocity;
+        velocity += NewVeclocity;
     }
 
     return float4(height, velocity, 0, 0);
