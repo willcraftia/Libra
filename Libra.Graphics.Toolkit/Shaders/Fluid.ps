@@ -20,7 +20,8 @@ cbuffer PerObject : register(b1)
 
 cbuffer PerFrame : register(b2)
 {
-    float2 Offset;
+    float2 Offset0;
+    float2 Offset1;
 };
 
 Texture2D<float3> NormalMap     : register(t0);
@@ -61,9 +62,15 @@ Output PS(Input input)
 {
     Output output;
 
-    float2 texCoord = input.TexCoord + Offset;
+    float2 texCoord0 = input.TexCoord + Offset0;
+    float2 texCoord1 = input.TexCoord + Offset1;
 
-    float3 normal = NormalMap.SampleLevel(NormalMapSampler, texCoord, 0);
+    float3 normal0 = NormalMap.SampleLevel(NormalMapSampler, texCoord0, 0);
+    float3 normal1 = NormalMap.SampleLevel(NormalMapSampler, texCoord1, 0);
+
+    float3 normal = (normal0 + normal1) / 2;
+
+//    float3 normal = NormalMap.SampleLevel(NormalMapSampler, texCoord0, 0);
     normal = normalize(normal);
 
     float3 positionToEye = EyePosition - input.PositionW.xyz;

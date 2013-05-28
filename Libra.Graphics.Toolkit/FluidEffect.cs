@@ -87,7 +87,9 @@ namespace Libra.Graphics.Toolkit
         [StructLayout(LayoutKind.Sequential, Size = 16)]
         struct ParametersPerFramePS
         {
-            public Vector2 Offset;
+            public Vector2 Offset0;
+
+            public Vector2 Offset1;
         }
 
         #endregion
@@ -278,12 +280,23 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        public Vector2 Offset
+        public Vector2 Offset0
         {
-            get { return parametersPerFramePS.Offset; }
+            get { return parametersPerFramePS.Offset0; }
             set
             {
-                parametersPerFramePS.Offset = value;
+                parametersPerFramePS.Offset0 = value;
+
+                dirtyFlags |= DirtyFlags.ConstantBufferPerFramePS;
+            }
+        }
+
+        public Vector2 Offset1
+        {
+            get { return parametersPerFramePS.Offset1; }
+            set
+            {
+                parametersPerFramePS.Offset1 = value;
 
                 dirtyFlags |= DirtyFlags.ConstantBufferPerFramePS;
             }
@@ -355,7 +368,7 @@ namespace Libra.Graphics.Toolkit
             parametersPerObjectPS.FluidColorBlendDistance = 50.0f;
             parametersPerObjectPS.FluidColorBlendEnabled = false;
             parametersPerObjectPS.RippleScale = 0.01f;
-            parametersPerFramePS.Offset = Vector2.Zero;
+            parametersPerFramePS.Offset0 = Vector2.Zero;
 
             NormalMapSampler = SamplerState.LinearWrap;
             ReflectionMapSampler = SamplerState.LinearClamp;

@@ -259,6 +259,14 @@ namespace Samples.Water
 
         SumFractal sumFractal = new SumFractal();
 
+        Heterofractal heterofractal = new Heterofractal();
+
+        Multifractal multifractal = new Multifractal();
+
+        RidgedMultifractal ridgedMultifractal = new RidgedMultifractal();
+
+        SinFractal sinFractal = new SinFractal();
+
         NoiseMap noiseMap = new NoiseMap(128, 128);
 
         NoiseMapBuilder noiseMapBuilder = new NoiseMapBuilder();
@@ -296,9 +304,20 @@ namespace Samples.Water
 
             // ノイズ設定。
             perlin.Seed = 999;
+            
             sumFractal.Source = perlin;
+            heterofractal.Source = perlin;
+            multifractal.Source = perlin;
+            ridgedMultifractal.Source = perlin;
+            sinFractal.Source = perlin;
+
             noiseMapBuilder.Source = sumFractal;
+            //noiseMapBuilder.Source = heterofractal;
+            //noiseMapBuilder.Source = multifractal;
+            //noiseMapBuilder.Source = ridgedMultifractal;
+            //noiseMapBuilder.Source = sinFractal;
             noiseMapBuilder.Destination = noiseMap;
+            noiseMapBuilder.Bounds = new Bounds(0.0f, 0.0f, 8.0f, 8.0f);
             noiseMapBuilder.SeamlessEnabled = true;
 
             textureDisplay = new TextureDisplay(this);
@@ -394,6 +413,9 @@ namespace Samples.Water
             noiseWaveHeightMap.SetData(context, noiseMap.Values);
         }
 
+        Vector2 normalOffset0;
+        Vector2 normalOffset1;
+
         protected override void Update(GameTime gameTime)
         {
             // キーボード状態およびジョイスティック状態のハンドリング。
@@ -405,10 +427,19 @@ namespace Samples.Water
             float elapsedTime = (float) gameTime.ElapsedGameTime.TotalSeconds;
 
             // 時間経過に応じて流体面のテクスチャを移動。
-            var offset = fluidEffect.Offset;
-            offset.X += elapsedTime * 1.0f;
-            offset.Y += elapsedTime * 1.0f;
-            fluidEffect.Offset = offset;
+            normalOffset0.X += elapsedTime * 1.0f;
+            normalOffset0.Y += elapsedTime * 1.0f;
+            normalOffset0.X %= 1.0f;
+            normalOffset0.Y %= 1.0f;
+            normalOffset1.X += elapsedTime * 0.6f;
+            normalOffset1.Y += elapsedTime * 0.6f;
+            //normalOffset1.X += elapsedTime * (float) Random.NextDouble();
+            //normalOffset1.Y += elapsedTime * (float) Random.NextDouble();
+            normalOffset1.X %= 1.0f;
+            normalOffset1.Y %= 1.0f;
+
+            fluidEffect.Offset0 = normalOffset0;
+            fluidEffect.Offset1 = normalOffset1;
 
             // 一定時間が経過したらランダムな新しい波を追加。
             elapsedNewWaveTime += elapsedTime;
