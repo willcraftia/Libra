@@ -73,7 +73,7 @@ float4 PS(Input input) : SV_Target0
     float3 E = normalize(-input.PositionWV.xyz);
 
     // 視点と法線のなす角。
-    float nDotL = max(dot(E, N), 0);
+    float nDotE = max(dot(E, N), 0);
 
     float3 color;
 
@@ -95,7 +95,7 @@ float4 PS(Input input) : SV_Target0
             // 視点と法線が垂直に近い程に流体の色が見える。
             // 並行、すなわち、真上から見る程に、流体の色よりも流体の中が見える。
 
-            float facing = 1 - nDotL;
+            float facing = 1 - nDotE;
             color = lerp(color, FluidColor.rgb, facing);
         }
         else
@@ -117,7 +117,8 @@ float4 PS(Input input) : SV_Target0
         float3 reflactionColor = ReflectionMap.Sample(ReflectionMapSampler, reflectionTexCoord);
 
         // フレネルの式に従い反射による色を決定し、これまでの流体色と合成。
-        float fresnel = Fresnel(nDotL, ReflectionCoeff);
+        // ここでは視線を入射光とし、法線と視線の内積から算出。
+        float fresnel = Fresnel(nDotE, ReflectionCoeff);
         color += fresnel * reflactionColor;
     }
 
