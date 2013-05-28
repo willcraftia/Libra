@@ -25,6 +25,69 @@ namespace Samples.Water
             Flow
         }
 
+        public sealed class SeamlessNoiseMap
+        {
+            public readonly float[] Values;
+
+            int width;
+
+            int height;
+
+            public int Width
+            {
+                get { return width; }
+            }
+
+            public int Height
+            {
+                get { return height; }
+            }
+
+            public float this[int x, int y]
+            {
+                get
+                {
+                    x %= width;
+                    y %= height;
+
+                    if (x < 0) x += width;
+                    if (width <= x) x -= width;
+                    if (y < 0) y += height;
+                    if (height <= y) y -= height;
+
+                    return Values[x + y * width];
+                }
+                set
+                {
+                    x %= width;
+                    y %= height;
+
+                    if (x < 0) x += width;
+                    if (width <= x) x -= width;
+                    if (y < 0) y += height;
+                    if (height <= y) y -= height;
+
+                    Values[x + y * width] = value;
+                }
+            }
+
+            public SeamlessNoiseMap(int width, int height)
+            {
+                if (width < 1) throw new ArgumentOutOfRangeException("width");
+                if (height < 1) throw new ArgumentOutOfRangeException("height");
+
+                this.width = width;
+                this.height = height;
+
+                Values = new float[width * height];
+            }
+
+            public void Clear()
+            {
+                Array.Clear(Values, 0, Values.Length);
+            }
+        }
+
         /// <summary>
         /// ウィンドウの幅。
         /// </summary>
@@ -287,13 +350,21 @@ namespace Samples.Water
 
         SinFractal sinFractal = new SinFractal();
 
-        NoiseMap noiseMap = new NoiseMap(128, 128);
+        SeamlessNoiseMap noiseHeightMap0 = new SeamlessNoiseMap(128, 128);
+
+        SeamlessNoiseMap noiseHeightMap1 = new SeamlessNoiseMap(128, 128);
 
         NoiseMapBuilder noiseMapBuilder = new NoiseMapBuilder();
 
-        Texture2D noiseWaveHeightMap;
+        Texture2D flowNormalMap0;
 
-        FluidType fluidType = FluidType.Ripple;
+        Texture2D flowNormalMap1;
+
+        FluidType fluidType = FluidType.Flow;
+
+        Vector2 normalOffset0;
+
+        Vector2 normalOffset1;
 
         /// <summary>
         /// HUD テキストを表示するか否かを示す値。
@@ -338,7 +409,6 @@ namespace Samples.Water
             //noiseMapBuilder.Source = multifractal;
             //noiseMapBuilder.Source = ridgedMultifractal;
             //noiseMapBuilder.Source = sinFractal;
-            noiseMapBuilder.Destination = noiseMap;
             noiseMapBuilder.Bounds = new Bounds(0.0f, 0.0f, 8.0f, 8.0f);
             noiseMapBuilder.SeamlessEnabled = true;
 
@@ -426,19 +496,47 @@ namespace Samples.Water
             cylinderMesh = new CylinderMesh(context, 80, 20, 32);
             squareMesh = new SquareMesh(context, 400);
 
-            // ノイズによる波ハイトマップの生成。
-            noiseMapBuilder.Build();
-
-            noiseWaveHeightMap = Device.CreateTexture2D();
-            noiseWaveHeightMap.Width = noiseMap.Width;
-            noiseWaveHeightMap.Height = noiseMap.Height;
-            noiseWaveHeightMap.Format = SurfaceFormat.Single;
-            noiseWaveHeightMap.Initialize();
-            noiseWaveHeightMap.SetData(context, noiseMap.Values);
+            flowNormalMap0 = CreateNoiseNormalMap(noiseHeightMap0, new Bounds(0, 0, 10, 10));
+            flowNormalMap1 = CreateNoiseNormalMap(noiseHeightMap1, new Bounds(100, 100, 110, 110));
         }
 
-        Vector2 normalOffset0;
-        Vector2 normalOffset1;
+        Texture2D CreateNoiseNormalMap(SeamlessNoiseMap noiseHeightMap, Bounds bounds)
+        {
+            // ノイズによる流体ハイトマップの生成。
+            noiseMapBuilder.Bounds = bounds;
+            noiseMapBuilder.Build(noiseHeightMap.Values, noiseHeightMap.Width, noiseHeightMap.Height);
+
+            // 流体ハイトマップから法線マップを生成。
+            Vector4[] noiseNormals = new Vector4[noiseHeightMap.Values.Length];
+            for (int y = 0; y < noiseHeightMap.Height; y++)
+            {
+                for (int x = 0; x < noiseHeightMap.Width; x++)
+                {
+                    float h0 = noiseHeightMap[x - 1, y    ];
+                    float h1 = noiseHeightMap[x + 1, y    ];
+                    float h2 = noiseHeightMap[x,     y - 1];
+                    float h3 = noiseHeightMap[x,     y + 1];
+
+                    Vector3 u = new Vector3(1.0f, (h1 - h0) * 0.5f, 0.0f);
+                    Vector3 v = new Vector3(0.0f, (h3 - h2) * 0.5f, 1.0f);
+
+                    Vector3 normal;
+                    Vector3.Cross(ref v, ref u, out normal);
+                    normal.Normalize();
+
+                    noiseNormals[x + y * noiseHeightMap.Width] = new Vector4(normal, 0.0f);
+                }
+            }
+
+            var texture = Device.CreateTexture2D();
+            texture.Width = noiseHeightMap.Width;
+            texture.Height = noiseHeightMap.Height;
+            texture.Format = SurfaceFormat.Vector4;
+            texture.Initialize();
+            texture.SetData(context, noiseNormals);
+
+            return texture;
+        }
 
         protected override void Update(GameTime gameTime)
         {
@@ -453,14 +551,14 @@ namespace Samples.Water
             if (fluidType == FluidType.Flow)
             {
                 // 時間経過に応じて流体面のテクスチャを移動。
-                //normalOffset0.X += elapsedTime * 1.0f;
-                //normalOffset0.Y += elapsedTime * 1.0f;
-                //normalOffset0.X %= 1.0f;
-                //normalOffset0.Y %= 1.0f;
-                //normalOffset1.X += elapsedTime * 0.6f;
-                //normalOffset1.Y += elapsedTime * 0.6f;
-                //normalOffset1.X %= 1.0f;
-                //normalOffset1.Y %= 1.0f;
+                normalOffset0.X += elapsedTime * 1.0f;
+                normalOffset0.Y += elapsedTime * 1.0f;
+                normalOffset0.X %= 1.0f;
+                normalOffset0.Y %= 1.0f;
+                normalOffset1.X += elapsedTime * 0.2f;
+                normalOffset1.Y += elapsedTime * 0.6f;
+                normalOffset1.X %= 1.0f;
+                normalOffset1.Y %= 1.0f;
 
                 fluidEffect.Offset0 = normalOffset0;
                 fluidEffect.Offset1 = normalOffset1;
@@ -512,6 +610,11 @@ namespace Samples.Water
             }
             else if (fluidType == FluidType.Flow)
             {
+                fluidEffect.NormalMap = flowNormalMap0;
+                fluidEffect.NormalMapSampler = SamplerState.LinearWrap;
+
+                textureDisplay.Textures.Add(flowNormalMap0);
+                textureDisplay.Textures.Add(flowNormalMap1);
             }
 
             // 反射シーンを描画。
@@ -526,8 +629,6 @@ namespace Samples.Water
             // HUD のテキストを描画。
             if (hudVisible)
                 DrawOverlayText();
-
-            textureDisplay.Textures.Add(noiseWaveHeightMap);
 
             base.Draw(gameTime);
         }
