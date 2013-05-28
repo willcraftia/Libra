@@ -24,9 +24,10 @@ cbuffer PerFrame : register(b2)
     float2 Offset1;
 };
 
-Texture2D<float3> NormalMap     : register(t0);
-Texture2D<float3> ReflectionMap : register(t1);
-Texture2D<float3> RefractionMap : register(t2);
+Texture2D<float3> NormalMap0    : register(t0);
+Texture2D<float3> NormalMap1    : register(t1);
+Texture2D<float3> ReflectionMap : register(t2);
+Texture2D<float3> RefractionMap : register(t3);
 
 SamplerState NormalMapSampler       : register(s0);
 SamplerState ReflectionMapSampler   : register(s1);
@@ -65,12 +66,10 @@ Output PS(Input input)
     float2 texCoord0 = input.TexCoord + Offset0;
     float2 texCoord1 = input.TexCoord + Offset1;
 
-    float3 normal0 = NormalMap.SampleLevel(NormalMapSampler, texCoord0, 0);
-    float3 normal1 = NormalMap.SampleLevel(NormalMapSampler, texCoord1, 0);
+    float3 normal0 = NormalMap0.SampleLevel(NormalMapSampler, texCoord0, 0);
+    float3 normal1 = NormalMap1.SampleLevel(NormalMapSampler, texCoord1, 0);
 
     float3 normal = (normal0 + normal1) / 2;
-
-//    float3 normal = NormalMap.SampleLevel(NormalMapSampler, texCoord0, 0);
     normal = normalize(normal);
 
     float3 positionToEye = EyePosition - input.PositionW.xyz;

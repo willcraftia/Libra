@@ -302,7 +302,9 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        public ShaderResourceView NormalMap { get; set; }
+        public ShaderResourceView NormalMap0 { get; set; }
+
+        public ShaderResourceView NormalMap1 { get; set; }
 
         public ShaderResourceView ReflectionMap
         {
@@ -481,9 +483,10 @@ namespace Libra.Graphics.Toolkit
             context.PixelShaderConstantBuffers[0] = constantBufferPerCameraPS;
             context.PixelShaderConstantBuffers[1] = constantBufferPerObjectPS;
             context.PixelShaderConstantBuffers[2] = constantBufferPerFramePS;
-            context.PixelShaderResources[0] = NormalMap;
-            context.PixelShaderResources[1] = reflectionMap;
-            context.PixelShaderResources[2] = refractionMap;
+            context.PixelShaderResources[0] = NormalMap0;
+            context.PixelShaderResources[1] = NormalMap1;
+            context.PixelShaderResources[2] = reflectionMap;
+            context.PixelShaderResources[3] = refractionMap;
             context.PixelShaderSamplers[0] = NormalMapSampler;
             context.PixelShaderSamplers[1] = ReflectionMapSampler;
             context.PixelShaderSamplers[2] = RefractionMapSampler;

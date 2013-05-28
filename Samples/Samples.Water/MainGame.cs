@@ -496,8 +496,8 @@ namespace Samples.Water
             cylinderMesh = new CylinderMesh(context, 80, 20, 32);
             squareMesh = new SquareMesh(context, 400);
 
-            flowNormalMap0 = CreateNoiseNormalMap(noiseHeightMap0, new Bounds(0, 0, 10, 10));
-            flowNormalMap1 = CreateNoiseNormalMap(noiseHeightMap1, new Bounds(100, 100, 110, 110));
+            flowNormalMap0 = CreateNoiseNormalMap(noiseHeightMap0, new Bounds(0, 0, 5, 5));
+            flowNormalMap1 = CreateNoiseNormalMap(noiseHeightMap1, new Bounds(2, 2, 7, 7));
         }
 
         Texture2D CreateNoiseNormalMap(SeamlessNoiseMap noiseHeightMap, Bounds bounds)
@@ -555,8 +555,8 @@ namespace Samples.Water
                 normalOffset0.Y += elapsedTime * 1.0f;
                 normalOffset0.X %= 1.0f;
                 normalOffset0.Y %= 1.0f;
-                normalOffset1.X += elapsedTime * 0.2f;
-                normalOffset1.Y += elapsedTime * 0.6f;
+                normalOffset1.X += elapsedTime * 0.6f;
+                normalOffset1.Y += elapsedTime * 0.7f;
                 normalOffset1.X %= 1.0f;
                 normalOffset1.Y %= 1.0f;
 
@@ -606,11 +606,13 @@ namespace Samples.Water
                 CreateFluidNormalMap();
 
                 // 波紋マップから生成された法線マップを設定。
-                fluidEffect.NormalMap = rippleNormalMapRenderTarget;
+                fluidEffect.NormalMap0 = rippleNormalMapRenderTarget;
+                fluidEffect.NormalMap1 = rippleNormalMapRenderTarget;
             }
             else if (fluidType == FluidType.Flow)
             {
-                fluidEffect.NormalMap = flowNormalMap0;
+                fluidEffect.NormalMap0 = flowNormalMap0;
+                fluidEffect.NormalMap1 = flowNormalMap1;
                 fluidEffect.NormalMapSampler = SamplerState.LinearWrap;
 
                 textureDisplay.Textures.Add(flowNormalMap0);
@@ -653,7 +655,6 @@ namespace Samples.Water
             context.PixelShaderResources[0] = null;
 
             heightToNormalConverter.HeightMap = rippleRenderTargetChain.Current;
-            //heightToNormalConverter.HeightMap = noiseWaveHeightMap;
 
             textureDisplay.Textures.Add(rippleRenderTargetChain.Current);
         }
@@ -676,8 +677,6 @@ namespace Samples.Water
             context.PixelShaderResources[0] = null;
 
             context.SetRenderTarget(null);
-
-            //fluidEffect.NormalMap = fluidNormalMapRenderTarget;
 
             textureDisplay.Textures.Add(rippleNormalMapRenderTarget);
         }
