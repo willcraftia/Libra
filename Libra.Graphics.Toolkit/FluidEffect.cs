@@ -59,15 +59,15 @@ namespace Libra.Graphics.Toolkit
         struct ParametersPerObjectPS
         {
             [FieldOffset(0)]
-            public Vector3 FluidColor;
-
-            [FieldOffset(12)]
-            public bool FluidColorBlendEnabled;
+            public Vector4 FluidColor;
 
             [FieldOffset(16)]
-            public float FluidColorBlendDistance;
+            public bool FluidColorBlendEnabled;
 
             [FieldOffset(20)]
+            public float FluidColorBlendDistance;
+
+            [FieldOffset(24)]
             public float RippleScale;
 
             [FieldOffset(32)]
@@ -108,7 +108,8 @@ namespace Libra.Graphics.Toolkit
             ViewProjection              = (1 << 6),
             WorldViewProjection         = (1 << 7),
             WorldReflectionProjection   = (1 << 8),
-            ReflectionCoeff             = (1 << 9)
+            ReflectionCoeff             = (1 << 9),
+            MaterialColor                = (1 << 10),
         }
 
         #endregion
@@ -152,6 +153,10 @@ namespace Libra.Graphics.Toolkit
         float refractiveIndex1;
 
         float refractiveIndex2;
+
+        Vector3 fluidColor;
+
+        float alpha;
 
         ShaderResourceView reflectionMap;
 
@@ -212,12 +217,23 @@ namespace Libra.Graphics.Toolkit
 
         public Vector3 FluidColor
         {
-            get { return parametersPerObjectPS.FluidColor; }
+            get { return fluidColor; }
             set
             {
-                parametersPerObjectPS.FluidColor = value;
+                fluidColor = value;
 
-                dirtyFlags |= DirtyFlags.ConstantBufferPerObjectPS;
+                dirtyFlags |= DirtyFlags.MaterialColor;
+            }
+        }
+
+        public float Alpha
+        {
+            get { return alpha; }
+            set
+            {
+                alpha = value;
+
+                dirtyFlags |= DirtyFlags.MaterialColor;
             }
         }
 
@@ -362,11 +378,12 @@ namespace Libra.Graphics.Toolkit
             viewProjection = Matrix.Identity;
             refractiveIndex1 = RefractiveIndexAir;
             refractiveIndex2 = RefracticeIndexWater;
+            fluidColor = new Vector3(0.0f, 0.55f, 0.515f);
+            alpha = 1.0f;
 
             parametersPerCameraPS.EyePosition = Vector3.Zero;
             parametersPerObjectVS.WorldViewProjection = Matrix.Identity;
             parametersPerObjectVS.WorldReflectionProjection = Matrix.Identity;
-            parametersPerObjectPS.FluidColor = new Vector3(0.0f, 0.55f, 0.515f);
             parametersPerObjectPS.FluidColorBlendDistance = 50.0f;
             parametersPerObjectPS.FluidColorBlendEnabled = false;
             parametersPerObjectPS.RippleScale = 0.01f;
@@ -377,7 +394,8 @@ namespace Libra.Graphics.Toolkit
                 DirtyFlags.ConstantBufferPerCameraPS |
                 DirtyFlags.ConstantBufferPerObjectPS |
                 DirtyFlags.ConstantBufferPerFramePS |
-                DirtyFlags.ReflectionCoeff;
+                DirtyFlags.ReflectionCoeff |
+                DirtyFlags.MaterialColor;
         }
 
         public void Apply(DeviceContext context)
@@ -445,6 +463,17 @@ namespace Libra.Graphics.Toolkit
                 parametersPerObjectPS.ReflectionCoeff = r;
 
                 dirtyFlags &= ~DirtyFlags.ReflectionCoeff;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObjectPS;
+            }
+
+            if ((dirtyFlags & DirtyFlags.MaterialColor) != 0)
+            {
+                parametersPerObjectPS.FluidColor.X = fluidColor.X * alpha;
+                parametersPerObjectPS.FluidColor.Y = fluidColor.Y * alpha;
+                parametersPerObjectPS.FluidColor.Z = fluidColor.Z * alpha;
+                parametersPerObjectPS.FluidColor.W = alpha;
+
+                dirtyFlags &= ~DirtyFlags.MaterialColor;
                 dirtyFlags |= DirtyFlags.ConstantBufferPerObjectPS;
             }
 

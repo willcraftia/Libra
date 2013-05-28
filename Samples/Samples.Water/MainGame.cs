@@ -851,8 +851,10 @@ namespace Samples.Water
             context.IndexBuffer = fluidIndexBuffer;
 
             context.RasterizerState = RasterizerState.CullNone;
+            context.BlendState = BlendState.AlphaBlend;
             context.DrawIndexed(fluidIndexBuffer.IndexCount);
             context.RasterizerState = null;
+            context.BlendState = null;
 
             DrawSceneWithoutFluid(basicEffect, ref camera.View);
         }

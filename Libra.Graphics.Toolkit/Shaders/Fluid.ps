@@ -9,10 +9,10 @@ cbuffer PerCamera : register(b0)
 
 cbuffer PerObject : register(b1)
 {
-    float3 FluidColor               : packoffset(c0);
-    bool   FluidColorBlendEnabled   : packoffset(c0.w);
-    float  FluidColorBlendDistance  : packoffset(c1);
-    float  RippleScale              : packoffset(c1.y);
+    float4 FluidColor               : packoffset(c0);
+    bool   FluidColorBlendEnabled   : packoffset(c1);
+    float  FluidColorBlendDistance  : packoffset(c1.y);
+    float  RippleScale              : packoffset(c1.z);
     bool   RefractionMapEnabled     : packoffset(c2);
     bool   ReflectionMapEnabled     : packoffset(c2.y);
     float  ReflectionCoeff          : packoffset(c2.z);
@@ -85,13 +85,13 @@ float4 PS(Input input) : SV_Target0
             // 流体の色を掛け合わせ始める距離が FluidColorBlendDistance。
 
             float distanceScale = saturate(FluidColorBlendDistance / eyeDistance);
-            color = lerp(FluidColor, refractionColor, distanceScale);
+            color = lerp(FluidColor.rgb, refractionColor, distanceScale);
 
             // 視点と法線が垂直に近い程に流体の色が見える。
             // 並行、すなわち、真上から見る程に、流体の色よりも流体の中が見える。
 
             float facing = 1 - nDotL;
-            color = lerp(color, FluidColor, facing);
+            color = lerp(color, FluidColor.rgb, facing);
         }
         else
         {
@@ -101,7 +101,7 @@ float4 PS(Input input) : SV_Target0
     else
     {
         // 屈折マップ未使用ならば流体色を設定。
-        color = FluidColor;
+        color = FluidColor.rgb;
     }
 
     if (ReflectionMapEnabled)
@@ -116,5 +116,5 @@ float4 PS(Input input) : SV_Target0
         color += fresnel * reflactionColor;
     }
 
-    return float4(color, 1);
+    return float4(color, FluidColor.a);
 }
