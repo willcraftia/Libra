@@ -370,6 +370,10 @@ namespace Samples.Water
 
         Vector2 normalOffset1;
 
+        Vector3 ambientLightColor = new Vector3(0.15f, 0.15f, 0.15f);
+
+        Vector3 fluidDiffuseColor = new Vector3(0.2f, 0.55f, 0.515f);
+
         Vector3 fluidSpecularColor = new Vector3(0.8f, 0.8f, 0.8f);
 
         float fluidSpecularPower = 32;
@@ -481,7 +485,7 @@ namespace Samples.Water
             refractionSceneRenderTarget.Initialize();
 
             basicEffect = new BasicEffect(Device);
-            basicEffect.AmbientLightColor = new Vector3(0.15f, 0.15f, 0.15f);
+            basicEffect.AmbientLightColor = ambientLightColor;
             basicEffect.PerPixelLighting = true;
             basicEffect.EnableDefaultLighting();
             basicEffect.DirectionalLights[0].Direction = lightDirection;
@@ -495,14 +499,14 @@ namespace Samples.Water
             fullScreenQuad = new FullScreenQuad(context);
 
             fluidEffect = new FluidEffect(Device);
-            fluidEffect.FluidColorBlendDistance = 50.0f;
-            fluidEffect.FluidColorBlendEnabled = true;
+            fluidEffect.AmbientLightColor = ambientLightColor;
+            fluidEffect.DiffuseColor = fluidDiffuseColor;
             fluidEffect.SpecularColor = fluidSpecularColor;
             fluidEffect.SpecularPower = fluidSpecularPower;
             fluidEffect.LightDirection = lightDirection;
 
             clippingEffect = new ClippingEffect(Device);
-            clippingEffect.AmbientLightColor = new Vector3(0.15f, 0.15f, 0.15f);
+            clippingEffect.AmbientLightColor = ambientLightColor;
             clippingEffect.EnableDefaultLighting();
 
             rippleVertexBuffer = Device.CreateVertexBuffer();

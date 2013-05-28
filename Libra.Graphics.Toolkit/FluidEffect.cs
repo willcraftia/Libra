@@ -45,31 +45,37 @@ namespace Libra.Graphics.Toolkit
 
         #region ParametersPerObjectPS
 
-        [StructLayout(LayoutKind.Explicit, Size = 112)]
+        [StructLayout(LayoutKind.Explicit, Size = 144)]
         struct ParametersPerObjectPS
         {
             [FieldOffset(0)]
-            public Vector4 FluidColor;
+            public Vector4 DiffuseColor;
 
             [FieldOffset(16)]
-            public bool FluidColorBlendEnabled;
-
-            [FieldOffset(20)]
-            public float FluidColorBlendDistance;
-
-            [FieldOffset(24)]
-            public float RippleScale;
+            public Vector3 EmissiveColor;
 
             [FieldOffset(32)]
-            public bool RefractionMapEnabled;
+            public Vector3 SpecularColor;
 
-            [FieldOffset(36)]
-            public bool ReflectionMapEnabled;
-
-            [FieldOffset(40)]
-            public float ReflectionCoeff;
+            [FieldOffset(44)]
+            public float SpecularPower;
 
             [FieldOffset(48)]
+            public float RippleScale;
+
+            [FieldOffset(64)]
+            public bool RefractionMapEnabled;
+
+            [FieldOffset(68)]
+            public float RefractionAttenuation;
+
+            [FieldOffset(72)]
+            public bool ReflectionMapEnabled;
+
+            [FieldOffset(76)]
+            public float ReflectionCoeff;
+
+            [FieldOffset(80)]
             public Matrix WorldView;
         }
 
@@ -77,7 +83,7 @@ namespace Libra.Graphics.Toolkit
 
         #region ParametersPerFramePS
 
-        [StructLayout(LayoutKind.Explicit, Size = 48)]
+        [StructLayout(LayoutKind.Explicit, Size = 32)]
         struct ParametersPerFramePS
         {
             [FieldOffset(0)]
@@ -87,12 +93,6 @@ namespace Libra.Graphics.Toolkit
             public Vector2 Offset1;
 
             [FieldOffset(16)]
-            public Vector3 SpecularColor;
-
-            [FieldOffset(28)]
-            public float SpecularPower;
-
-            [FieldOffset(32)]
             public Vector3 LightDirection;
         }
 
@@ -153,7 +153,11 @@ namespace Libra.Graphics.Toolkit
 
         float refractiveIndex2;
 
-        Vector3 fluidColor;
+        Vector3 ambientLightColor;
+
+        Vector3 diffuseColor;
+
+        Vector3 emissiveColor;
 
         float alpha;
 
@@ -215,12 +219,12 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        public Vector3 FluidColor
+        public Vector3 AmbientLightColor
         {
-            get { return fluidColor; }
+            get { return ambientLightColor; }
             set
             {
-                fluidColor = value;
+                ambientLightColor = value;
 
                 dirtyFlags |= DirtyFlags.MaterialColor;
             }
@@ -237,23 +241,56 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        public bool FluidColorBlendEnabled
+        public Vector3 DiffuseColor
         {
-            get { return parametersPerObjectPS.FluidColorBlendEnabled; }
+            get { return diffuseColor; }
             set
             {
-                parametersPerObjectPS.FluidColorBlendEnabled = value;
+                diffuseColor = value;
+
+                dirtyFlags |= DirtyFlags.MaterialColor;
+            }
+        }
+
+        public Vector3 EmissiveColor
+        {
+            get { return emissiveColor; }
+            set
+            {
+                emissiveColor = value;
+
+                dirtyFlags |= DirtyFlags.MaterialColor;
+            }
+        }
+
+        public Vector3 SpecularColor
+        {
+            get { return parametersPerObjectPS.SpecularColor; }
+            set
+            {
+                parametersPerObjectPS.SpecularColor = value;
 
                 dirtyFlags |= DirtyFlags.ConstantBufferPerObjectPS;
             }
         }
 
-        public float FluidColorBlendDistance
+        public float SpecularPower
         {
-            get { return parametersPerObjectPS.FluidColorBlendDistance; }
+            get { return parametersPerObjectPS.SpecularPower; }
             set
             {
-                parametersPerObjectPS.FluidColorBlendDistance = value;
+                parametersPerObjectPS.SpecularPower = value;
+
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObjectPS;
+            }
+        }
+
+        public float RefractionAttenuation
+        {
+            get { return parametersPerObjectPS.RefractionAttenuation; }
+            set
+            {
+                parametersPerObjectPS.RefractionAttenuation = value;
 
                 dirtyFlags |= DirtyFlags.ConstantBufferPerObjectPS;
             }
@@ -313,28 +350,6 @@ namespace Libra.Graphics.Toolkit
             set
             {
                 parametersPerFramePS.Offset1 = value;
-
-                dirtyFlags |= DirtyFlags.ConstantBufferPerFramePS;
-            }
-        }
-
-        public Vector3 SpecularColor
-        {
-            get { return parametersPerFramePS.SpecularColor; }
-            set
-            {
-                parametersPerFramePS.SpecularColor = value;
-
-                dirtyFlags |= DirtyFlags.ConstantBufferPerFramePS;
-            }
-        }
-
-        public float SpecularPower
-        {
-            get { return parametersPerFramePS.SpecularPower; }
-            set
-            {
-                parametersPerFramePS.SpecularPower = value;
 
                 dirtyFlags |= DirtyFlags.ConstantBufferPerFramePS;
             }
@@ -409,18 +424,19 @@ namespace Libra.Graphics.Toolkit
             viewProjection = Matrix.Identity;
             refractiveIndex1 = RefractiveIndexAir;
             refractiveIndex2 = RefracticeIndexWater;
-            fluidColor = new Vector3(0.0f, 0.55f, 0.515f);
+            diffuseColor = new Vector3(0.0f, 0.55f, 0.515f);
             alpha = 1.0f;
             
             parametersPerObjectVS.WorldViewProjection = Matrix.Identity;
             parametersPerObjectVS.WorldReflectionProjection = Matrix.Identity;
-            parametersPerObjectPS.FluidColorBlendDistance = 50.0f;
-            parametersPerObjectPS.FluidColorBlendEnabled = false;
+
+            parametersPerObjectPS.EmissiveColor = Vector3.Zero;
+            parametersPerObjectPS.SpecularColor = Vector3.One;
+            parametersPerObjectPS.SpecularPower = 16;
+            parametersPerObjectPS.RefractionAttenuation = 50.0f;
             parametersPerObjectPS.RippleScale = 0.1f;
 
             parametersPerFramePS.Offset0 = Vector2.Zero;
-            parametersPerFramePS.SpecularColor = Vector3.One;
-            parametersPerFramePS.SpecularPower = 16;
             parametersPerFramePS.LightDirection = Vector3.Down;
 
             dirtyFlags =
@@ -498,10 +514,14 @@ namespace Libra.Graphics.Toolkit
 
             if ((dirtyFlags & DirtyFlags.MaterialColor) != 0)
             {
-                parametersPerObjectPS.FluidColor.X = fluidColor.X * alpha;
-                parametersPerObjectPS.FluidColor.Y = fluidColor.Y * alpha;
-                parametersPerObjectPS.FluidColor.Z = fluidColor.Z * alpha;
-                parametersPerObjectPS.FluidColor.W = alpha;
+                parametersPerObjectPS.DiffuseColor.X = diffuseColor.X * alpha;
+                parametersPerObjectPS.DiffuseColor.Y = diffuseColor.Y * alpha;
+                parametersPerObjectPS.DiffuseColor.Z = diffuseColor.Z * alpha;
+                parametersPerObjectPS.DiffuseColor.W = alpha;
+
+                parametersPerObjectPS.EmissiveColor.X = (emissiveColor.X + ambientLightColor.X * diffuseColor.X) * alpha;
+                parametersPerObjectPS.EmissiveColor.Y = (emissiveColor.Y + ambientLightColor.Y * diffuseColor.Y) * alpha;
+                parametersPerObjectPS.EmissiveColor.Z = (emissiveColor.Z + ambientLightColor.Z * diffuseColor.Z) * alpha;
 
                 dirtyFlags &= ~DirtyFlags.MaterialColor;
                 dirtyFlags |= DirtyFlags.ConstantBufferPerObjectPS;

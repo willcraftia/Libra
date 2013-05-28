@@ -4,23 +4,32 @@
 
 cbuffer PerObject : register(b0)
 {
-    float4   FluidColor                 : packoffset(c0);
-    bool     FluidColorBlendEnabled     : packoffset(c1);
-    float    FluidColorBlendDistance    : packoffset(c1.y);
-    float    RippleScale                : packoffset(c1.z);
-    bool     RefractionMapEnabled       : packoffset(c2);
-    bool     ReflectionMapEnabled       : packoffset(c2.y);
-    float    ReflectionCoeff            : packoffset(c2.z);
-    float4x4 WorldView                  : packoffset(c3);
+    // rgb: 拡散反射光 (乗算済みアルファ)。
+    // a:   アルファ。
+    float4   DiffuseColor           : packoffset(c0);
+
+    // 環境光加算済み放射光。
+    float3   EmissiveColor          : packoffset(c1);
+
+    float3   SpecularColor          : packoffset(c2);
+    float    SpecularPower          : packoffset(c2.w);
+
+    float    RippleScale            : packoffset(c3);
+
+    bool     RefractionMapEnabled   : packoffset(c4);
+    float    RefractionAttenuation  : packoffset(c4.y);
+    bool     ReflectionMapEnabled   : packoffset(c4.z);
+    float    ReflectionCoeff        : packoffset(c4.w);
+
+    float4x4 WorldView              : packoffset(c5);
 };
 
 cbuffer PerFrame : register(b1)
 {
     float2 Offset0          : packoffset(c0);
     float2 Offset1          : packoffset(c0.z);
-    float3 SpecularColor    : packoffset(c1);
-    float  SpecularPower    : packoffset(c1.w);
-    float3 LightDirection   : packoffset(c2);
+
+    float3 LightDirection   : packoffset(c1);
 };
 
 Texture2D<float3> NormalMap0    : register(t0);
@@ -75,7 +84,7 @@ float4 PS(Input input) : SV_Target0
     // 視点と法線のなす角。
     float nDotE = max(dot(E, N), 0);
 
-    float3 color;
+    float3 color = float3(0, 0, 0);
 
     if (RefractionMapEnabled)
     {
@@ -84,29 +93,16 @@ float4 PS(Input input) : SV_Target0
         refractionTexCoord += normal.xz * RippleScale;
         float3 refractionColor = RefractionMap.Sample(RefractionMapSampler, refractionTexCoord);
 
-        if (FluidColorBlendEnabled)
-        {
-            // 視点が遠い程に屈折は見えなくなり流体の色となる。
-            // 流体の色を掛け合わせ始める距離が FluidColorBlendDistance。
+        // 視点が遠い程に流体内 (屈折) は見えなくなる。
+        // RefractionAttenuation は減衰開始距離。
 
-            float distanceScale = saturate(FluidColorBlendDistance / eyeDistance);
-            color = lerp(FluidColor.rgb, refractionColor, distanceScale);
+        float distanceScale = saturate(RefractionAttenuation / eyeDistance);
+        color = refractionColor * distanceScale;
 
-            // 視点と法線が垂直に近い程に流体の色が見える。
-            // 並行、すなわち、真上から見る程に、流体の色よりも流体の中が見える。
+        // 視点と法線が垂直に近い程に流体内 (屈折) が見えなくなる。
+        // 並行である程に流体内が見える。
 
-            float facing = 1 - nDotE;
-            color = lerp(color, FluidColor.rgb, facing);
-        }
-        else
-        {
-            color = refractionColor;
-        }
-    }
-    else
-    {
-        // 屈折マップ未使用ならば流体色を設定。
-        color = FluidColor.rgb;
+        color *= nDotE;
     }
 
     if (ReflectionMapEnabled)
@@ -116,16 +112,23 @@ float4 PS(Input input) : SV_Target0
         reflectionTexCoord += normal.xz * RippleScale;
         float3 reflactionColor = ReflectionMap.Sample(ReflectionMapSampler, reflectionTexCoord);
 
-        // フレネルの式に従い反射による色を決定し、これまでの流体色と合成。
+        // フレネルの式に従い反射による色を決定して合成。
         // ここでは視線を入射光とし、法線と視線の内積から算出。
         float fresnel = Fresnel(nDotE, ReflectionCoeff);
         color += fresnel * reflactionColor;
     }
 
     float3 L = mul(-LightDirection, (float3x3) WorldView);
+    float nDotL = dot(L, N);
+
+    float3 diffuse = max(0, nDotL) * DiffuseColor.rgb;
+    color += diffuse;
+
+    color += EmissiveColor;
+
     float3 R = normalize(reflect(-E, N));
-    float3 specular = pow(max(dot(R, L), 0), SpecularPower) * SpecularColor;
+    float3 specular = pow(max(0, dot(R, L)), SpecularPower) * SpecularColor;
     color += specular;
 
-    return float4(color, FluidColor.a);
+    return float4(color, DiffuseColor.a);
 }
