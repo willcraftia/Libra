@@ -318,6 +318,39 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
+        public Vector3 SpecularColor
+        {
+            get { return parametersPerFramePS.SpecularColor; }
+            set
+            {
+                parametersPerFramePS.SpecularColor = value;
+
+                dirtyFlags |= DirtyFlags.ConstantBufferPerFramePS;
+            }
+        }
+
+        public float SpecularPower
+        {
+            get { return parametersPerFramePS.SpecularPower; }
+            set
+            {
+                parametersPerFramePS.SpecularPower = value;
+
+                dirtyFlags |= DirtyFlags.ConstantBufferPerFramePS;
+            }
+        }
+
+        public Vector3 LightDirection
+        {
+            get { return parametersPerFramePS.LightDirection; }
+            set
+            {
+                parametersPerFramePS.LightDirection = value;
+
+                dirtyFlags |= DirtyFlags.ConstantBufferPerFramePS;
+            }
+        }
+
         public ShaderResourceView NormalMap0 { get; set; }
 
         public ShaderResourceView NormalMap1 { get; set; }
@@ -386,10 +419,9 @@ namespace Libra.Graphics.Toolkit
             parametersPerObjectPS.RippleScale = 0.1f;
 
             parametersPerFramePS.Offset0 = Vector2.Zero;
-            //parametersPerFramePS.SpecularColor = Color.Red.ToVector3();
             parametersPerFramePS.SpecularColor = Vector3.One;
             parametersPerFramePS.SpecularPower = 16;
-            parametersPerFramePS.LightDirection = new Vector3(-0.5265408f, -0.5735765f, -0.6275069f);
+            parametersPerFramePS.LightDirection = Vector3.Down;
 
             dirtyFlags =
                 DirtyFlags.ConstantBufferPerObjectVS |

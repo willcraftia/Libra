@@ -340,6 +340,8 @@ namespace Samples.Water
 
         Perlin perlin = new Perlin();
 
+        ScaleBias scaleBias = new ScaleBias();
+
         SumFractal sumFractal = new SumFractal();
 
         Heterofractal heterofractal = new Heterofractal();
@@ -349,6 +351,8 @@ namespace Samples.Water
         RidgedMultifractal ridgedMultifractal = new RidgedMultifractal();
 
         SinFractal sinFractal = new SinFractal();
+
+        Billow billow = new Billow();
 
         SeamlessNoiseMap noiseHeightMap0 = new SeamlessNoiseMap(128, 128);
 
@@ -360,11 +364,17 @@ namespace Samples.Water
 
         Texture2D flowNormalMap1;
 
-        FluidType fluidType = FluidType.Ripple;
+        FluidType fluidType = FluidType.Flow;
 
         Vector2 normalOffset0;
 
         Vector2 normalOffset1;
+
+        Vector3 fluidSpecularColor = new Vector3(0.8f, 0.8f, 0.8f);
+
+        float fluidSpecularPower = 32;
+
+        Vector3 lightDirection = new Vector3(0, -1, 1);
 
         /// <summary>
         /// HUD テキストを表示するか否かを示す値。
@@ -391,24 +401,32 @@ namespace Samples.Water
             camera.LookAt(InitialCameraLookAt);
             camera.Update();
 
+            lightDirection.Normalize();
+
             fluidWorld = fluidTranslation;
             Plane.Transform(ref localFluidFrontPlane, ref fluidWorld, out fluidFrontPlane);
             Plane.Transform(ref localeFluidBackPlane, ref fluidWorld, out fluidBackPlane);
 
             // ノイズ設定。
             perlin.Seed = 999;
-            
-            sumFractal.Source = perlin;
+
+            scaleBias.Source = perlin;
+            scaleBias.Scale = 2.0f;
+            scaleBias.Bias = -1.0f;
+
+            sumFractal.Source = scaleBias;
             heterofractal.Source = perlin;
             multifractal.Source = perlin;
             ridgedMultifractal.Source = perlin;
             sinFractal.Source = perlin;
+            billow.Source = perlin;
 
             noiseMapBuilder.Source = sumFractal;
             //noiseMapBuilder.Source = heterofractal;
             //noiseMapBuilder.Source = multifractal;
             //noiseMapBuilder.Source = ridgedMultifractal;
             //noiseMapBuilder.Source = sinFractal;
+            //noiseMapBuilder.Source = billow;
             noiseMapBuilder.Bounds = new Bounds(0.0f, 0.0f, 8.0f, 8.0f);
             noiseMapBuilder.SeamlessEnabled = true;
 
@@ -422,44 +440,6 @@ namespace Samples.Water
             Components.Add(frameRateMeasure);
 
             //IsFixedTimeStep = false;
-
-
-            Vector3 v1 = FlowVertices[0].Position;
-            Vector3 v2 = FlowVertices[1].Position;
-            Vector3 v3 = FlowVertices[2].Position;
-
-            Vector2 w1 = FlowVertices[0].TexCoord;
-            Vector2 w2 = FlowVertices[1].TexCoord;
-            Vector2 w3 = FlowVertices[2].TexCoord;
-
-            float x1 = v2.X - v1.X;
-            float x2 = v3.X - v1.X;
-
-            float y1 = v2.Y - v1.Y;
-            float y2 = v3.Y - v1.Y;
-
-            float z1 = v2.Z - v1.Z;
-            float z2 = v3.Z - v1.Z;
-
-            float s1 = w2.X - w1.X;
-            float s2 = w3.X - w1.X;
-
-            float t1 = w2.Y - w1.Y;
-            float t2 = w3.Y - w1.Y;
-
-            float r = 1.0f / (s1 * t2 - s2 * t1);
-
-            Vector3 sdir = new Vector3((t2 * x1 - t1 * x2) * r, (t2 * y1 - t1 * y2) * r, (t2 * z1 - t1 * z2) * r);
-            Vector3 tdir = new Vector3((s1 * x2 - s2 * x1) * r, (s1 * y2 - s2 * y1) * r, (s1 * z2 - s2 * z1) * r);
-
-            Vector3 normal = Vector3.Up;
-
-            Vector3 tangent = sdir - normal * Vector3.Dot(normal, sdir);
-            tangent.Normalize();
-
-            float tangentdir = (Vector3.Dot(Vector3.Cross(normal, sdir), tdir) >= 0.0f) ? 1.0f : -1.0f;
-
-            Vector3 binormal = Vector3.Cross(normal, tangent) * tangentdir;
 
             hudVisible = true;
         }
@@ -504,6 +484,7 @@ namespace Samples.Water
             basicEffect.AmbientLightColor = new Vector3(0.15f, 0.15f, 0.15f);
             basicEffect.PerPixelLighting = true;
             basicEffect.EnableDefaultLighting();
+            basicEffect.DirectionalLights[0].Direction = lightDirection;
 
             fluidRippleFilter = new FluidRippleFilter(Device);
             fluidRippleFilter.TextureSampler = SamplerState.LinearClamp;
@@ -516,6 +497,9 @@ namespace Samples.Water
             fluidEffect = new FluidEffect(Device);
             fluidEffect.FluidColorBlendDistance = 50.0f;
             fluidEffect.FluidColorBlendEnabled = true;
+            fluidEffect.SpecularColor = fluidSpecularColor;
+            fluidEffect.SpecularPower = fluidSpecularPower;
+            fluidEffect.LightDirection = lightDirection;
 
             clippingEffect = new ClippingEffect(Device);
             clippingEffect.AmbientLightColor = new Vector3(0.15f, 0.15f, 0.15f);
