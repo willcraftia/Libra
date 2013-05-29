@@ -380,14 +380,6 @@ namespace Samples.Water
 
         Vector3 lightDirection = new Vector3(0, -1, 1);
 
-        bool fogEnabled = false;
-
-        float fogStart = 700;
-
-        float fogEnd = 900;
-
-        Vector3 fogColor = Color.CornflowerBlue.ToVector3();
-
         /// <summary>
         /// HUD テキストを表示するか否かを示す値。
         /// </summary>
@@ -497,10 +489,6 @@ namespace Samples.Water
             basicEffect.PerPixelLighting = true;
             basicEffect.EnableDefaultLighting();
             basicEffect.DirectionalLights[0].Direction = lightDirection;
-            basicEffect.FogEnabled = fogEnabled;
-            basicEffect.FogStart = fogStart;
-            basicEffect.FogEnd = fogEnd;
-            basicEffect.FogColor = fogColor;
 
             fluidRippleFilter = new FluidRippleFilter(Device);
             fluidRippleFilter.TextureSampler = SamplerState.LinearClamp;
@@ -516,10 +504,6 @@ namespace Samples.Water
             fluidEffect.SpecularColor = fluidSpecularColor;
             fluidEffect.SpecularPower = fluidSpecularPower;
             fluidEffect.LightDirection = lightDirection;
-            fluidEffect.FogEnabled = fogEnabled;
-            fluidEffect.FogStart = fogStart;
-            fluidEffect.FogEnd = fogEnd;
-            fluidEffect.FogColor = fogColor;
 
             clippingEffect = new ClippingEffect(Device);
             clippingEffect.AmbientLightColor = ambientLightColor;

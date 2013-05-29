@@ -29,11 +29,6 @@ cbuffer PerFrame : register(b1)
     float3 LightDirection   : packoffset(c1);
 };
 
-cbuffer PerScene : register(b2)
-{
-    float3 FogColor;
-};
-
 Texture2D<float3> NormalMap0    : register(t0);
 Texture2D<float3> NormalMap1    : register(t1);
 Texture2D<float3> ReflectionMap : register(t2);
@@ -50,7 +45,6 @@ struct Input
     float4 PositionWV   : TEXCOORD1;
     float4 PositionWVP  : TEXCOORD2;
     float4 PositionWRP  : TEXCOORD3;
-    float  FogFactor    : TEXCOORD4;
 };
 
 struct ColorPair
@@ -157,9 +151,6 @@ float4 PS(Input input) : SV_Target0
     ColorPair lightResult = ComputeLights(E, N);
     color *= lightResult.Diffuse;
     color += lightResult.Specular * DiffuseColor.a;
-
-    // フォグ。
-    color.rgb = lerp(color.rgb, FogColor * DiffuseColor.a, input.FogFactor);
 
     return float4(color, DiffuseColor.a);
 }

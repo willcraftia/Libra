@@ -97,33 +97,6 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        #region ParametersPerSceneVS
-
-        [StructLayout(LayoutKind.Explicit, Size = 16)]
-        struct ParametersPerSceneVS
-        {
-            [FieldOffset(0)]
-            public bool FogEnabled;
-
-            [FieldOffset(4)]
-            public float FogStart;
-
-            [FieldOffset(8)]
-            public float FogEnd;
-        }
-
-        #endregion
-
-        #region ParametersPerScenePS
-
-        [StructLayout(LayoutKind.Sequential, Size = 16)]
-        struct ParametersPerScenePS
-        {
-            public Vector3 FogColor;
-        }
-
-        #endregion
-
         #region DirtyFlags
 
         [Flags]
@@ -132,15 +105,13 @@ namespace Libra.Graphics.Toolkit
             ConstantBufferPerObjectVS   = (1 << 0),
             ConstantBufferPerObjectPS   = (1 << 1),
             ConstantBufferPerFramePS    = (1 << 2),
-            ConstantBufferPerSceneVS    = (1 << 3),
-            ConstantBufferPerScenePS    = (1 << 4),
-            EyePosition                 = (1 << 5),
-            WorldView                   = (1 << 6),
-            ViewProjection              = (1 << 7),
-            WorldViewProjection         = (1 << 8),
-            WorldReflectionProjection   = (1 << 9),
-            ReflectionCoeff             = (1 << 10),
-            MaterialColor               = (1 << 11)
+            EyePosition                 = (1 << 3),
+            WorldView                   = (1 << 4),
+            ViewProjection              = (1 << 5),
+            WorldViewProjection         = (1 << 6),
+            WorldReflectionProjection   = (1 << 7),
+            ReflectionCoeff             = (1 << 8),
+            MaterialColor               = (1 << 9)
         }
 
         #endregion
@@ -161,19 +132,11 @@ namespace Libra.Graphics.Toolkit
 
         ConstantBuffer constantBufferPerFramePS;
 
-        ConstantBuffer constantBufferPerSceneVS;
-
-        ConstantBuffer constantBufferPerScenePS;
-
         ParametersPerObjectVS parametersPerObjectVS;
 
         ParametersPerObjectPS parametersPerObjectPS;
 
         ParametersPerFramePS parametersPerFramePS;
-
-        ParametersPerSceneVS parametersPerSceneVS;
-
-        ParametersPerScenePS parametersPerScenePS;
 
         Matrix world;
 
@@ -400,50 +363,6 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        public bool FogEnabled
-        {
-            get { return parametersPerSceneVS.FogEnabled; }
-            set
-            {
-                parametersPerSceneVS.FogEnabled = value;
-
-                dirtyFlags |= DirtyFlags.ConstantBufferPerSceneVS;
-            }
-        }
-
-        public float FogStart
-        {
-            get { return parametersPerSceneVS.FogStart; }
-            set
-            {
-                parametersPerSceneVS.FogStart = value;
-
-                dirtyFlags |= DirtyFlags.ConstantBufferPerSceneVS;
-            }
-        }
-
-        public float FogEnd
-        {
-            get { return parametersPerSceneVS.FogEnd; }
-            set
-            {
-                parametersPerSceneVS.FogEnd = value;
-                
-                dirtyFlags |= DirtyFlags.ConstantBufferPerSceneVS;
-            }
-        }
-
-        public Vector3 FogColor
-        {
-            get { return parametersPerScenePS.FogColor; }
-            set
-            {
-                parametersPerScenePS.FogColor = value;
-
-                dirtyFlags |= DirtyFlags.ConstantBufferPerScenePS;
-            }
-        }
-
         public ShaderResourceView NormalMap0 { get; set; }
 
         public ShaderResourceView NormalMap1 { get; set; }
@@ -472,10 +391,6 @@ namespace Libra.Graphics.Toolkit
             constantBufferPerObjectPS.Initialize<ParametersPerObjectPS>();
             constantBufferPerFramePS = device.CreateConstantBuffer();
             constantBufferPerFramePS.Initialize<ParametersPerFramePS>();
-            constantBufferPerSceneVS = device.CreateConstantBuffer();
-            constantBufferPerSceneVS.Initialize<ParametersPerSceneVS>();
-            constantBufferPerScenePS = device.CreateConstantBuffer();
-            constantBufferPerScenePS.Initialize<ParametersPerScenePS>();
 
             world = Matrix.Identity;
             view = Matrix.Identity;
@@ -498,12 +413,6 @@ namespace Libra.Graphics.Toolkit
 
             parametersPerFramePS.Offset0 = Vector2.Zero;
             parametersPerFramePS.LightDirection = Vector3.Down;
-
-            parametersPerSceneVS.FogEnabled = false;
-            parametersPerSceneVS.FogStart = 0.0f;
-            parametersPerSceneVS.FogEnd = 0.0f;
-
-            parametersPerScenePS.FogColor = Vector3.One;
 
             dirtyFlags =
                 DirtyFlags.ConstantBufferPerObjectVS |
@@ -613,28 +522,12 @@ namespace Libra.Graphics.Toolkit
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerFramePS;
             }
 
-            if ((dirtyFlags & DirtyFlags.ConstantBufferPerSceneVS) != 0)
-            {
-                constantBufferPerSceneVS.SetData(context, parametersPerSceneVS);
-
-                dirtyFlags &= ~DirtyFlags.ConstantBufferPerSceneVS;
-            }
-
-            if ((dirtyFlags & DirtyFlags.ConstantBufferPerScenePS) != 0)
-            {
-                constantBufferPerScenePS.SetData(context, parametersPerScenePS);
-
-                dirtyFlags &= ~DirtyFlags.ConstantBufferPerScenePS;
-            }
-
             context.VertexShader = sharedDeviceResource.VertexShader;
             context.VertexShaderConstantBuffers[0] = constantBufferPerObjectVS;
-            context.VertexShaderConstantBuffers[1] = constantBufferPerSceneVS;
 
             context.PixelShader = sharedDeviceResource.PixelShader;
             context.PixelShaderConstantBuffers[0] = constantBufferPerObjectPS;
             context.PixelShaderConstantBuffers[1] = constantBufferPerFramePS;
-            context.PixelShaderConstantBuffers[2] = constantBufferPerScenePS;
             context.PixelShaderResources[0] = NormalMap0;
             context.PixelShaderResources[1] = NormalMap1;
             context.PixelShaderResources[2] = ReflectionMap;
