@@ -1,0 +1,27 @@
+cbuffer PerScene : register(b0)
+{
+    // FogRatio  = 1 / (End - Start)
+    // FogOffset = -Start / (End - Start)
+
+    float  FogRatio     : packoffset(c0.x);
+    float  FogOffset    : packoffset(c0.y);
+
+    float3 FogColor     : packoffset(c1);
+};
+
+Texture2D<float4> Texture           : register(t0);
+Texture2D<float>  LinearDepthMap    : register(t1);
+
+SamplerState TextureSampler         : register(s0);
+SamplerState LinearDepthMapSampler  : register(s1);
+
+float4 PS(float2 texCoord : TEXCOORD0) : SV_Target
+{
+    float depth = LinearDepthMap.SampleLevel(LinearDepthMapSampler, texCoord, 0);
+
+    float fogFactor = saturate(depth * FogRatio + FogOffset);
+
+    float4 color = Texture.Sample(TextureSampler, texCoord);
+
+    return lerp(color, float4(FogColor, 1), fogFactor);
+}

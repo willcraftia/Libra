@@ -204,6 +204,11 @@ namespace Samples.ScenePostprocess
         NormalEdgeDetectFilter normalEdgeDetectFilter;
 
         /// <summary>
+        /// 線形フォグ フィルタ。
+        /// </summary>
+        LinearFogFilter linearFogFilter;
+
+        /// <summary>
         /// 線形深度マップ エフェクト。
         /// </summary>
         LinearDepthMapEffect depthMapEffect;
@@ -337,6 +342,11 @@ namespace Samples.ScenePostprocess
             normalEdgeDetectFilter = new NormalEdgeDetectFilter(Device);
             normalEdgeDetectFilter.Enabled = false;
 
+            linearFogFilter = new LinearFogFilter(Device);
+            linearFogFilter.FogStart = 10;
+            linearFogFilter.FogEnd = 500;
+            linearFogFilter.Enabled = false;
+
             depthMapEffect = new LinearDepthMapEffect(Device);
             normalMapEffect = new NormalMapEffect(Device);
 
@@ -408,9 +418,7 @@ namespace Samples.ScenePostprocess
             // フィルタへ設定。
             dofCombineFilter.LinearDepthMap = depthMapRenderTarget;
             edgeFilter.LinearDepthMap = depthMapRenderTarget;
-
-            // 中間マップ表示。
-            textureDisplay.Textures.Add(depthMapRenderTarget);
+            linearFogFilter.LinearDepthMap = depthMapRenderTarget;
         }
 
         void CreateNormalMap()
@@ -518,7 +526,8 @@ namespace Samples.ScenePostprocess
                 "[3] Edge (" + edgeFilter.Enabled + ")\n" +
                 "[4] Negative Filter (" + negativeFilter.Enabled + ")\n" +
                 "[5] Radial Blur (" + radialFilter.Enabled + ")\n" +
-                "[6] Normal Edge Detect (" + normalEdgeDetectFilter.Enabled + ")";
+                "[6] Normal Edge Detect (" + normalEdgeDetectFilter.Enabled + ")\n" +
+                "[7] Linear Fog (" + normalEdgeDetectFilter.Enabled + ")";
 
             spriteBatch.Begin();
             spriteBatch.DrawString(spriteFont, text, new Vector2(65, 280), Color.Black);
@@ -611,6 +620,7 @@ namespace Samples.ScenePostprocess
             postprocess.Filters.Add(edgeFilter);
             postprocess.Filters.Add(radialFilter);
             postprocess.Filters.Add(normalEdgeDetectFilter);
+            postprocess.Filters.Add(linearFogFilter);
         }
 
         void HandleInput(GameTime gameTime)
@@ -652,6 +662,9 @@ namespace Samples.ScenePostprocess
 
             if (currentKeyboardState.IsKeyUp(Keys.D6) && lastKeyboardState.IsKeyDown(Keys.D6))
                 normalEdgeDetectFilter.Enabled = !normalEdgeDetectFilter.Enabled;
+
+            if (currentKeyboardState.IsKeyUp(Keys.D7) && lastKeyboardState.IsKeyDown(Keys.D7))
+                linearFogFilter.Enabled = !linearFogFilter.Enabled;
 
             if (currentKeyboardState.IsKeyDown(Keys.Escape))
                 Exit();

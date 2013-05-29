@@ -228,6 +228,13 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
+        internal static byte[] LinearFogFilterPS {
+            get {
+                object obj = ResourceManager.GetObject("LinearFogFilterPS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
         internal static byte[] MonochromeFilterPS {
             get {
                 object obj = ResourceManager.GetObject("MonochromeFilterPS", resourceCulture);

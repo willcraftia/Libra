@@ -21,6 +21,7 @@ call :CompilePS HeightToNormalFilter PS %ps_profile%
 call :CompilePS HeightToGradientFilter PS %ps_profile%
 call :CompilePS LightScatteringFilter PS %ps_profile%
 call :CompilePS LinearDepthMapColorFilter PS %ps_profile%
+call :CompilePS LinearFogFilter PS %ps_profile%
 call :CompilePS MonochromeFilter PS %ps_profile%
 call :CompilePS NormalEdgeDetectFilter PS %ps_profile%
 call :CompilePS NegativeFilter PS %ps_profile%

@@ -42,6 +42,7 @@
   <ItemGroup>
     <Compile Include="BezierMesh.cs" />
     <Compile Include="FluidEffect.cs" />
+    <Compile Include="LinearFogFilter.cs" />
     <Compile Include="HeightToGradientConverter.cs" />
     <Compile Include="HeightToNormalConverter.cs" />
     <Compile Include="LensFlare.cs" />
@@ -160,6 +161,7 @@
     <None Include="Shaders\Compiled\LinearDepthMapVS.bin" />
     <None Include="Shaders\Compiled\LinearFogDepthMapPS.bin" />
     <None Include="Shaders\Compiled\LinearFogDepthMapVS.bin" />
+    <None Include="Shaders\Compiled\LinearFogFilterPS.bin" />
     <None Include="Shaders\Compiled\MonochromeFilterPS.bin" />
     <None Include="Shaders\Compiled\NormalEdgeDetectFilterPS.bin" />
     <None Include="Shaders\Compiled\ParticlePS.bin" />
@@ -175,6 +177,7 @@
     <None Include="Shaders\DepthMap.ps" />
     <None Include="Shaders\Fluid.ps" />
     <None Include="Shaders\Fluid.vs" />
+    <None Include="Shaders\LinearFogFilter.ps" />
     <None Include="Shaders\HeightToGradientFilter.ps" />
     <None Include="Shaders\HeightToNormalFilter.ps" />
     <None Include="Shaders\LinearDepthMap.ps" />
