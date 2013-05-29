@@ -7,9 +7,9 @@ cbuffer PerObject : register(b0)
 
 cbuffer PerScene : register(b1)
 {
-    bool   FogEnabled;
-    float3 FogColor;
-    float4 FogVector;
+    bool  FogEnabled;
+    float FogStart;
+    float FogEnd;
 };
 
 struct Input
@@ -25,7 +25,13 @@ struct Output
     float4 PositionWV   : TEXCOORD1;
     float4 PositionWVP  : TEXCOORD2;
     float4 PositionWRP  : TEXCOORD3;
+    float  FogFactor    : TEXCOORD4;
 };
+
+float ComputeDistanceFogFactor(float d)
+{
+    return saturate((d - FogStart) / (FogEnd - FogStart)) * FogEnabled;
+}
 
 Output VS(Input input)
 {
@@ -36,6 +42,7 @@ Output VS(Input input)
     output.PositionWV = mul(input.Position, WorldView);
     output.PositionWVP = output.Position;
     output.PositionWRP = mul(input.Position, WorldReflectionProjection);
+    output.FogFactor = ComputeDistanceFogFactor(-output.PositionWV.z);
 
     return output;
 }
