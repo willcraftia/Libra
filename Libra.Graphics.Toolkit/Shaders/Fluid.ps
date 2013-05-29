@@ -50,6 +50,12 @@ struct Input
     float4 PositionWRP  : TEXCOORD3;
 };
 
+struct ColorPair
+{
+    float3 Diffuse;
+    float3 Specular;
+};
+
 float2 ToTexCoord(float4 position)
 {
     return position.xy / position.w * float2(0.5, -0.5) + float2(0.5, 0.5);
@@ -62,15 +68,67 @@ float Fresnel(float nDotL, float reflectionCoeff)
     return max(0, fresnel);
 }
 
-float4 PS(Input input) : SV_Target0
+float3 SampleNormal(float2 texCoord)
 {
-    float2 texCoord0 = input.TexCoord + Offset0;
-    float2 texCoord1 = input.TexCoord + Offset1;
-    float3 normal0 = NormalMap0.SampleLevel(NormalMapSampler, texCoord0, 0);
-    float3 normal1 = NormalMap1.SampleLevel(NormalMapSampler, texCoord1, 0);
+    float3 normal0 = NormalMap0.SampleLevel(NormalMapSampler, texCoord + Offset0, 0);
+    float3 normal1 = NormalMap1.SampleLevel(NormalMapSampler, texCoord + Offset1, 0);
 
     // サンプリングした二つの法線の平均。
-    float3 normal = (normal0 + normal1) / 2;
+    return (normal0 + normal1) / 2;
+}
+
+float3 ComputeRefrectionColor(float4 positionWVP, float2 offset, float eyeDistance, float nDotE)
+{
+    float2 texCoord = ToTexCoord(positionWVP) + offset;
+    float3 color = RefractionMap.Sample(RefractionMapSampler, texCoord);
+
+    // RefractionAttenuation は減衰開始距離。
+    // 視点が遠い程に流体内 (屈折) は見えなくなり、
+    // 拡散反射光に近づく。
+    float distanceScale = saturate(RefractionAttenuation / eyeDistance);
+    color = lerp(DiffuseColor.rgb, color, distanceScale);
+
+    // 視点と法線が垂直に近い程に流体内 (屈折) が見えなくなり、
+    // 拡散反射光に近づく。
+    float facing = 1 - nDotE;
+    color = lerp(color, DiffuseColor.rgb, facing);
+
+    return color;
+}
+
+float3 ComputeReflectionColor(float4 positionWRP, float2 offset, float nDotE)
+{
+    // 反射マップ。
+    float2 texCoord = ToTexCoord(positionWRP) + offset;
+    float3 color = ReflectionMap.Sample(ReflectionMapSampler, texCoord);
+
+    // フレネルの式に従い反射による色を決定。
+    // ここでは視線を入射光とする。
+    color *= Fresnel(nDotE, ReflectionCoeff);
+
+    return color;
+}
+
+ColorPair ComputeLights(float3 E, float3 N)
+{
+    float3 L = mul(-LightDirection, (float3x3) WorldView);
+    float nDotL = dot(L, N);
+    float3 R = normalize(reflect(-E, N));
+
+    float3 diffuse = max(0, nDotL) * DiffuseColor.rgb;
+    float3 specular = pow(max(0, dot(R, L)), SpecularPower) * SpecularColor;
+
+    ColorPair result;
+
+    result.Diffuse = diffuse + EmissiveColor;
+    result.Specular = specular;
+
+    return result;
+}
+
+float4 PS(Input input) : SV_Target0
+{
+    float3 normal = SampleNormal(input.TexCoord);
 
     // 法線 (ビュー空間)。
     float3 N = normalize(mul(normal, (float3x3) WorldView));
@@ -86,49 +144,26 @@ float4 PS(Input input) : SV_Target0
 
     float3 color = float3(0, 0, 0);
 
+    float2 offset = normal.xz * RippleScale;
+
     if (RefractionMapEnabled)
     {
-        // 屈折マップ。
-        float2 refractionTexCoord = ToTexCoord(input.PositionWVP);
-        refractionTexCoord += normal.xz * RippleScale;
-        float3 refractionColor = RefractionMap.Sample(RefractionMapSampler, refractionTexCoord);
-
-        // 視点が遠い程に流体内 (屈折) は見えなくなる。
-        // RefractionAttenuation は減衰開始距離。
-
-        float distanceScale = saturate(RefractionAttenuation / eyeDistance);
-        color = refractionColor * distanceScale;
-
-        // 視点と法線が垂直に近い程に流体内 (屈折) が見えなくなる。
-        // 並行である程に流体内が見える。
-
-        color *= nDotE;
+        color = ComputeRefrectionColor(input.PositionWVP, offset, eyeDistance, nDotE);
+    }
+    else
+    {
+        color = DiffuseColor.rgb;
     }
 
     if (ReflectionMapEnabled)
     {
-        // 反射マップ。
-        float2 reflectionTexCoord = ToTexCoord(input.PositionWRP);
-        reflectionTexCoord += normal.xz * RippleScale;
-        float3 reflactionColor = ReflectionMap.Sample(ReflectionMapSampler, reflectionTexCoord);
-
-        // フレネルの式に従い反射による色を決定して合成。
-        // ここでは視線を入射光とし、法線と視線の内積から算出。
-        float fresnel = Fresnel(nDotE, ReflectionCoeff);
-        color += fresnel * reflactionColor;
+        color += ComputeReflectionColor(input.PositionWRP, offset, nDotE);
     }
 
-    float3 L = mul(-LightDirection, (float3x3) WorldView);
-    float nDotL = dot(L, N);
+    ColorPair lightResult = ComputeLights(E, N);
 
-    float3 diffuse = max(0, nDotL) * DiffuseColor.rgb;
-    color += diffuse;
-
-    color += EmissiveColor;
-
-    float3 R = normalize(reflect(-E, N));
-    float3 specular = pow(max(0, dot(R, L)), SpecularPower) * SpecularColor;
-    color += specular;
+    color *= lightResult.Diffuse;
+    color += lightResult.Specular * DiffuseColor.a;
 
     return float4(color, DiffuseColor.a);
 }

@@ -372,7 +372,7 @@ namespace Samples.Water
 
         Vector3 ambientLightColor = new Vector3(0.15f, 0.15f, 0.15f);
 
-        Vector3 fluidDiffuseColor = new Vector3(0.2f, 0.55f, 0.515f);
+        Vector3 fluidDiffuseColor = new Vector3(0.5f, 0.85f, 0.815f);
 
         Vector3 fluidSpecularColor = new Vector3(0.8f, 0.8f, 0.8f);
 
