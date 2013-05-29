@@ -15,13 +15,10 @@ cbuffer PerObject : register(b0)
     float    SpecularPower          : packoffset(c2.w);
 
     float    RippleScale            : packoffset(c3);
+    float    RefractionAttenuation  : packoffset(c3.y);
+    float    ReflectionCoeff        : packoffset(c3.z);
 
-    bool     RefractionMapEnabled   : packoffset(c4);
-    float    RefractionAttenuation  : packoffset(c4.y);
-    bool     ReflectionMapEnabled   : packoffset(c4.z);
-    float    ReflectionCoeff        : packoffset(c4.w);
-
-    float4x4 WorldView              : packoffset(c5);
+    float4x4 WorldView              : packoffset(c4);
 };
 
 cbuffer PerFrame : register(b1)
@@ -142,23 +139,13 @@ float4 PS(Input input) : SV_Target0
     // 視点と法線のなす角。
     float nDotE = max(dot(E, N), 0);
 
-    float3 color = float3(0, 0, 0);
-
     float2 offset = normal.xz * RippleScale;
 
-    if (RefractionMapEnabled)
-    {
-        color = ComputeRefrectionColor(input.PositionWVP, offset, eyeDistance, nDotE);
-    }
-    else
-    {
-        color = DiffuseColor.rgb;
-    }
+    // 屈折。
+    float3 color = ComputeRefrectionColor(input.PositionWVP, offset, eyeDistance, nDotE);
 
-    if (ReflectionMapEnabled)
-    {
-        color += ComputeReflectionColor(input.PositionWRP, offset, nDotE);
-    }
+    // 反射。
+    color += ComputeReflectionColor(input.PositionWRP, offset, nDotE);
 
     ColorPair lightResult = ComputeLights(E, N);
 

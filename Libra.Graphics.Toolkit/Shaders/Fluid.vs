@@ -5,6 +5,13 @@ cbuffer PerObject : register(b0)
     float4x4 WorldReflectionProjection;
 };
 
+cbuffer PerScene : register(b1)
+{
+    bool   FogEnabled;
+    float3 FogColor;
+    float4 FogVector;
+};
+
 struct Input
 {
     float4 Position : SV_Position;

@@ -8,6 +8,11 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
+    // メモ
+    //
+    // 反射マップや屈折マップを準備することが面倒な場合には、
+    // 適当な単色テクスチャを指定する。
+
     public sealed class FluidEffect : IEffect, IEffectMatrices, IDisposable
     {
         #region SharedDeviceResource
@@ -63,19 +68,13 @@ namespace Libra.Graphics.Toolkit
             [FieldOffset(48)]
             public float RippleScale;
 
-            [FieldOffset(64)]
-            public bool RefractionMapEnabled;
-
-            [FieldOffset(68)]
+            [FieldOffset(52)]
             public float RefractionAttenuation;
 
-            [FieldOffset(72)]
-            public bool ReflectionMapEnabled;
-
-            [FieldOffset(76)]
+            [FieldOffset(56)]
             public float ReflectionCoeff;
 
-            [FieldOffset(80)]
+            [FieldOffset(64)]
             public Matrix WorldView;
         }
 
@@ -160,10 +159,6 @@ namespace Libra.Graphics.Toolkit
         Vector3 emissiveColor;
 
         float alpha;
-
-        ShaderResourceView reflectionMap;
-
-        ShaderResourceView refractionMap;
 
         DirtyFlags dirtyFlags;
 
@@ -370,31 +365,9 @@ namespace Libra.Graphics.Toolkit
 
         public ShaderResourceView NormalMap1 { get; set; }
 
-        public ShaderResourceView ReflectionMap
-        {
-            get { return reflectionMap; }
-            set
-            {
-                reflectionMap = value;
-                
-                parametersPerObjectPS.ReflectionMapEnabled = (value != null);
+        public ShaderResourceView ReflectionMap { get; set; }
 
-                dirtyFlags |= DirtyFlags.ConstantBufferPerObjectPS;
-            }
-        }
-
-        public ShaderResourceView RefractionMap
-        {
-            get { return refractionMap; }
-            set
-            {
-                refractionMap = value;
-
-                parametersPerObjectPS.RefractionMapEnabled = (value != null);
-
-                dirtyFlags |= DirtyFlags.ConstantBufferPerObjectPS;
-            }
-        }
+        public ShaderResourceView RefractionMap { get; set; }
 
         public SamplerState NormalMapSampler { get; set; }
 
@@ -556,8 +529,8 @@ namespace Libra.Graphics.Toolkit
             context.PixelShaderConstantBuffers[1] = constantBufferPerFramePS;
             context.PixelShaderResources[0] = NormalMap0;
             context.PixelShaderResources[1] = NormalMap1;
-            context.PixelShaderResources[2] = reflectionMap;
-            context.PixelShaderResources[3] = refractionMap;
+            context.PixelShaderResources[2] = ReflectionMap;
+            context.PixelShaderResources[3] = RefractionMap;
             context.PixelShaderSamplers[0] = NormalMapSampler;
             context.PixelShaderSamplers[1] = ReflectionMapSampler;
             context.PixelShaderSamplers[2] = RefractionMapSampler;
