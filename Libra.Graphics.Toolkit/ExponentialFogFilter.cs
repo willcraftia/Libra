@@ -9,7 +9,7 @@ using Libra.Graphics.Toolkit.Properties;
 namespace Libra.Graphics.Toolkit
 {
     [ViewRayRequired]
-    public sealed class LinearFogFilter : IFilterEffect, IDisposable
+    public sealed class ExponentialFogFilter : IFilterEffect, IDisposable
     {
         #region SharedDeviceResource
 
@@ -20,7 +20,7 @@ namespace Libra.Graphics.Toolkit
             public SharedDeviceResource(Device device)
             {
                 PixelShader = device.CreatePixelShader();
-                PixelShader.Initialize(Resources.LinearFogFilterPS);
+                PixelShader.Initialize(Resources.ExponentialFogFilterPS);
             }
         }
 
@@ -28,16 +28,10 @@ namespace Libra.Graphics.Toolkit
 
         #region ParametersPerScene
 
-        [StructLayout(LayoutKind.Explicit, Size = 32)]
         struct ParametersPerScene
         {
-            [FieldOffset(0)]
-            public float FogRatio;
+            public float Density;
 
-            [FieldOffset(4)]
-            public float FogOffset;
-
-            [FieldOffset(16)]
             public Vector3 FogColor;
         }
 
@@ -48,8 +42,7 @@ namespace Libra.Graphics.Toolkit
         [Flags]
         enum DirtyFlags
         {
-            ConstantBufferPerScene  = (1 << 0),
-            FogRatioOffset          = (1 << 1)
+            ConstantBufferPerScene = (1 << 0)
         }
 
         #endregion
@@ -62,31 +55,16 @@ namespace Libra.Graphics.Toolkit
 
         ConstantBuffer constantBufferPerScene;
 
-        float fogStart;
-
-        float fogEnd;
-
         DirtyFlags dirtyFlags;
 
-        public float FogStart
+        public float Density
         {
-            get { return fogStart; }
+            get { return parametersPerScene.Density; }
             set
             {
-                fogStart = value;
+                parametersPerScene.Density = value;
 
-                dirtyFlags |= DirtyFlags.FogRatioOffset;
-            }
-        }
-
-        public float FogEnd
-        {
-            get { return fogEnd; }
-            set
-            {
-                fogEnd = value;
-
-                dirtyFlags |= DirtyFlags.FogRatioOffset;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerScene;
             }
         }
 
@@ -111,42 +89,27 @@ namespace Libra.Graphics.Toolkit
 
         public SamplerState TextureSampler { get; set; }
 
-        public LinearFogFilter(Device device)
+        public ExponentialFogFilter(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 
             this.device = device;
 
-            sharedDeviceResource = device.GetSharedResource<LinearFogFilter, SharedDeviceResource>();
+            sharedDeviceResource = device.GetSharedResource<ExponentialFogFilter, SharedDeviceResource>();
 
             constantBufferPerScene = device.CreateConstantBuffer();
             constantBufferPerScene.Initialize<ParametersPerScene>();
 
-            fogStart = 0.0f;
-            fogEnd = 0.0f;
-
+            parametersPerScene.Density = 0.005f;
             parametersPerScene.FogColor = Vector3.One;
 
             Enabled = true;
 
-            dirtyFlags =
-                DirtyFlags.ConstantBufferPerScene |
-                DirtyFlags.FogRatioOffset;
+            dirtyFlags = DirtyFlags.ConstantBufferPerScene;
         }
 
         public void Apply(DeviceContext context)
         {
-            if ((dirtyFlags & DirtyFlags.FogRatioOffset) != 0)
-            {
-                float distance = fogEnd - fogStart;
-
-                parametersPerScene.FogRatio = 1.0f / distance;
-                parametersPerScene.FogOffset = -fogStart / distance;
-
-                dirtyFlags &= ~DirtyFlags.FogRatioOffset;
-                dirtyFlags |= DirtyFlags.ConstantBufferPerScene;
-            }
-
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerScene) != 0)
             {
                 constantBufferPerScene.SetData(context, parametersPerScene);
@@ -166,7 +129,7 @@ namespace Libra.Graphics.Toolkit
 
         bool disposed;
 
-        ~LinearFogFilter()
+        ~ExponentialFogFilter()
         {
             Dispose(false);
         }

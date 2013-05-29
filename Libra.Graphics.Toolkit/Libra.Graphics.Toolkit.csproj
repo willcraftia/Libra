@@ -41,6 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BezierMesh.cs" />
+    <Compile Include="ExponentialFogFilter.cs" />
     <Compile Include="FluidEffect.cs" />
     <Compile Include="LinearFogFilter.cs" />
     <Compile Include="HeightToGradientConverter.cs" />
@@ -108,6 +109,7 @@
     <Compile Include="ShadowMapEffect.cs" />
     <Compile Include="PSSM.cs" />
     <Compile Include="UpFilter.cs" />
+    <Compile Include="ViewRayRequiredAttribute.cs" />
     <Compile Include="VolumetricFogCombineFilter.cs" />
     <Compile Include="VolumetricFogMapEffect.cs" />
     <Compile Include="FluidRippleFilter.cs" />
@@ -149,6 +151,7 @@
     <None Include="Shaders\Compiled\DepthVarianceMapPS.bin" />
     <None Include="Shaders\Compiled\DofCombineFilterPS.bin" />
     <None Include="Shaders\Compiled\EdgeFilterPS.bin" />
+    <None Include="Shaders\Compiled\ExponentialFogFilterPS.bin" />
     <None Include="Shaders\Compiled\FluidPS.bin" />
     <None Include="Shaders\Compiled\FluidRippleFilterPS.bin" />
     <None Include="Shaders\Compiled\FluidVS.bin" />
@@ -175,6 +178,7 @@
     <None Include="Shaders\Compiled\VolumetricFogMapPS.bin" />
     <None Include="Shaders\Compiled\VolumetricFogMapVS.bin" />
     <None Include="Shaders\DepthMap.ps" />
+    <None Include="Shaders\ExponentialFogFilter.ps" />
     <None Include="Shaders\Fluid.ps" />
     <None Include="Shaders\Fluid.vs" />
     <None Include="Shaders\LinearFogFilter.ps" />

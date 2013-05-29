@@ -15,6 +15,7 @@ call :CompilePS CombineFilter PS %ps_profile%
 call :CompilePS DofCombineFilter PS %ps_profile%
 call :CompilePS DownFilter PS %ps_profile%
 call :CompilePS EdgeFilter PS %ps_profile%
+call :CompilePS ExponentialFogFilter PS %ps_profile%
 call :CompilePS FluidRippleFilter PS %ps_profile%
 call :CompilePS GaussianFilter PS %ps_profile%
 call :CompilePS HeightToNormalFilter PS %ps_profile%

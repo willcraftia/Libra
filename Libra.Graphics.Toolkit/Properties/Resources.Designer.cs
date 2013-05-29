@@ -130,6 +130,13 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
+        internal static byte[] ExponentialFogFilterPS {
+            get {
+                object obj = ResourceManager.GetObject("ExponentialFogFilterPS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
         internal static byte[] FluidPS {
             get {
                 object obj = ResourceManager.GetObject("FluidPS", resourceCulture);

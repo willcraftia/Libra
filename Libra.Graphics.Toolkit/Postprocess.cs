@@ -33,6 +33,8 @@ namespace Libra.Graphics.Toolkit
 
         FullScreenQuad fullScreenQuad;
 
+        Matrix projection;
+
         public FilterCollection Filters { get; private set; }
 
         public int Width
@@ -85,6 +87,12 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
+        public Matrix Projection
+        {
+            get { return projection; }
+            set { projection = value; }
+        }
+
         public Postprocess(DeviceContext context)
         {
             if (context == null) throw new ArgumentNullException("context");
@@ -99,6 +107,7 @@ namespace Libra.Graphics.Toolkit
             height = 1;
             format = SurfaceFormat.Color;
             multisampleCount = 1;
+            projection = Matrix.Identity;
         }
 
         public ShaderResourceView Draw(ShaderResourceView texture)
@@ -171,8 +180,15 @@ namespace Libra.Graphics.Toolkit
                 filter.Texture = currentTexture;
                 filter.TextureSampler = SamplerState.LinearClamp;
                 filter.Apply(context);
-                
+
+                if (Attribute.IsDefined(filter.GetType(), typeof(ViewRayRequiredAttribute)))
+                {
+                    fullScreenQuad.ViewRayEnabled = true;
+                    fullScreenQuad.Projection = projection;
+                }
+
                 fullScreenQuad.Draw();
+                fullScreenQuad.ViewRayEnabled = false;
 
                 context.SetRenderTarget(null);
 

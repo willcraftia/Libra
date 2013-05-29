@@ -209,6 +209,11 @@ namespace Samples.ScenePostprocess
         LinearFogFilter linearFogFilter;
 
         /// <summary>
+        /// 指数フォグ フィルタ。
+        /// </summary>
+        ExponentialFogFilter exponentialFogFilter;
+
+        /// <summary>
         /// 線形深度マップ エフェクト。
         /// </summary>
         LinearDepthMapEffect depthMapEffect;
@@ -347,6 +352,9 @@ namespace Samples.ScenePostprocess
             linearFogFilter.FogEnd = 500;
             linearFogFilter.Enabled = false;
 
+            exponentialFogFilter = new ExponentialFogFilter(Device);
+            exponentialFogFilter.Enabled = false;
+
             depthMapEffect = new LinearDepthMapEffect(Device);
             normalMapEffect = new NormalMapEffect(Device);
 
@@ -419,6 +427,7 @@ namespace Samples.ScenePostprocess
             dofCombineFilter.LinearDepthMap = depthMapRenderTarget;
             edgeFilter.LinearDepthMap = depthMapRenderTarget;
             linearFogFilter.LinearDepthMap = depthMapRenderTarget;
+            exponentialFogFilter.LinearDepthMap = depthMapRenderTarget;
         }
 
         void CreateNormalMap()
@@ -457,6 +466,9 @@ namespace Samples.ScenePostprocess
 
         void ApplyPostprocess()
         {
+            // ViewRayRequired 属性を持つフィルタを追加している場合、射影行列の設定が必須。
+            postprocess.Projection = camera.Projection;
+
             finalSceneTexture = postprocess.Draw(normalSceneRenderTarget);
         }
 
@@ -527,11 +539,12 @@ namespace Samples.ScenePostprocess
                 "[4] Negative Filter (" + negativeFilter.Enabled + ")\n" +
                 "[5] Radial Blur (" + radialFilter.Enabled + ")\n" +
                 "[6] Normal Edge Detect (" + normalEdgeDetectFilter.Enabled + ")\n" +
-                "[7] Linear Fog (" + normalEdgeDetectFilter.Enabled + ")";
+                "[7] Linear Fog (" + linearFogFilter.Enabled + ")\n" +
+                "[8] Exponential Fog (" + exponentialFogFilter.Enabled + ")";
 
             spriteBatch.Begin();
-            spriteBatch.DrawString(spriteFont, text, new Vector2(65, 280), Color.Black);
-            spriteBatch.DrawString(spriteFont, text, new Vector2(64, 280 - 1), Color.Yellow);
+            spriteBatch.DrawString(spriteFont, text, new Vector2(65, 260), Color.Black);
+            spriteBatch.DrawString(spriteFont, text, new Vector2(64, 260 - 1), Color.Yellow);
             spriteBatch.End();
         }
 
@@ -621,6 +634,7 @@ namespace Samples.ScenePostprocess
             postprocess.Filters.Add(radialFilter);
             postprocess.Filters.Add(normalEdgeDetectFilter);
             postprocess.Filters.Add(linearFogFilter);
+            postprocess.Filters.Add(exponentialFogFilter);
         }
 
         void HandleInput(GameTime gameTime)
@@ -665,6 +679,9 @@ namespace Samples.ScenePostprocess
 
             if (currentKeyboardState.IsKeyUp(Keys.D7) && lastKeyboardState.IsKeyDown(Keys.D7))
                 linearFogFilter.Enabled = !linearFogFilter.Enabled;
+
+            if (currentKeyboardState.IsKeyUp(Keys.D8) && lastKeyboardState.IsKeyDown(Keys.D8))
+                exponentialFogFilter.Enabled = !exponentialFogFilter.Enabled;
 
             if (currentKeyboardState.IsKeyDown(Keys.Escape))
                 Exit();
