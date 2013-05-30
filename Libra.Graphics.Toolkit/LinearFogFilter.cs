@@ -31,11 +31,15 @@ namespace Libra.Graphics.Toolkit
         [StructLayout(LayoutKind.Explicit, Size = 32)]
         struct ParametersPerScene
         {
+            // fog = (end - distance) / (end - start)
+            //     = end / (end - start) - distance / (end - start)
+            //     = intercept + distance * gradient
+
             [FieldOffset(0)]
-            public float FogRatio;
+            public float FogGradient;
 
             [FieldOffset(4)]
-            public float FogOffset;
+            public float FogIntercept;
 
             [FieldOffset(16)]
             public Vector3 FogColor;
@@ -140,8 +144,8 @@ namespace Libra.Graphics.Toolkit
             {
                 float distance = fogEnd - fogStart;
 
-                parametersPerScene.FogRatio = 1.0f / distance;
-                parametersPerScene.FogOffset = -fogStart / distance;
+                parametersPerScene.FogGradient = -1.0f / distance;
+                parametersPerScene.FogIntercept = fogEnd / distance;
 
                 dirtyFlags &= ~DirtyFlags.FogRatioOffset;
                 dirtyFlags |= DirtyFlags.ConstantBufferPerScene;

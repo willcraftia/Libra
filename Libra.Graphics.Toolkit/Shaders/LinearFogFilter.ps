@@ -1,10 +1,10 @@
 cbuffer PerScene : register(b0)
 {
-    // FogRatio  = 1 / (End - Start)
-    // FogOffset = -Start / (End - Start)
+    // FogGradient  = -1 / (End - Start)
+    // FogIntercept = End / (End - Start)
 
-    float  FogRatio     : packoffset(c0.x);
-    float  FogOffset    : packoffset(c0.y);
+    float  FogGradient  : packoffset(c0.x);
+    float  FogIntercept : packoffset(c0.y);
 
     float3 FogColor     : packoffset(c1);
 };
@@ -26,9 +26,9 @@ float4 PS(float2 texCoord : TEXCOORD0,
     // éãì_Ç©ÇÁÇÃãóó£ÅB
     float d = length(position);
 
-    float fogFactor = saturate(d * FogRatio + FogOffset);
+    float fogFactor = saturate(d * FogGradient + FogIntercept);
 
     float4 color = Texture.Sample(TextureSampler, texCoord);
 
-    return lerp(color, float4(FogColor, 1), fogFactor);
+    return lerp(float4(FogColor, 1), color, fogFactor);
 }
