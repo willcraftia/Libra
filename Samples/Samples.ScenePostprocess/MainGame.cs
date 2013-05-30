@@ -361,14 +361,17 @@ namespace Samples.ScenePostprocess
             linearFogFilter = new LinearFogFilter(Device);
             linearFogFilter.FogStart = 10;
             linearFogFilter.FogEnd = 500;
+            linearFogFilter.FarClipDistance = camera.FarClipDistance;
             linearFogFilter.Enabled = false;
 
             exponentialFogFilter = new ExponentialFogFilter(Device);
+            exponentialFogFilter.FarClipDistance = camera.FarClipDistance;
             exponentialFogFilter.Enabled = false;
 
             heightFogFilter = new HeightFogFilter(Device);
             heightFogFilter.FogMinHeight = -5;
             heightFogFilter.FogMaxHeight = 20;
+            heightFogFilter.FarClipDistance = camera.FarClipDistance;
             heightFogFilter.Enabled = false;
 
             depthMapEffect = new LinearDepthMapEffect(Device);

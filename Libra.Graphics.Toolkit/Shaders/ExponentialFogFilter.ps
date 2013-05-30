@@ -1,8 +1,10 @@
 cbuffer PerScene : register(b0)
 {
     // [0.0, 1.0]
-    float  Density  : packoffset(c0);
-    float3 FogColor : packoffset(c0.y);
+    float  Density          : packoffset(c0);
+
+    float3 FogColor         : packoffset(c1);
+    float  FarClipDistance  : packoffset(c1.w);
 };
 
 Texture2D<float4> Texture           : register(t0);
@@ -16,6 +18,11 @@ float4 PS(float2 texCoord : TEXCOORD0,
 {
     float depth = LinearDepthMap.SampleLevel(LinearDepthMapSampler, texCoord, 0);
 
+    float4 color = Texture.Sample(TextureSampler, texCoord);
+
+    if (0 < FarClipDistance && FarClipDistance <= depth)
+        return color;
+
     // À•W (ƒrƒ…[‹óŠÔ)
     float3 position = viewRay * depth;
 
@@ -26,8 +33,6 @@ float4 PS(float2 texCoord : TEXCOORD0,
     x *= x;
 
     float fogFactor = saturate(exp(-x));
-
-    float4 color = Texture.Sample(TextureSampler, texCoord);
 
     return lerp(float4(FogColor, 1), color, fogFactor);
 }

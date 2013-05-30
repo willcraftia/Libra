@@ -44,6 +44,9 @@ namespace Libra.Graphics.Toolkit
             [FieldOffset(16)]
             public Vector3 FogColor;
 
+            [FieldOffset(28)]
+            public float FarClipDistance;
+
             [FieldOffset(32)]
             public Matrix InverseView;
         }
@@ -111,6 +114,17 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
+        public float FarClipDistance
+        {
+            get { return parametersPerScene.FarClipDistance; }
+            set
+            {
+                parametersPerScene.FarClipDistance = value;
+
+                dirtyFlags |= DirtyFlags.ConstantBufferPerScene;
+            }
+        }
+
         public Matrix View
         {
             get { return view; }
@@ -148,6 +162,7 @@ namespace Libra.Graphics.Toolkit
             view = Matrix.Identity;
 
             parametersPerScene.FogColor = Vector3.One;
+            parametersPerScene.FarClipDistance = 0;
 
             Enabled = true;
 

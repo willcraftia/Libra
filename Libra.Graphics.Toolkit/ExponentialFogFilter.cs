@@ -28,11 +28,17 @@ namespace Libra.Graphics.Toolkit
 
         #region ParametersPerScene
 
+        [StructLayout(LayoutKind.Explicit, Size = 32)]
         struct ParametersPerScene
         {
+            [FieldOffset(0)]
             public float Density;
 
+            [FieldOffset(16)]
             public Vector3 FogColor;
+
+            [FieldOffset(28)]
+            public float FarClipDistance;
         }
 
         #endregion
@@ -79,6 +85,17 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
+        public float FarClipDistance
+        {
+            get { return parametersPerScene.FarClipDistance; }
+            set
+            {
+                parametersPerScene.FarClipDistance = value;
+
+                dirtyFlags |= DirtyFlags.ConstantBufferPerScene;
+            }
+        }
+
         public ShaderResourceView LinearDepthMap { get; set; }
 
         public SamplerState LinearDepthMapSampler { get; set; }
@@ -102,6 +119,7 @@ namespace Libra.Graphics.Toolkit
 
             parametersPerScene.Density = 0.005f;
             parametersPerScene.FogColor = Vector3.One;
+            parametersPerScene.FarClipDistance = 0;
 
             Enabled = true;
 

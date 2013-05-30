@@ -43,6 +43,9 @@ namespace Libra.Graphics.Toolkit
 
             [FieldOffset(16)]
             public Vector3 FogColor;
+
+            [FieldOffset(28)]
+            public float FarClipDistance;
         }
 
         #endregion
@@ -105,6 +108,17 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
+        public float FarClipDistance
+        {
+            get { return parametersPerScene.FarClipDistance; }
+            set
+            {
+                parametersPerScene.FarClipDistance = value;
+
+                dirtyFlags |= DirtyFlags.ConstantBufferPerScene;
+            }
+        }
+
         public ShaderResourceView LinearDepthMap { get; set; }
 
         public SamplerState LinearDepthMapSampler { get; set; }
@@ -130,6 +144,7 @@ namespace Libra.Graphics.Toolkit
             fogEnd = 0.0f;
 
             parametersPerScene.FogColor = Vector3.One;
+            parametersPerScene.FarClipDistance = 0;
 
             Enabled = true;
 
