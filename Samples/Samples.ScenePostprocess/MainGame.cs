@@ -278,33 +278,6 @@ namespace Samples.ScenePostprocess
             camera.LookAt(initialCameraLookAt);
             camera.Update();
 
-            Vector2 focalLength = new Vector2
-            {
-                X = camera.Projection.M11,
-                Y = camera.Projection.M22,
-            };
-
-            Vector2 topLeft = new Vector2(-1, -1);
-            Vector2 topRight = new Vector2(1, -1);
-            Vector2 bottomLeft = new Vector2(-1, 1);
-            Vector2 bottomRight = new Vector2(1, 1);
-
-            Vector2 vrTopLeft = new Vector2(topLeft.X / focalLength.X, topLeft.Y / focalLength.Y);
-            Vector2 vrTopRight = new Vector2(topRight.X / focalLength.X, topRight.Y / focalLength.Y);
-            Vector2 vrBottomLeft = new Vector2(bottomLeft.X / focalLength.X, bottomLeft.Y / focalLength.Y);
-            Vector2 vrBottomRight = new Vector2(bottomRight.X / focalLength.X, bottomRight.Y / focalLength.Y);
-
-            BoundingFrustum frustum = new BoundingFrustum(camera.View * camera.Projection);
-            Vector3[] corners = new Vector3[BoundingFrustum.CornerCount];
-            frustum.GetCorners(corners);
-            Vector3.Transform(corners, ref camera.View, corners);
-
-            //Vector3[] vrCorners = new Vector3[4];
-            //for (int i = 0; i < 4; i++)
-            //{
-            //    vrCorners[i] = Vector3.Transform(corners[i + 4], camera.View);
-            //}
-
             textureDisplay = new TextureDisplay(this);
             Components.Add(textureDisplay);
 
