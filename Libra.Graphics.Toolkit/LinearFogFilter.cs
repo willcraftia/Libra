@@ -53,7 +53,7 @@ namespace Libra.Graphics.Toolkit
         enum DirtyFlags
         {
             ConstantBufferPerScene  = (1 << 0),
-            FogRatioOffset          = (1 << 1)
+            FogGradientIntercept    = (1 << 1)
         }
 
         #endregion
@@ -79,7 +79,7 @@ namespace Libra.Graphics.Toolkit
             {
                 fogStart = value;
 
-                dirtyFlags |= DirtyFlags.FogRatioOffset;
+                dirtyFlags |= DirtyFlags.FogGradientIntercept;
             }
         }
 
@@ -90,7 +90,7 @@ namespace Libra.Graphics.Toolkit
             {
                 fogEnd = value;
 
-                dirtyFlags |= DirtyFlags.FogRatioOffset;
+                dirtyFlags |= DirtyFlags.FogGradientIntercept;
             }
         }
 
@@ -135,19 +135,19 @@ namespace Libra.Graphics.Toolkit
 
             dirtyFlags =
                 DirtyFlags.ConstantBufferPerScene |
-                DirtyFlags.FogRatioOffset;
+                DirtyFlags.FogGradientIntercept;
         }
 
         public void Apply(DeviceContext context)
         {
-            if ((dirtyFlags & DirtyFlags.FogRatioOffset) != 0)
+            if ((dirtyFlags & DirtyFlags.FogGradientIntercept) != 0)
             {
                 float distance = fogEnd - fogStart;
 
                 parametersPerScene.FogGradient = -1.0f / distance;
                 parametersPerScene.FogIntercept = fogEnd / distance;
 
-                dirtyFlags &= ~DirtyFlags.FogRatioOffset;
+                dirtyFlags &= ~DirtyFlags.FogGradientIntercept;
                 dirtyFlags |= DirtyFlags.ConstantBufferPerScene;
             }
 
