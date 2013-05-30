@@ -229,7 +229,7 @@ namespace Samples.SceneAmbientOcclusion
         /// <summary>
         /// HUD テキストを表示するか否かを示す値。
         /// </summary>
-        bool hudVisible;
+        bool hudVisible = true;
 
         public MainGame()
         {
@@ -252,14 +252,13 @@ namespace Samples.SceneAmbientOcclusion
             camera.Update();
 
             textureDisplay = new TextureDisplay(this);
+            textureDisplay.Visible = false;
             Components.Add(textureDisplay);
 
             frameRateMeasure = new FrameRateMeasure(this);
             Components.Add(frameRateMeasure);
 
             //IsFixedTimeStep = false;
-
-            hudVisible = true;
         }
 
         protected override void LoadContent()
@@ -402,8 +401,7 @@ namespace Samples.SceneAmbientOcclusion
             CreateFinalSceneMap();
 
             // HUD のテキストを描画。
-            if (hudVisible)
-                DrawOverlayText();
+            DrawOverlayText();
 
             base.Draw(gameTime);
         }
@@ -550,6 +548,9 @@ namespace Samples.SceneAmbientOcclusion
 
         void DrawOverlayText()
         {
+            if (!hudVisible)
+                return;
+
             // HUD のテキストを表示。
             string text;
             if (currentKeyboardState.IsKeyUp(Keys.ControlKey))
