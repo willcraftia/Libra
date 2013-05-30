@@ -258,6 +258,11 @@ namespace Samples.ScenePostprocess
         /// </summary>
         PostprocessType postprocessType;
 
+        /// <summary>
+        /// HUD テキストを表示するか否かを示す値。
+        /// </summary>
+        bool hudVisible = true;
+
         public MainGame()
         {
             graphicsManager = new GraphicsManager(this);
@@ -279,6 +284,7 @@ namespace Samples.ScenePostprocess
             camera.Update();
 
             textureDisplay = new TextureDisplay(this);
+            textureDisplay.Visible = false;
             Components.Add(textureDisplay);
 
             postprocessType = PostprocessType.None;
@@ -542,11 +548,11 @@ namespace Samples.ScenePostprocess
 
         void DrawOverlayText()
         {
+            if (!hudVisible)
+                return;
+
             // HUD のテキストを表示。
-            var text =
-                "Current postprocess: " + postprocessType + "\n" +
-                "[F1] None [F2] Depth of Field [F3] Bloom [F4] Blur\n" +
-                "[F5] Bilateral Filter\n" +
+            string text =
                 "[1] Monochrome (" + monochromeFilter.Enabled + ")\n" +
                 "[2] Scanline (" + scanlineFilter.Enabled + ")\n" +
                 "[3] Edge (" + edgeFilter.Enabled + ")\n" +
@@ -557,9 +563,24 @@ namespace Samples.ScenePostprocess
                 "[8] Exponential Fog (" + exponentialFogFilter.Enabled + ")\n" +
                 "[9] Height Fog (" + heightFogFilter.Enabled + ")";
 
+            string basicText =
+                "Current postprocess: " + postprocessType + "\n" +
+                "[F1] HUD on/off\n" +
+                "[F2] Inter-maps on/off\n" +
+                "[F3] None\n" +
+                "[F4] Depth of Field\n" +
+                "[F5] Bloom\n" +
+                "[F6] Blur\n" +
+                "[F7] Bilateral Filter";
+
             spriteBatch.Begin();
-            spriteBatch.DrawString(spriteFont, text, new Vector2(65, 240), Color.Black);
-            spriteBatch.DrawString(spriteFont, text, new Vector2(64, 240 - 1), Color.Yellow);
+            
+            spriteBatch.DrawString(spriteFont, text, new Vector2(65, 280), Color.Black);
+            spriteBatch.DrawString(spriteFont, text, new Vector2(64, 280 - 1), Color.Yellow);
+
+            spriteBatch.DrawString(spriteFont, basicText, new Vector2(449, 280), Color.Black);
+            spriteBatch.DrawString(spriteFont, basicText, new Vector2(448, 280 - 1), Color.Yellow);
+
             spriteBatch.End();
         }
 
@@ -661,18 +682,24 @@ namespace Samples.ScenePostprocess
             currentKeyboardState = Keyboard.GetState();
 
             if (currentKeyboardState.IsKeyUp(Keys.F1) && lastKeyboardState.IsKeyDown(Keys.F1))
-                postprocessType = PostprocessType.None;
+                hudVisible = !hudVisible;
 
             if (currentKeyboardState.IsKeyUp(Keys.F2) && lastKeyboardState.IsKeyDown(Keys.F2))
-                postprocessType = PostprocessType.DepthOfField;
+                textureDisplay.Visible = !textureDisplay.Visible;
 
             if (currentKeyboardState.IsKeyUp(Keys.F3) && lastKeyboardState.IsKeyDown(Keys.F3))
-                postprocessType = PostprocessType.Bloom;
+                postprocessType = PostprocessType.None;
 
             if (currentKeyboardState.IsKeyUp(Keys.F4) && lastKeyboardState.IsKeyDown(Keys.F4))
-                postprocessType = PostprocessType.Blur;
+                postprocessType = PostprocessType.DepthOfField;
 
             if (currentKeyboardState.IsKeyUp(Keys.F5) && lastKeyboardState.IsKeyDown(Keys.F5))
+                postprocessType = PostprocessType.Bloom;
+
+            if (currentKeyboardState.IsKeyUp(Keys.F6) && lastKeyboardState.IsKeyDown(Keys.F6))
+                postprocessType = PostprocessType.Blur;
+
+            if (currentKeyboardState.IsKeyUp(Keys.F7) && lastKeyboardState.IsKeyDown(Keys.F7))
                 postprocessType = PostprocessType.BilateralFilter;
 
             if (currentKeyboardState.IsKeyUp(Keys.D1) && lastKeyboardState.IsKeyDown(Keys.D1))
