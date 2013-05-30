@@ -16,7 +16,11 @@ Output VS(uint id : SV_VertexID)
 
     output.TexCoord = float2((id << 1) & 2, id & 2);
     output.Position = float4(output.TexCoord * float2(2, -2) + float2(-1, 1), 0, 1);
-    output.ViewRay = float3(output.Position.xy / FocalLength, 1);
+
+    // z ‚Íƒrƒ…[‹óŠÔ‚ÌÀ•WŒnŽŸ‘æ (‰EŽèŒn‚©¶ŽèŒn‚©)B
+    // XNA/OpenGL/Libra:    z = -1
+    // DirectX:             z = 1
+    output.ViewRay = float3(output.Position.xy / FocalLength, -1);
 
     return output;
 }

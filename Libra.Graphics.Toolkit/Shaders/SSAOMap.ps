@@ -50,14 +50,21 @@ float4 PS(Input input) : SV_Target
         return float4(1, 0, 0, 0);
     }
 
-    // 座標 (ビュー空間)
+    // 位置 (ビュー空間)。
     float3 position = input.ViewRay * depth;
 
-    // 法線。
-    // 法線マップはビュー空間における法線であるが、
-    // ここでは深度空間 (ビュー空間とは z 軸方向が逆) を扱っているため、
-    // z を反転させる必要がある。
+    // 深度空間:
+    // ビュー空間の z 軸方向を反転させた左手系の空間。
+    // 以降、深度値が大きい程に深い位置であるものとして処理したいため、
+    // ビュー空間ではなく深度空間で処理する。
+
+    // 位置 (深度空間)。
+    position.z = -position.z;
+
+    // 法線マップはビュー空間における法線を保持。
     float3 normal = NormalMap.SampleLevel(NormalMapSampler, input.TexCoord, 0);
+
+    // 法線 (深度空間)。
     normal.z = -normal.z;
     normal = normalize(normal);
 

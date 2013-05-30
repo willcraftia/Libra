@@ -1,0 +1,39 @@
+cbuffer PerScene : register(b0)
+{
+    // FogGradient  = 1 / (Max - Min)
+    // FogIntercept = Min / (Max - Min)
+
+    float    FogGradient    : packoffset(c0.x);
+    float    FogIntercept   : packoffset(c0.y);
+
+    float3   FogColor       : packoffset(c1);
+
+    float4x4 InverseView    : packoffset(c2);
+};
+
+Texture2D<float4> Texture           : register(t0);
+Texture2D<float>  LinearDepthMap    : register(t1);
+
+SamplerState TextureSampler         : register(s0);
+SamplerState LinearDepthMapSampler  : register(s1);
+
+float4 PS(float2 texCoord : TEXCOORD0,
+          float3 viewRay  : TEXCOORD1) : SV_Target
+{
+    float depth = LinearDepthMap.SampleLevel(LinearDepthMapSampler, texCoord, 0);
+
+    // 位置 (ビュー空間)。
+    float3 position = viewRay * depth;
+
+    // 位置 (ワールド空間)。
+    float4 positionW = mul(float4(position, 1), InverseView);
+
+    // 高さ。
+    float h = positionW.y / positionW.w;
+
+    float fogFactor = saturate(h * FogGradient + FogIntercept);
+
+    float4 color = Texture.Sample(TextureSampler, texCoord);
+
+    return lerp(float4(FogColor, 1), color, fogFactor);
+}

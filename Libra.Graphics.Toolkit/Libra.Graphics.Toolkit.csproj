@@ -43,6 +43,7 @@
     <Compile Include="BezierMesh.cs" />
     <Compile Include="ExponentialFogFilter.cs" />
     <Compile Include="FluidEffect.cs" />
+    <Compile Include="HeightFogFilter.cs" />
     <Compile Include="LinearFogFilter.cs" />
     <Compile Include="HeightToGradientConverter.cs" />
     <Compile Include="HeightToNormalConverter.cs" />
@@ -156,6 +157,7 @@
     <None Include="Shaders\Compiled\FluidRippleFilterPS.bin" />
     <None Include="Shaders\Compiled\FluidVS.bin" />
     <None Include="Shaders\Compiled\FullScreenQuadViewRayVS.bin" />
+    <None Include="Shaders\Compiled\HeightFogFilterPS.bin" />
     <None Include="Shaders\Compiled\HeightToGradientFilterPS.bin" />
     <None Include="Shaders\Compiled\HeightToNormalFilterPS.bin" />
     <None Include="Shaders\Compiled\LightScatteringFilterPS.bin" />
@@ -181,6 +183,7 @@
     <None Include="Shaders\ExponentialFogFilter.ps" />
     <None Include="Shaders\Fluid.ps" />
     <None Include="Shaders\Fluid.vs" />
+    <None Include="Shaders\HeightFogFilter.ps" />
     <None Include="Shaders\LinearFogFilter.ps" />
     <None Include="Shaders\HeightToGradientFilter.ps" />
     <None Include="Shaders\HeightToNormalFilter.ps" />

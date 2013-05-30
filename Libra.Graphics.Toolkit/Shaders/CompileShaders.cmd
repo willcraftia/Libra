@@ -18,6 +18,7 @@ call :CompilePS EdgeFilter PS %ps_profile%
 call :CompilePS ExponentialFogFilter PS %ps_profile%
 call :CompilePS FluidRippleFilter PS %ps_profile%
 call :CompilePS GaussianFilter PS %ps_profile%
+call :CompilePS HeightFogFilter PS %ps_profile%
 call :CompilePS HeightToNormalFilter PS %ps_profile%
 call :CompilePS HeightToGradientFilter PS %ps_profile%
 call :CompilePS LightScatteringFilter PS %ps_profile%
