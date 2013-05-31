@@ -41,8 +41,8 @@ struct VSOutputPixelLighting
     float4 PositionWS   : TEXCOORD0;
     float3 NormalWS     : TEXCOORD1;
     float4 Diffuse      : COLOR0;
-    float3 ClipDistance : SV_ClipDistance0;
     float4 PositionPS   : SV_Position;
+    float3 ClipDistance : SV_ClipDistance0;
 };
 
 struct PSInputPixelLighting
