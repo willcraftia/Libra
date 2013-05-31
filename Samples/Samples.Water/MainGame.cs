@@ -141,10 +141,10 @@ namespace Samples.Water
 
         static readonly VertexPositionNormalTexture[] CloudVertices =
         {
-            new VertexPositionNormalTexture(new Vector3(-1500, 0,  1500), Vector3.Down, new Vector2(0, 8)),
+            new VertexPositionNormalTexture(new Vector3(-1500, 0,  1500), Vector3.Down, new Vector2(0, 4)),
             new VertexPositionNormalTexture(new Vector3(-1500, 0, -1500), Vector3.Down, new Vector2(0, 0)),
-            new VertexPositionNormalTexture(new Vector3( 1500, 0, -1500), Vector3.Down, new Vector2(8, 0)),
-            new VertexPositionNormalTexture(new Vector3( 1500, 0,  1500), Vector3.Down, new Vector2(8, 8)),
+            new VertexPositionNormalTexture(new Vector3( 1500, 0, -1500), Vector3.Down, new Vector2(4, 0)),
+            new VertexPositionNormalTexture(new Vector3( 1500, 0,  1500), Vector3.Down, new Vector2(4, 4)),
         };
 
         // 矩形メッシュのインデックス。
@@ -271,8 +271,6 @@ namespace Samples.Water
         CloudLayerFilterPass cloudLayerFilterPass1;
 
         CloudLayerFilterPass cloudLayerFilterPass2;
-        
-        CloudLayerFilterPass cloudLayerFilterPass3;
 
         /// <summary>
         /// Ripple 用の流体面の頂点バッファ。
@@ -448,16 +446,16 @@ namespace Samples.Water
 
             cloudDensityNoise = new ScaleBias
             {
-                Bias = 1.2f,
-                Source = new Billow
-                {
-                    Source = new Perlin { Seed = 200 }
-                }
-                //Bias = 0.0f,
-                //Source = new SumFractal
+                //Bias = 1.0f,
+                //Source = new Billow
                 //{
                 //    Source = new Perlin { Seed = 200 }
                 //}
+                Bias = 0.0f,
+                Source = new SumFractal
+                {
+                    Source = new Perlin { Seed = 200 }
+                }
             };
 
             textureDisplay = new TextureDisplay(this);
@@ -525,6 +523,7 @@ namespace Samples.Water
             fullScreenQuad = new FullScreenQuad(context);
 
             fluidEffect = new FluidEffect(Device);
+            fluidEffect.RippleScale = 0.05f;
             fluidEffect.AmbientLightColor = ambientLightColor;
             fluidEffect.DiffuseColor = fluidDiffuseColor;
             fluidEffect.SpecularColor = fluidSpecularColor;
@@ -536,22 +535,18 @@ namespace Samples.Water
             clippingEffect.EnableDefaultLighting();
 
             cloudPostprocess = new Postprocess(context);
-            cloudPostprocess.Width = 128;
-            cloudPostprocess.Height = 128;
+            cloudPostprocess.Width = cloudNoiseBuffer.Width;
+            cloudPostprocess.Height = cloudNoiseBuffer.Height;
 
             cloudLayerFilter = new CloudLayerFilter(Device);
             cloudLayerFilterPass1 = new CloudLayerFilterPass(cloudLayerFilter);
             cloudLayerFilterPass2 = new CloudLayerFilterPass(cloudLayerFilter);
-            cloudLayerFilterPass3 = new CloudLayerFilterPass(cloudLayerFilter);
-            cloudLayerFilterPass1.PixelOffset = new Vector2(2, 2);
-            cloudLayerFilterPass2.PixelOffset = new Vector2(4, 4);
-            cloudLayerFilterPass3.PixelOffset = new Vector2(8, 8);
+            cloudLayerFilterPass1.PixelOffset = new Vector2(2.5f, 2.5f);
+            cloudLayerFilterPass2.PixelOffset = new Vector2(4.5f, 4.5f);
             cloudLayerFilterPass1.TextureSampler = SamplerState.LinearWrap;
             cloudLayerFilterPass2.TextureSampler = SamplerState.LinearWrap;
-            cloudLayerFilterPass3.TextureSampler = SamplerState.LinearWrap;
             cloudPostprocess.Filters.Add(cloudLayerFilterPass1);
             cloudPostprocess.Filters.Add(cloudLayerFilterPass2);
-            //cloudPostprocess.Filters.Add(cloudLayerFilterPass3);
 
             rippleVertexBuffer = Device.CreateVertexBuffer();
             rippleVertexBuffer.Initialize(RippleVertices);
@@ -571,7 +566,7 @@ namespace Samples.Water
 
             flowNormalMap0 = CreateFluidNormalMap(fluidNoiseBuffer0, new Bounds(0, 0, 5, 5));
             flowNormalMap1 = CreateFluidNormalMap(fluidNoiseBuffer1, new Bounds(2, 2, 7, 7));
-            cloudMap = CreateCloudMap(cloudNoiseBuffer, new Bounds(0, 0, 1, 1)); 
+            cloudMap = CreateCloudMap(cloudNoiseBuffer, new Bounds(0, 0, 8, 8)); 
         }
 
         Texture2D CreateFluidNormalMap(SeamlessNoiseMap noiseBuffer, Bounds bounds)
