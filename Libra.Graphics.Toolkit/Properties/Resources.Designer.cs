@@ -81,6 +81,13 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
+        internal static byte[] CloudLayerFilterPS {
+            get {
+                object obj = ResourceManager.GetObject("CloudLayerFilterPS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
         internal static byte[] CombineFilterPS {
             get {
                 object obj = ResourceManager.GetObject("CombineFilterPS", resourceCulture);

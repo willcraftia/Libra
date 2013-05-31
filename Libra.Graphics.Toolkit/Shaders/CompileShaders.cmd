@@ -11,6 +11,7 @@ set ps_profile=ps_5_0
 call :CompilePS BilateralFilter PS %ps_profile%
 call :CompilePS BloomCombineFilter PS %ps_profile%
 call :CompilePS BloomExtractFilter PS %ps_profile%
+call :CompilePS CloudLayerFilter PS %ps_profile%
 call :CompilePS CombineFilter PS %ps_profile%
 call :CompilePS DofCombineFilter PS %ps_profile%
 call :CompilePS DownFilter PS %ps_profile%
@@ -19,8 +20,6 @@ call :CompilePS ExponentialFogFilter PS %ps_profile%
 call :CompilePS FluidRippleFilter PS %ps_profile%
 call :CompilePS GaussianFilter PS %ps_profile%
 call :CompilePS HeightFogFilter PS %ps_profile%
-call :CompilePS HeightToNormalFilter PS %ps_profile%
-call :CompilePS HeightToGradientFilter PS %ps_profile%
 call :CompilePS LightScatteringFilter PS %ps_profile%
 call :CompilePS LinearDepthMapColorFilter PS %ps_profile%
 call :CompilePS LinearFogFilter PS %ps_profile%
@@ -34,6 +33,12 @@ call :CompilePS SSAOCombineFilter PS %ps_profile%
 call :CompilePS SSAOMapColorFilter PS %ps_profile%
 call :CompilePS UpFilter PS %ps_profile%
 call :CompilePS VolumetricFogCombineFilter PS %ps_profile%
+
+::
+:: Converters
+::
+call :CompilePS HeightToNormalFilter PS %ps_profile%
+call :CompilePS HeightToGradientFilter PS %ps_profile%
 
 ::
 :: Effect like

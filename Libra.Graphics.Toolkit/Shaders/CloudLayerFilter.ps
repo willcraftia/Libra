@@ -1,0 +1,27 @@
+cbuffer PerObject : register(b0)
+{
+    float3 CloudColor       : packoffset(c0);
+
+    // ƒeƒNƒZƒ‹
+    float2 Offset           : packoffset(c1);
+    float  LightAbsorption  : packoffset(c1.z);
+};
+
+Texture2D<float4> Texture : register(t0);
+SamplerState TextureSampler : register(s0);
+
+float4 PS(float2 texCoord : TEXCOORD0) : SV_Target
+{
+    float density = Texture.Sample(TextureSampler, texCoord).a;
+
+    float decrement = density * LightAbsorption;
+
+    float4 color = Texture.Sample(TextureSampler, texCoord + Offset);
+
+    color.r -= decrement;
+    color.g -= decrement;
+    color.b -= decrement;
+    color.a = density;
+
+    return color;
+}
