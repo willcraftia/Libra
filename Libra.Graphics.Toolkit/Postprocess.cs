@@ -178,7 +178,6 @@ namespace Libra.Graphics.Toolkit
                 context.RasterizerState = RasterizerState.CullBack;
 
                 filter.Texture = currentTexture;
-                filter.TextureSampler = SamplerState.LinearClamp;
                 filter.Apply(context);
 
                 if (Attribute.IsDefined(filter.GetType(), typeof(ViewRayRequiredAttribute)))
