@@ -213,6 +213,19 @@ namespace Libra.Graphics.Toolkit
         //    }
         //}
 
+        public float Density
+        {
+            get { return parametersPerObjectPS.Density; }
+            set
+            {
+                if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
+
+                parametersPerObjectPS.Density = value;
+
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObjectPS;
+            }
+        }
+
         public int LayerCount
         {
             get { return parametersPerObjectPS.LayerCount; }
