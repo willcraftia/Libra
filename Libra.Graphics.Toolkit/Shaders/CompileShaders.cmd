@@ -43,6 +43,8 @@ call :CompilePS HeightToGradientFilter PS %ps_profile%
 ::
 :: Effect like
 ::
+call :CompileVS Cloud VS %vs_profile%
+call :CompilePS Cloud PS %ps_profile%
 call :CompileVS DepthMap VS %vs_profile%
 call :CompilePS DepthMap PS %ps_profile%
 call :CompilePS DepthVarianceMap PS %ps_profile%

@@ -1,0 +1,40 @@
+#define MAX_LAYER_COUNT 3
+
+cbuffer PerObject : register(b0)
+{
+    float3 DiffuseColor : packoffset(c0);
+
+    int    LayerCount   : packoffset(c1);
+    float  Density      : packoffset(c1.y);
+};
+
+cbuffer PerFrame : register(b1)
+{
+    // テクセル オフセット。
+    float2 Offsets[MAX_LAYER_COUNT];
+};
+
+Texture2D<float> VolumeMap[MAX_LAYER_COUNT] : register(t0);
+SamplerState VolumeMapSampler : register(s0);
+
+struct Input
+{
+    float4 Position : SV_Position;
+    float2 TexCoord : TEXCOORD0;
+};
+
+float4 PS(Input input) : SV_Target0
+{
+    float v = 0;
+
+    [unroll(MAX_LAYER_COUNT)]
+    for (int i = 0; i < LayerCount; i++)
+    {
+        v += VolumeMap[i].SampleLevel(VolumeMapSampler, input.TexCoord + Offsets[i], 0);
+    }
+
+    float cloud = saturate(v * Density);
+
+    // 乗算済みアルファ。
+    return float4(DiffuseColor * cloud, cloud);
+}

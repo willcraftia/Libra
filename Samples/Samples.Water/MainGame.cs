@@ -141,10 +141,10 @@ namespace Samples.Water
 
         static readonly VertexPositionNormalTexture[] CloudVertices =
         {
-            new VertexPositionNormalTexture(new Vector3(-1500, 0,  1500), Vector3.Down, new Vector2(0, 4)),
+            new VertexPositionNormalTexture(new Vector3(-1500, 0,  1500), Vector3.Down, new Vector2(0, 8)),
             new VertexPositionNormalTexture(new Vector3(-1500, 0, -1500), Vector3.Down, new Vector2(0, 0)),
-            new VertexPositionNormalTexture(new Vector3( 1500, 0, -1500), Vector3.Down, new Vector2(4, 0)),
-            new VertexPositionNormalTexture(new Vector3( 1500, 0,  1500), Vector3.Down, new Vector2(4, 4)),
+            new VertexPositionNormalTexture(new Vector3( 1500, 0, -1500), Vector3.Down, new Vector2(8, 0)),
+            new VertexPositionNormalTexture(new Vector3( 1500, 0,  1500), Vector3.Down, new Vector2(8, 8)),
         };
 
         // 矩形メッシュのインデックス。
@@ -264,13 +264,10 @@ namespace Samples.Water
         /// </summary>
         ClippingEffect clippingEffect;
 
-        Postprocess cloudPostprocess;
-
-        CloudLayerFilter cloudLayerFilter;
-
-        CloudLayerFilterPass cloudLayerFilterPass1;
-
-        CloudLayerFilterPass cloudLayerFilterPass2;
+        /// <summary>
+        /// 雲エフェクト。
+        /// </summary>
+        CloudEffect cloudEffect;
 
         /// <summary>
         /// Ripple 用の流体面の頂点バッファ。
@@ -282,6 +279,9 @@ namespace Samples.Water
         /// </summary>
         VertexBuffer flowVertexBuffer;
 
+        /// <summary>
+        /// 雲面の頂点バッファ。
+        /// </summary>
         VertexBuffer cloudVertexBuffer;
 
         /// <summary>
@@ -319,6 +319,9 @@ namespace Samples.Water
         /// </summary>
         Matrix fluidWorld;
 
+        /// <summary>
+        /// 雲面のワールド行列。
+        /// </summary>
         Matrix cloudWorld = Matrix.CreateTranslation(0, 100, 0);
 
         /// <summary>
@@ -368,7 +371,7 @@ namespace Samples.Water
 
         INoiseSource fluidHeightNoise;
 
-        INoiseSource cloudDensityNoise;
+        INoiseSource cloudVolumeNoise;
 
         SeamlessNoiseMap fluidNoiseBuffer0 = new SeamlessNoiseMap(128, 128);
 
@@ -382,9 +385,7 @@ namespace Samples.Water
 
         Texture2D flowNormalMap1;
 
-        Texture2D cloudMap;
-
-        ShaderResourceView finalCloudMap;
+        Texture2D[] cloudVolumeMaps;
 
         FluidType fluidType = FluidType.Flow;
 
@@ -401,6 +402,8 @@ namespace Samples.Water
         float fluidSpecularPower = 32;
 
         Vector3 lightDirection = new Vector3(0, -1, 1);
+
+        Vector2[] cloudOffsets = new Vector2[CloudEffect.MaxLayerCount];
 
         /// <summary>
         /// HUD テキストを表示するか否かを示す値。
@@ -444,18 +447,19 @@ namespace Samples.Water
                 }
             };
 
-            cloudDensityNoise = new ScaleBias
+            cloudVolumeNoise = new ScaleBias
             {
-                //Bias = 1.0f,
-                //Source = new Billow
+                Bias = 1.0f,
+                Source = new Billow
+                {
+                    OctaveCount = 8,
+                    Source = new Perlin { Seed = 200 }
+                }
+                //Bias = 0.0f,
+                //Source = new SumFractal
                 //{
                 //    Source = new Perlin { Seed = 200 }
                 //}
-                Bias = 0.0f,
-                Source = new SumFractal
-                {
-                    Source = new Perlin { Seed = 200 }
-                }
             };
 
             textureDisplay = new TextureDisplay(this);
@@ -534,19 +538,9 @@ namespace Samples.Water
             clippingEffect.AmbientLightColor = ambientLightColor;
             clippingEffect.EnableDefaultLighting();
 
-            cloudPostprocess = new Postprocess(context);
-            cloudPostprocess.Width = cloudNoiseBuffer.Width;
-            cloudPostprocess.Height = cloudNoiseBuffer.Height;
-
-            cloudLayerFilter = new CloudLayerFilter(Device);
-            cloudLayerFilterPass1 = new CloudLayerFilterPass(cloudLayerFilter);
-            cloudLayerFilterPass2 = new CloudLayerFilterPass(cloudLayerFilter);
-            cloudLayerFilterPass1.PixelOffset = new Vector2(2.5f, 2.5f);
-            cloudLayerFilterPass2.PixelOffset = new Vector2(4.5f, 4.5f);
-            cloudLayerFilterPass1.TextureSampler = SamplerState.LinearWrap;
-            cloudLayerFilterPass2.TextureSampler = SamplerState.LinearWrap;
-            cloudPostprocess.Filters.Add(cloudLayerFilterPass1);
-            cloudPostprocess.Filters.Add(cloudLayerFilterPass2);
+            cloudEffect = new CloudEffect(Device);
+            cloudEffect.VolumeMapSampler = SamplerState.LinearWrap;
+            cloudEffect.LayerCount = CloudEffect.MaxLayerCount;
 
             rippleVertexBuffer = Device.CreateVertexBuffer();
             rippleVertexBuffer.Initialize(RippleVertices);
@@ -566,7 +560,14 @@ namespace Samples.Water
 
             flowNormalMap0 = CreateFluidNormalMap(fluidNoiseBuffer0, new Bounds(0, 0, 5, 5));
             flowNormalMap1 = CreateFluidNormalMap(fluidNoiseBuffer1, new Bounds(2, 2, 7, 7));
-            cloudMap = CreateCloudMap(cloudNoiseBuffer, new Bounds(0, 0, 8, 8)); 
+
+            cloudVolumeMaps = new Texture2D[CloudEffect.MaxLayerCount];
+            for (int i = 0; i < CloudEffect.MaxLayerCount; i++)
+            {
+                cloudVolumeMaps[i] = CreateCloudMap(cloudNoiseBuffer, new Bounds(i * 32, i * 32, 8, 8));
+
+                cloudEffect.SetVolumeMap(i, cloudVolumeMaps[i]);
+            }
         }
 
         Texture2D CreateFluidNormalMap(SeamlessNoiseMap noiseBuffer, Bounds bounds)
@@ -611,37 +612,23 @@ namespace Samples.Water
 
         Texture2D CreateCloudMap(SeamlessNoiseMap noiseBuffer, Bounds bounds)
         {
-            // ノイズによる雲マップの生成。
-            noiseMapBuilder.Source = cloudDensityNoise;
+            // ノイズによる雲体積マップの生成。
+            noiseMapBuilder.Source = cloudVolumeNoise;
             noiseMapBuilder.Bounds = bounds;
             noiseMapBuilder.SeamlessEnabled = true;
             noiseMapBuilder.Build(noiseBuffer.Values, noiseBuffer.Width, noiseBuffer.Height);
 
-            Vector3 cloudColor = Vector3.One;
-
-            Color[] colors = new Color[noiseBuffer.Values.Length];
-            for (int y = 0; y < noiseBuffer.Height; y++)
+            for (int i = 0; i < noiseBuffer.Values.Length; i++)
             {
-                for (int x = 0; x < noiseBuffer.Width; x++)
-                {
-                    var index = x + y * noiseBuffer.Width;
-
-                    float density = MathHelper.Clamp(noiseBuffer.Values[index], 0, 1);
-
-                    // 乗算済みアルファで生成。
-                    colors[index] = new Color(
-                        cloudColor.X * density,
-                        cloudColor.Y * density,
-                        cloudColor.Z * density,
-                        density);
-                }
+                noiseBuffer.Values[i] = MathHelper.Clamp(noiseBuffer.Values[i], 0, 1);
             }
 
             var texture = Device.CreateTexture2D();
             texture.Width = noiseBuffer.Width;
             texture.Height = noiseBuffer.Height;
+            texture.Format = SurfaceFormat.Single;
             texture.Initialize();
-            texture.SetData(context, colors);
+            texture.SetData(context, noiseBuffer.Values);
 
             return texture;
         }
@@ -688,9 +675,12 @@ namespace Samples.Water
                 }
             }
 
-            //cloudLayerFilterPass1.PixelOffset += Vector2.One * 0.1f;
-            //cloudLayerFilterPass2.PixelOffset += Vector2.One * 0.2f;
-            //cloudLayerFilterPass3.PixelOffset += Vector2.One * 0.3f;
+            cloudOffsets[0] += new Vector2(-1, 1) * elapsedTime * 4.0f;
+            cloudOffsets[1] += new Vector2(-1, 1) * elapsedTime * 2.0f;
+            cloudOffsets[2] += new Vector2(-1, 1) * elapsedTime * 1.0f;
+            cloudEffect.SetOffset(0, cloudOffsets[0]);
+            cloudEffect.SetOffset(1, cloudOffsets[1]);
+            cloudEffect.SetOffset(2, cloudOffsets[2]);
 
             // 表示カメラが流体面の表側にあるか否か。
             eyeInFront = (0 <= fluidFrontPlane.DotCoordinate(camera.Position));
@@ -731,9 +721,8 @@ namespace Samples.Water
                 textureDisplay.Textures.Add(flowNormalMap1);
             }
 
-            textureDisplay.Textures.Add(cloudMap);
-
-            CreateFinalCloudMap();
+            for (int i = 0; i < cloudVolumeMaps.Length; i++)
+                textureDisplay.Textures.Add(cloudVolumeMaps[i]);
 
             // 反射シーンを描画。
             CreateReflectionMap();
@@ -749,15 +738,6 @@ namespace Samples.Water
                 DrawOverlayText();
 
             base.Draw(gameTime);
-        }
-
-        void CreateFinalCloudMap()
-        {
-            //finalCloudMap = cloudPostprocess.Draw(cloudMap);
-
-            //textureDisplay.Textures.Add(finalCloudMap);
-
-            finalCloudMap = cloudMap;
         }
 
         void CreateFluidRippleMap()
@@ -989,18 +969,11 @@ namespace Samples.Water
             context.IndexBuffer = quadIndexBuffer;
             context.RasterizerState = RasterizerState.CullNone;
             context.BlendState = BlendState.AlphaBlend;
-            basicEffect.World = cloudWorld;
-            basicEffect.View = camera.View;
-            basicEffect.Projection = camera.Projection;
-            basicEffect.Texture = finalCloudMap;
-            basicEffect.TextureEnabled = true;
-            basicEffect.DiffuseColor = Vector3.One;
-            basicEffect.LightingEnabled = false;
-            basicEffect.Apply(context);
-            context.PixelShaderSamplers[0] = SamplerState.LinearWrap;
+            cloudEffect.World = cloudWorld;
+            cloudEffect.View = camera.View;
+            cloudEffect.Projection = camera.Projection;
+            cloudEffect.Apply(context);
             context.DrawIndexed(quadIndexBuffer.IndexCount);
-            basicEffect.Texture = null;
-            basicEffect.TextureEnabled = false;
             context.RasterizerState = null;
             context.BlendState = null;
         }

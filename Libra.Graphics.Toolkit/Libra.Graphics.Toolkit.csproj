@@ -41,6 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BezierMesh.cs" />
+    <Compile Include="CloudEffect.cs" />
     <Compile Include="CloudLayerFilter.cs" />
     <Compile Include="CloudLayerFilterPass.cs" />
     <Compile Include="ExponentialFogFilter.cs" />
@@ -146,10 +147,14 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Shaders\Cloud.ps" />
+    <None Include="Shaders\Cloud.vs" />
     <None Include="Shaders\CloudLayerFilter.ps" />
     <None Include="Shaders\Compiled\BloomCombineFilterPS.bin" />
     <None Include="Shaders\Compiled\BloomExtractFilterPS.bin" />
     <None Include="Shaders\Compiled\CloudLayerFilterPS.bin" />
+    <None Include="Shaders\Compiled\CloudPS.bin" />
+    <None Include="Shaders\Compiled\CloudVS.bin" />
     <None Include="Shaders\Compiled\CombineFilterPS.bin" />
     <None Include="Shaders\Compiled\DepthMapPS.bin" />
     <None Include="Shaders\Compiled\DepthMapVS.bin" />
