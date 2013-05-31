@@ -144,13 +144,13 @@ float4 PS(Input input) : SV_Target0
     // 屈折。
     float3 color = ComputeRefrectionColor(input.PositionWVP, offset, eyeDistance, nDotE);
 
-    // 反射。
-    color += ComputeReflectionColor(input.PositionWRP, offset, nDotE);
-
-    // ライティング。
+    // 屈折を考慮した水の色に対してライティング。
     ColorPair lightResult = ComputeLights(E, N);
     color *= lightResult.Diffuse;
     color += lightResult.Specular * DiffuseColor.a;
+
+    // 反射を合成。
+    color += ComputeReflectionColor(input.PositionWRP, offset, nDotE);
 
     return float4(color, DiffuseColor.a);
 }
