@@ -449,17 +449,18 @@ namespace Samples.Water
 
             cloudVolumeNoise = new ScaleBias
             {
-                Bias = 1.0f,
-                Source = new Billow
-                {
-                    OctaveCount = 8,
-                    Source = new Perlin { Seed = 200 }
-                }
-                //Bias = 0.0f,
-                //Source = new SumFractal
+                //Bias = 0.5f,
+                //Source = new Billow
                 //{
+                //    OctaveCount = 4,
+                //    Lacunarity = 1,
                 //    Source = new Perlin { Seed = 200 }
                 //}
+                Bias = 0.0f,
+                Source = new SumFractal
+                {
+                    Source = new Perlin { Seed = 200 }
+                }
             };
 
             textureDisplay = new TextureDisplay(this);
@@ -540,6 +541,7 @@ namespace Samples.Water
 
             cloudEffect = new CloudEffect(Device);
             cloudEffect.VolumeMapSampler = SamplerState.LinearWrap;
+            cloudEffect.Density = 0.5f;
             cloudEffect.LayerCount = CloudEffect.MaxLayerCount;
 
             rippleVertexBuffer = Device.CreateVertexBuffer();
@@ -564,7 +566,7 @@ namespace Samples.Water
             cloudVolumeMaps = new Texture2D[CloudEffect.MaxLayerCount];
             for (int i = 0; i < CloudEffect.MaxLayerCount; i++)
             {
-                cloudVolumeMaps[i] = CreateCloudMap(cloudNoiseBuffer, new Bounds(i * 32, i * 32, 8, 8));
+                cloudVolumeMaps[i] = CreateCloudMap(cloudNoiseBuffer, new Bounds(i * 32, i * 32, 4, 4));
 
                 cloudEffect.SetVolumeMap(i, cloudVolumeMaps[i]);
             }
