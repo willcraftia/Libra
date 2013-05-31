@@ -141,10 +141,11 @@ namespace Samples.Water
 
         static readonly VertexPositionNormalTexture[] CloudVertices =
         {
-            new VertexPositionNormalTexture(new Vector3(-1500, 0,  1500), Vector3.Down, new Vector2(0, 8)),
-            new VertexPositionNormalTexture(new Vector3(-1500, 0, -1500), Vector3.Down, new Vector2(0, 0)),
-            new VertexPositionNormalTexture(new Vector3( 1500, 0, -1500), Vector3.Down, new Vector2(8, 0)),
-            new VertexPositionNormalTexture(new Vector3( 1500, 0,  1500), Vector3.Down, new Vector2(8, 8)),
+            // 頂点の順序に注意。
+            new VertexPositionNormalTexture(new Vector3( 1500, 0,  1500), Vector3.Down, new Vector2(0, 8)),
+            new VertexPositionNormalTexture(new Vector3( 1500, 0, -1500), Vector3.Down, new Vector2(0, 0)),
+            new VertexPositionNormalTexture(new Vector3(-1500, 0, -1500), Vector3.Down, new Vector2(8, 0)),
+            new VertexPositionNormalTexture(new Vector3(-1500, 0,  1500), Vector3.Down, new Vector2(8, 8)),
         };
 
         // 矩形メッシュのインデックス。
@@ -966,16 +967,27 @@ namespace Samples.Water
             basicEffect.LightingEnabled = true;
             DrawSceneWithoutFluid(basicEffect, ref camera.View);
 
-            // TODO
-            context.SetVertexBuffer(cloudVertexBuffer);
-            context.IndexBuffer = quadIndexBuffer;
-            context.RasterizerState = RasterizerState.CullNone;
-            context.BlendState = BlendState.AlphaBlend;
-            cloudEffect.World = cloudWorld;
             cloudEffect.View = camera.View;
             cloudEffect.Projection = camera.Projection;
+            DrawCloud(cloudEffect);
+        }
+
+        void DrawCloud(IEffect effect)
+        {
+            context.SetVertexBuffer(cloudVertexBuffer);
+            context.IndexBuffer = quadIndexBuffer;
+            context.BlendState = BlendState.AlphaBlend;
+
+            var effectMatrices = effect as IEffectMatrices;
+            if (effectMatrices != null)
+            {
+                effectMatrices.World = cloudWorld;
+            }
+
             cloudEffect.Apply(context);
+            
             context.DrawIndexed(quadIndexBuffer.IndexCount);
+            
             context.RasterizerState = null;
             context.BlendState = null;
         }
