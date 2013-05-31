@@ -398,9 +398,9 @@ namespace Samples.Water
 
         Vector3 fluidDiffuseColor = new Vector3(0.5f, 0.85f, 0.815f);
 
-        Vector3 fluidSpecularColor = new Vector3(0.8f, 0.8f, 0.8f);
+        Vector3 fluidSpecularColor = new Vector3(0.5f, 0.5f, 0.5f);
 
-        float fluidSpecularPower = 32;
+        float fluidSpecularPower = 4;
 
         Vector3 lightDirection = new Vector3(0, -1, 1);
 
@@ -678,9 +678,9 @@ namespace Samples.Water
                 }
             }
 
-            cloudOffsets[0] += new Vector2(-1, 1) * elapsedTime * 4.0f;
-            cloudOffsets[1] += new Vector2(-1, 1) * elapsedTime * 2.0f;
-            cloudOffsets[2] += new Vector2(-1, 1) * elapsedTime * 1.0f;
+            cloudOffsets[0] += new Vector2(1, -1) * elapsedTime * 4.0f;
+            cloudOffsets[1] += new Vector2(1, -1) * elapsedTime * 2.0f;
+            cloudOffsets[2] += new Vector2(1, -1) * elapsedTime * 1.0f;
             cloudEffect.SetOffset(0, cloudOffsets[0]);
             cloudEffect.SetOffset(1, cloudOffsets[1]);
             cloudEffect.SetOffset(2, cloudOffsets[2]);
@@ -879,6 +879,11 @@ namespace Samples.Water
             clippingEffect.ClipPlane0 = clipPlane.ToVector4();
 
             DrawSceneWithoutFluid(clippingEffect, ref reflectionView);
+
+            // クリッピングを無視して強引に描画を試行。
+            cloudEffect.View = reflectionView;
+            cloudEffect.Projection = camera.Projection;
+            DrawCloud(cloudEffect);
 
             context.SetRenderTarget(null);
 
