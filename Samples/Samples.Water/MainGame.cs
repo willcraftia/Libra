@@ -322,7 +322,7 @@ namespace Samples.Water
         /// <summary>
         /// 雲面のワールド行列。
         /// </summary>
-        Matrix cloudWorld = Matrix.CreateTranslation(0, 100, 0);
+        Matrix cloudWorld = Matrix.CreateTranslation(0, 200, 0);
 
         /// <summary>
         /// ローカル座標系における流体面の表側を表す平面。
@@ -456,7 +456,6 @@ namespace Samples.Water
                 //    Lacunarity = 1,
                 //    Source = new Perlin { Seed = 200 }
                 //}
-                Bias = 0.0f,
                 Source = new SumFractal
                 {
                     Source = new Perlin { Seed = 200 }
@@ -467,6 +466,7 @@ namespace Samples.Water
             const float scale = 0.2f;
             textureDisplay.TextureWidth = (int) (WindowWidth * scale);
             textureDisplay.TextureHeight = (int) (WindowHeight * scale);
+            textureDisplay.Visible = false;
             Components.Add(textureDisplay);
 
             frameRateMeasure = new FrameRateMeasure(this);
@@ -541,7 +541,7 @@ namespace Samples.Water
 
             cloudEffect = new CloudEffect(Device);
             cloudEffect.VolumeMapSampler = SamplerState.LinearWrap;
-            cloudEffect.Density = 0.5f;
+            cloudEffect.Density = 1.0f;
             cloudEffect.LayerCount = CloudEffect.MaxLayerCount;
 
             rippleVertexBuffer = Device.CreateVertexBuffer();
