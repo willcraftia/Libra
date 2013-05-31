@@ -159,10 +159,13 @@ namespace Samples.Water
 
         #endregion
 
-        [StructLayout(LayoutKind.Sequential, Size = 16 * 6)]
+        [StructLayout(LayoutKind.Explicit, Size = 16 + 16 * MaxClipPlaneCount)]
         struct ClippingConstants
         {
-            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 6)]
+            [FieldOffset(0)]
+            public bool ClippingEnabled;
+
+            [FieldOffset(16), MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxClipPlaneCount)]
             public Vector4[] ClipPlanes;
         }
 
@@ -281,6 +284,8 @@ namespace Samples.Water
         #endregion
 
         public const int DirectionalLightCount = 3;
+
+        public const int MaxClipPlaneCount = 3;
 
         static readonly Vector3[] DefaultDirectionalLightDirections =
         {
@@ -452,6 +457,17 @@ namespace Samples.Water
             get { return directionalLights; }
         }
 
+        public bool ClippingEnabled
+        {
+            get { return clippingConstants.ClippingEnabled; }
+            set
+            {
+                clippingConstants.ClippingEnabled = value;
+
+                dirtyFlags |= DirtyFlags.ClippingContants;
+            }
+        }
+
         public Vector4 ClipPlane0
         {
             get { return clippingConstants.ClipPlanes[0]; }
@@ -499,7 +515,8 @@ namespace Samples.Water
 
             constants.SpecularColorPower = new Vector4(1, 1, 1, 16);
 
-            clippingConstants.ClipPlanes = new Vector4[6];
+            clippingConstants.ClippingEnabled = true;
+            clippingConstants.ClipPlanes = new Vector4[MaxClipPlaneCount];
 
             dirtyFlags =
                 DirtyFlags.Contants |

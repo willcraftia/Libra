@@ -26,7 +26,8 @@ cbuffer Parameters : register(b0)
 
 cbuffer ClippingParameters : register(b1)
 {
-    float4 ClipPlanes[6];
+    bool   ClippingEnabled  : packoffset(c0);
+    float4 ClipPlanes[3]    : packoffset(c1);
 };
 
 struct VSInputNm
@@ -37,11 +38,11 @@ struct VSInputNm
 
 struct VSOutputPixelLighting
 {
-    float4 PositionWS : TEXCOORD0;
-    float3 NormalWS   : TEXCOORD1;
-    float4 Diffuse    : COLOR0;
-float  ClipDistance0 : SV_ClipDistance0;
-    float4 PositionPS : SV_Position;
+    float4 PositionWS   : TEXCOORD0;
+    float3 NormalWS     : TEXCOORD1;
+    float4 Diffuse      : COLOR0;
+    float3 ClipDistance : SV_ClipDistance0;
+    float4 PositionPS   : SV_Position;
 };
 
 struct PSInputPixelLighting
@@ -49,7 +50,6 @@ struct PSInputPixelLighting
     float4 PositionWS : TEXCOORD0;
     float3 NormalWS   : TEXCOORD1;
     float4 Diffuse    : COLOR0;
-//    float  ClipDistance0 : SV_ClipDistance0;
 };
 
 struct CommonVSOutputPixelLighting
@@ -142,7 +142,21 @@ VSOutputPixelLighting VS(VSInputNm vin)
 
     vout.Diffuse = float4(1, 1, 1, DiffuseColor.a);
 
-vout.ClipDistance0 = dot(mul(vin.Position, World), ClipPlanes[0]);
+    if (ClippingEnabled)
+    {
+//        float4 posW = mul(vin.Position, World);
+        float4 posW = float4(cout.Pos_ws, 1);
+        vout.ClipDistance.x = dot(posW, ClipPlanes[0]);
+        vout.ClipDistance.y = dot(posW, ClipPlanes[1]);
+        vout.ClipDistance.z = dot(posW, ClipPlanes[2]);
+//        vout.ClipDistance.z = dot(mul(vin.Position, World), ClipPlanes[2]);
+    }
+    else
+    {
+        vout.ClipDistance.x = 1;
+        vout.ClipDistance.y = 1;
+        vout.ClipDistance.z = 1;
+    }
 
     return vout;
 }
