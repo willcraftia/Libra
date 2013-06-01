@@ -76,7 +76,7 @@ namespace Libra.Graphics.Toolkit
             var positionLV = new Vector3(
                 boxLV.Min.X + halfBoxSizeLV.X,
                 boxLV.Min.Y + halfBoxSizeLV.Y,
-                boxLV.Min.Z);
+                boxLV.Max.Z);
 
             // 仮ビュー行列の逆行列。
             Matrix invLightView;
@@ -100,7 +100,11 @@ namespace Libra.Graphics.Toolkit
             }
 
             // 境界ボックスのある範囲で正射影。
-            // ただし、SceneExtrudeDistance に応じて near を後退させておく。
+            // ただし、SceneExtrudeDistance に応じて near をライト カメラ側へ押し出す。
+            // これにより、表示カメラの境界錐台の外に存在する投影オブジェクトを
+            // ライト カメラ内へ含める事ができる。
+            // この処理は、ライト カメラの位置の後退では満たせず、
+            // 射影空間の押し出しでなければならない点に注意する。
             Matrix.CreateOrthographicOffCenter(
                 boxLV.Min.X, boxLV.Max.X,
                 boxLV.Min.Y, boxLV.Max.Y,
