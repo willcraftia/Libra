@@ -395,40 +395,89 @@ namespace Samples.Water
         /// </summary>
         float fluidRoll;
 
+        /// <summary>
+        /// 流体の高度を生成するノイズ。
+        /// </summary>
         INoiseSource fluidHeightNoise;
 
+        /// <summary>
+        /// 雲の体積を生成するノイズ。
+        /// </summary>
         INoiseSource cloudVolumeNoise;
 
-        SeamlessNoiseMap fluidNoiseBuffer0 = new SeamlessNoiseMap(128, 128);
+        /// <summary>
+        /// 流体高度ノイズの一時バッファ。
+        /// </summary>
+        SeamlessNoiseMap fluidNoiseBuffer = new SeamlessNoiseMap(128, 128);
 
-        SeamlessNoiseMap fluidNoiseBuffer1 = new SeamlessNoiseMap(128, 128);
-
+        /// <summary>
+        /// 雲体積ノイズの一時バッファ。
+        /// </summary>
         SeamlessNoiseMap cloudNoiseBuffer = new SeamlessNoiseMap(128, 128);
 
+        /// <summary>
+        /// 2D ノイズ生成ユーティリティ。
+        /// </summary>
         NoiseMapBuilder noiseMapBuilder = new NoiseMapBuilder();
 
+        /// <summary>
+        /// 流体法線マップ #0。
+        /// </summary>
         Texture2D flowNormalMap0;
 
+        /// <summary>
+        /// 流体法線マップ #1。
+        /// </summary>
         Texture2D flowNormalMap1;
 
+        /// <summary>
+        /// 雲体積マップの配列。
+        /// </summary>
         Texture2D[] cloudVolumeMaps;
 
+        /// <summary>
+        /// 現在の表示に利用する流体エフェクトの種類。
+        /// </summary>
         FluidType fluidType = FluidType.Flow;
 
+        /// <summary>
+        /// 流体法線マップ #0 のサンプリング オフセット (ピクセル単位)。
+        /// </summary>
         Vector2 normalOffset0;
 
+        /// <summary>
+        /// 流体法線マップ #1 のサンプリング オフセット (ピクセル単位)。
+        /// </summary>
         Vector2 normalOffset1;
 
+        /// <summary>
+        /// 環境光色。
+        /// </summary>
         Vector3 ambientLightColor = new Vector3(0.15f, 0.15f, 0.15f);
 
+        /// <summary>
+        /// 拡散反射光色。
+        /// </summary>
         Vector3 fluidDiffuseColor = new Vector3(0.5f, 0.85f, 0.815f);
 
+        /// <summary>
+        /// 鏡面反射光色。
+        /// </summary>
         Vector3 fluidSpecularColor = new Vector3(0.5f, 0.5f, 0.5f);
 
+        /// <summary>
+        /// 鏡面反射光の強さ。
+        /// </summary>
         float fluidSpecularPower = 4;
 
+        /// <summary>
+        /// 方向性光源の方向。
+        /// </summary>
         Vector3 lightDirection = new Vector3(0, -1, 1);
 
+        /// <summary>
+        /// 雲体積マップのサンプリング オフセット (ピクセル単位)。
+        /// </summary>
         Vector2[] cloudOffsets = new Vector2[CloudEffect.MaxLayerCount];
 
         /// <summary>
@@ -605,8 +654,8 @@ namespace Samples.Water
             cylinderMesh = new CylinderMesh(context, 80, 20, 32);
             squareMesh = new SquareMesh(context, 400);
 
-            flowNormalMap0 = CreateFluidNormalMap(fluidNoiseBuffer0, new Bounds(0, 0, 5, 5));
-            flowNormalMap1 = CreateFluidNormalMap(fluidNoiseBuffer1, new Bounds(2, 2, 7, 7));
+            flowNormalMap0 = CreateFluidNormalMap(fluidNoiseBuffer, new Bounds(0, 0, 5, 5));
+            flowNormalMap1 = CreateFluidNormalMap(fluidNoiseBuffer, new Bounds(2, 2, 7, 7));
 
             cloudVolumeMaps = new Texture2D[CloudEffect.MaxLayerCount];
             for (int i = 0; i < CloudEffect.MaxLayerCount; i++)
@@ -790,8 +839,7 @@ namespace Samples.Water
             CreateFinalSceneMap();
 
             // HUD のテキストを描画。
-            if (hudVisible)
-                DrawOverlayText();
+            DrawOverlayText();
 
             base.Draw(gameTime);
         }
@@ -1124,6 +1172,9 @@ namespace Samples.Water
 
         void DrawOverlayText()
         {
+            if (!hudVisible)
+                return;
+
             // HUD のテキストを表示。
             string text = "";
 
