@@ -481,6 +481,11 @@ namespace Samples.Water
         Vector2[] cloudOffsets = new Vector2[CloudEffect.MaxLayerCount];
 
         /// <summary>
+        /// 流体アニメーションを有効にするか否かを示す値。
+        /// </summary>
+        bool fluidAnimationEnabled = true;
+
+        /// <summary>
         /// HUD テキストを表示するか否かを示す値。
         /// </summary>
         bool hudVisible;
@@ -739,35 +744,41 @@ namespace Samples.Water
 
             float elapsedTime = (float) gameTime.ElapsedGameTime.TotalSeconds;
 
-            if (fluidType == FluidType.Flow)
+            if (fluidAnimationEnabled)
             {
-                // 時間経過に応じて流体面のテクスチャを移動。
-                normalOffset0.X += elapsedTime * 0.1f;
-                normalOffset0.Y += elapsedTime * 0.1f;
-                normalOffset0.X %= 1.0f;
-                normalOffset0.Y %= 1.0f;
-                normalOffset1.X += elapsedTime * 0.06f;
-                normalOffset1.Y += elapsedTime * 0.07f;
-                normalOffset1.X %= 1.0f;
-                normalOffset1.Y %= 1.0f;
-
-                fluidEffect.Offset0 = normalOffset0;
-                fluidEffect.Offset1 = normalOffset1;
-            }
-
-            if (fluidType == FluidType.Ripple)
-            {
-                // 一定時間が経過したらランダムな新しい波を追加。
-                elapsedNewWaveTime += elapsedTime;
-                if (newWaveInterval <= elapsedNewWaveTime)
+                if (fluidType == FluidType.Flow)
                 {
-                    var position = new Vector2((float) Random.NextDouble(), (float) Random.NextDouble());
-                    var radius = Random.Next(1, 20) / 512.0f;
-                    var velocity = (float) Random.NextDouble() * 0.05f;
+                    // 時間経過に応じて流体面のテクスチャを移動。
+                    normalOffset0.X += elapsedTime * 0.1f;
+                    normalOffset0.Y += elapsedTime * 0.1f;
+                    normalOffset0.X %= 1.0f;
+                    normalOffset0.Y %= 1.0f;
+                    normalOffset1.X += elapsedTime * 0.06f;
+                    normalOffset1.Y += elapsedTime * 0.07f;
+                    normalOffset1.X %= 1.0f;
+                    normalOffset1.Y %= 1.0f;
 
-                    fluidRippleFilter.AddRipple(position, radius, velocity);
+                    fluidEffect.Offset0 = normalOffset0;
+                    fluidEffect.Offset1 = normalOffset1;
+                }
 
-                    elapsedNewWaveTime -= newWaveInterval;
+                if (fluidType == FluidType.Ripple)
+                {
+                    fluidEffect.Offset0 = Vector2.Zero;
+                    fluidEffect.Offset1 = Vector2.Zero;
+
+                    // 一定時間が経過したらランダムな新しい波を追加。
+                    elapsedNewWaveTime += elapsedTime;
+                    if (newWaveInterval <= elapsedNewWaveTime)
+                    {
+                        var position = new Vector2((float) Random.NextDouble(), (float) Random.NextDouble());
+                        var radius = Random.Next(1, 20) / 512.0f;
+                        var velocity = (float) Random.NextDouble() * 0.05f;
+
+                        fluidRippleFilter.AddRipple(position, radius, velocity);
+
+                        elapsedNewWaveTime -= newWaveInterval;
+                    }
                 }
             }
 
@@ -1176,7 +1187,11 @@ namespace Samples.Water
                 return;
 
             // HUD のテキストを表示。
-            string text = "";
+            string text =
+                "[PageUp/Down] Roll fluid surface\n" +
+                "[1] Ripple Effect " + ((fluidType == FluidType.Ripple) ? "(Current)" : "") + "\n" +
+                "[2] Flow Effect " + ((fluidType == FluidType.Flow) ? "(Current)" : "") + "\n" +
+                "[3] Start/Stop Flow or New Ripple (" + fluidAnimationEnabled + ")";
 
             string basicText =
                 "[F1] HUD on/off\n" +
@@ -1217,6 +1232,15 @@ namespace Samples.Water
                 fluidRoll -= 0.005f;
                 fluidRoll %= MathHelper.TwoPi;
             }
+
+            if (currentKeyboardState.IsKeyUp(Keys.D1) && lastKeyboardState.IsKeyDown(Keys.D1))
+                fluidType = FluidType.Ripple;
+
+            if (currentKeyboardState.IsKeyUp(Keys.D2) && lastKeyboardState.IsKeyDown(Keys.D2))
+                fluidType = FluidType.Flow;
+
+            if (currentKeyboardState.IsKeyUp(Keys.D3) && lastKeyboardState.IsKeyDown(Keys.D3))
+                fluidAnimationEnabled = !fluidAnimationEnabled;
 
             Matrix fluidRotation;
             Matrix.CreateFromYawPitchRoll(0, 0, fluidRoll, out fluidRotation);
