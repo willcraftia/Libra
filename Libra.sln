@@ -97,6 +97,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.WaterContent", "Sam
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.Water", "Samples\Samples.Water\Samples.Water.csproj", "{92D92C9E-FF63-469C-8692-9B8AD55B0AD4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.DeferredShadowMapping", "Samples\Samples.DeferredShadowMapping\Samples.DeferredShadowMapping.csproj", "{BDFE1C95-654C-43B5-B72F-C5FF69D3D0F2}"
+EndProject
+Project("{96E2B04D-8817-42C6-938A-82C39BA4D311}") = "Samples.DeferredShadowMappingContent", "Samples\Samples.DeferredShadowMappingContent\Samples.DeferredShadowMappingContent.contentproj", "{A2FAD834-FB28-41EE-8C4E-73B53FFAF9A4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -535,6 +539,22 @@ Global
 		{92D92C9E-FF63-469C-8692-9B8AD55B0AD4}.Release|Mixed Platforms.Build.0 = Release|x86
 		{92D92C9E-FF63-469C-8692-9B8AD55B0AD4}.Release|x86.ActiveCfg = Release|x86
 		{92D92C9E-FF63-469C-8692-9B8AD55B0AD4}.Release|x86.Build.0 = Release|x86
+		{BDFE1C95-654C-43B5-B72F-C5FF69D3D0F2}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{BDFE1C95-654C-43B5-B72F-C5FF69D3D0F2}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{BDFE1C95-654C-43B5-B72F-C5FF69D3D0F2}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{BDFE1C95-654C-43B5-B72F-C5FF69D3D0F2}.Debug|x86.ActiveCfg = Debug|x86
+		{BDFE1C95-654C-43B5-B72F-C5FF69D3D0F2}.Debug|x86.Build.0 = Debug|x86
+		{BDFE1C95-654C-43B5-B72F-C5FF69D3D0F2}.Release|Any CPU.ActiveCfg = Release|x86
+		{BDFE1C95-654C-43B5-B72F-C5FF69D3D0F2}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{BDFE1C95-654C-43B5-B72F-C5FF69D3D0F2}.Release|Mixed Platforms.Build.0 = Release|x86
+		{BDFE1C95-654C-43B5-B72F-C5FF69D3D0F2}.Release|x86.ActiveCfg = Release|x86
+		{BDFE1C95-654C-43B5-B72F-C5FF69D3D0F2}.Release|x86.Build.0 = Release|x86
+		{A2FAD834-FB28-41EE-8C4E-73B53FFAF9A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A2FAD834-FB28-41EE-8C4E-73B53FFAF9A4}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{A2FAD834-FB28-41EE-8C4E-73B53FFAF9A4}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A2FAD834-FB28-41EE-8C4E-73B53FFAF9A4}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{A2FAD834-FB28-41EE-8C4E-73B53FFAF9A4}.Release|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{A2FAD834-FB28-41EE-8C4E-73B53FFAF9A4}.Release|x86.ActiveCfg = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
