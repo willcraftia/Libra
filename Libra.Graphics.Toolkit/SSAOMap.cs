@@ -379,6 +379,7 @@ namespace Libra.Graphics.Toolkit
             {
                 sharedDeviceResource = null;
                 constantBufferPerObject.Dispose();
+                constantBufferPerCamera.Dispose();
             }
 
             disposed = true;
