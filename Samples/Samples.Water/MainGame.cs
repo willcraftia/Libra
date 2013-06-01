@@ -211,6 +211,11 @@ namespace Samples.Water
         KeyboardState currentKeyboardState;
 
         /// <summary>
+        /// 深度マップの描画先レンダ ターゲット。
+        /// </summary>
+        RenderTarget depthMapRenderTarget;
+
+        /// <summary>
         /// 通常シーンの描画先レンダ ターゲット。
         /// </summary>
         RenderTarget normalSceneRenderTarget;
@@ -269,6 +274,26 @@ namespace Samples.Water
         /// 雲エフェクト。
         /// </summary>
         CloudEffect cloudEffect;
+
+        /// <summary>
+        /// 線形深度マップ エフェクト。
+        /// </summary>
+        LinearDepthMapEffect depthMapEffect;
+
+        /// <summary>
+        /// ポストプロセス。
+        /// </summary>
+        Postprocess postprocess;
+
+        /// <summary>
+        /// 線形距離フォグ フィルタ。
+        /// </summary>
+        LinearFogFilter linearFogFilter;
+
+        /// <summary>
+        /// ポストプロセス適用後の最終シーン。
+        /// </summary>
+        ShaderResourceView finalSceneTexture;
 
         /// <summary>
         /// Ripple 用の流体面の頂点バッファ。
@@ -485,6 +510,13 @@ namespace Samples.Water
             spriteBatch = new SpriteBatch(context);
             spriteFont = content.Load<SpriteFont>("hudFont");
 
+            depthMapRenderTarget = Device.CreateRenderTarget();
+            depthMapRenderTarget.Width = WindowWidth;
+            depthMapRenderTarget.Height = WindowHeight;
+            depthMapRenderTarget.Format = SurfaceFormat.Single;
+            depthMapRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
+            depthMapRenderTarget.Initialize();
+
             normalSceneRenderTarget = Device.CreateRenderTarget();
             normalSceneRenderTarget.Width = WindowWidth;
             normalSceneRenderTarget.Height = WindowHeight;
@@ -544,6 +576,18 @@ namespace Samples.Water
             cloudEffect.VolumeMapSampler = SamplerState.LinearWrap;
             cloudEffect.Density = 1.0f;
             cloudEffect.LayerCount = CloudEffect.MaxLayerCount;
+
+            depthMapEffect = new LinearDepthMapEffect(Device);
+
+            postprocess = new Postprocess(context);
+            postprocess.Width = normalSceneRenderTarget.Width;
+            postprocess.Height = normalSceneRenderTarget.Height;
+
+            linearFogFilter = new LinearFogFilter(Device);
+            linearFogFilter.FogStart = camera.FarClipDistance - 400;
+            linearFogFilter.FogEnd = camera.FarClipDistance - 10;
+            linearFogFilter.FogColor = Color.CornflowerBlue.ToVector3();
+            postprocess.Filters.Add(linearFogFilter);
 
             rippleVertexBuffer = Device.CreateVertexBuffer();
             rippleVertexBuffer.Initialize(RippleVertices);
@@ -727,20 +771,49 @@ namespace Samples.Water
             for (int i = 0; i < cloudVolumeMaps.Length; i++)
                 textureDisplay.Textures.Add(cloudVolumeMaps[i]);
 
+            // 深度マップを描画。
+            CreateDepthMap();
+
             // 反射シーンを描画。
             CreateReflectionMap();
 
             // 屈折シーンを描画。
             CreateRefractionMap();
 
-            // シーンを描画。
-            DrawScene();
+            // 通常シーンを描画。
+            CreateNormalSceneMap();
+
+            // ポストプロセスを適用。
+            ApplyPostprocess();
+
+            // 最終的なシーンをバック バッファへ描画。
+            CreateFinalSceneMap();
 
             // HUD のテキストを描画。
             if (hudVisible)
                 DrawOverlayText();
 
             base.Draw(gameTime);
+        }
+
+        void CreateDepthMap()
+        {
+            context.SetRenderTarget(depthMapRenderTarget);
+            context.Clear(new Vector4(float.MaxValue));
+
+            depthMapEffect.View = camera.View;
+            depthMapEffect.Projection = camera.Projection;
+
+            DrawFluid(depthMapEffect, BlendState.Opaque);
+
+            DrawSceneWithoutFluid(depthMapEffect);
+
+            DrawCloud(depthMapEffect, BlendState.Opaque);
+
+            context.SetRenderTarget(null);
+
+            // フィルタへ設定。
+            linearFogFilter.LinearDepthMap = depthMapRenderTarget;
         }
 
         void CreateFluidRippleMap()
@@ -878,12 +951,14 @@ namespace Samples.Water
 
             clippingEffect.ClipPlane0 = clipPlane.ToVector4();
 
-            DrawSceneWithoutFluid(clippingEffect, ref reflectionView);
+            clippingEffect.View = reflectionView;
+            clippingEffect.Projection = camera.Projection;
+            DrawSceneWithoutFluid(clippingEffect);
 
             // クリッピングを無視して強引に描画を試行。
             cloudEffect.View = reflectionView;
             cloudEffect.Projection = camera.Projection;
-            DrawCloud(cloudEffect);
+            DrawCloud(cloudEffect, BlendState.AlphaBlend);
 
             context.SetRenderTarget(null);
 
@@ -900,7 +975,9 @@ namespace Samples.Water
             var clipPlane = (eyeInFront) ? fluidBackPlane : fluidFrontPlane;
             clippingEffect.ClipPlane0 = clipPlane.ToVector4();
 
-            DrawSceneWithoutFluid(clippingEffect, ref camera.View);
+            clippingEffect.View = camera.View;
+            clippingEffect.Projection = camera.Projection;
+            DrawSceneWithoutFluid(clippingEffect);
 
             context.SetRenderTarget(null);
 
@@ -909,15 +986,8 @@ namespace Samples.Water
             textureDisplay.Textures.Add(refractionSceneRenderTarget);
         }
 
-        void DrawSceneWithoutFluid(IEffect effect, ref Matrix view)
+        void DrawSceneWithoutFluid(IEffect effect)
         {
-            var effectMatrices = effect as IEffectMatrices;
-            if (effectMatrices != null)
-            {
-                effectMatrices.View = view;
-                effectMatrices.Projection = camera.Projection;
-            }
-
             DrawPrimitiveMesh(cubeMesh, Matrix.CreateTranslation(-40, 10, 40), new Vector3(0, 0, 0), effect);
             DrawPrimitiveMesh(cubeMesh, Matrix.CreateTranslation(-85, 10, -20), new Vector3(1, 0, 0), effect);
             DrawPrimitiveMesh(cubeMesh, Matrix.CreateTranslation(-60, 10, -20), new Vector3(1, 0, 0), effect);
@@ -931,8 +1001,9 @@ namespace Samples.Water
             DrawPrimitiveMesh(squareMesh, Matrix.Identity, new Vector3(0.5f), effect);
         }
 
-        void DrawScene()
+        void CreateNormalSceneMap()
         {
+            context.SetRenderTarget(normalSceneRenderTarget);
             context.Clear(Color.CornflowerBlue);
 
             if (eyeInFront)
@@ -946,11 +1017,29 @@ namespace Samples.Water
                 fluidEffect.RefractiveIndex2 = FluidEffect.RefractiveIndexAir;
             }
 
-            fluidEffect.World = fluidWorld;
             fluidEffect.View = camera.View;
             fluidEffect.Projection = camera.Projection;
             fluidEffect.ReflectionView = reflectionView;
-            fluidEffect.Apply(context);
+            DrawFluid(fluidEffect, BlendState.AlphaBlend);
+
+            basicEffect.LightingEnabled = true;
+            basicEffect.View = camera.View;
+            basicEffect.Projection = camera.Projection;
+            DrawSceneWithoutFluid(basicEffect);
+
+            cloudEffect.View = camera.View;
+            cloudEffect.Projection = camera.Projection;
+            DrawCloud(cloudEffect, BlendState.AlphaBlend);
+
+            context.SetRenderTarget(null);
+        }
+
+        void DrawFluid(IEffect effect, BlendState blendState)
+        {
+            context.RasterizerState = RasterizerState.CullNone;
+            context.BlendState = blendState;
+
+            context.IndexBuffer = quadIndexBuffer;
 
             switch (fluidType)
             {
@@ -961,27 +1050,25 @@ namespace Samples.Water
                     context.SetVertexBuffer(flowVertexBuffer);
                     break;
             }
-            context.IndexBuffer = quadIndexBuffer;
 
-            context.RasterizerState = RasterizerState.CullNone;
-            context.BlendState = BlendState.AlphaBlend;
+            var effectMatrices = effect as IEffectMatrices;
+            if (effectMatrices != null)
+            {
+                effectMatrices.World = fluidWorld;
+            }
+
+            effect.Apply(context);
+
             context.DrawIndexed(quadIndexBuffer.IndexCount);
             context.RasterizerState = null;
             context.BlendState = null;
-
-            basicEffect.LightingEnabled = true;
-            DrawSceneWithoutFluid(basicEffect, ref camera.View);
-
-            cloudEffect.View = camera.View;
-            cloudEffect.Projection = camera.Projection;
-            DrawCloud(cloudEffect);
         }
 
-        void DrawCloud(IEffect effect)
+        void DrawCloud(IEffect effect, BlendState blendState)
         {
             context.SetVertexBuffer(cloudVertexBuffer);
             context.IndexBuffer = quadIndexBuffer;
-            context.BlendState = BlendState.AlphaBlend;
+            context.BlendState = blendState;
 
             var effectMatrices = effect as IEffectMatrices;
             if (effectMatrices != null)
@@ -989,11 +1076,10 @@ namespace Samples.Water
                 effectMatrices.World = cloudWorld;
             }
 
-            cloudEffect.Apply(context);
+            effect.Apply(context);
             
             context.DrawIndexed(quadIndexBuffer.IndexCount);
             
-            context.RasterizerState = null;
             context.BlendState = null;
         }
 
@@ -1019,6 +1105,21 @@ namespace Samples.Water
 
             effect.Apply(context);
             mesh.Draw();
+        }
+
+        void ApplyPostprocess()
+        {
+            // ViewRayRequired 属性を持つフィルタを追加している場合、射影行列の設定が必須。
+            postprocess.Projection = camera.Projection;
+
+            finalSceneTexture = postprocess.Draw(normalSceneRenderTarget);
+        }
+
+        void CreateFinalSceneMap()
+        {
+            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
+            spriteBatch.Draw(finalSceneTexture, Vector2.Zero, Color.White);
+            spriteBatch.End();
         }
 
         void DrawOverlayText()
