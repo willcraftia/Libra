@@ -1,0 +1,87 @@
+cbuffer PerLight : register(b0)
+{
+    int      SplitCount                 : packoffset(c0);
+    float    DepthBias                  : packoffset(c0.y);
+
+    float    SplitDistances[4]          : packoffset(c1);
+
+    float4x4 LightViewProjections[3]    : packoffset(c5);
+};
+
+cbuffer PerCamera : register(b1)
+{
+    float2   FocalLength        : packoffset(c0);
+    float    FarClipDistance    : packoffset(c0.z);
+
+    float4x4 InverseView        : packoffset(c1);
+};
+
+Texture2D<float>  LinearDepthMap        : register(t0);
+Texture2D<float>  BasicShadowMap[3]     : register(t1);
+Texture2D<float2> VarianceShadowMap[3]  : register(t1);
+
+SamplerState LinearDepthMapSampler  : register(s0);
+SamplerState ShadowMapSampler       : register(s1);
+
+struct Input
+{
+    float2 TexCoord : TEXCOORD0;
+    float3 ViewRay  : TEXCOORD1;
+    float4 Position : SV_Position;
+};
+
+float4 BasicPS(Input input) : SV_Target
+{
+    // 深度。
+    float depth = LinearDepthMap.SampleLevel(LinearDepthMapSampler, input.TexCoord, 0);
+
+    // 遠クリップ面以降の除去。
+    if (FarClipDistance <= depth)
+    {
+        return float4(1, 0, 0, 0);
+    }
+
+    // 位置 (ビュー空間)。
+    float4 positionWV = float4(input.ViewRay * depth, 1);
+
+    // 表示カメラからの距離。
+    float d = -positionWV.z;
+
+    // 投影オブジェクトによる閉塞があるか否か。
+    float occlusion = 0;
+
+    [unroll(3)]
+    for (int i = 0; i < SplitCount; i++)
+    {
+        // 対象とする分割カメラの検出。
+        if (SplitDistances[i] <= d && d < SplitDistances[i + 1])
+        {
+            // ワールド空間へ戻してからライト空間へ変換する行列。
+            float4x4 toLightViewProjection = mul(InverseView, LightViewProjections[i]);
+
+            // 位置 (ライト空間)。
+            float4 positionLVP = mul(positionWV, toLightViewProjection);
+
+            // 深度 (ライト空間)。
+            float depthLS = positionLVP.z / positionLVP.w;
+
+            // バイアス。
+            depthLS -= DepthBias;
+
+            // シャドウ マップ テクスチャ座標。
+            float2 shadowMapTexCoord = positionLVP.xy / positionLVP.w * float2(0.5, -0.5) + float2(0.5, 0.5);
+
+            // シャドウ マップにおける深度 (ライト空間)。
+            float casterDepthLS = BasicShadowMap[i].SampleLevel(ShadowMapSampler, shadowMapTexCoord, 0);
+
+            // 投影オブジェクトの深度よりも深いならば閉塞。
+            occlusion = (casterDepthLS < depthLS);
+
+            // TODO
+            // カメラを跨ぐ場合は？
+            break;
+        }
+    }
+
+    return float4(occlusion, 0, 0, 0);
+}

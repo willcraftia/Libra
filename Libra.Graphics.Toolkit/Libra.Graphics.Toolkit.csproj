@@ -56,6 +56,7 @@
     <Compile Include="ParticleEmitter.cs" />
     <Compile Include="ParticleSystem.cs" />
     <Compile Include="RenderTargetChain.cs" />
+    <Compile Include="ShadowOcclusionMap.cs" />
     <Compile Include="SSAOBlurFilter.cs" />
     <Compile Include="SSAOCombineFilter.cs" />
     <Compile Include="SSAOMap.cs" />
@@ -181,6 +182,7 @@
     <None Include="Shaders\Compiled\ParticlePS.bin" />
     <None Include="Shaders\Compiled\ParticleVS.bin" />
     <None Include="Shaders\Compiled\ScanlineFilterPS.bin" />
+    <None Include="Shaders\Compiled\ShadowOcclusionMapBasicPS.bin" />
     <None Include="Shaders\Compiled\SSAOBlurFilterPS.bin" />
     <None Include="Shaders\Compiled\SSAOCombineFilterPS.bin" />
     <None Include="Shaders\Compiled\SSAOMapColorFilterPS.bin" />
@@ -203,6 +205,7 @@
     <None Include="Shaders\Particle.ps" />
     <None Include="Shaders\Particle.vs" />
     <None Include="Shaders\DepthVarianceMap.ps" />
+    <None Include="Shaders\ShadowOcclusionMap.ps" />
     <None Include="Shaders\SingleColorObject.ps" />
     <None Include="Shaders\SSAOMap.ps" />
     <None Include="Shaders\VolumetricFogCombineFilter.ps" />
