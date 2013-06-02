@@ -576,9 +576,9 @@ namespace Samples.SceneAmbientOcclusion
                 "[F1] HUD on/off\n" +
                 "[F2] Inter-maps on/off\n" +
                 "[F3] SSAO on/off\n" +
-                "[F4] Show/Hide Depth Map (" + linearDepthMapVisualize.Enabled + ")\n" +
-                "[F5] Show/Hide SSAO Map (" + linearDepthMapVisualize.Enabled + ")\n" +
-                "[F6] Show/Hide Final SSAO Map (" + linearDepthMapVisualize.Enabled + ")\n" +
+                "[F4] Show/Hide Depth Map " + (linearDepthMapVisualize.Enabled ? "(Current)" : "") + "\n" +
+                "[F5] Show/Hide SSAO Map " + (ssaoMapVisualize.Enabled ? "(Current)" : "") + "\n" +
+                "[F6] Show/Hide Final SSAO Map " + (finalSsaoMapVisualize.Enabled ? "(Current)" : "") + "\n" +
                 "[PageUp/Down] Blur Iteration (" + blurIteration + ")";
 
             spriteBatch.Begin();
