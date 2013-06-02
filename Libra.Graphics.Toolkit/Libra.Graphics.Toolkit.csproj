@@ -58,7 +58,7 @@
     <Compile Include="RenderTargetChain.cs" />
     <Compile Include="ShadowOcclusionMap.cs" />
     <Compile Include="SSAOBlurFilter.cs" />
-    <Compile Include="SSAOCombineFilter.cs" />
+    <Compile Include="OcclusionCombineFilter.cs" />
     <Compile Include="SSAOMap.cs" />
     <Compile Include="BasicCamera.cs" />
     <Compile Include="BasicLightCameraBuilder.cs" />
@@ -179,12 +179,12 @@
     <None Include="Shaders\Compiled\LinearFogFilterPS.bin" />
     <None Include="Shaders\Compiled\MonochromeFilterPS.bin" />
     <None Include="Shaders\Compiled\NormalEdgeDetectFilterPS.bin" />
+    <None Include="Shaders\Compiled\OcclusionCombineFilterPS.bin" />
     <None Include="Shaders\Compiled\ParticlePS.bin" />
     <None Include="Shaders\Compiled\ParticleVS.bin" />
     <None Include="Shaders\Compiled\ScanlineFilterPS.bin" />
     <None Include="Shaders\Compiled\ShadowOcclusionMapBasicPS.bin" />
     <None Include="Shaders\Compiled\SSAOBlurFilterPS.bin" />
-    <None Include="Shaders\Compiled\SSAOCombineFilterPS.bin" />
     <None Include="Shaders\Compiled\SSAOMapColorFilterPS.bin" />
     <None Include="Shaders\Compiled\SSAOMapPS.bin" />
     <None Include="Shaders\Compiled\VolumetricFogCombineFilterPS.bin" />
@@ -210,7 +210,7 @@
     <None Include="Shaders\SSAOMap.ps" />
     <None Include="Shaders\VolumetricFogCombineFilter.ps" />
     <None Include="Shaders\SSAOBlurFilter.ps" />
-    <None Include="Shaders\SSAOCombineFilter.ps" />
+    <None Include="Shaders\OcclusionCombineFilter.ps" />
     <None Include="Shaders\FullScreenQuadViewRay.vs" />
     <None Include="Shaders\BilateralFilter.ps" />
     <None Include="Shaders\BloomCombineFilter.ps" />

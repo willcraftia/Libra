@@ -8,7 +8,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class SSAOCombineFilter : IFilterEffect, IDisposable
+    public sealed class OcclusionCombineFilter : IFilterEffect, IDisposable
     {
         #region SharedDeviceResource
 
@@ -19,7 +19,7 @@ namespace Libra.Graphics.Toolkit
             public SharedDeviceResource(Device device)
             {
                 PixelShader = device.CreatePixelShader();
-                PixelShader.Initialize(Resources.SSAOCombineFilterPS);
+                PixelShader.Initialize(Resources.OcclusionCombineFilterPS);
             }
         }
 
@@ -67,11 +67,11 @@ namespace Libra.Graphics.Toolkit
         }
 
         /// <summary>
-        /// 環境光閉塞マップを取得または設定します。
+        /// 閉塞マップを取得または設定します。
         /// </summary>
-        public ShaderResourceView SSAOMap { get; set; }
+        public ShaderResourceView OcclusionMap { get; set; }
 
-        public SamplerState SSAOMapSampler { get; set; }
+        public SamplerState OcclusionMapSampler { get; set; }
 
         public bool Enabled { get; set; }
 
@@ -79,13 +79,13 @@ namespace Libra.Graphics.Toolkit
 
         public SamplerState TextureSampler { get; set; }
 
-        public SSAOCombineFilter(Device device)
+        public OcclusionCombineFilter(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 
             this.device = device;
 
-            sharedDeviceResource = device.GetSharedResource<SSAOCombineFilter, SharedDeviceResource>();
+            sharedDeviceResource = device.GetSharedResource<OcclusionCombineFilter, SharedDeviceResource>();
 
             constantBufferPerObject = device.CreateConstantBuffer();
             constantBufferPerObject.Initialize<ParametersPerObject>();
@@ -109,8 +109,8 @@ namespace Libra.Graphics.Toolkit
             context.PixelShader = sharedDeviceResource.PixelShader;
             context.PixelShaderConstantBuffers[0] = constantBufferPerObject;
             context.PixelShaderResources[0] = Texture;
-            context.PixelShaderResources[1] = SSAOMap;
-            context.PixelShaderSamplers[1] = SSAOMapSampler;
+            context.PixelShaderResources[1] = OcclusionMap;
+            context.PixelShaderSamplers[1] = OcclusionMapSampler;
             context.PixelShaderSamplers[0] = TextureSampler;
         }
 
@@ -118,7 +118,7 @@ namespace Libra.Graphics.Toolkit
 
         bool disposed;
 
-        ~SSAOCombineFilter()
+        ~OcclusionCombineFilter()
         {
             Dispose(false);
         }

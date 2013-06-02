@@ -305,6 +305,13 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
+        internal static byte[] OcclusionCombineFilterPS {
+            get {
+                object obj = ResourceManager.GetObject("OcclusionCombineFilterPS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
         internal static byte[] ParticlePS {
             get {
                 object obj = ResourceManager.GetObject("ParticlePS", resourceCulture);
@@ -357,13 +364,6 @@ namespace Libra.Graphics.Toolkit.Properties {
         internal static byte[] SSAOBlurFilterPS {
             get {
                 object obj = ResourceManager.GetObject("SSAOBlurFilterPS", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        internal static byte[] SSAOCombineFilterPS {
-            get {
-                object obj = ResourceManager.GetObject("SSAOCombineFilterPS", resourceCulture);
                 return ((byte[])(obj));
             }
         }

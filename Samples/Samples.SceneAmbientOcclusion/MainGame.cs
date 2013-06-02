@@ -157,9 +157,9 @@ namespace Samples.SceneAmbientOcclusion
         GaussianFilterPass ssaoBlurV;
 
         /// <summary>
-        /// 環境光閉塞マップ合成フィルタ。
+        /// 閉塞マップ合成フィルタ。
         /// </summary>
-        SSAOCombineFilter ssaoCombine;
+        OcclusionCombineFilter cclusionCombine;
 
         /// <summary>
         /// 線形深度マップ可視化フィルタ。
@@ -322,7 +322,7 @@ namespace Samples.SceneAmbientOcclusion
             }
             postprocessSSAOMap.Filters.Add(upFilter);
 
-            ssaoCombine = new SSAOCombineFilter(Device);
+            cclusionCombine = new OcclusionCombineFilter(Device);
             linearDepthMapVisualize = new LinearDepthMapColorFilter(Device);
             linearDepthMapVisualize.NearClipDistance = camera.NearClipDistance;
             linearDepthMapVisualize.FarClipDistance = camera.FarClipDistance;
@@ -332,7 +332,7 @@ namespace Samples.SceneAmbientOcclusion
             finalSsaoMapVisualize = new SSAOMapColorFilter(Device);
             finalSsaoMapVisualize.Enabled = false;
 
-            postprocessScene.Filters.Add(ssaoCombine);
+            postprocessScene.Filters.Add(cclusionCombine);
             postprocessScene.Filters.Add(linearDepthMapVisualize);
             postprocessScene.Filters.Add(ssaoMapVisualize);
             postprocessScene.Filters.Add(finalSsaoMapVisualize);
@@ -526,8 +526,8 @@ namespace Samples.SceneAmbientOcclusion
 
             var finalSSAOMap = postprocessSSAOMap.Draw(ssaoMapRenderTarget);
 
-            // 環境光閉塞マップ合成フィルタへ設定。
-            ssaoCombine.SSAOMap = finalSSAOMap;
+            // 閉塞マップ合成フィルタへ設定。
+            cclusionCombine.OcclusionMap = finalSSAOMap;
             // 最終環境光閉塞マップ可視化フィルタへ設定。
             finalSsaoMapVisualize.SSAOMap = finalSSAOMap;
 
@@ -651,7 +651,7 @@ namespace Samples.SceneAmbientOcclusion
                 textureDisplay.Visible = !textureDisplay.Visible;
 
             if (currentKeyboardState.IsKeyUp(Keys.F3) && lastKeyboardState.IsKeyDown(Keys.F3))
-                ssaoCombine.Enabled = !ssaoCombine.Enabled;
+                cclusionCombine.Enabled = !cclusionCombine.Enabled;
 
             if (currentKeyboardState.IsKeyUp(Keys.F4) && lastKeyboardState.IsKeyDown(Keys.F4))
             {
