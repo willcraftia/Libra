@@ -12,8 +12,7 @@ float4 PS(float2 texCoord : TEXCOORD0) : SV_Target
 {
     float z = LinearDepthMap.SampleLevel(LinearDepthMapSampler, texCoord, 0);
 
-    z = (z - NearClipDistance) / (FarClipDistance - NearClipDistance);
+    z = (FarClipDistance - z) / (FarClipDistance - NearClipDistance);
 
     return float4(z, z, z, 1);
 }
-
