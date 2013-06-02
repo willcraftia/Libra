@@ -159,7 +159,7 @@ namespace Samples.SceneAmbientOcclusion
         /// <summary>
         /// 閉塞マップ合成フィルタ。
         /// </summary>
-        OcclusionCombineFilter cclusionCombine;
+        OcclusionCombineFilter occlusionCombineFilter;
 
         /// <summary>
         /// 線形深度マップ可視化フィルタ。
@@ -322,7 +322,7 @@ namespace Samples.SceneAmbientOcclusion
             }
             postprocessSSAOMap.Filters.Add(upFilter);
 
-            cclusionCombine = new OcclusionCombineFilter(Device);
+            occlusionCombineFilter = new OcclusionCombineFilter(Device);
             linearDepthMapColorFilter = new LinearDepthMapColorFilter(Device);
             linearDepthMapColorFilter.NearClipDistance = camera.NearClipDistance;
             linearDepthMapColorFilter.FarClipDistance = camera.FarClipDistance;
@@ -332,7 +332,7 @@ namespace Samples.SceneAmbientOcclusion
             finalOcclusionMapColorFilter = new OcclusionMapColorFilter(Device);
             finalOcclusionMapColorFilter.Enabled = false;
 
-            postprocessScene.Filters.Add(cclusionCombine);
+            postprocessScene.Filters.Add(occlusionCombineFilter);
             postprocessScene.Filters.Add(linearDepthMapColorFilter);
             postprocessScene.Filters.Add(occlusionMapColorFilter);
             postprocessScene.Filters.Add(finalOcclusionMapColorFilter);
@@ -527,7 +527,7 @@ namespace Samples.SceneAmbientOcclusion
             var finalSSAOMap = postprocessSSAOMap.Draw(ssaoMapRenderTarget);
 
             // フィルタへ設定。
-            cclusionCombine.OcclusionMap = finalSSAOMap;
+            occlusionCombineFilter.OcclusionMap = finalSSAOMap;
             finalOcclusionMapColorFilter.OcclusionMap = finalSSAOMap;
 
             textureDisplay.Textures.Add(finalSSAOMap);
@@ -574,10 +574,10 @@ namespace Samples.SceneAmbientOcclusion
             string basicText =
                 "[F1] HUD on/off\n" +
                 "[F2] Inter-maps on/off\n" +
-                "[F3] SSAO on/off\n" +
+                "[F3] Combine Occlusion Map (" + occlusionCombineFilter.Enabled + ")\n" +
                 "[F4] Show/Hide Depth Map " + (linearDepthMapColorFilter.Enabled ? "(Current)" : "") + "\n" +
-                "[F5] Show/Hide SSAO Map " + (occlusionMapColorFilter.Enabled ? "(Current)" : "") + "\n" +
-                "[F6] Show/Hide Final SSAO Map " + (finalOcclusionMapColorFilter.Enabled ? "(Current)" : "") + "\n" +
+                "[F5] Show/Hide Occlusion Map " + (occlusionMapColorFilter.Enabled ? "(Current)" : "") + "\n" +
+                "[F6] Show/Hide Final Occlusion Map " + (finalOcclusionMapColorFilter.Enabled ? "(Current)" : "") + "\n" +
                 "[PageUp/Down] Blur Iteration (" + blurIteration + ")";
 
             spriteBatch.Begin();
@@ -650,7 +650,7 @@ namespace Samples.SceneAmbientOcclusion
                 textureDisplay.Visible = !textureDisplay.Visible;
 
             if (currentKeyboardState.IsKeyUp(Keys.F3) && lastKeyboardState.IsKeyDown(Keys.F3))
-                cclusionCombine.Enabled = !cclusionCombine.Enabled;
+                occlusionCombineFilter.Enabled = !occlusionCombineFilter.Enabled;
 
             if (currentKeyboardState.IsKeyUp(Keys.F4) && lastKeyboardState.IsKeyDown(Keys.F4))
             {
