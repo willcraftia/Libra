@@ -152,9 +152,19 @@ namespace Samples.DeferredShadowMapping
         Postprocess postprocessScene;
 
         /// <summary>
+        /// 閉塞マップ合成フィルタ。
+        /// </summary>
+        OcclusionCombineFilter occlusionCombineFilter;
+
+        /// <summary>
         /// 線形深度マップ可視化フィルタ。
         /// </summary>
-        LinearDepthMapColorFilter linearDepthMapVisualize;
+        LinearDepthMapColorFilter linearDepthMapColorFilter;
+
+        /// <summary>
+        /// 閉塞マップ可視化フィルタ。
+        /// </summary>
+        OcclusionMapColorFilter occlusionMapColorFilter;
 
         /// <summary>
         /// 線形深度マップ エフェクト。
@@ -384,11 +394,20 @@ namespace Samples.DeferredShadowMapping
             postprocessScene.Width = WindowWidth;
             postprocessScene.Height = WindowHeight;
 
-            linearDepthMapVisualize = new LinearDepthMapColorFilter(Device);
-            linearDepthMapVisualize.NearClipDistance = camera.NearClipDistance;
-            linearDepthMapVisualize.FarClipDistance = camera.FarClipDistance;
-            linearDepthMapVisualize.Enabled = false;
-            postprocessScene.Filters.Add(linearDepthMapVisualize);
+            occlusionCombineFilter = new OcclusionCombineFilter(Device);
+            occlusionCombineFilter.ShadowColor = new Vector3(0.5f, 0.5f, 0.5f);
+            
+            linearDepthMapColorFilter = new LinearDepthMapColorFilter(Device);
+            linearDepthMapColorFilter.NearClipDistance = camera.NearClipDistance;
+            linearDepthMapColorFilter.FarClipDistance = camera.FarClipDistance;
+            linearDepthMapColorFilter.Enabled = false;
+
+            occlusionMapColorFilter = new OcclusionMapColorFilter(Device);
+            occlusionMapColorFilter.Enabled = false;
+
+            postprocessScene.Filters.Add(occlusionCombineFilter);
+            postprocessScene.Filters.Add(linearDepthMapColorFilter);
+            postprocessScene.Filters.Add(occlusionMapColorFilter);
 
             depthMapEffect = new LinearDepthMapEffect(Device);
 
@@ -396,6 +415,7 @@ namespace Samples.DeferredShadowMapping
             basicEffect.AmbientLightColor = new Vector3(0.15f, 0.15f, 0.15f);
             basicEffect.PerPixelLighting = true;
             basicEffect.EnableDefaultLighting();
+            basicEffect.DirectionalLights[0].Direction = lightDirection;
 
             for (int i = 0; i < shadowMaps.Length; i++)
             {
@@ -456,8 +476,6 @@ namespace Samples.DeferredShadowMapping
 
             // 最終的なシーンをバック バッファへ描画。
             CreateFinalSceneMap();
-
-            finalSceneTexture = occlusionMapRenderTarget;
 
             // HUD のテキストを描画。
             DrawOverlayText();
@@ -577,7 +595,7 @@ namespace Samples.DeferredShadowMapping
             context.SetRenderTarget(null);
 
             // フィルタへ設定。
-            linearDepthMapVisualize.LinearDepthMap = depthMapRenderTarget;
+            linearDepthMapColorFilter.LinearDepthMap = depthMapRenderTarget;
         }
 
         void CreateNormalSceneMap()
@@ -675,6 +693,9 @@ namespace Samples.DeferredShadowMapping
 
         void ApplyPostprocessScene()
         {
+            occlusionCombineFilter.OcclusionMap = occlusionMapRenderTarget;
+            occlusionMapColorFilter.OcclusionMap = occlusionMapRenderTarget;
+
             finalSceneTexture = postprocessScene.Draw(normalSceneRenderTarget);
         }
 
@@ -707,7 +728,8 @@ namespace Samples.DeferredShadowMapping
                 "[F1] HUD on/off\n" +
                 "[F2] Inter-maps on/off\n" +
                 "[F3] SSAO on/off\n" +
-                "[F4] Show/Hide Depth Map (" + linearDepthMapVisualize.Enabled + ")\n";
+                "[F4] Show/Hide Depth Map (" + linearDepthMapColorFilter.Enabled + ")\n" +
+                "[F5] Show/Hide Occlusion Map " + (occlusionMapColorFilter.Enabled ? "(Current)" : "") + "";
 
             spriteBatch.Begin();
 
@@ -735,7 +757,14 @@ namespace Samples.DeferredShadowMapping
 
             if (currentKeyboardState.IsKeyUp(Keys.F4) && lastKeyboardState.IsKeyDown(Keys.F4))
             {
-                linearDepthMapVisualize.Enabled = !linearDepthMapVisualize.Enabled;
+                linearDepthMapColorFilter.Enabled = !linearDepthMapColorFilter.Enabled;
+                occlusionMapColorFilter.Enabled = false;
+            }
+
+            if (currentKeyboardState.IsKeyUp(Keys.F5) && lastKeyboardState.IsKeyDown(Keys.F5))
+            {
+                occlusionMapColorFilter.Enabled = !occlusionMapColorFilter.Enabled;
+                linearDepthMapColorFilter.Enabled = false;
             }
 
             if (currentKeyboardState.IsKeyDown(Keys.Escape))
