@@ -616,6 +616,7 @@ namespace Samples.DeferredShadowMapping
             context.SetRenderTarget(occlusionMapRenderTarget);
             context.Clear(Vector4.Zero);
 
+            shadowOcclusionMap.ShadowMapForm = shadowMapForm;
             shadowOcclusionMap.View = camera.View;
             shadowOcclusionMap.Projection = camera.Projection;
 
@@ -665,12 +666,15 @@ namespace Samples.DeferredShadowMapping
             DrawPrimitiveMesh(sphereMesh, Matrix.CreateTranslation(10, 10, -60), new Vector3(0, 1, 0), effect);
             DrawPrimitiveMesh(sphereMesh, Matrix.CreateTranslation(0, 10, -40), new Vector3(0, 1, 0), effect);
             DrawPrimitiveMesh(torusMesh, Matrix.CreateTranslation(40, 5, -40), new Vector3(1, 1, 0), effect);
-            DrawPrimitiveMesh(teapotMesh, Matrix.CreateTranslation(100, 10, -100), new Vector3(0, 1, 1), effect);
             for (float z = -180; z <= 180; z += 40)
             {
                 DrawPrimitiveMesh(cylinderMesh, Matrix.CreateTranslation(-180, 40, z), new Vector3(0, 0, 1), effect);
             }
             DrawPrimitiveMesh(squareMesh, Matrix.Identity, new Vector3(0.5f), effect);
+
+            context.RasterizerState = RasterizerState.CullNone;
+            DrawPrimitiveMesh(teapotMesh, Matrix.CreateTranslation(100, 10, -100), new Vector3(0, 1, 1), effect);
+            context.RasterizerState = null;
         }
 
         void DrawPrimitiveMesh(PrimitiveMesh mesh, Matrix world, Vector3 color, IEffect effect)
@@ -717,7 +721,8 @@ namespace Samples.DeferredShadowMapping
             {
                 text =
                     "[1] Light Camera Type (" + currentLightCameraType + ")\n" +
-                    "[2] Camera Frustum as Scene Box (" + useCameraFrustumSceneBox + ")\n";
+                    "[2] Shadow Map Form (" + shadowMapForm + ")\n" +
+                    "[3] Camera Frustum as Scene Box (" + useCameraFrustumSceneBox + ")\n";
             }
             else
             {
@@ -780,6 +785,18 @@ namespace Samples.DeferredShadowMapping
             }
 
             if (currentKeyboardState.IsKeyUp(Keys.D2) && lastKeyboardState.IsKeyDown(Keys.D2))
+            {
+                if (shadowMapForm == ShadowMapForm.Basic)
+                {
+                    shadowMapForm = ShadowMapForm.Variance;
+                }
+                else
+                {
+                    shadowMapForm = ShadowMapForm.Basic;
+                }
+            }
+
+            if (currentKeyboardState.IsKeyUp(Keys.D3) && lastKeyboardState.IsKeyDown(Keys.D3))
             {
                 useCameraFrustumSceneBox = !useCameraFrustumSceneBox;
             }

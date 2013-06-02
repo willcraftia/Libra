@@ -84,3 +84,71 @@ float4 BasicPS(Input input) : SV_Target
     // 1: 閉塞無し (影の無い位置)
     return float4(1 - occlusion, 0, 0, 0);
 }
+
+float TestVSM(float4 position, float2 moments)
+{
+    float Ex = moments.x;
+    float E_x2 = moments.y;
+    float Vx = E_x2 - Ex * Ex;
+    Vx = min(1, max(0, Vx + 0.00001f));
+    float t = position.z / position.w - DepthBias;
+    float tMinusM = t - Ex;
+    float p = Vx / (Vx + tMinusM * tMinusM);
+
+    // チェビシェフの不等式により t > Ex で p が有効。
+    // t <= Ex では p = 1、つまり、影がない。
+    return saturate(max(p, t <= Ex));
+}
+
+float4 VariancePS(Input input) : SV_Target0
+{ 
+    // 深度。
+    float depth = LinearDepthMap.SampleLevel(LinearDepthMapSampler, input.TexCoord, 0);
+
+    // 遠クリップ面以降の除去。
+    if (FarClipDistance <= depth)
+    {
+        return float4(1, 0, 0, 0);
+    }
+
+    // 位置 (ビュー空間)。
+    float4 positionWV = float4(input.ViewRay * depth, 1);
+
+    // 位置 (ワールド空間)。
+    float4 positionW = mul(positionWV, InverseView);
+
+    // 投影オブジェクトによる閉塞があるか否か。
+    float occlusion = 0;
+
+    [unroll(3)]
+    for (int i = 0; i < SplitCount; i++)
+    {
+        // 対象とする分割カメラの検出。
+        if (SplitDistances[i] <= depth && depth < SplitDistances[i + 1])
+        {
+            // 位置 (ライト空間)。
+            float4 positionL = mul(positionW, LightViewProjections[i]);
+
+            // 深度 (ライト空間)。
+            float depthL = positionL.z / positionL.w;
+
+            // バイアス。
+            depthL -= DepthBias;
+
+            // シャドウ マップ テクスチャ座標。
+            float2 shadowMapTexCoord = positionL.xy / positionL.w * float2(0.5, -0.5) + float2(0.5, 0.5);
+
+            // 深度と分散の取得。
+            float2 moments = VarianceShadowMap[i].SampleLevel(ShadowMapSampler, shadowMapTexCoord, 0);
+
+            // VSM 判定。
+            occlusion = TestVSM(positionL, moments);
+
+            break;
+        }
+    }
+
+    // 0: 閉塞有り (影の有る位置)
+    // 1: 閉塞無し (影の無い位置)
+    return float4(occlusion, 0, 0, 0);
+}

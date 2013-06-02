@@ -57,6 +57,7 @@ call :CompilePS LinearFogDepthMap PS %ps_profile%
 call :CompileVS NormalMap VS %vs_profile%
 call :CompilePS NormalMap PS %ps_profile%
 call :CompilePS ShadowOcclusionMap BasicPS %ps_profile%
+call :CompilePS ShadowOcclusionMap VariancePS %ps_profile%
 call :CompileVS SingleColorObject VS %vs_profile%
 call :CompilePS SingleColorObject PS %ps_profile%
 call :CompilePS SSAOMap PS %ps_profile%

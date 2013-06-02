@@ -14,14 +14,47 @@ namespace Libra.Graphics.Toolkit
 
         sealed class SharedDeviceResource
         {
-            public PixelShader BasicPixelShader { get; private set; }
+            Device device;
+
+            PixelShader basicPixelShader;
+
+            PixelShader variancePixelShader;
+
+            public PixelShader BasicPixelShader
+            {
+                get
+                {
+                    lock (this)
+                    {
+                        if (basicPixelShader == null)
+                        {
+                            basicPixelShader = device.CreatePixelShader();
+                            basicPixelShader.Initialize(Resources.ShadowOcclusionMapBasicPS);
+                        }
+                        return basicPixelShader;
+                    }
+                }
+            }
+
+            public PixelShader VariancePixelShader
+            {
+                get
+                {
+                    lock (this)
+                    {
+                        if (variancePixelShader == null)
+                        {
+                            variancePixelShader = device.CreatePixelShader();
+                            variancePixelShader.Initialize(Resources.ShadowOcclusionMapVariancePS);
+                        }
+                        return variancePixelShader;
+                    }
+                }
+            }
 
             public SharedDeviceResource(Device device)
             {
-                // TODO
-                // 遅延ロード。
-                BasicPixelShader = device.CreatePixelShader();
-                BasicPixelShader.Initialize(Resources.ShadowOcclusionMapBasicPS);
+                this.device = device;
             }
         }
 
@@ -158,6 +191,8 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
+        public ShadowMapForm ShadowMapForm { get; set; }
+
         public ShaderResourceView LinearDepthMap { get; set; }
 
         public SamplerState LinearDepthMapSampler { get; set; }
@@ -192,7 +227,7 @@ namespace Libra.Graphics.Toolkit
             parametersPerCamera.FarClipDistance = 1000.0f;
 
             shadowMaps = new ShaderResourceView[MaxSplitCount];
-
+            ShadowMapForm = ShadowMapForm.Basic;
             LinearDepthMapSampler = SamplerState.PointClamp;
 
             Enabled = true;
@@ -296,9 +331,14 @@ namespace Libra.Graphics.Toolkit
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerCamera;
             }
 
-            // TODO
-            // 他のシェーダも。
-            Context.PixelShader = sharedDeviceResource.BasicPixelShader;
+            if (ShadowMapForm == ShadowMapForm.Variance)
+            {
+                Context.PixelShader = sharedDeviceResource.VariancePixelShader;
+            }
+            else
+            {
+                Context.PixelShader = sharedDeviceResource.BasicPixelShader;
+            }
 
             Context.PixelShaderConstantBuffers[0] = constantBufferPerLight;
             Context.PixelShaderConstantBuffers[1] = constantBufferPerCamera;
