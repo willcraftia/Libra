@@ -18,6 +18,8 @@ namespace Libra.Graphics.Toolkit
 
             public SharedDeviceResource(Device device)
             {
+                // TODO
+                // 遅延ロード。
                 BasicPixelShader = device.CreatePixelShader();
                 BasicPixelShader.Initialize(Resources.ShadowOcclusionMapBasicPS);
             }
@@ -39,7 +41,7 @@ namespace Libra.Graphics.Toolkit
             [FieldOffset(16), MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxSplitDistanceCount)]
             public Vector4[] SplitDistances;
 
-            [FieldOffset(80 + (16 * MaxSplitDistanceCount)), MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxSplitCount)]
+            [FieldOffset(16 + (16 * MaxSplitDistanceCount)), MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxSplitCount)]
             public Matrix[] LightViewProjections;
         }
 
@@ -116,6 +118,19 @@ namespace Libra.Graphics.Toolkit
                 if (value < 1 || MaxSplitCount < value) throw new ArgumentOutOfRangeException("value");
 
                 parametersPerLight.SplitCount = value;
+
+                dirtyFlags |= DirtyFlags.ConstantBufferPerLight;
+            }
+        }
+
+        public float DepthBias
+        {
+            get { return parametersPerLight.DepthBias; }
+            set
+            {
+                if (value < 1 || MaxSplitCount < value) throw new ArgumentOutOfRangeException("value");
+
+                parametersPerLight.DepthBias = value;
 
                 dirtyFlags |= DirtyFlags.ConstantBufferPerLight;
             }
@@ -207,14 +222,17 @@ namespace Libra.Graphics.Toolkit
         {
             if ((uint) MaxSplitCount < (uint) index) throw new ArgumentOutOfRangeException("index");
 
-            return parametersPerLight.LightViewProjections[index];
+            Matrix result;
+            Matrix.Transpose(ref parametersPerLight.LightViewProjections[index], out result);
+
+            return result;
         }
 
         public void SetLightViewProjection(int index, Matrix value)
         {
             if ((uint) MaxSplitCount < (uint) index) throw new ArgumentOutOfRangeException("index");
 
-            parametersPerLight.LightViewProjections[index] = value;
+            Matrix.Transpose(ref value, out parametersPerLight.LightViewProjections[index]);
 
             dirtyFlags |= DirtyFlags.ConstantBufferPerLight;
         }
@@ -290,7 +308,7 @@ namespace Libra.Graphics.Toolkit
 
             for (int i = 0; i < shadowMaps.Length; i++)
             {
-                Context.PixelShaderResources[i + 1] = shadowMaps[i];
+                Context.PixelShaderResources[1 + i] = shadowMaps[i];
             }
         }
 
