@@ -716,7 +716,8 @@ namespace Samples.DeferredShadowMapping
             if (currentKeyboardState.IsKeyUp(Keys.ControlKey))
             {
                 text =
-                    "";
+                    "[1] Light Camera Type (" + currentLightCameraType + ")\n" +
+                    "[2] Camera Frustum as Scene Box (" + useCameraFrustumSceneBox + ")\n";
             }
             else
             {
@@ -727,9 +728,9 @@ namespace Samples.DeferredShadowMapping
             string basicText =
                 "[F1] HUD on/off\n" +
                 "[F2] Inter-maps on/off\n" +
-                "[F3] SSAO on/off\n" +
-                "[F4] Show/Hide Depth Map (" + linearDepthMapColorFilter.Enabled + ")\n" +
-                "[F5] Show/Hide Occlusion Map " + (occlusionMapColorFilter.Enabled ? "(Current)" : "") + "";
+                "[F3] Combine Occlusion (" + occlusionCombineFilter + ")\n" +
+                "[F4] Depth Map (" + linearDepthMapColorFilter.Enabled + ")\n" +
+                "[F5] Occlusion Map " + (occlusionMapColorFilter.Enabled ? "(Current)" : "") + "";
 
             spriteBatch.Begin();
 
@@ -755,6 +756,9 @@ namespace Samples.DeferredShadowMapping
             if (currentKeyboardState.IsKeyUp(Keys.F2) && lastKeyboardState.IsKeyDown(Keys.F2))
                 textureDisplay.Visible = !textureDisplay.Visible;
 
+            if (currentKeyboardState.IsKeyUp(Keys.F3) && lastKeyboardState.IsKeyDown(Keys.F3))
+                occlusionCombineFilter.Enabled = !occlusionCombineFilter.Enabled;
+
             if (currentKeyboardState.IsKeyUp(Keys.F4) && lastKeyboardState.IsKeyDown(Keys.F4))
             {
                 linearDepthMapColorFilter.Enabled = !linearDepthMapColorFilter.Enabled;
@@ -765,6 +769,19 @@ namespace Samples.DeferredShadowMapping
             {
                 occlusionMapColorFilter.Enabled = !occlusionMapColorFilter.Enabled;
                 linearDepthMapColorFilter.Enabled = false;
+            }
+
+            if (currentKeyboardState.IsKeyUp(Keys.D1) && lastKeyboardState.IsKeyDown(Keys.D1))
+            {
+                currentLightCameraType++;
+
+                if (LightCameraType.Basic < currentLightCameraType)
+                    currentLightCameraType = LightCameraType.LiSPSM;
+            }
+
+            if (currentKeyboardState.IsKeyUp(Keys.D2) && lastKeyboardState.IsKeyDown(Keys.D2))
+            {
+                useCameraFrustumSceneBox = !useCameraFrustumSceneBox;
             }
 
             if (currentKeyboardState.IsKeyDown(Keys.Escape))
