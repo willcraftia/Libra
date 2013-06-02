@@ -1,0 +1,11 @@
+// ダンプ描画フィルタではレジスタ #0 を使用しない。
+Texture2D<float> OcclusionMap : register(t1);
+SamplerState OcclusionMapSampler : register(s1);
+
+float4 PS(float2 texCoord : TEXCOORD0) : SV_Target
+{
+    float occlusion = OcclusionMap.SampleLevel(OcclusionMapSampler, texCoord, 0);
+
+    return float4(occlusion, occlusion, occlusion, 1);
+}
+

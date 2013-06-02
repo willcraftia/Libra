@@ -7,7 +7,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class SSAOMapColorFilter : IFilterEffect, IDisposable
+    public sealed class OcclusionMapColorFilter : IFilterEffect, IDisposable
     {
         #region SharedDeviceResource
 
@@ -18,7 +18,7 @@ namespace Libra.Graphics.Toolkit
             public SharedDeviceResource(Device device)
             {
                 PixelShader = device.CreatePixelShader();
-                PixelShader.Initialize(Resources.SSAOMapColorFilterPS);
+                PixelShader.Initialize(Resources.OcclusionMapColorFilterPS);
             }
         }
 
@@ -28,9 +28,9 @@ namespace Libra.Graphics.Toolkit
 
         SharedDeviceResource sharedDeviceResource;
 
-        public ShaderResourceView SSAOMap { get; set; }
+        public ShaderResourceView OcclusionMap { get; set; }
 
-        public SamplerState SSAOMapSampler { get; set; }
+        public SamplerState OcclusionMapSampler { get; set; }
 
         public bool Enabled { get; set; }
 
@@ -46,15 +46,15 @@ namespace Libra.Graphics.Toolkit
             set { }
         }
 
-        public SSAOMapColorFilter(Device device)
+        public OcclusionMapColorFilter(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 
             this.device = device;
 
-            sharedDeviceResource = device.GetSharedResource<SSAOMapColorFilter, SharedDeviceResource>();
+            sharedDeviceResource = device.GetSharedResource<OcclusionMapColorFilter, SharedDeviceResource>();
 
-            SSAOMapSampler = SamplerState.PointClamp;
+            OcclusionMapSampler = SamplerState.PointClamp;
 
             Enabled = true;
         }
@@ -65,15 +65,15 @@ namespace Libra.Graphics.Toolkit
 
             context.PixelShader = sharedDeviceResource.PixelShader;
 
-            context.PixelShaderResources[1] = SSAOMap;
-            context.PixelShaderSamplers[1] = SSAOMapSampler;
+            context.PixelShaderResources[1] = OcclusionMap;
+            context.PixelShaderSamplers[1] = OcclusionMapSampler;
         }
 
         #region IDisposable
 
         bool disposed;
 
-        ~SSAOMapColorFilter()
+        ~OcclusionMapColorFilter()
         {
             Dispose(false);
         }

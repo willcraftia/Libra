@@ -167,14 +167,14 @@ namespace Samples.SceneAmbientOcclusion
         LinearDepthMapColorFilter linearDepthMapVisualize;
 
         /// <summary>
-        /// 環境光閉塞マップ可視化フィルタ。
+        /// 閉塞マップ可視化フィルタ。
         /// </summary>
-        SSAOMapColorFilter ssaoMapVisualize;
+        OcclusionMapColorFilter occlusionMapColorFilter;
 
         /// <summary>
-        /// 最終環境光閉塞マップ可視化フィルタ。
+        /// 最終閉塞マップ可視化フィルタ。
         /// </summary>
-        SSAOMapColorFilter finalSsaoMapVisualize;
+        OcclusionMapColorFilter finalOcclusionMapColorFilter;
 
         /// <summary>
         /// 線形深度マップ エフェクト。
@@ -327,15 +327,15 @@ namespace Samples.SceneAmbientOcclusion
             linearDepthMapVisualize.NearClipDistance = camera.NearClipDistance;
             linearDepthMapVisualize.FarClipDistance = camera.FarClipDistance;
             linearDepthMapVisualize.Enabled = false;
-            ssaoMapVisualize = new SSAOMapColorFilter(Device);
-            ssaoMapVisualize.Enabled = false;
-            finalSsaoMapVisualize = new SSAOMapColorFilter(Device);
-            finalSsaoMapVisualize.Enabled = false;
+            occlusionMapColorFilter = new OcclusionMapColorFilter(Device);
+            occlusionMapColorFilter.Enabled = false;
+            finalOcclusionMapColorFilter = new OcclusionMapColorFilter(Device);
+            finalOcclusionMapColorFilter.Enabled = false;
 
             postprocessScene.Filters.Add(cclusionCombine);
             postprocessScene.Filters.Add(linearDepthMapVisualize);
-            postprocessScene.Filters.Add(ssaoMapVisualize);
-            postprocessScene.Filters.Add(finalSsaoMapVisualize);
+            postprocessScene.Filters.Add(occlusionMapColorFilter);
+            postprocessScene.Filters.Add(finalOcclusionMapColorFilter);
 
             depthMapEffect = new LinearDepthMapEffect(Device);
             normalMapEffect = new NormalMapEffect(Device);
@@ -448,7 +448,7 @@ namespace Samples.SceneAmbientOcclusion
             context.SetRenderTarget(null);
 
             // フィルタへ設定。
-            ssaoMapVisualize.SSAOMap = ssaoMapRenderTarget;
+            occlusionMapColorFilter.OcclusionMap = ssaoMapRenderTarget;
 
             // 中間マップ表示。
             textureDisplay.Textures.Add(ssaoMapRenderTarget);
@@ -526,10 +526,9 @@ namespace Samples.SceneAmbientOcclusion
 
             var finalSSAOMap = postprocessSSAOMap.Draw(ssaoMapRenderTarget);
 
-            // 閉塞マップ合成フィルタへ設定。
+            // フィルタへ設定。
             cclusionCombine.OcclusionMap = finalSSAOMap;
-            // 最終環境光閉塞マップ可視化フィルタへ設定。
-            finalSsaoMapVisualize.SSAOMap = finalSSAOMap;
+            finalOcclusionMapColorFilter.OcclusionMap = finalSSAOMap;
 
             textureDisplay.Textures.Add(finalSSAOMap);
         }
@@ -577,8 +576,8 @@ namespace Samples.SceneAmbientOcclusion
                 "[F2] Inter-maps on/off\n" +
                 "[F3] SSAO on/off\n" +
                 "[F4] Show/Hide Depth Map " + (linearDepthMapVisualize.Enabled ? "(Current)" : "") + "\n" +
-                "[F5] Show/Hide SSAO Map " + (ssaoMapVisualize.Enabled ? "(Current)" : "") + "\n" +
-                "[F6] Show/Hide Final SSAO Map " + (finalSsaoMapVisualize.Enabled ? "(Current)" : "") + "\n" +
+                "[F5] Show/Hide SSAO Map " + (occlusionMapColorFilter.Enabled ? "(Current)" : "") + "\n" +
+                "[F6] Show/Hide Final SSAO Map " + (finalOcclusionMapColorFilter.Enabled ? "(Current)" : "") + "\n" +
                 "[PageUp/Down] Blur Iteration (" + blurIteration + ")";
 
             spriteBatch.Begin();
@@ -656,22 +655,22 @@ namespace Samples.SceneAmbientOcclusion
             if (currentKeyboardState.IsKeyUp(Keys.F4) && lastKeyboardState.IsKeyDown(Keys.F4))
             {
                 linearDepthMapVisualize.Enabled = !linearDepthMapVisualize.Enabled;
-                ssaoMapVisualize.Enabled = false;
-                finalSsaoMapVisualize.Enabled = false;
+                occlusionMapColorFilter.Enabled = false;
+                finalOcclusionMapColorFilter.Enabled = false;
             }
 
             if (currentKeyboardState.IsKeyUp(Keys.F5) && lastKeyboardState.IsKeyDown(Keys.F5))
             {
-                ssaoMapVisualize.Enabled = !ssaoMapVisualize.Enabled;
+                occlusionMapColorFilter.Enabled = !occlusionMapColorFilter.Enabled;
                 linearDepthMapVisualize.Enabled = false;
-                finalSsaoMapVisualize.Enabled = false;
+                finalOcclusionMapColorFilter.Enabled = false;
             }
 
             if (currentKeyboardState.IsKeyUp(Keys.F6) && lastKeyboardState.IsKeyDown(Keys.F6))
             {
-                finalSsaoMapVisualize.Enabled = !finalSsaoMapVisualize.Enabled;
+                finalOcclusionMapColorFilter.Enabled = !finalOcclusionMapColorFilter.Enabled;
                 linearDepthMapVisualize.Enabled = false;
-                ssaoMapVisualize.Enabled = false;
+                occlusionMapColorFilter.Enabled = false;
             }
 
             if (currentKeyboardState.IsKeyUp(Keys.PageUp) && lastKeyboardState.IsKeyDown(Keys.PageUp))
