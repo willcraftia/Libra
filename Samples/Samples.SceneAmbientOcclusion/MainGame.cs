@@ -164,7 +164,7 @@ namespace Samples.SceneAmbientOcclusion
         /// <summary>
         /// 線形深度マップ可視化フィルタ。
         /// </summary>
-        LinearDepthMapColorFilter linearDepthMapVisualize;
+        LinearDepthMapColorFilter linearDepthMapColorFilter;
 
         /// <summary>
         /// 閉塞マップ可視化フィルタ。
@@ -323,17 +323,17 @@ namespace Samples.SceneAmbientOcclusion
             postprocessSSAOMap.Filters.Add(upFilter);
 
             cclusionCombine = new OcclusionCombineFilter(Device);
-            linearDepthMapVisualize = new LinearDepthMapColorFilter(Device);
-            linearDepthMapVisualize.NearClipDistance = camera.NearClipDistance;
-            linearDepthMapVisualize.FarClipDistance = camera.FarClipDistance;
-            linearDepthMapVisualize.Enabled = false;
+            linearDepthMapColorFilter = new LinearDepthMapColorFilter(Device);
+            linearDepthMapColorFilter.NearClipDistance = camera.NearClipDistance;
+            linearDepthMapColorFilter.FarClipDistance = camera.FarClipDistance;
+            linearDepthMapColorFilter.Enabled = false;
             occlusionMapColorFilter = new OcclusionMapColorFilter(Device);
             occlusionMapColorFilter.Enabled = false;
             finalOcclusionMapColorFilter = new OcclusionMapColorFilter(Device);
             finalOcclusionMapColorFilter.Enabled = false;
 
             postprocessScene.Filters.Add(cclusionCombine);
-            postprocessScene.Filters.Add(linearDepthMapVisualize);
+            postprocessScene.Filters.Add(linearDepthMapColorFilter);
             postprocessScene.Filters.Add(occlusionMapColorFilter);
             postprocessScene.Filters.Add(finalOcclusionMapColorFilter);
 
@@ -418,7 +418,7 @@ namespace Samples.SceneAmbientOcclusion
             // フィルタへ設定。
             ssaoMap.LinearDepthMap = depthMapRenderTarget;
             ssaoBlur.LinearDepthMap = depthMapRenderTarget;
-            linearDepthMapVisualize.LinearDepthMap = depthMapRenderTarget;
+            linearDepthMapColorFilter.LinearDepthMap = depthMapRenderTarget;
         }
 
         void CreateNormalMap()
@@ -575,7 +575,7 @@ namespace Samples.SceneAmbientOcclusion
                 "[F1] HUD on/off\n" +
                 "[F2] Inter-maps on/off\n" +
                 "[F3] SSAO on/off\n" +
-                "[F4] Show/Hide Depth Map " + (linearDepthMapVisualize.Enabled ? "(Current)" : "") + "\n" +
+                "[F4] Show/Hide Depth Map " + (linearDepthMapColorFilter.Enabled ? "(Current)" : "") + "\n" +
                 "[F5] Show/Hide SSAO Map " + (occlusionMapColorFilter.Enabled ? "(Current)" : "") + "\n" +
                 "[F6] Show/Hide Final SSAO Map " + (finalOcclusionMapColorFilter.Enabled ? "(Current)" : "") + "\n" +
                 "[PageUp/Down] Blur Iteration (" + blurIteration + ")";
@@ -654,7 +654,7 @@ namespace Samples.SceneAmbientOcclusion
 
             if (currentKeyboardState.IsKeyUp(Keys.F4) && lastKeyboardState.IsKeyDown(Keys.F4))
             {
-                linearDepthMapVisualize.Enabled = !linearDepthMapVisualize.Enabled;
+                linearDepthMapColorFilter.Enabled = !linearDepthMapColorFilter.Enabled;
                 occlusionMapColorFilter.Enabled = false;
                 finalOcclusionMapColorFilter.Enabled = false;
             }
@@ -662,14 +662,14 @@ namespace Samples.SceneAmbientOcclusion
             if (currentKeyboardState.IsKeyUp(Keys.F5) && lastKeyboardState.IsKeyDown(Keys.F5))
             {
                 occlusionMapColorFilter.Enabled = !occlusionMapColorFilter.Enabled;
-                linearDepthMapVisualize.Enabled = false;
+                linearDepthMapColorFilter.Enabled = false;
                 finalOcclusionMapColorFilter.Enabled = false;
             }
 
             if (currentKeyboardState.IsKeyUp(Keys.F6) && lastKeyboardState.IsKeyDown(Keys.F6))
             {
                 finalOcclusionMapColorFilter.Enabled = !finalOcclusionMapColorFilter.Enabled;
-                linearDepthMapVisualize.Enabled = false;
+                linearDepthMapColorFilter.Enabled = false;
                 occlusionMapColorFilter.Enabled = false;
             }
 
