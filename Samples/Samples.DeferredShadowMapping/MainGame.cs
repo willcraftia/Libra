@@ -424,6 +424,7 @@ namespace Samples.DeferredShadowMapping
 
             shadowOcclusionMap = new ShadowOcclusionMap(context);
             shadowOcclusionMap.SplitCount = splitCount;
+            shadowOcclusionMap.PcfEnabled = true;
 
             cubeMesh = new CubeMesh(context, 20);
             sphereMesh = new SphereMesh(context, 20, 32);

@@ -18,6 +18,8 @@ namespace Libra.Graphics.Toolkit
 
             PixelShader basicPixelShader;
 
+            PixelShader pcfPixelShader;
+
             PixelShader variancePixelShader;
 
             public PixelShader BasicPixelShader
@@ -32,6 +34,22 @@ namespace Libra.Graphics.Toolkit
                             basicPixelShader.Initialize(Resources.ShadowOcclusionMapBasicPS);
                         }
                         return basicPixelShader;
+                    }
+                }
+            }
+
+            public PixelShader PcfPixelShader
+            {
+                get
+                {
+                    lock (this)
+                    {
+                        if (pcfPixelShader == null)
+                        {
+                            pcfPixelShader = device.CreatePixelShader();
+                            pcfPixelShader.Initialize(Resources.ShadowOcclusionMapPcfPS);
+                        }
+                        return pcfPixelShader;
                     }
                 }
             }
@@ -98,6 +116,20 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
+        #region ParametersPcf
+
+        [StructLayout(LayoutKind.Explicit, Size = 16 + (16 * MaxPcfKernelSize))]
+        struct ParametersPcf
+        {
+            [FieldOffset(0)]
+            public float KernelSize;
+
+            [FieldOffset(16), MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxPcfKernelSize)]
+            public Vector4[] Offsets;
+        }
+
+        #endregion
+
         #region DirtyFlags
 
         [Flags]
@@ -105,8 +137,10 @@ namespace Libra.Graphics.Toolkit
         {
             ConstantBufferPerLight  = (1 << 0),
             ConstantBufferPerCamera = (1 << 1),
-            InverseView             = (1 << 2),
-            Projection              = (1 << 3)
+            ConstantBufferPcf       = (1 << 2),
+            InverseView             = (1 << 3),
+            Projection              = (1 << 4),
+            PcfKernel               = (1 << 5)
         }
 
         #endregion
@@ -114,12 +148,22 @@ namespace Libra.Graphics.Toolkit
         /// <summary>
         /// 最大分割数。
         /// </summary>
-        const int MaxSplitCount = 3;
+        public const int MaxSplitCount = 3;
+
+        /// <summary>
+        /// 最大 PCF 範囲。
+        /// </summary>
+        public const int MaxPcfRadius = 7;
 
         /// <summary>
         /// 最大分割距離数。
         /// </summary>
         const int MaxSplitDistanceCount = MaxSplitCount + 1;
+
+        /// <summary>
+        /// 最大 PCF カーネル サイズ。
+        /// </summary>
+        const int MaxPcfKernelSize = MaxPcfRadius * MaxPcfRadius;
 
         SharedDeviceResource sharedDeviceResource;
 
@@ -129,13 +173,25 @@ namespace Libra.Graphics.Toolkit
 
         ConstantBuffer constantBufferPerCamera;
 
+        ConstantBuffer constantBufferPcf;
+
         ParametersPerLight parametersPerLight;
 
         ParametersPerCamera parametersPerCamera;
 
+        ParametersPcf parametersPcf;
+
         Matrix view;
 
         Matrix projection;
+
+        bool pcfEnabled;
+
+        int pcfRadius = MaxPcfRadius;
+
+        float shadowMapTexelWidth;
+
+        float shadowMapTexelHeight;
 
         ShaderResourceView[] shadowMaps;
 
@@ -193,6 +249,30 @@ namespace Libra.Graphics.Toolkit
 
         public ShadowMapForm ShadowMapForm { get; set; }
 
+        public bool PcfEnabled
+        {
+            get { return pcfEnabled; }
+            set
+            {
+                pcfEnabled = value;
+
+                dirtyFlags |= DirtyFlags.PcfKernel;
+            }
+        }
+
+        public int PcfRadius
+        {
+            get { return pcfRadius; }
+            set
+            {
+                if (value < 2 || MaxPcfRadius < value) throw new ArgumentOutOfRangeException("value");
+
+                pcfRadius = value;
+
+                dirtyFlags |= DirtyFlags.PcfKernel;
+            }
+        }
+
         public ShaderResourceView LinearDepthMap { get; set; }
 
         public SamplerState LinearDepthMapSampler { get; set; }
@@ -218,6 +298,9 @@ namespace Libra.Graphics.Toolkit
             constantBufferPerCamera = context.Device.CreateConstantBuffer();
             constantBufferPerCamera.Initialize<ParametersPerCamera>();
 
+            constantBufferPcf = context.Device.CreateConstantBuffer();
+            constantBufferPcf.Initialize<ParametersPcf>();
+
             parametersPerLight.SplitCount = MaxSplitCount;
             parametersPerLight.DepthBias = 0.001f;
             parametersPerLight.SplitDistances = new Vector4[MaxSplitDistanceCount];
@@ -225,6 +308,8 @@ namespace Libra.Graphics.Toolkit
 
             parametersPerCamera.FocalLength = Vector2.One;
             parametersPerCamera.FarClipDistance = 1000.0f;
+
+            parametersPcf.Offsets = new Vector4[MaxPcfKernelSize];
 
             shadowMaps = new ShaderResourceView[MaxSplitCount];
             ShadowMapForm = ShadowMapForm.Basic;
@@ -234,7 +319,9 @@ namespace Libra.Graphics.Toolkit
 
             dirtyFlags =
                 DirtyFlags.ConstantBufferPerLight |
-                DirtyFlags.ConstantBufferPerCamera;
+                DirtyFlags.ConstantBufferPerCamera |
+                DirtyFlags.ConstantBufferPcf |
+                DirtyFlags.PcfKernel;
         }
 
         public float GetSplitDistance(int index)
@@ -295,6 +382,61 @@ namespace Libra.Graphics.Toolkit
 
         void Apply()
         {
+            SetCamera();
+            SetPcfKernel();
+
+            if ((dirtyFlags & DirtyFlags.ConstantBufferPerLight) != 0)
+            {
+                constantBufferPerLight.SetData(Context, parametersPerLight);
+
+                dirtyFlags &= ~DirtyFlags.ConstantBufferPerLight;
+            }
+
+            if ((dirtyFlags & DirtyFlags.ConstantBufferPerCamera) != 0)
+            {
+                constantBufferPerCamera.SetData(Context, parametersPerCamera);
+
+                dirtyFlags &= ~DirtyFlags.ConstantBufferPerCamera;
+            }
+
+            if ((dirtyFlags & DirtyFlags.ConstantBufferPcf) != 0)
+            {
+                constantBufferPcf.SetData(Context, parametersPcf);
+
+                dirtyFlags &= ~DirtyFlags.ConstantBufferPcf;
+            }
+
+            if (ShadowMapForm == ShadowMapForm.Variance)
+            {
+                Context.PixelShader = sharedDeviceResource.VariancePixelShader;
+            }
+            else
+            {
+                if (pcfEnabled)
+                {
+                    Context.PixelShader = sharedDeviceResource.PcfPixelShader;
+                }
+                else
+                {
+                    Context.PixelShader = sharedDeviceResource.BasicPixelShader;
+                }
+            }
+
+            Context.PixelShaderConstantBuffers[0] = constantBufferPerLight;
+            Context.PixelShaderConstantBuffers[1] = constantBufferPerCamera;
+            Context.PixelShaderConstantBuffers[2] = constantBufferPcf;
+            Context.PixelShaderResources[0] = LinearDepthMap;
+            Context.PixelShaderSamplers[0] = LinearDepthMapSampler;
+            Context.PixelShaderSamplers[1] = ShadowMapSampler;
+
+            for (int i = 0; i < shadowMaps.Length; i++)
+            {
+                Context.PixelShaderResources[1 + i] = shadowMaps[i];
+            }
+        }
+
+        void SetCamera()
+        {
             if ((dirtyFlags & DirtyFlags.InverseView) != 0)
             {
                 Matrix inverseView;
@@ -316,39 +458,71 @@ namespace Libra.Graphics.Toolkit
                 dirtyFlags &= ~DirtyFlags.Projection;
                 dirtyFlags |= DirtyFlags.ConstantBufferPerCamera;
             }
+        }
 
-            if ((dirtyFlags & DirtyFlags.ConstantBufferPerLight) != 0)
+        void SetPcfKernel()
+        {
+            if (!pcfEnabled) return;
+
+            float texelWidth;
+            float texelHeight;
+            GetShadowMapTexelSize(out texelWidth, out texelHeight);
+
+            if (shadowMapTexelWidth != texelWidth || shadowMapTexelHeight != texelHeight)
             {
-                constantBufferPerLight.SetData(Context, parametersPerLight);
+                shadowMapTexelWidth = texelWidth;
+                shadowMapTexelHeight = texelHeight;
 
-                dirtyFlags &= ~DirtyFlags.ConstantBufferPerLight;
+                dirtyFlags |= DirtyFlags.PcfKernel;
             }
 
-            if ((dirtyFlags & DirtyFlags.ConstantBufferPerCamera) != 0)
+            if ((dirtyFlags & DirtyFlags.PcfKernel) != 0)
             {
-                constantBufferPerCamera.SetData(Context, parametersPerCamera);
+                int start;
+                if (pcfRadius % 2 == 0)
+                {
+                    start = -(pcfRadius / 2) + 1;
+                }
+                else
+                {
+                    start = -(pcfRadius - 1) / 2;
+                }
+                int end = start + pcfRadius;
 
-                dirtyFlags &= ~DirtyFlags.ConstantBufferPerCamera;
+                int i = 0;
+                for (int y = start; y < end; y++)
+                {
+                    for (int x = start; x < end; x++)
+                    {
+                        parametersPcf.Offsets[i].X = x * shadowMapTexelWidth;
+                        parametersPcf.Offsets[i].Y = y * shadowMapTexelHeight;
+                        i++;
+                    }
+                }
+
+                parametersPcf.KernelSize = pcfRadius * pcfRadius;
+
+                dirtyFlags &= ~DirtyFlags.PcfKernel;
+                dirtyFlags |= DirtyFlags.ConstantBufferPcf;
             }
+        }
 
-            if (ShadowMapForm == ShadowMapForm.Variance)
+        void GetShadowMapTexelSize(out float texelWidth, out float texelHeight)
+        {
+            Texture2D texture2D = null;
+
+            if (shadowMaps[0] != null)
+                texture2D = shadowMaps[0].Resource as Texture2D;
+
+            if (texture2D == null)
             {
-                Context.PixelShader = sharedDeviceResource.VariancePixelShader;
+                texelWidth = 0;
+                texelHeight = 0;
             }
             else
             {
-                Context.PixelShader = sharedDeviceResource.BasicPixelShader;
-            }
-
-            Context.PixelShaderConstantBuffers[0] = constantBufferPerLight;
-            Context.PixelShaderConstantBuffers[1] = constantBufferPerCamera;
-            Context.PixelShaderResources[0] = LinearDepthMap;
-            Context.PixelShaderSamplers[0] = LinearDepthMapSampler;
-            Context.PixelShaderSamplers[1] = ShadowMapSampler;
-
-            for (int i = 0; i < shadowMaps.Length; i++)
-            {
-                Context.PixelShaderResources[1 + i] = shadowMaps[i];
+                texelWidth = 1.0f / (float) texture2D.Width;
+                texelHeight = 1.0f / (float) texture2D.Height;
             }
         }
 

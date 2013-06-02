@@ -185,6 +185,7 @@
     <None Include="Shaders\Compiled\ParticleVS.bin" />
     <None Include="Shaders\Compiled\ScanlineFilterPS.bin" />
     <None Include="Shaders\Compiled\ShadowOcclusionMapBasicPS.bin" />
+    <None Include="Shaders\Compiled\ShadowOcclusionMapPcfPS.bin" />
     <None Include="Shaders\Compiled\ShadowOcclusionMapVariancePS.bin" />
     <None Include="Shaders\Compiled\SSAOBlurFilterPS.bin" />
     <None Include="Shaders\Compiled\SSAOMapPS.bin" />

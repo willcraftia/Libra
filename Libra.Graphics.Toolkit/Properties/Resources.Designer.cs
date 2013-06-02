@@ -354,6 +354,13 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
+        internal static byte[] ShadowOcclusionMapPcfPS {
+            get {
+                object obj = ResourceManager.GetObject("ShadowOcclusionMapPcfPS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
         internal static byte[] ShadowOcclusionMapVariancePS {
             get {
                 object obj = ResourceManager.GetObject("ShadowOcclusionMapVariancePS", resourceCulture);
