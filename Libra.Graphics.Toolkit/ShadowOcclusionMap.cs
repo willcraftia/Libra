@@ -161,7 +161,7 @@ namespace Libra.Graphics.Toolkit
             get { return parametersPerLight.DepthBias; }
             set
             {
-                if (value < 1 || MaxSplitCount < value) throw new ArgumentOutOfRangeException("value");
+                if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
 
                 parametersPerLight.DepthBias = value;
 
