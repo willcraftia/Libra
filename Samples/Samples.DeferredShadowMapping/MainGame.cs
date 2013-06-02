@@ -723,7 +723,9 @@ namespace Samples.DeferredShadowMapping
                 text =
                     "[1] Light Camera Type (" + currentLightCameraType + ")\n" +
                     "[2] Shadow Map Form (" + shadowMapForm + ")\n" +
-                    "[3] Camera Frustum as Scene Box (" + useCameraFrustumSceneBox + ")\n";
+                    "[3] Camera Frustum as Scene Box (" + useCameraFrustumSceneBox + ")\n" +
+                    "[4] Split count (" + splitCount + ")\n" +
+                    "[5] Shadow map size (" + ShadowMapSizes[currentShadowMapSizeIndex] + "x" + ShadowMapSizes[currentShadowMapSizeIndex] + ")";
             }
             else
             {
@@ -734,7 +736,7 @@ namespace Samples.DeferredShadowMapping
             string basicText =
                 "[F1] HUD on/off\n" +
                 "[F2] Inter-maps on/off\n" +
-                "[F3] Combine Occlusion (" + occlusionCombineFilter + ")\n" +
+                "[F3] Combine Occlusion (" + occlusionCombineFilter.Enabled + ")\n" +
                 "[F4] Depth Map (" + linearDepthMapColorFilter.Enabled + ")\n" +
                 "[F5] Occlusion Map " + (occlusionMapColorFilter.Enabled ? "(Current)" : "") + "";
 
@@ -800,6 +802,26 @@ namespace Samples.DeferredShadowMapping
             if (currentKeyboardState.IsKeyUp(Keys.D3) && lastKeyboardState.IsKeyDown(Keys.D3))
             {
                 useCameraFrustumSceneBox = !useCameraFrustumSceneBox;
+            }
+
+            if (currentKeyboardState.IsKeyUp(Keys.D4) && lastKeyboardState.IsKeyDown(Keys.D4))
+            {
+                splitCount++;
+                if (MaxSplitCount < splitCount)
+                    splitCount = 1;
+            }
+
+            if (currentKeyboardState.IsKeyUp(Keys.D5) && lastKeyboardState.IsKeyDown(Keys.D5))
+            {
+                currentShadowMapSizeIndex++;
+                if (ShadowMapSizes.Length <= currentShadowMapSizeIndex)
+                    currentShadowMapSizeIndex = 0;
+
+                if (gaussianFilter != null)
+                {
+                    gaussianFilter.Dispose();
+                    gaussianFilter = null;
+                }
             }
 
             if (currentKeyboardState.IsKeyDown(Keys.Escape))
