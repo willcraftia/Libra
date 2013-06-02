@@ -575,9 +575,9 @@ namespace Samples.SceneAmbientOcclusion
                 "[F1] HUD on/off\n" +
                 "[F2] Inter-maps on/off\n" +
                 "[F3] Combine Occlusion Map (" + occlusionCombineFilter.Enabled + ")\n" +
-                "[F4] Show/Hide Depth Map " + (linearDepthMapColorFilter.Enabled ? "(Current)" : "") + "\n" +
-                "[F5] Show/Hide Occlusion Map " + (occlusionMapColorFilter.Enabled ? "(Current)" : "") + "\n" +
-                "[F6] Show/Hide Final Occlusion Map " + (finalOcclusionMapColorFilter.Enabled ? "(Current)" : "") + "\n" +
+                "[F4] Depth Map " + (linearDepthMapColorFilter.Enabled ? "(Current)" : "") + "\n" +
+                "[F5] Occlusion Map " + (occlusionMapColorFilter.Enabled ? "(Current)" : "") + "\n" +
+                "[F6] Final Occlusion Map " + (finalOcclusionMapColorFilter.Enabled ? "(Current)" : "") + "\n" +
                 "[PageUp/Down] Blur Iteration (" + blurIteration + ")";
 
             spriteBatch.Begin();
