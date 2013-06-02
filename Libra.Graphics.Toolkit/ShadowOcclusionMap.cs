@@ -189,9 +189,9 @@ namespace Libra.Graphics.Toolkit
 
         int pcfRadius = MaxPcfRadius;
 
-        float shadowMapTexelWidth;
+        int shadowMapWidth;
 
-        float shadowMapTexelHeight;
+        int shadowMapHeight;
 
         ShaderResourceView[] shadowMaps;
 
@@ -302,7 +302,7 @@ namespace Libra.Graphics.Toolkit
             constantBufferPcf.Initialize<ParametersPcf>();
 
             parametersPerLight.SplitCount = MaxSplitCount;
-            parametersPerLight.DepthBias = 0.001f;
+            parametersPerLight.DepthBias = 0.003f;
             parametersPerLight.SplitDistances = new Vector4[MaxSplitDistanceCount];
             parametersPerLight.LightViewProjections = new Matrix[MaxSplitCount];
 
@@ -464,14 +464,14 @@ namespace Libra.Graphics.Toolkit
         {
             if (!pcfEnabled) return;
 
-            float texelWidth;
-            float texelHeight;
-            GetShadowMapTexelSize(out texelWidth, out texelHeight);
+            int w;
+            int h;
+            GetShadowMapSize(out w, out h);
 
-            if (shadowMapTexelWidth != texelWidth || shadowMapTexelHeight != texelHeight)
+            if (shadowMapWidth != w || shadowMapHeight != h)
             {
-                shadowMapTexelWidth = texelWidth;
-                shadowMapTexelHeight = texelHeight;
+                shadowMapWidth = w;
+                shadowMapHeight = h;
 
                 dirtyFlags |= DirtyFlags.PcfKernel;
             }
@@ -494,8 +494,8 @@ namespace Libra.Graphics.Toolkit
                 {
                     for (int x = start; x < end; x++)
                     {
-                        parametersPcf.Offsets[i].X = x * shadowMapTexelWidth;
-                        parametersPcf.Offsets[i].Y = y * shadowMapTexelHeight;
+                        parametersPcf.Offsets[i].X = x / (float) shadowMapWidth;
+                        parametersPcf.Offsets[i].Y = y / (float) shadowMapHeight;
                         i++;
                     }
                 }
@@ -507,7 +507,7 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        void GetShadowMapTexelSize(out float texelWidth, out float texelHeight)
+        void GetShadowMapSize(out int width, out int height)
         {
             Texture2D texture2D = null;
 
@@ -516,13 +516,13 @@ namespace Libra.Graphics.Toolkit
 
             if (texture2D == null)
             {
-                texelWidth = 0;
-                texelHeight = 0;
+                width = 0;
+                height = 0;
             }
             else
             {
-                texelWidth = 1.0f / (float) texture2D.Width;
-                texelHeight = 1.0f / (float) texture2D.Height;
+                width = texture2D.Width;
+                height = texture2D.Height;
             }
         }
 

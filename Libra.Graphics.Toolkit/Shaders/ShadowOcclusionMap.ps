@@ -131,21 +131,19 @@ float4 PcfPS(Input input) : SV_Target0
             // シャドウ マップ テクスチャ座標。
             float2 shadowMapTexCoord = positionL.xy / positionL.w * float2(0.5, -0.5) + float2(0.5, 0.5);
 
-            // 近傍をサンプリング。
-            float totalCasterDepthL = 0;
+            // PCF。
             for (int kernel = 0; kernel < KernelSize; kernel++)
             {
-                float sample = BasicShadowMap[i].SampleLevel(
+                // サンプリング。
+                float casterDepthL = BasicShadowMap[i].SampleLevel(
                     ShadowMapSampler, shadowMapTexCoord + Offsets[kernel], 0);
 
-                totalCasterDepthL += sample;
+                // 投影オブジェクトの深度よりも深いならば閉塞。
+                occlusion += (casterDepthL < depthL);
             }
 
-            // シャドウ マップにおける平均深度 (ライト空間)。
-            float casterDepthL = totalCasterDepthL / KernelSize;
-
-            // 投影オブジェクトの深度よりも深いならば閉塞。
-            occlusion = (casterDepthL < depthL);
+            // 平均。
+            occlusion /= KernelSize;
 
             break;
         }
