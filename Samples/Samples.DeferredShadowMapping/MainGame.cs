@@ -347,8 +347,6 @@ namespace Samples.DeferredShadowMapping
             uniformLightCameraBuilder.LightFarClipDistance = lightFar;
             liSPSMLightCameraBuilder.LightFarClipDistance = lightFar;
 
-            // TODO
-            // 射影行列の指定で纏めて設定したい。
             pssm.Fov = camera.Fov;
             pssm.AspectRatio = camera.AspectRatio;
             pssm.NearClipDistance = camera.NearClipDistance;
@@ -425,6 +423,7 @@ namespace Samples.DeferredShadowMapping
             shadowOcclusionMap = new ShadowOcclusionMap(context);
             shadowOcclusionMap.SplitCount = splitCount;
             shadowOcclusionMap.PcfEnabled = true;
+            shadowOcclusionMap.DepthBias = 0.005f;
 
             cubeMesh = new CubeMesh(context, 20);
             sphereMesh = new SphereMesh(context, 20, 32);
@@ -717,23 +716,26 @@ namespace Samples.DeferredShadowMapping
                 return;
 
             // HUD のテキストを表示。
-            string text;
+            string text0;
             if (currentKeyboardState.IsKeyUp(Keys.ControlKey))
             {
-                text =
+                text0 =
                     "[1] Light Camera Type (" + currentLightCameraType + ")\n" +
                     "[2] Shadow Map Form (" + shadowMapForm + ")\n" +
                     "[3] Camera Frustum as Scene Box (" + useCameraFrustumSceneBox + ")\n" +
                     "[4] Split count (" + splitCount + ")\n" +
-                    "[5] Shadow map size (" + ShadowMapSizes[currentShadowMapSizeIndex] + "x" + ShadowMapSizes[currentShadowMapSizeIndex] + ")";
+                    "[5] Shadow map size (" + ShadowMapSizes[currentShadowMapSizeIndex] + "x" + ShadowMapSizes[currentShadowMapSizeIndex] + ")\n" +
+                    "[6] Pcf On/Off (" + shadowOcclusionMap.PcfEnabled + ")\n" +
+                    "[T/G] Depth Bias (" + shadowOcclusionMap.DepthBias.ToString("F5") + ")\n" +
+                    "[Y/H] PCF Radius (" + shadowOcclusionMap.PcfRadius + ")";
             }
             else
             {
-                text =
+                text0 =
                     "";
             }
 
-            string basicText =
+            string text1 =
                 "[F1] HUD on/off\n" +
                 "[F2] Inter-maps on/off\n" +
                 "[F3] Combine Occlusion (" + occlusionCombineFilter.Enabled + ")\n" +
@@ -742,11 +744,16 @@ namespace Samples.DeferredShadowMapping
 
             spriteBatch.Begin();
 
-            spriteBatch.DrawString(spriteFont, text, new Vector2(65, 340), Color.Black);
-            spriteBatch.DrawString(spriteFont, text, new Vector2(64, 340 - 1), Color.Yellow);
+            const int locationY = 310;
 
-            spriteBatch.DrawString(spriteFont, basicText, new Vector2(449, 340), Color.Black);
-            spriteBatch.DrawString(spriteFont, basicText, new Vector2(448, 340 - 1), Color.Yellow);
+            const int locationX0 = 65;
+            const int locationX1 = 449;
+
+            spriteBatch.DrawString(spriteFont, text0, new Vector2(locationX0, locationY), Color.Black);
+            spriteBatch.DrawString(spriteFont, text0, new Vector2(locationX0 - 1, locationY - 1), Color.Yellow);
+
+            spriteBatch.DrawString(spriteFont, text1, new Vector2(locationX1, locationY), Color.Black);
+            spriteBatch.DrawString(spriteFont, text1, new Vector2(locationX1 - 1, locationY - 1), Color.Yellow);
 
             spriteBatch.End();
         }
@@ -822,6 +829,28 @@ namespace Samples.DeferredShadowMapping
                     gaussianFilter.Dispose();
                     gaussianFilter = null;
                 }
+            }
+
+            if (currentKeyboardState.IsKeyUp(Keys.D6) && lastKeyboardState.IsKeyDown(Keys.D6))
+                shadowOcclusionMap.PcfEnabled = !shadowOcclusionMap.PcfEnabled;
+
+            if (currentKeyboardState.IsKeyDown(Keys.T))
+            {
+                shadowOcclusionMap.DepthBias += 0.00001f;
+            }
+            if (currentKeyboardState.IsKeyDown(Keys.G))
+            {
+                shadowOcclusionMap.DepthBias = Math.Max(shadowOcclusionMap.DepthBias - 0.00001f, 0.0f);
+            }
+
+            if (currentKeyboardState.IsKeyUp(Keys.Y) && lastKeyboardState.IsKeyDown(Keys.Y))
+            {
+                shadowOcclusionMap.PcfRadius = Math.Min(ShadowOcclusionMap.MaxPcfRadius, shadowOcclusionMap.PcfRadius + 1);
+            }
+
+            if (currentKeyboardState.IsKeyUp(Keys.H) && lastKeyboardState.IsKeyDown(Keys.H))
+            {
+                shadowOcclusionMap.PcfRadius = Math.Max(2, shadowOcclusionMap.PcfRadius - 1);
             }
 
             if (currentKeyboardState.IsKeyDown(Keys.Escape))
