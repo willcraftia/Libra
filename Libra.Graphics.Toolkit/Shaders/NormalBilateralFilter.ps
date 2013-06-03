@@ -1,0 +1,54 @@
+#define MAX_RADIUS 7
+#define MAX_KERNEL_SIZE (MAX_RADIUS * 2 + 1)
+
+cbuffer PerObject : register(b0)
+{
+    // 法線の重み
+    float NormalSigma                   : packoffset(c0);
+    // カーネル サイズ
+    float KernelSize                    : packoffset(c0.y);
+    // 空間の重み
+    float SpaceWeights[MAX_KERNEL_SIZE] : packoffset(c1);
+};
+
+cbuffer PerRenderTarget : register(b1)
+{
+    // テクセル オフセット
+    float2 Offsets[MAX_KERNEL_SIZE];
+};
+
+Texture2D<float4> Texture   : register(t0);
+Texture2D<float3> NormalMap : register(t1);
+
+SamplerState TextureSampler     : register(s0);
+SamplerState NormalMapSampler   : register(s1);
+
+float4 PS(float2 texCoord : TEXCOORD0) : SV_Target0
+{
+    float3 centerNormal = NormalMap.Sample(NormalMapSampler, texCoord);
+
+    float4 totalColor = 0;
+    float totalWeight = 0;
+
+    for (int i = 0; i < KernelSize; i++)
+    {
+        float2 sampleTexCoord = texCoord + Offsets[i];
+
+        float4 sampleColor = Texture.Sample(TextureSampler, sampleTexCoord);
+        float3 sampleNormal = NormalMap.Sample(NormalMapSampler, sampleTexCoord);
+
+        // 法線の差から法線の重みを算出。
+        float normalCloseness = saturate(1 - dot(centerNormal, sampleNormal));
+        float normalWeight = exp(-normalCloseness * normalCloseness / (2 * NormalSigma * NormalSigma));
+
+        // 重み = 空間の重み * 法線の重み。
+        float sampleWeight = SpaceWeights[i];
+        sampleWeight *= normalWeight;
+
+        totalColor += sampleColor * sampleWeight;
+        totalWeight += sampleWeight;
+    }
+
+    // 正規化して最終的な色を決定。
+    return totalColor / totalWeight;
+}

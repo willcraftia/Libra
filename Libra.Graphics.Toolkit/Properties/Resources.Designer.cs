@@ -284,6 +284,13 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
+        internal static byte[] NormalBilateralFilterPS {
+            get {
+                object obj = ResourceManager.GetObject("NormalBilateralFilterPS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
         internal static byte[] NormalEdgeDetectFilterPS {
             get {
                 object obj = ResourceManager.GetObject("NormalEdgeDetectFilterPS", resourceCulture);
