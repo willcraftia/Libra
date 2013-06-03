@@ -181,22 +181,28 @@ namespace Samples.DeferredShadowMapping
         /// </summary>
         GaussianFilterSuite vsmGaussianFilterSuite;
 
+        /// <summary>
+        /// 閉塞マップのブラー後に行うアップ サンプリング。
+        /// </summary>
         UpFilter upFilter;
 
+        /// <summary>
+        /// 閉塞マップのブラー前に行うダウン サンプリング。
+        /// </summary>
         DownFilter downFilter;
 
         /// <summary>
-        /// 閉塞マップ用ガウシアン フィルタ。
+        /// 閉塞マップのブラー用ガウシアン フィルタ。
         /// </summary>
         GaussianFilter occlusionGaussianFilter;
 
         /// <summary>
-        /// 閉塞マップ用ガウシアン フィルタ水平パス。
+        /// 閉塞マップのブラー用ガウシアン フィルタ水平パス。
         /// </summary>
         GaussianFilterPass occlusionGaussianFilterPassH;
 
         /// <summary>
-        /// 閉塞マップ用ガウシアン フィルタ垂直パス。
+        /// 閉塞マップのブラー用ガウシアン フィルタ垂直パス。
         /// </summary>
         GaussianFilterPass occlusionGaussianFilterPassV;
 
