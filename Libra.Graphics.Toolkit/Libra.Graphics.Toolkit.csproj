@@ -60,6 +60,7 @@
     <Compile Include="ShadowOcclusionMap.cs" />
     <Compile Include="NormalDepthBilateralFilter.cs" />
     <Compile Include="OcclusionCombineFilter.cs" />
+    <Compile Include="DebugShapeRenderer.cs" />
     <Compile Include="SSAOMap.cs" />
     <Compile Include="BasicCamera.cs" />
     <Compile Include="BasicLightCameraBuilder.cs" />
