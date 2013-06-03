@@ -8,7 +8,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class SSAOBlurFilter : IGaussianFilterEffect, IDisposable
+    public sealed class NormalDepthBilateralFilter : IGaussianFilterEffect, IDisposable
     {
         #region SharedDeviceResource
 
@@ -19,7 +19,7 @@ namespace Libra.Graphics.Toolkit
             public SharedDeviceResource(Device device)
             {
                 PixelShader = device.CreatePixelShader();
-                PixelShader.Initialize(Resources.SSAOBlurFilterPS);
+                PixelShader.Initialize(Resources.NormalDepthBilateralFilterPS);
             }
         }
 
@@ -180,13 +180,13 @@ namespace Libra.Graphics.Toolkit
 
         public SamplerState TextureSampler { get; set; }
 
-        public SSAOBlurFilter(Device device)
+        public NormalDepthBilateralFilter(Device device)
         {
             if (device == null) throw new ArgumentNullException("device");
 
             this.device = device;
 
-            sharedDeviceResource = device.GetSharedResource<SSAOBlurFilter, SharedDeviceResource>();
+            sharedDeviceResource = device.GetSharedResource<NormalDepthBilateralFilter, SharedDeviceResource>();
 
             constantBufferPerObject = device.CreateConstantBuffer();
             constantBufferPerObject.Initialize<ParametersPerObject>();
@@ -344,7 +344,7 @@ namespace Libra.Graphics.Toolkit
 
         bool disposed;
 
-        ~SSAOBlurFilter()
+        ~NormalDepthBilateralFilter()
         {
             Dispose(false);
         }

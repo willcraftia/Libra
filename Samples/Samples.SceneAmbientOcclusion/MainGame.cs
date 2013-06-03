@@ -142,9 +142,9 @@ namespace Samples.SceneAmbientOcclusion
         UpFilter upFilter;
 
         /// <summary>
-        /// 環境光閉塞ブラー フィルタ。
+        /// 法線深度バイラテラル フィルタ。
         /// </summary>
-        SSAOBlurFilter ssaoBlur;
+        NormalDepthBilateralFilter bormalDepthBilateralFilter;
 
         /// <summary>
         /// 環境光閉塞ブラー フィルタ 水平パス。
@@ -310,9 +310,9 @@ namespace Samples.SceneAmbientOcclusion
             downFilter = new DownFilter(Device);
             upFilter = new UpFilter(Device);
 
-            ssaoBlur = new SSAOBlurFilter(Device);
-            ssaoBlurH = new GaussianFilterPass(ssaoBlur, GaussianFilterDirection.Horizon);
-            ssaoBlurV = new GaussianFilterPass(ssaoBlur, GaussianFilterDirection.Vertical);
+            bormalDepthBilateralFilter = new NormalDepthBilateralFilter(Device);
+            ssaoBlurH = new GaussianFilterPass(bormalDepthBilateralFilter, GaussianFilterDirection.Horizon);
+            ssaoBlurV = new GaussianFilterPass(bormalDepthBilateralFilter, GaussianFilterDirection.Vertical);
 
             postprocessSSAOMap.Filters.Add(downFilter);
             for (int i = 0; i < blurIteration; i++)
@@ -417,7 +417,7 @@ namespace Samples.SceneAmbientOcclusion
 
             // フィルタへ設定。
             ssaoMap.LinearDepthMap = depthMapRenderTarget;
-            ssaoBlur.LinearDepthMap = depthMapRenderTarget;
+            bormalDepthBilateralFilter.LinearDepthMap = depthMapRenderTarget;
             linearDepthMapColorFilter.LinearDepthMap = depthMapRenderTarget;
         }
 
@@ -432,7 +432,7 @@ namespace Samples.SceneAmbientOcclusion
 
             // フィルタへ設定。
             ssaoMap.NormalMap = normalMapRenderTarget;
-            ssaoBlur.NormalMap = normalMapRenderTarget;
+            bormalDepthBilateralFilter.NormalMap = normalMapRenderTarget;
 
             // 中間マップ表示。
             textureDisplay.Textures.Add(normalMapRenderTarget);
@@ -565,10 +565,10 @@ namespace Samples.SceneAmbientOcclusion
             {
                 text =
                     "Blur Settings\n" +
-                    "[T/G] Radius (" + ssaoBlur.Radius + ")\n" +
-                    "[Y/H] Space Sigma (" + ssaoBlur.SpaceSigma.ToString("F1") + ")\n" +
-                    "[U/J] Depth Sigma (" + ssaoBlur.DepthSigma.ToString("F2") + ")\n" +
-                    "[I/K] Normal Sigma (" + ssaoBlur.NormalSigma.ToString("F2") + ")";
+                    "[T/G] Radius (" + bormalDepthBilateralFilter.Radius + ")\n" +
+                    "[Y/H] Space Sigma (" + bormalDepthBilateralFilter.SpaceSigma.ToString("F1") + ")\n" +
+                    "[U/J] Depth Sigma (" + bormalDepthBilateralFilter.DepthSigma.ToString("F2") + ")\n" +
+                    "[I/K] Normal Sigma (" + bormalDepthBilateralFilter.NormalSigma.ToString("F2") + ")";
             }
 
             string basicText =
@@ -623,24 +623,24 @@ namespace Samples.SceneAmbientOcclusion
             else
             {
                 if (currentKeyboardState.IsKeyDown(Keys.T))
-                    ssaoBlur.Radius = Math.Min(7, ssaoBlur.Radius + 1);
+                    bormalDepthBilateralFilter.Radius = Math.Min(7, bormalDepthBilateralFilter.Radius + 1);
                 if (currentKeyboardState.IsKeyDown(Keys.G))
-                    ssaoBlur.Radius = Math.Max(1, ssaoBlur.Radius - 1);
+                    bormalDepthBilateralFilter.Radius = Math.Max(1, bormalDepthBilateralFilter.Radius - 1);
 
                 if (currentKeyboardState.IsKeyDown(Keys.Y))
-                    ssaoBlur.SpaceSigma += 0.1f;
+                    bormalDepthBilateralFilter.SpaceSigma += 0.1f;
                 if (currentKeyboardState.IsKeyDown(Keys.H))
-                    ssaoBlur.SpaceSigma = Math.Max(0.1f, ssaoBlur.SpaceSigma - 0.1f);
+                    bormalDepthBilateralFilter.SpaceSigma = Math.Max(0.1f, bormalDepthBilateralFilter.SpaceSigma - 0.1f);
 
                 if (currentKeyboardState.IsKeyDown(Keys.U))
-                    ssaoBlur.DepthSigma += 0.01f;
+                    bormalDepthBilateralFilter.DepthSigma += 0.01f;
                 if (currentKeyboardState.IsKeyDown(Keys.J))
-                    ssaoBlur.DepthSigma = Math.Max(0.1f, ssaoBlur.DepthSigma - 0.01f);
+                    bormalDepthBilateralFilter.DepthSigma = Math.Max(0.1f, bormalDepthBilateralFilter.DepthSigma - 0.01f);
 
                 if (currentKeyboardState.IsKeyDown(Keys.I))
-                    ssaoBlur.NormalSigma += 0.01f;
+                    bormalDepthBilateralFilter.NormalSigma += 0.01f;
                 if (currentKeyboardState.IsKeyDown(Keys.K))
-                    ssaoBlur.NormalSigma = Math.Max(0.1f, ssaoBlur.NormalSigma - 0.01f);
+                    bormalDepthBilateralFilter.NormalSigma = Math.Max(0.1f, bormalDepthBilateralFilter.NormalSigma - 0.01f);
             }
 
             if (currentKeyboardState.IsKeyUp(Keys.F1) && lastKeyboardState.IsKeyDown(Keys.F1))

@@ -291,6 +291,13 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
+        internal static byte[] NormalDepthBilateralFilterPS {
+            get {
+                object obj = ResourceManager.GetObject("NormalDepthBilateralFilterPS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
         internal static byte[] NormalEdgeDetectFilterPS {
             get {
                 object obj = ResourceManager.GetObject("NormalEdgeDetectFilterPS", resourceCulture);
@@ -385,13 +392,6 @@ namespace Libra.Graphics.Toolkit.Properties {
         internal static byte[] SingleColorObjectVS {
             get {
                 object obj = ResourceManager.GetObject("SingleColorObjectVS", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        internal static byte[] SSAOBlurFilterPS {
-            get {
-                object obj = ResourceManager.GetObject("SSAOBlurFilterPS", resourceCulture);
                 return ((byte[])(obj));
             }
         }
