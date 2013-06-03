@@ -449,6 +449,7 @@ namespace Samples.DeferredShadowMapping
             upFilter = new UpFilter(Device);
             downFilter = new DownFilter(Device);
 
+            // 範囲と標準偏差に適した値は、アップ/ダウン サンプリングを伴うか否かで大きく異なる。
             occlusionGaussianFilter = new GaussianFilter(Device);
             occlusionGaussianFilter.Radius = 3;
             occlusionGaussianFilter.Sigma = 1;
@@ -459,7 +460,7 @@ namespace Samples.DeferredShadowMapping
             occlusionPostprocess.Filters.Add(occlusionGaussianFilterPassH);
             occlusionPostprocess.Filters.Add(occlusionGaussianFilterPassV);
             occlusionPostprocess.Filters.Add(upFilter);
-            occlusionPostprocess.Enabled = false;
+            occlusionPostprocess.Enabled = true;
 
             depthMapEffect = new LinearDepthMapEffect(Device);
 
@@ -474,10 +475,11 @@ namespace Samples.DeferredShadowMapping
                 shadowMaps[i] = new ShadowMap(context);
             }
 
+            // 深度バイアスは、主に PCF の際に重要となる。
+            // VSM の場合、あまり意味は無い。
             shadowOcclusionMap = new ShadowOcclusionMap(context);
             shadowOcclusionMap.SplitCount = splitCount;
-            shadowOcclusionMap.PcfEnabled = true;
-            shadowOcclusionMap.DepthBias = 0.005f;
+            shadowOcclusionMap.PcfEnabled = false;
 
             cubeMesh = new CubeMesh(context, 20);
             sphereMesh = new SphereMesh(context, 20, 32);
@@ -650,9 +652,6 @@ namespace Samples.DeferredShadowMapping
             DrawScene(depthMapEffect);
 
             context.SetRenderTarget(null);
-
-            // フィルタへ設定。
-            linearDepthMapColorFilter.LinearDepthMap = depthMapRenderTarget;
         }
 
         void CreateNormalSceneMap()
@@ -695,7 +694,6 @@ namespace Samples.DeferredShadowMapping
             // 中間マップ表示。
             textureDisplay.Textures.Add(occlusionMapRenderTarget);
         }
-
         void ApplyOcclusionMapPostprocess()
         {
             finalOcclusionMap = occlusionPostprocess.Draw(occlusionMapRenderTarget);
@@ -765,6 +763,7 @@ namespace Samples.DeferredShadowMapping
 
         void ApplyScenePostprocess()
         {
+            linearDepthMapColorFilter.LinearDepthMap = depthMapRenderTarget;
             occlusionCombineFilter.OcclusionMap = finalOcclusionMap;
             occlusionMapColorFilter.OcclusionMap = finalOcclusionMap;
 
