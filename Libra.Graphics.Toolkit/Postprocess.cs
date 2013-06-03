@@ -93,6 +93,8 @@ namespace Libra.Graphics.Toolkit
             set { projection = value; }
         }
 
+        public bool Enabled { get; set; }
+
         public Postprocess(DeviceContext context)
         {
             if (context == null) throw new ArgumentNullException("context");
@@ -108,11 +110,16 @@ namespace Libra.Graphics.Toolkit
             format = SurfaceFormat.Color;
             multisampleCount = 1;
             projection = Matrix.Identity;
+
+            Enabled = true;
         }
 
         public ShaderResourceView Draw(ShaderResourceView texture)
         {
             if (texture == null) throw new ArgumentNullException("texture");
+
+            if (!Enabled)
+                return texture;
 
             var currentTexture = texture;
 
