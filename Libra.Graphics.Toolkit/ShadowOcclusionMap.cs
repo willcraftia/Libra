@@ -302,7 +302,7 @@ namespace Libra.Graphics.Toolkit
             constantBufferPcf.Initialize<ParametersPcf>();
 
             parametersPerLight.SplitCount = MaxSplitCount;
-            parametersPerLight.DepthBias = 0.001f;
+            parametersPerLight.DepthBias = 0.0001f;
             parametersPerLight.SplitDistances = new Vector4[MaxSplitDistanceCount];
             parametersPerLight.LightViewProjections = new Matrix[MaxSplitCount];
 
