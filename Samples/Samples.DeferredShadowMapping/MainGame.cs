@@ -167,6 +167,11 @@ namespace Samples.DeferredShadowMapping
         OcclusionMapColorFilter occlusionMapColorFilter;
 
         /// <summary>
+        /// VSM 用ガウシアン ブラー。
+        /// </summary>
+        GaussianFilterSuite vsmGaussianFilter;
+
+        /// <summary>
         /// 線形深度マップ エフェクト。
         /// </summary>
         LinearDepthMapEffect depthMapEffect;
@@ -287,11 +292,6 @@ namespace Samples.DeferredShadowMapping
         /// シャドウ マップ形式。
         /// </summary>
         ShadowMapForm shadowMapForm = ShadowMapForm.Basic;
-
-        /// <summary>
-        /// ガウシアン ブラー。
-        /// </summary>
-        GaussianFilterSuite gaussianFilter;
 
         /// <summary>
         /// ライトの進行方向。
@@ -554,19 +554,19 @@ namespace Samples.DeferredShadowMapping
                 // VSM の場合は生成したシャドウ マップへブラーを適用。
                 if (shadowMapForm == ShadowMapForm.Variance)
                 {
-                    if (gaussianFilter == null)
+                    if (vsmGaussianFilter == null)
                     {
                         var shadowMapSize = ShadowMapSizes[currentShadowMapSizeIndex];
-                        gaussianFilter = new GaussianFilterSuite(
+                        vsmGaussianFilter = new GaussianFilterSuite(
                             Device.ImmediateContext,
                             shadowMapSize,
                             shadowMapSize,
                             SurfaceFormat.Vector2);
-                        gaussianFilter.Radius = 3;
-                        gaussianFilter.Sigma = 1;
+                        vsmGaussianFilter.Radius = 3;
+                        vsmGaussianFilter.Sigma = 1;
                     }
 
-                    gaussianFilter.Filter(shadowMaps[i].RenderTarget, shadowMaps[i].RenderTarget);
+                    vsmGaussianFilter.Filter(shadowMaps[i].RenderTarget, shadowMaps[i].RenderTarget);
                 }
 
                 // 生成されたシャドウ マップを一覧表示機能へ追加。
@@ -582,7 +582,7 @@ namespace Samples.DeferredShadowMapping
 
             currentFrustum.Matrix = viewProjection;
 
-            DrawPrimitiveMeshes(effect);
+            DrawShadowCasters(effect);
         }
 
         void CreateDepthMap()
@@ -655,10 +655,17 @@ namespace Samples.DeferredShadowMapping
                 effectMatrices.Projection = camera.Projection;
             }
 
-            DrawPrimitiveMeshes(effect);
+            DrawShadowReveivers(effect);
         }
 
-        void DrawPrimitiveMeshes(IEffect effect)
+        void DrawShadowReveivers(IEffect effect)
+        {
+            DrawShadowCasters(effect);
+
+            DrawPrimitiveMesh(squareMesh, Matrix.Identity, new Vector3(0.5f), effect);
+        }
+
+        void DrawShadowCasters(IEffect effect)
         {
             DrawPrimitiveMesh(cubeMesh, Matrix.CreateTranslation(-85, 10, -20), new Vector3(1, 0, 0), effect);
             DrawPrimitiveMesh(cubeMesh, Matrix.CreateTranslation(-60, 10, -20), new Vector3(1, 0, 0), effect);
@@ -670,7 +677,6 @@ namespace Samples.DeferredShadowMapping
             {
                 DrawPrimitiveMesh(cylinderMesh, Matrix.CreateTranslation(-180, 40, z), new Vector3(0, 0, 1), effect);
             }
-            DrawPrimitiveMesh(squareMesh, Matrix.Identity, new Vector3(0.5f), effect);
 
             context.RasterizerState = RasterizerState.CullNone;
             DrawPrimitiveMesh(teapotMesh, Matrix.CreateTranslation(100, 10, -100), new Vector3(0, 1, 1), effect);
@@ -824,10 +830,10 @@ namespace Samples.DeferredShadowMapping
                 if (ShadowMapSizes.Length <= currentShadowMapSizeIndex)
                     currentShadowMapSizeIndex = 0;
 
-                if (gaussianFilter != null)
+                if (vsmGaussianFilter != null)
                 {
-                    gaussianFilter.Dispose();
-                    gaussianFilter = null;
+                    vsmGaussianFilter.Dispose();
+                    vsmGaussianFilter = null;
                 }
             }
 
