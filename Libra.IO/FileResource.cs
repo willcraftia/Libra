@@ -78,16 +78,23 @@ namespace Libra.IO
 
         internal FileResource() { }
 
-        public Stream Open()
+        public Stream OpenRead()
         {
-            return File.Open(AbsolutePath, FileMode.Open);
+            return File.OpenRead(AbsolutePath);
         }
 
-        public Stream Create()
+        public Stream OpenWrite()
+        {
+            if (ReadOnly) throw new IOException("The read-only resource can not be written.");
+
+            return File.OpenWrite(AbsolutePath);
+        }
+
+        public Stream CreateNew()
         {
             if (ReadOnly) throw new IOException("The read-only resource can not be created.");
 
-            return File.Create(AbsolutePath);
+            return File.Open(AbsolutePath, FileMode.CreateNew);
         }
 
         public void Delete()

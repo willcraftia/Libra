@@ -23,9 +23,11 @@ namespace Libra.IO
 
         string BaseUri { get; }
 
-        Stream Open();
+        Stream OpenRead();
 
-        Stream Create();
+        Stream OpenWrite();
+
+        Stream CreateNew();
 
         void Delete();
     }
