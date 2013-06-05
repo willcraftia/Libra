@@ -65,6 +65,9 @@ namespace Libra.IO
 
         static List<IResourceLoader> loaders = new List<IResourceLoader>();
 
+        // TODO
+        // 弱参照でキャッシュすべきか？
+
         Dictionary<string, IResource> cache = new Dictionary<string, IResource>();
 
         Dictionary<RelativeUriKey, IResource> relativeUriCache = new Dictionary<RelativeUriKey, IResource>();
