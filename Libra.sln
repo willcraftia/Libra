@@ -103,6 +103,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.DeferredShadowMappi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.ShapeRendering", "Samples\Samples.ShapeRendering\Samples.ShapeRendering.csproj", "{CF72803F-86A3-4D72-A884-8EE5A25ACD09}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Libra.IO", "Libra.IO\Libra.IO.csproj", "{2CE30D43-C0FE-4595-B2A4-36873946356C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -567,6 +569,16 @@ Global
 		{CF72803F-86A3-4D72-A884-8EE5A25ACD09}.Release|Mixed Platforms.Build.0 = Release|x86
 		{CF72803F-86A3-4D72-A884-8EE5A25ACD09}.Release|x86.ActiveCfg = Release|x86
 		{CF72803F-86A3-4D72-A884-8EE5A25ACD09}.Release|x86.Build.0 = Release|x86
+		{2CE30D43-C0FE-4595-B2A4-36873946356C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2CE30D43-C0FE-4595-B2A4-36873946356C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2CE30D43-C0FE-4595-B2A4-36873946356C}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{2CE30D43-C0FE-4595-B2A4-36873946356C}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{2CE30D43-C0FE-4595-B2A4-36873946356C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2CE30D43-C0FE-4595-B2A4-36873946356C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2CE30D43-C0FE-4595-B2A4-36873946356C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2CE30D43-C0FE-4595-B2A4-36873946356C}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{2CE30D43-C0FE-4595-B2A4-36873946356C}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{2CE30D43-C0FE-4595-B2A4-36873946356C}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
