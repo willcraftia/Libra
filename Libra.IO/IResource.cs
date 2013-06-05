@@ -19,6 +19,8 @@ namespace Libra.IO
 
         bool ReadOnly { get; }
 
+        bool Exists { get; }
+
         string BaseUri { get; }
 
         Stream Open();

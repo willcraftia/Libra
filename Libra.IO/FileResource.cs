@@ -50,6 +50,14 @@ namespace Libra.IO
             }
         }
 
+        public bool Exists
+        {
+            get
+            {
+                return File.Exists(AbsolutePath);
+            }
+        }
+
         public string BaseUri
         {
             get
@@ -70,11 +78,6 @@ namespace Libra.IO
 
         internal FileResource() { }
 
-        public bool Exists()
-        {
-            return File.Exists(AbsolutePath);
-        }
-
         public Stream Open()
         {
             return File.Open(AbsolutePath, FileMode.Open);
@@ -82,11 +85,15 @@ namespace Libra.IO
 
         public Stream Create()
         {
+            if (ReadOnly) throw new IOException("The read-only resource can not be created.");
+
             return File.Create(AbsolutePath);
         }
 
         public void Delete()
         {
+            if (ReadOnly) throw new IOException("The read-only resource can not be deleted.");
+
             File.Delete(AbsolutePath);
         }
 
