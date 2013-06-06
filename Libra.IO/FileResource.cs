@@ -45,6 +45,11 @@ namespace Libra.IO
         {
             get
             {
+                if (!Exists)
+                {
+                    return false;
+                }
+
                 var attributes = File.GetAttributes(AbsolutePath);
                 return (attributes & FileAttributes.ReadOnly) == FileAttributes.ReadOnly;
             }
@@ -94,7 +99,7 @@ namespace Libra.IO
         {
             if (ReadOnly) throw new IOException("The read-only resource can not be created.");
 
-            return File.Open(AbsolutePath, FileMode.CreateNew);
+            return File.Open(AbsolutePath, FileMode.Create);
         }
 
         public void Delete()
