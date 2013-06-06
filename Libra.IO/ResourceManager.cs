@@ -63,7 +63,7 @@ namespace Libra.IO
 
         static readonly char[] delimiter = { '/', ':' };
 
-        static List<IResourceLoader> loaders = new List<IResourceLoader>();
+        List<IResourceLoader> loaders = new List<IResourceLoader>();
 
         // TODO
         // 弱参照でキャッシュすべきか？
@@ -72,7 +72,7 @@ namespace Libra.IO
 
         Dictionary<RelativeUriKey, IResource> relativeUriCache = new Dictionary<RelativeUriKey, IResource>();
 
-        public static void Register<T>() where T : IResourceLoader, new()
+        public void Register<T>() where T : IResourceLoader, new()
         {
             var type = typeof(T);
 
@@ -85,7 +85,7 @@ namespace Libra.IO
             loaders.Add(new T());
         }
 
-        public static void Deregister<T>() where T : IResourceLoader
+        public void Deregister<T>() where T : IResourceLoader
         {
             for (int i = 0; i < loaders.Count; i++)
             {
