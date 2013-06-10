@@ -246,6 +246,33 @@ namespace Libra
             return true;
         }
 
+        /// <summary>
+        /// ビュー行列からカメラ位置を取得します。
+        /// </summary>
+        /// <param name="view">ビュー行列。</param>
+        /// <returns>カメラ位置。</returns>
+        public static Vector3 GetViewPosition(Matrix view)
+        {
+            Vector3 result;
+            GetViewPosition(ref view, out result);
+            return result;
+        }
+
+        /// <summary>
+        /// ビュー行列からカメラ位置を取得します。
+        /// </summary>
+        /// <param name="view">ビュー行列。</param>
+        /// <param name="result">カメラ位置。</param>
+        public static void GetViewPosition(ref Matrix view, out Vector3 result)
+        {
+            Matrix inverseView;
+            Matrix.Invert(ref view, out inverseView);
+
+            result.X = inverseView.M41;
+            result.Y = inverseView.M42;
+            result.Z = inverseView.M43;
+        }
+
         public static void Add(ref Matrix left, ref Matrix right, out Matrix result)
         {
             result.M11 = left.M11 + right.M11;
