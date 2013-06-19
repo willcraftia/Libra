@@ -4,7 +4,7 @@ using System;
 
 #endregion
 
-namespace Libra.Games
+namespace Libra
 {
     public sealed class GameTime
     {
@@ -31,19 +31,19 @@ namespace Libra.Games
         public TimeSpan ElapsedGameTime
         {
             get { return elapsedGameTime; }
-            internal set { elapsedGameTime = value; }
+            set { elapsedGameTime = value; }
         }
 
         public bool IsRunningSlowly
         {
             get { return isRunningSlowly; }
-            internal set { isRunningSlowly = value; }
+            set { isRunningSlowly = value; }
         }
 
         public TimeSpan TotalGameTime
         {
             get { return totalGameTime; }
-            internal set { totalGameTime = value; }
+            set { totalGameTime = value; }
         }
     }
 }

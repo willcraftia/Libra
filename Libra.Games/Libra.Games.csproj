@@ -44,7 +44,6 @@
     <Compile Include="GameComponentCollection.cs" />
     <Compile Include="GameComponentCollectionEventArgs.cs" />
     <Compile Include="GameServiceContainer.cs" />
-    <Compile Include="GameTime.cs" />
     <Compile Include="GameTimer.cs" />
     <Compile Include="GameWindow.cs" />
     <Compile Include="GraphicsManager.cs" />

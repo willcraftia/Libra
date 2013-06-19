@@ -41,6 +41,7 @@
     <Compile Include="BoundingSphere.cs" />
     <Compile Include="Color.cs" />
     <Compile Include="ContainmentType.cs" />
+    <Compile Include="GameTime.cs" />
     <Compile Include="IntBoundingBox.cs" />
     <Compile Include="IntVector3.cs" />
     <Compile Include="IPackedVector.cs" />

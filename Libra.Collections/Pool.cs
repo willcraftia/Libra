@@ -49,16 +49,31 @@ namespace Libra.Collections
 
         public T Borrow()
         {
+            T result;
+            TryBorrow(out result);
+            return result;
+        }
+
+        public bool TryBorrow(out T result)
+        {
             while (0 < MaxCapacity && MaxCapacity < TotalObjectCount && 0 < objects.Count)
                 DisposeObject(objects.Dequeue());
 
             if (0 < MaxCapacity && MaxCapacity <= TotalObjectCount && objects.Count == 0)
-                return null;
+            {
+                result = default(T);
+                return false;
+            }
 
             if (0 < objects.Count)
-                return objects.Dequeue();
-
-            return CreateObject();
+            {
+                result = objects.Dequeue();
+            }
+            else
+            {
+                result = CreateObject();
+            }
+            return true;
         }
 
         public void Return(T obj)
