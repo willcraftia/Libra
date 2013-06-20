@@ -6,7 +6,7 @@ using System;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class BasicCamera : Camera
+    public class BasicCamera : Camera
     {
         #region DirtyFlags
 
