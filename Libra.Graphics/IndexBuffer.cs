@@ -138,6 +138,59 @@ namespace Libra.Graphics
             SetData(context, data, 0, data.Length);
         }
 
+        public void SetData<T>(DeviceContext context, T[] data, int sourceIndex, int elementCount,
+            SetDataOptions options = SetDataOptions.None) where T : struct
+        {
+            SetData(context, 0, data, sourceIndex, elementCount, options);
+        }
+
+        public void SetData<T>(DeviceContext context, int offsetInBytes, T[] data, int sourceIndex, int elementCount,
+            SetDataOptions options = SetDataOptions.None) where T : struct
+        {
+            AssertInitialized();
+            if (context == null) throw new ArgumentNullException("context");
+            if (data == null) throw new ArgumentNullException("data");
+            if (sourceIndex < 0) throw new ArgumentOutOfRangeException("startIndex");
+            if (data.Length < (sourceIndex + elementCount)) throw new ArgumentOutOfRangeException("elementCount");
+
+            if (Usage != ResourceUsage.Dynamic) throw new InvalidOperationException("Resource not writable.");
+
+            if (options == SetDataOptions.Discard && Usage != ResourceUsage.Dynamic)
+                throw new InvalidOperationException("Resource.Usage must be dynamic for discard option.");
+
+            var gcHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
+            try
+            {
+                var dataPointer = gcHandle.AddrOfPinnedObject();
+                var sizeOfT = Marshal.SizeOf(typeof(T));
+
+                var sourcePointer = (IntPtr) (dataPointer + sourceIndex * sizeOfT);
+                var sizeInBytes = ((elementCount == 0) ? data.Length : elementCount) * sizeOfT;
+
+                // メモ
+                //
+                // D3D11MapFlags.DoNotWait は、Discard と NoOverwite では使えない。
+                // D3D11MapFlags 参照のこと。
+
+                var mappedResource = context.Map(this, 0, (DeviceContext.MapMode) options);
+                var destinationPointer = (IntPtr) (mappedResource.Pointer + offsetInBytes);
+
+                try
+                {
+                    GraphicsHelper.CopyMemory(destinationPointer, sourcePointer, sizeInBytes);
+                }
+                finally
+                {
+                    // Unmap
+                    context.Unmap(this, 0);
+                }
+            }
+            finally
+            {
+                gcHandle.Free();
+            }
+        }
+
         protected abstract void InitializeCore();
 
         protected abstract void InitializeCore<T>(T[] data) where T : struct;
