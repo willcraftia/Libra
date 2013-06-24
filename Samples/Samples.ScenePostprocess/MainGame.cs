@@ -59,11 +59,6 @@ namespace Samples.ScenePostprocess
         XnbManager content;
 
         /// <summary>
-        /// 描画に使用するコンテキスト。
-        /// </summary>
-        DeviceContext context;
-
-        /// <summary>
         /// スプライト バッチ。
         /// </summary>
         SpriteBatch spriteBatch;
@@ -292,9 +287,7 @@ namespace Samples.ScenePostprocess
 
         protected override void LoadContent()
         {
-            context = Device.ImmediateContext;
-
-            spriteBatch = new SpriteBatch(context);
+            spriteBatch = new SpriteBatch(DeviceContext);
             spriteFont = content.Load<SpriteFont>("hudFont");
 
             depthMapRenderTarget = Device.CreateRenderTarget();
@@ -317,7 +310,7 @@ namespace Samples.ScenePostprocess
             normalSceneRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
             normalSceneRenderTarget.Initialize();
 
-            postprocess = new Postprocess(context);
+            postprocess = new Postprocess(DeviceContext);
             postprocess.Width = WindowWidth;
             postprocess.Height = WindowHeight;
 
@@ -382,10 +375,10 @@ namespace Samples.ScenePostprocess
             basicEffect.PerPixelLighting = true;
             basicEffect.EnableDefaultLighting();
 
-            cubeMesh = new CubeMesh(context, 20);
-            sphereMesh = new SphereMesh(context, 20, 32);
-            cylinderMesh = new CylinderMesh(context, 80, 20, 32);
-            squareMesh = new SquareMesh(context, 400);
+            cubeMesh = new CubeMesh(DeviceContext, 20);
+            sphereMesh = new SphereMesh(DeviceContext, 20, 32);
+            cylinderMesh = new CylinderMesh(DeviceContext, 80, 20, 32);
+            squareMesh = new SquareMesh(DeviceContext, 400);
         }
 
         protected override void Update(GameTime gameTime)
@@ -409,8 +402,8 @@ namespace Samples.ScenePostprocess
         protected override void Draw(GameTime gameTime)
         {
             // 念のため状態を初期状態へ。
-            context.BlendState = BlendState.Opaque;
-            context.DepthStencilState = DepthStencilState.Default;
+            DeviceContext.BlendState = BlendState.Opaque;
+            DeviceContext.DepthStencilState = DepthStencilState.Default;
 
             // 深度マップを描画。
             CreateDepthMap();
@@ -435,12 +428,12 @@ namespace Samples.ScenePostprocess
 
         void CreateDepthMap()
         {
-            context.SetRenderTarget(depthMapRenderTarget);
-            context.Clear(new Vector4(float.MaxValue));
+            DeviceContext.SetRenderTarget(depthMapRenderTarget);
+            DeviceContext.Clear(new Vector4(float.MaxValue));
 
             DrawScene(depthMapEffect);
 
-            context.SetRenderTarget(null);
+            DeviceContext.SetRenderTarget(null);
 
             // フィルタへ設定。
             dofCombineFilter.LinearDepthMap = depthMapRenderTarget;
@@ -452,12 +445,12 @@ namespace Samples.ScenePostprocess
 
         void CreateNormalMap()
         {
-            context.SetRenderTarget(normalMapRenderTarget);
-            context.Clear(Vector4.One);
+            DeviceContext.SetRenderTarget(normalMapRenderTarget);
+            DeviceContext.Clear(Vector4.One);
 
             DrawScene(normalMapEffect);
 
-            context.SetRenderTarget(null);
+            DeviceContext.SetRenderTarget(null);
 
             // フィルタへ設定。
             normalEdgeDetectFilter.NormalMap = normalMapRenderTarget;
@@ -469,12 +462,12 @@ namespace Samples.ScenePostprocess
 
         void CreateNormalSceneMap()
         {
-            context.SetRenderTarget(normalSceneRenderTarget);
-            context.Clear(Color.CornflowerBlue);
+            DeviceContext.SetRenderTarget(normalSceneRenderTarget);
+            DeviceContext.Clear(Color.CornflowerBlue);
 
             DrawScene(basicEffect);
 
-            context.SetRenderTarget(null);
+            DeviceContext.SetRenderTarget(null);
 
             // フィルタへ設定。
             bloomCombineFilter.BaseTexture = normalSceneRenderTarget;
@@ -538,7 +531,7 @@ namespace Samples.ScenePostprocess
                 basicEffect.DiffuseColor = color;
             }
 
-            effect.Apply(context);
+            effect.Apply(DeviceContext);
             mesh.Draw();
         }
 

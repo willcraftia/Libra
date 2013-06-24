@@ -166,11 +166,6 @@ namespace Samples.Water
         XnbManager content;
 
         /// <summary>
-        /// 描画に使用するコンテキスト。
-        /// </summary>
-        DeviceContext context;
-
-        /// <summary>
         /// スプライト バッチ。
         /// </summary>
         SpriteBatch spriteBatch;
@@ -559,9 +554,7 @@ namespace Samples.Water
 
         protected override void LoadContent()
         {
-            context = Device.ImmediateContext;
-
-            spriteBatch = new SpriteBatch(context);
+            spriteBatch = new SpriteBatch(DeviceContext);
             spriteFont = content.Load<SpriteFont>("hudFont");
 
             depthMapRenderTarget = Device.CreateRenderTarget();
@@ -612,7 +605,7 @@ namespace Samples.Water
             heightToNormalConverter = new HeightToNormalConverter(Device);
             heightToNormalConverter.HeightMapSampler = SamplerState.LinearClamp;
 
-            fullScreenQuad = new FullScreenQuad(context);
+            fullScreenQuad = new FullScreenQuad(DeviceContext);
 
             fluidEffect = new FluidEffect(Device);
             fluidEffect.RippleScale = 0.05f;
@@ -633,7 +626,7 @@ namespace Samples.Water
 
             depthMapEffect = new LinearDepthMapEffect(Device);
 
-            postprocess = new Postprocess(context);
+            postprocess = new Postprocess(DeviceContext);
             postprocess.Width = normalSceneRenderTarget.Width;
             postprocess.Height = normalSceneRenderTarget.Height;
 
@@ -654,10 +647,10 @@ namespace Samples.Water
             quadIndexBuffer = Device.CreateIndexBuffer();
             quadIndexBuffer.Initialize(QuadIndices);
 
-            cubeMesh = new CubeMesh(context, 20);
-            sphereMesh = new SphereMesh(context, 20, 32);
-            cylinderMesh = new CylinderMesh(context, 80, 20, 32);
-            squareMesh = new SquareMesh(context, 400);
+            cubeMesh = new CubeMesh(DeviceContext, 20);
+            sphereMesh = new SphereMesh(DeviceContext, 20, 32);
+            cylinderMesh = new CylinderMesh(DeviceContext, 80, 20, 32);
+            squareMesh = new SquareMesh(DeviceContext, 400);
 
             flowNormalMap0 = CreateFluidNormalMap(fluidNoiseBuffer, new Bounds(0, 0, 5, 5));
             flowNormalMap1 = CreateFluidNormalMap(fluidNoiseBuffer, new Bounds(2, 2, 7, 7));
@@ -706,7 +699,7 @@ namespace Samples.Water
             texture.Height = noiseBuffer.Height;
             texture.Format = SurfaceFormat.Vector4;
             texture.Initialize();
-            texture.SetData(context, noiseNormals);
+            texture.SetData(DeviceContext, noiseNormals);
 
             return texture;
         }
@@ -729,7 +722,7 @@ namespace Samples.Water
             texture.Height = noiseBuffer.Height;
             texture.Format = SurfaceFormat.Single;
             texture.Initialize();
-            texture.SetData(context, noiseBuffer.Values);
+            texture.SetData(DeviceContext, noiseBuffer.Values);
 
             return texture;
         }
@@ -803,8 +796,8 @@ namespace Samples.Water
         protected override void Draw(GameTime gameTime)
         {
             // 念のため状態を初期状態へ。
-            context.BlendState = BlendState.Opaque;
-            context.DepthStencilState = DepthStencilState.Default;
+            DeviceContext.BlendState = BlendState.Opaque;
+            DeviceContext.DepthStencilState = DepthStencilState.Default;
 
             if (fluidType == FluidType.Ripple)
             {
@@ -857,8 +850,8 @@ namespace Samples.Water
 
         void CreateDepthMap()
         {
-            context.SetRenderTarget(depthMapRenderTarget);
-            context.Clear(new Vector4(float.MaxValue));
+            DeviceContext.SetRenderTarget(depthMapRenderTarget);
+            DeviceContext.Clear(new Vector4(float.MaxValue));
 
             depthMapEffect.View = camera.View;
             depthMapEffect.Projection = camera.Projection;
@@ -869,7 +862,7 @@ namespace Samples.Water
 
             DrawCloud(depthMapEffect, BlendState.Opaque);
 
-            context.SetRenderTarget(null);
+            DeviceContext.SetRenderTarget(null);
 
             // フィルタへ設定。
             linearFogFilter.LinearDepthMap = depthMapRenderTarget;
@@ -879,20 +872,20 @@ namespace Samples.Water
         {
             rippleRenderTargetChain.Next();
 
-            context.SetRenderTarget(rippleRenderTargetChain.Current);
-            context.Clear(Vector4.Zero);
+            DeviceContext.SetRenderTarget(rippleRenderTargetChain.Current);
+            DeviceContext.Clear(Vector4.Zero);
 
-            context.DepthStencilState = DepthStencilState.None;
+            DeviceContext.DepthStencilState = DepthStencilState.None;
 
             fluidRippleFilter.Texture = rippleRenderTargetChain.Last;
-            fluidRippleFilter.Apply(context);
+            fluidRippleFilter.Apply(DeviceContext);
 
             fullScreenQuad.Draw();
 
-            context.SetRenderTarget(null);
+            DeviceContext.SetRenderTarget(null);
 
-            context.DepthStencilState = null;
-            context.PixelShaderResources[0] = null;
+            DeviceContext.DepthStencilState = null;
+            DeviceContext.PixelShaderResources[0] = null;
 
             heightToNormalConverter.HeightMap = rippleRenderTargetChain.Current;
 
@@ -901,22 +894,22 @@ namespace Samples.Water
 
         void CreateFluidNormalMap()
         {
-            context.SetRenderTarget(rippleNormalMapRenderTarget);
-            context.Clear(Vector3.Up.ToVector4());
+            DeviceContext.SetRenderTarget(rippleNormalMapRenderTarget);
+            DeviceContext.Clear(Vector3.Up.ToVector4());
 
-            context.DepthStencilState = DepthStencilState.None;
+            DeviceContext.DepthStencilState = DepthStencilState.None;
 
             heightToNormalConverter.HeightMapSampler = SamplerState.LinearWrap;
-            heightToNormalConverter.Apply(context);
+            heightToNormalConverter.Apply(DeviceContext);
 
             fullScreenQuad.Draw();
 
-            context.SetRenderTarget(null);
+            DeviceContext.SetRenderTarget(null);
 
-            context.DepthStencilState = null;
-            context.PixelShaderResources[0] = null;
+            DeviceContext.DepthStencilState = null;
+            DeviceContext.PixelShaderResources[0] = null;
 
-            context.SetRenderTarget(null);
+            DeviceContext.SetRenderTarget(null);
 
             textureDisplay.Textures.Add(rippleNormalMapRenderTarget);
         }
@@ -1005,8 +998,8 @@ namespace Samples.Water
                 reflectionView = camera.View;
             }
 
-            context.SetRenderTarget(reflectionSceneRenderTarget);
-            context.Clear(Color.CornflowerBlue);
+            DeviceContext.SetRenderTarget(reflectionSceneRenderTarget);
+            DeviceContext.Clear(Color.CornflowerBlue);
 
             clippingEffect.ClipPlane0 = clipPlane.ToVector4();
 
@@ -1019,7 +1012,7 @@ namespace Samples.Water
             cloudEffect.Projection = camera.Projection;
             DrawCloud(cloudEffect, BlendState.AlphaBlend);
 
-            context.SetRenderTarget(null);
+            DeviceContext.SetRenderTarget(null);
 
             fluidEffect.ReflectionMap = reflectionSceneRenderTarget;
 
@@ -1028,8 +1021,8 @@ namespace Samples.Water
 
         void CreateRefractionMap()
         {
-            context.SetRenderTarget(refractionSceneRenderTarget);
-            context.Clear(Color.CornflowerBlue);
+            DeviceContext.SetRenderTarget(refractionSceneRenderTarget);
+            DeviceContext.Clear(Color.CornflowerBlue);
 
             var clipPlane = (eyeInFront) ? fluidBackPlane : fluidFrontPlane;
             clippingEffect.ClipPlane0 = clipPlane.ToVector4();
@@ -1038,7 +1031,7 @@ namespace Samples.Water
             clippingEffect.Projection = camera.Projection;
             DrawSceneWithoutFluid(clippingEffect);
 
-            context.SetRenderTarget(null);
+            DeviceContext.SetRenderTarget(null);
 
             fluidEffect.RefractionMap = refractionSceneRenderTarget;
 
@@ -1062,8 +1055,8 @@ namespace Samples.Water
 
         void CreateNormalSceneMap()
         {
-            context.SetRenderTarget(normalSceneRenderTarget);
-            context.Clear(Color.CornflowerBlue);
+            DeviceContext.SetRenderTarget(normalSceneRenderTarget);
+            DeviceContext.Clear(Color.CornflowerBlue);
 
             if (eyeInFront)
             {
@@ -1090,23 +1083,23 @@ namespace Samples.Water
             cloudEffect.Projection = camera.Projection;
             DrawCloud(cloudEffect, BlendState.AlphaBlend);
 
-            context.SetRenderTarget(null);
+            DeviceContext.SetRenderTarget(null);
         }
 
         void DrawFluid(IEffect effect, BlendState blendState)
         {
-            context.RasterizerState = RasterizerState.CullNone;
-            context.BlendState = blendState;
+            DeviceContext.RasterizerState = RasterizerState.CullNone;
+            DeviceContext.BlendState = blendState;
 
-            context.IndexBuffer = quadIndexBuffer;
+            DeviceContext.IndexBuffer = quadIndexBuffer;
 
             switch (fluidType)
             {
                 case FluidType.Ripple:
-                    context.SetVertexBuffer(rippleVertexBuffer);
+                    DeviceContext.SetVertexBuffer(rippleVertexBuffer);
                     break;
                 case FluidType.Flow:
-                    context.SetVertexBuffer(flowVertexBuffer);
+                    DeviceContext.SetVertexBuffer(flowVertexBuffer);
                     break;
             }
 
@@ -1116,18 +1109,18 @@ namespace Samples.Water
                 effectMatrices.World = fluidWorld;
             }
 
-            effect.Apply(context);
+            effect.Apply(DeviceContext);
 
-            context.DrawIndexed(quadIndexBuffer.IndexCount);
-            context.RasterizerState = null;
-            context.BlendState = null;
+            DeviceContext.DrawIndexed(quadIndexBuffer.IndexCount);
+            DeviceContext.RasterizerState = null;
+            DeviceContext.BlendState = null;
         }
 
         void DrawCloud(IEffect effect, BlendState blendState)
         {
-            context.SetVertexBuffer(cloudVertexBuffer);
-            context.IndexBuffer = quadIndexBuffer;
-            context.BlendState = blendState;
+            DeviceContext.SetVertexBuffer(cloudVertexBuffer);
+            DeviceContext.IndexBuffer = quadIndexBuffer;
+            DeviceContext.BlendState = blendState;
 
             var effectMatrices = effect as IEffectMatrices;
             if (effectMatrices != null)
@@ -1135,11 +1128,11 @@ namespace Samples.Water
                 effectMatrices.World = cloudWorld;
             }
 
-            effect.Apply(context);
+            effect.Apply(DeviceContext);
             
-            context.DrawIndexed(quadIndexBuffer.IndexCount);
+            DeviceContext.DrawIndexed(quadIndexBuffer.IndexCount);
             
-            context.BlendState = null;
+            DeviceContext.BlendState = null;
         }
 
         void DrawPrimitiveMesh(PrimitiveMesh mesh, Matrix world, Vector3 color, IEffect effect)
@@ -1162,7 +1155,7 @@ namespace Samples.Water
                 clippingEffect.DiffuseColor = color;
             }
 
-            effect.Apply(context);
+            effect.Apply(DeviceContext);
             mesh.Draw();
         }
 

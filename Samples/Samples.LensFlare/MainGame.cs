@@ -56,8 +56,6 @@ namespace Samples.LensFlare
 
         GraphicsManager graphics;
 
-        DeviceContext context;
-
         KeyboardState currentKeyboardState = new KeyboardState();
 
         JoystickState currentJoystickState = new JoystickState();
@@ -81,11 +79,9 @@ namespace Samples.LensFlare
 
         protected override void LoadContent()
         {
-            context = Device.ImmediateContext;
-
             terrain = Content.Load<Model>("terrain");
 
-            lensFlare = new TKLensFlare(Device.ImmediateContext);
+            lensFlare = new TKLensFlare(DeviceContext);
             lensFlare.LightDirection = Vector3.Normalize(new Vector3(-1, -0.1f, 0.3f));
 
             lensFlare.GlowTexture = Content.Load<Texture2D>("glow");
@@ -113,16 +109,16 @@ namespace Samples.LensFlare
 
         protected override void Draw(GameTime gameTime)
         {
-            context.Clear(Color.CornflowerBlue);
+            DeviceContext.Clear(Color.CornflowerBlue);
 
             var view = Matrix.CreateLookAt(cameraPosition, cameraPosition + cameraFront, Vector3.Up);
 
-            var aspectRatio = context.Viewport.AspectRatio;
+            var aspectRatio = DeviceContext.Viewport.AspectRatio;
             var projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspectRatio, 0.1f, 500);
 
             // D3D11 の TextureAddressMode のデフォルトは Clamp。
             // XNA (D3D9) はデフォルト Wrap を仮定しているため、ここで明示する必要がある。
-            context.PixelShaderSamplers[0] = SamplerState.LinearWrap;
+            DeviceContext.PixelShaderSamplers[0] = SamplerState.LinearWrap;
 
             foreach (var mesh in terrain.Meshes)
             {
@@ -146,10 +142,10 @@ namespace Samples.LensFlare
                     effect.FogColor = Color.CornflowerBlue.ToVector3();
                 }
 
-                mesh.Draw(context);
+                mesh.Draw(DeviceContext);
             }
 
-            context.PixelShaderSamplers[0] = null;
+            DeviceContext.PixelShaderSamplers[0] = null;
 
             lensFlare.View = view;
             lensFlare.Projection = projection;

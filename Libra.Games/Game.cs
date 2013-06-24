@@ -164,6 +164,8 @@ namespace Libra.Games
 
         public Device Device { get; private set; }
 
+        public DeviceContext DeviceContext { get; private set; }
+
         public SwapChain SwapChain { get; private set; }
 
         public IKeyboard Keyboard { get; private set; }
@@ -368,6 +370,7 @@ namespace Libra.Games
 
             var graphicsService = Services.GetRequiredService<IGraphicsService>();
             Device = graphicsService.Device;
+            DeviceContext = Device.ImmediateContext;
             SwapChain = graphicsService.SwapChain;
 
             // オーディオの初期化。

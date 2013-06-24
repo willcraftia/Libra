@@ -30,8 +30,6 @@ namespace Samples.Particles3D
 
         XnbManager content;
 
-        DeviceContext context;
-
         SpriteBatch spriteBatch;
 
         SpriteFont font;
@@ -78,9 +76,7 @@ namespace Samples.Particles3D
 
         protected override void LoadContent()
         {
-            context = Device.ImmediateContext;
-
-            spriteBatch = new SpriteBatch(context);
+            spriteBatch = new SpriteBatch(DeviceContext);
             font = content.Load<SpriteFont>("font");
             grid = content.Load<Model>("grid");
 
@@ -93,7 +89,7 @@ namespace Samples.Particles3D
 
         void BuildExplosionParticleSystem()
         {
-            explosionParticles = new ParticleSystem(context, 100);
+            explosionParticles = new ParticleSystem(DeviceContext, 100);
 
             explosionParticles.Texture = content.Load<Texture2D>("explosion");
 
@@ -125,7 +121,7 @@ namespace Samples.Particles3D
 
         void BuildExplosionSmokeParticleSystem()
         {
-            explosionSmokeParticles = new ParticleSystem(context, 200);
+            explosionSmokeParticles = new ParticleSystem(DeviceContext, 200);
 
             explosionSmokeParticles.Texture = content.Load<Texture2D>("smoke");
 
@@ -156,7 +152,7 @@ namespace Samples.Particles3D
 
         void BuildProjectileTrailParticleSystem()
         {
-            projectileTrailParticles = new ParticleSystem(context, 1000);
+            projectileTrailParticles = new ParticleSystem(DeviceContext, 1000);
 
             projectileTrailParticles.Texture = content.Load<Texture2D>("smoke");
 
@@ -187,7 +183,7 @@ namespace Samples.Particles3D
 
         void BuildSmokePlumeParticleSystem()
         {
-            smokePlumeParticles = new ParticleSystem(context, 600);
+            smokePlumeParticles = new ParticleSystem(DeviceContext, 600);
 
             smokePlumeParticles.Texture = content.Load<Texture2D>("smoke");
 
@@ -215,7 +211,7 @@ namespace Samples.Particles3D
 
         void BuildFireParticleSystem()
         {
-            fireParticles = new ParticleSystem(context, 2400);
+            fireParticles = new ParticleSystem(DeviceContext, 2400);
 
             fireParticles.Texture = content.Load<Texture2D>("fire");
 
@@ -337,7 +333,7 @@ namespace Samples.Particles3D
 
         protected override void Draw(GameTime gameTime)
         {
-            context.Clear(Color.CornflowerBlue);
+            DeviceContext.Clear(Color.CornflowerBlue);
 
             Matrix view = Matrix.CreateTranslation(0, -25, 0) *
                           Matrix.CreateRotationY(MathHelper.ToRadians(cameraRotation)) *
@@ -346,7 +342,7 @@ namespace Samples.Particles3D
                                               new Vector3(0, 0, 0), Vector3.Up);
 
             Matrix projection = Matrix.CreatePerspectiveFieldOfView(
-                MathHelper.PiOver4, context.Viewport.AspectRatio, 1, 10000);
+                MathHelper.PiOver4, DeviceContext.Viewport.AspectRatio, 1, 10000);
 
             explosionParticles.View = view;
             explosionParticles.Projection = projection;

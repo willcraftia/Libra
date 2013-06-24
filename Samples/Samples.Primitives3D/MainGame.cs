@@ -19,8 +19,6 @@ namespace Samples.Primitives3D
 
         XnbManager content;
 
-        DeviceContext context;
-
         BasicEffect basicEffect;
 
         SpriteBatch spriteBatch;
@@ -65,19 +63,17 @@ namespace Samples.Primitives3D
 
         protected override void LoadContent()
         {
-            context = Device.ImmediateContext;
-
             basicEffect = new BasicEffect(Device);
             basicEffect.EnableDefaultLighting();
 
-            spriteBatch = new SpriteBatch(context);
+            spriteBatch = new SpriteBatch(DeviceContext);
             spriteFont = content.Load<SpriteFont>("hudFont");
 
-            primitives.Add(new CubeMesh(context));
-            primitives.Add(new SphereMesh(context));
-            primitives.Add(new CylinderMesh(context));
-            primitives.Add(new TorusMesh(context));
-            primitives.Add(new TeapotMesh(context));
+            primitives.Add(new CubeMesh(DeviceContext));
+            primitives.Add(new SphereMesh(DeviceContext));
+            primitives.Add(new CylinderMesh(DeviceContext));
+            primitives.Add(new TorusMesh(DeviceContext));
+            primitives.Add(new TeapotMesh(DeviceContext));
 
             base.LoadContent();
         }

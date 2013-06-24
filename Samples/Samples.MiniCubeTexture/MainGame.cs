@@ -131,22 +131,20 @@ namespace Samples.MiniCubeTexture
 
         protected override void Draw(GameTime gameTime)
         {
-            var context = Device.ImmediateContext;
-
-            context.Clear(Color.CornflowerBlue);
+            DeviceContext.Clear(Color.CornflowerBlue);
 
             // 入力レイアウト自動解決 OFF。
-            context.AutoResolveInputLayout = false;
-            context.InputLayout = inputLayout;
-            context.PrimitiveTopology = PrimitiveTopology.TriangleList;
-            context.SetVertexBuffer(vertexBuffer);
+            DeviceContext.AutoResolveInputLayout = false;
+            DeviceContext.InputLayout = inputLayout;
+            DeviceContext.PrimitiveTopology = PrimitiveTopology.TriangleList;
+            DeviceContext.SetVertexBuffer(vertexBuffer);
 
-            context.VertexShader = vertexShader;
-            context.PixelShader = pixelShader;
-            context.VertexShaderConstantBuffers[0] = constantBuffer;
-            context.PixelShaderResources[0] = textureView;
+            DeviceContext.VertexShader = vertexShader;
+            DeviceContext.PixelShader = pixelShader;
+            DeviceContext.VertexShaderConstantBuffers[0] = constantBuffer;
+            DeviceContext.PixelShaderResources[0] = textureView;
 
-            float aspect = context.Viewport.AspectRatio;
+            float aspect = DeviceContext.Viewport.AspectRatio;
             float time = (float) gameTime.TotalGameTime.TotalSeconds;
 
             var world = Matrix.CreateRotationX(time) * Matrix.CreateRotationY(time * 2) * Matrix.CreateRotationZ(time * .7f);
@@ -154,9 +152,9 @@ namespace Samples.MiniCubeTexture
             var projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspect, 0.1f, 100.0f);
 
             var worldViewProjection = world * view * projection;
-            constantBuffer.SetData(context, worldViewProjection);
+            constantBuffer.SetData(DeviceContext, worldViewProjection);
 
-            context.Draw(36);
+            DeviceContext.Draw(36);
 
             base.Draw(gameTime);
         }

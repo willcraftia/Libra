@@ -41,11 +41,6 @@ namespace Samples.SceneGodRay
         XnbManager content;
 
         /// <summary>
-        /// 描画に使用するコンテキスト。
-        /// </summary>
-        DeviceContext context;
-
-        /// <summary>
         /// スプライト バッチ。
         /// </summary>
         SpriteBatch spriteBatch;
@@ -169,9 +164,7 @@ namespace Samples.SceneGodRay
 
         protected override void LoadContent()
         {
-            context = Device.ImmediateContext;
-
-            spriteBatch = new SpriteBatch(context);
+            spriteBatch = new SpriteBatch(DeviceContext);
             spriteFont = content.Load<SpriteFont>("hudFont");
 
             normalSceneRenderTarget = Device.CreateRenderTarget();
@@ -194,11 +187,11 @@ namespace Samples.SceneGodRay
             lightScatteringFilter.Density = 2.0f;
             lightScatteringFilter.Exposure = 2.0f;
 
-            fullScreenQuad = new FullScreenQuad(context);
+            fullScreenQuad = new FullScreenQuad(DeviceContext);
 
-            cubeMesh = new CubeMesh(context, 10.0f);
+            cubeMesh = new CubeMesh(DeviceContext, 10.0f);
 
-            skySphere = new SkySphere(context);
+            skySphere = new SkySphere(DeviceContext);
             skySphere.Projection = camera.Projection;
             skySphere.SunDirection = -lightDirection;
             skySphere.SunThreshold = 0.99f;
@@ -236,7 +229,7 @@ namespace Samples.SceneGodRay
             // このため、near だけカメラ奥へ押し出した後に射影する (射影空間に収まる位置で射影する)。
             lightPosition.Z -= camera.NearClipDistance;
 
-            var viewport = context.Viewport;
+            var viewport = DeviceContext.Viewport;
             var projectedPosition = viewport.Project(lightPosition, camera.Projection, infiniteView, Matrix.Identity);
 
             if (projectedPosition.Z < 0 || projectedPosition.Z > 1)
@@ -252,8 +245,8 @@ namespace Samples.SceneGodRay
             // 描画。
 
             // 念のため状態を初期状態へ。
-            context.BlendState = BlendState.Opaque;
-            context.DepthStencilState = DepthStencilState.Default;
+            DeviceContext.BlendState = BlendState.Opaque;
+            DeviceContext.DepthStencilState = DepthStencilState.Default;
 
             // 閉塞マップを作成。
             if (!lightBehindCamera)
@@ -285,9 +278,9 @@ namespace Samples.SceneGodRay
                 occlusionRenderTarget.Initialize();
             }
 
-            context.SetRenderTarget(occlusionRenderTarget);
+            DeviceContext.SetRenderTarget(occlusionRenderTarget);
 
-            context.Clear(Color.Black);
+            DeviceContext.Clear(Color.Black);
 
             DrawCubeMeshes(singleColorObjectEffect);
 
@@ -299,16 +292,16 @@ namespace Samples.SceneGodRay
 
         void CreateNormalSceneMap()
         {
-            context.SetRenderTarget(normalSceneRenderTarget);
+            DeviceContext.SetRenderTarget(normalSceneRenderTarget);
 
-            context.Clear(Color.CornflowerBlue);
+            DeviceContext.Clear(Color.CornflowerBlue);
 
             DrawCubeMeshes(basicEffect);
 
             skySphere.SkyColor = Color.CornflowerBlue.ToVector3();
             skySphere.Draw();
 
-            context.SetRenderTarget(null);
+            DeviceContext.SetRenderTarget(null);
 
             textureDisplay.Textures.Add(normalSceneRenderTarget);
         }
@@ -339,7 +332,7 @@ namespace Samples.SceneGodRay
                             effectMatrices.World = world;
                         }
 
-                        effect.Apply(context);
+                        effect.Apply(DeviceContext);
                         cubeMesh.Draw();
                     }
                 }
@@ -367,19 +360,19 @@ namespace Samples.SceneGodRay
             }
 
             // 閉塞マップから光芒マップを生成。
-            context.SetRenderTarget(lightScatteringRenderTarget);
+            DeviceContext.SetRenderTarget(lightScatteringRenderTarget);
 
             // テクスチャ座標としてライト位置を設定。
             lightScatteringFilter.ScreenLightPosition = screenLightPosition;
             lightScatteringFilter.Texture = occlusionRenderTarget;
-            lightScatteringFilter.Apply(context);
+            lightScatteringFilter.Apply(DeviceContext);
 
             fullScreenQuad.Draw();
 
             // 光芒マップと通常シーンを加算混合。
-            context.SetRenderTarget(null);
+            DeviceContext.SetRenderTarget(null);
 
-            context.Clear(Color.Black);
+            DeviceContext.Clear(Color.Black);
 
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Additive);
             spriteBatch.Draw(normalSceneRenderTarget, Vector2.Zero, Color.White);

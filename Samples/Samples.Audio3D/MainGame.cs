@@ -87,21 +87,19 @@ namespace Samples.Audio3D
 
         protected override void Draw(GameTime gameTime)
         {
-            var context = Device.ImmediateContext;
-
-            context.Clear(Color.CornflowerBlue);
-
-            context.BlendState = BlendState.AlphaBlend;
+            DeviceContext.Clear(Color.CornflowerBlue);
+            
+            DeviceContext.BlendState = BlendState.AlphaBlend;
 
             var view = Matrix.CreateLookAt(cameraPosition, cameraPosition + cameraForward, cameraUp);
-            var projection = Matrix.CreatePerspectiveFieldOfView(1, context.Viewport.AspectRatio, 1, 100000);
+            var projection = Matrix.CreatePerspectiveFieldOfView(1, DeviceContext.Viewport.AspectRatio, 1, 100000);
 
             var groundTransform = Matrix.CreateScale(20000) * Matrix.CreateRotationX(MathHelper.PiOver2);
 
-            quadDrawer.DrawQuad(context, checkerTexture, 32, groundTransform, view, projection);
+            quadDrawer.DrawQuad(DeviceContext, checkerTexture, 32, groundTransform, view, projection);
 
-            cat.Draw(context, quadDrawer, cameraPosition, view, projection);
-            dog.Draw(context, quadDrawer, cameraPosition, view, projection);
+            cat.Draw(DeviceContext, quadDrawer, cameraPosition, view, projection);
+            dog.Draw(DeviceContext, quadDrawer, cameraPosition, view, projection);
 
             base.Draw(gameTime);
         }

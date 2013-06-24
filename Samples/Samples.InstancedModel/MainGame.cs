@@ -153,7 +153,7 @@ namespace Samples.InstancedModel
             constants.DiffuseLight = new Vector4(1.25f, 1.25f, 1.25f, 0);
             constants.AmbientLight = new Vector4(0.25f, 0.25f, 0.25f, 0);
 
-            spriteBatch = new SpriteBatch(Device.ImmediateContext);
+            spriteBatch = new SpriteBatch(DeviceContext);
             spriteFont = content.Load<SpriteFont>("Font");
 
             instancedModel = content.Load<Model>("Cats");
@@ -180,18 +180,16 @@ namespace Samples.InstancedModel
 
         protected override void Draw(GameTime gameTime)
         {
-            var context = Device.ImmediateContext;
-
-            context.Clear(Color.CornflowerBlue);
+            DeviceContext.Clear(Color.CornflowerBlue);
 
             var view = Matrix.CreateLookAt(new Vector3(0, 0, 15), Vector3.Zero, Vector3.Up);
-            var projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, context.Viewport.AspectRatio, 1,  100);
+            var projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, DeviceContext.Viewport.AspectRatio, 1, 100);
 
-            context.BlendState = BlendState.Opaque;
-            context.DepthStencilState = DepthStencilState.Default;
-            context.PrimitiveTopology = PrimitiveTopology.TriangleList;
-            context.PixelShader = pixelShader;
-            context.VertexShaderConstantBuffers[0] = constantBuffer;
+            DeviceContext.BlendState = BlendState.Opaque;
+            DeviceContext.DepthStencilState = DepthStencilState.Default;
+            DeviceContext.PrimitiveTopology = PrimitiveTopology.TriangleList;
+            DeviceContext.PixelShader = pixelShader;
+            DeviceContext.VertexShaderConstantBuffers[0] = constantBuffer;
 
             Array.Resize(ref instanceTransforms, instances.Count);
 
@@ -222,8 +220,6 @@ namespace Samples.InstancedModel
 
         void DrawModelHardwareInstancing(Model model, Matrix[] modelBones, Matrix[] instances, Matrix view, Matrix projection)
         {
-            var context = Device.ImmediateContext;
-
             if (instances.Length == 0)
                 return;
 
@@ -237,29 +233,29 @@ namespace Samples.InstancedModel
                 instanceVertexBuffer.Initialize(instanceVertexDeclaration, instances.Length);
             }
 
-            instanceVertexBuffer.SetData(context, instances, 0, instances.Length, SetDataOptions.Discard);
+            instanceVertexBuffer.SetData(DeviceContext, instances, 0, instances.Length, SetDataOptions.Discard);
 
-            context.AutoResolveInputLayout = false;
-            context.InputLayout = instanceInputLayout;
-            context.VertexShader = instanceVertexShader;
+            DeviceContext.AutoResolveInputLayout = false;
+            DeviceContext.InputLayout = instanceInputLayout;
+            DeviceContext.VertexShader = instanceVertexShader;
 
             foreach (var mesh in model.Meshes)
             {
                 foreach (var meshPart in mesh.MeshParts)
                 {
-                    context.SetVertexBuffers(
+                    DeviceContext.SetVertexBuffers(
                         new VertexBufferBinding(meshPart.VertexBuffer),
                         new VertexBufferBinding(instanceVertexBuffer));
-                    
-                    context.IndexBuffer = meshPart.IndexBuffer;
-                    context.PixelShaderResources[0] = (meshPart.Effect as BasicEffect).Texture;
+
+                    DeviceContext.IndexBuffer = meshPart.IndexBuffer;
+                    DeviceContext.PixelShaderResources[0] = (meshPart.Effect as BasicEffect).Texture;
 
                     Matrix.Transpose(ref modelBones[mesh.ParentBone.Index], out constants.World);
                     Matrix.Transpose(ref view, out constants.View);
                     Matrix.Transpose(ref projection, out constants.Projection);
-                    constantBuffer.SetData(context, constants);
+                    constantBuffer.SetData(DeviceContext, constants);
 
-                    context.DrawIndexedInstanced(
+                    DeviceContext.DrawIndexedInstanced(
                         meshPart.IndexCount, instances.Length, meshPart.StartIndexLocation, meshPart.BaseVertexLocation);
                 }
             }
@@ -267,18 +263,16 @@ namespace Samples.InstancedModel
 
         void DrawModelNoInstancing(Model model, Matrix[] modelBones, Matrix[] instances, Matrix view, Matrix projection)
         {
-            var context = Device.ImmediateContext;
-
-            context.AutoResolveInputLayout = true;
-            context.VertexShader = vertexShader;
+            DeviceContext.AutoResolveInputLayout = true;
+            DeviceContext.VertexShader = vertexShader;
 
             foreach (var mesh in model.Meshes)
             {
                 foreach (var meshPart in mesh.MeshParts)
                 {
-                    context.SetVertexBuffer(meshPart.VertexBuffer);
-                    context.IndexBuffer = meshPart.IndexBuffer;
-                    context.PixelShaderResources[0] = (meshPart.Effect as BasicEffect).Texture;
+                    DeviceContext.SetVertexBuffer(meshPart.VertexBuffer);
+                    DeviceContext.IndexBuffer = meshPart.IndexBuffer;
+                    DeviceContext.PixelShaderResources[0] = (meshPart.Effect as BasicEffect).Texture;
 
                     Matrix.Transpose(ref view, out constants.View);
                     Matrix.Transpose(ref projection, out constants.Projection);
@@ -288,9 +282,9 @@ namespace Samples.InstancedModel
                         Matrix world;
                         Matrix.Multiply(ref modelBones[mesh.ParentBone.Index], ref instances[i], out world);
                         Matrix.Transpose(ref world, out constants.World);
-                        constantBuffer.SetData(context, constants);
+                        constantBuffer.SetData(DeviceContext, constants);
 
-                        context.DrawIndexed(meshPart.IndexCount, meshPart.StartIndexLocation, meshPart.BaseVertexLocation);
+                        DeviceContext.DrawIndexed(meshPart.IndexCount, meshPart.StartIndexLocation, meshPart.BaseVertexLocation);
                     }
                 }
             }
@@ -298,10 +292,8 @@ namespace Samples.InstancedModel
 
         void DrawModelNoInstancingOrStateBatching(Model model, Matrix[] modelBones, Matrix[] instances, Matrix view, Matrix projection)
         {
-            var context = Device.ImmediateContext;
-
-            context.AutoResolveInputLayout = true;
-            context.VertexShader = vertexShader;
+            DeviceContext.AutoResolveInputLayout = true;
+            DeviceContext.VertexShader = vertexShader;
 
             for (int i = 0; i < instances.Length; i++)
             {
@@ -309,18 +301,18 @@ namespace Samples.InstancedModel
                 {
                     foreach (var meshPart in mesh.MeshParts)
                     {
-                        context.SetVertexBuffer(meshPart.VertexBuffer);
-                        context.IndexBuffer = meshPart.IndexBuffer;
-                        context.PixelShaderResources[0] = (meshPart.Effect as BasicEffect).Texture;
+                        DeviceContext.SetVertexBuffer(meshPart.VertexBuffer);
+                        DeviceContext.IndexBuffer = meshPart.IndexBuffer;
+                        DeviceContext.PixelShaderResources[0] = (meshPart.Effect as BasicEffect).Texture;
 
                         Matrix world;
                         Matrix.Multiply(ref modelBones[mesh.ParentBone.Index], ref instances[i], out world);
                         Matrix.Transpose(ref world, out constants.World);
                         Matrix.Transpose(ref view, out constants.View);
                         Matrix.Transpose(ref projection, out constants.Projection);
-                        constantBuffer.SetData(context, constants);
+                        constantBuffer.SetData(DeviceContext, constants);
 
-                        context.DrawIndexed(meshPart.IndexCount, meshPart.StartIndexLocation, meshPart.BaseVertexLocation);
+                        DeviceContext.DrawIndexed(meshPart.IndexCount, meshPart.StartIndexLocation, meshPart.BaseVertexLocation);
                     }
                 }
             }

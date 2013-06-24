@@ -47,11 +47,6 @@ namespace Samples.SceneAmbientOcclusion
         XnbManager content;
 
         /// <summary>
-        /// 描画に使用するコンテキスト。
-        /// </summary>
-        DeviceContext context;
-
-        /// <summary>
         /// スプライト バッチ。
         /// </summary>
         SpriteBatch spriteBatch;
@@ -263,9 +258,7 @@ namespace Samples.SceneAmbientOcclusion
 
         protected override void LoadContent()
         {
-            context = Device.ImmediateContext;
-
-            spriteBatch = new SpriteBatch(context);
+            spriteBatch = new SpriteBatch(DeviceContext);
             spriteFont = content.Load<SpriteFont>("hudFont");
 
             depthMapRenderTarget = Device.CreateRenderTarget();
@@ -295,15 +288,15 @@ namespace Samples.SceneAmbientOcclusion
             normalSceneRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
             normalSceneRenderTarget.Initialize();
 
-            ssaoMap = new SSAOMap(context);
+            ssaoMap = new SSAOMap(DeviceContext);
             ssaoMap.Projection = camera.Projection;
 
-            postprocessSSAOMap = new Postprocess(context);
+            postprocessSSAOMap = new Postprocess(DeviceContext);
             postprocessSSAOMap.Width = ssaoMapRenderTarget.Width;
             postprocessSSAOMap.Height = ssaoMapRenderTarget.Height;
             postprocessSSAOMap.Format = SurfaceFormat.Single;
 
-            postprocessScene = new Postprocess(context);
+            postprocessScene = new Postprocess(DeviceContext);
             postprocessScene.Width = WindowWidth;
             postprocessScene.Height = WindowHeight;
 
@@ -345,12 +338,12 @@ namespace Samples.SceneAmbientOcclusion
             basicEffect.PerPixelLighting = true;
             basicEffect.EnableDefaultLighting();
 
-            cubeMesh = new CubeMesh(context, 20);
-            sphereMesh = new SphereMesh(context, 20, 32);
-            cylinderMesh = new CylinderMesh(context, 80, 20, 32);
-            squareMesh = new SquareMesh(context, 400);
-            torusMesh = new TorusMesh(context, 20, 10);
-            teapotMesh = new TeapotMesh(context, 40);
+            cubeMesh = new CubeMesh(DeviceContext, 20);
+            sphereMesh = new SphereMesh(DeviceContext, 20, 32);
+            cylinderMesh = new CylinderMesh(DeviceContext, 80, 20, 32);
+            squareMesh = new SquareMesh(DeviceContext, 400);
+            torusMesh = new TorusMesh(DeviceContext, 20, 10);
+            teapotMesh = new TeapotMesh(DeviceContext, 40);
         }
 
         protected override void Update(GameTime gameTime)
@@ -376,8 +369,8 @@ namespace Samples.SceneAmbientOcclusion
         protected override void Draw(GameTime gameTime)
         {
             // 念のため状態を初期状態へ。
-            context.BlendState = BlendState.Opaque;
-            context.DepthStencilState = DepthStencilState.Default;
+            DeviceContext.BlendState = BlendState.Opaque;
+            DeviceContext.DepthStencilState = DepthStencilState.Default;
 
             // 深度マップを描画。
             CreateDepthMap();
@@ -408,12 +401,12 @@ namespace Samples.SceneAmbientOcclusion
 
         void CreateDepthMap()
         {
-            context.SetRenderTarget(depthMapRenderTarget);
-            context.Clear(new Vector4(float.MaxValue));
+            DeviceContext.SetRenderTarget(depthMapRenderTarget);
+            DeviceContext.Clear(new Vector4(float.MaxValue));
 
             DrawScene(depthMapEffect);
 
-            context.SetRenderTarget(null);
+            DeviceContext.SetRenderTarget(null);
 
             // フィルタへ設定。
             ssaoMap.LinearDepthMap = depthMapRenderTarget;
@@ -423,12 +416,12 @@ namespace Samples.SceneAmbientOcclusion
 
         void CreateNormalMap()
         {
-            context.SetRenderTarget(normalMapRenderTarget);
-            context.Clear(Vector4.One);
+            DeviceContext.SetRenderTarget(normalMapRenderTarget);
+            DeviceContext.Clear(Vector4.One);
 
             DrawScene(normalMapEffect);
 
-            context.SetRenderTarget(null);
+            DeviceContext.SetRenderTarget(null);
 
             // フィルタへ設定。
             ssaoMap.NormalMap = normalMapRenderTarget;
@@ -440,12 +433,12 @@ namespace Samples.SceneAmbientOcclusion
 
         void CreateSSAOMap()
         {
-            context.SetRenderTarget(ssaoMapRenderTarget);
-            context.Clear(Vector4.One);
+            DeviceContext.SetRenderTarget(ssaoMapRenderTarget);
+            DeviceContext.Clear(Vector4.One);
 
             ssaoMap.Draw();
 
-            context.SetRenderTarget(null);
+            DeviceContext.SetRenderTarget(null);
 
             // フィルタへ設定。
             occlusionMapColorFilter.OcclusionMap = ssaoMapRenderTarget;
@@ -456,12 +449,12 @@ namespace Samples.SceneAmbientOcclusion
 
         void CreateNormalSceneMap()
         {
-            context.SetRenderTarget(normalSceneRenderTarget);
-            context.Clear(Color.CornflowerBlue);
+            DeviceContext.SetRenderTarget(normalSceneRenderTarget);
+            DeviceContext.Clear(Color.CornflowerBlue);
 
             DrawScene(basicEffect);
 
-            context.SetRenderTarget(null);
+            DeviceContext.SetRenderTarget(null);
 
             // 中間マップ表示。
             textureDisplay.Textures.Add(normalSceneRenderTarget);
@@ -511,7 +504,7 @@ namespace Samples.SceneAmbientOcclusion
                 basicEffect.DiffuseColor = color;
             }
 
-            effect.Apply(context);
+            effect.Apply(DeviceContext);
             mesh.Draw();
         }
 

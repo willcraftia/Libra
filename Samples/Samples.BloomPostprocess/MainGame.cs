@@ -69,18 +69,17 @@ namespace Samples.BloomPostprocess
 
         protected override void Draw(GameTime gameTime)
         {
-            var context = Device.ImmediateContext;
-            var viewport = context.Viewport;
+            var viewport = DeviceContext.Viewport;
 
             bloom.BeginDraw();
 
-            context.Clear(Color.Black);
+            DeviceContext.Clear(Color.Black);
 
             spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Opaque);
             spriteBatch.Draw(background, new Rectangle(0, 0, (int) viewport.Width, (int) viewport.Height), Color.White);
             spriteBatch.End();
 
-            context.DepthStencilState = DepthStencilState.Default;
+            DeviceContext.DepthStencilState = DepthStencilState.Default;
 
             DrawModel(gameTime);
 
@@ -91,11 +90,9 @@ namespace Samples.BloomPostprocess
 
         void DrawModel(GameTime gameTime)
         {
-            var context = Device.ImmediateContext;
+            float time = (float) gameTime.TotalGameTime.TotalSeconds;
 
-            float time = (float)gameTime.TotalGameTime.TotalSeconds;
-
-            var viewport = context.Viewport;
+            var viewport = DeviceContext.Viewport;
             float aspectRatio = (float)viewport.Width / (float)viewport.Height;
 
             var world = Matrix.CreateRotationY(time * 0.42f);
@@ -119,7 +116,7 @@ namespace Samples.BloomPostprocess
                     effect.SpecularColor = Vector3.One;
                 }
 
-                mesh.Draw(context);
+                mesh.Draw(DeviceContext);
             }
         }
 

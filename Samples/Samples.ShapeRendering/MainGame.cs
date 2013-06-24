@@ -15,8 +15,6 @@ namespace Samples.ShapeRendering
     {
         GraphicsManager graphicsManager;
 
-        DeviceContext context;
-
         SpriteBatch spriteBatch;
 
         DebugShapeRenderer debugShapeRenderer;
@@ -34,11 +32,9 @@ namespace Samples.ShapeRendering
 
         protected override void LoadContent()
         {
-            context = Device.ImmediateContext;
+            spriteBatch = new SpriteBatch(DeviceContext);
 
-            spriteBatch = new SpriteBatch(context);
-
-            debugShapeRenderer = new DebugShapeRenderer(context);
+            debugShapeRenderer = new DebugShapeRenderer(DeviceContext);
 
             box = new BoundingBox(new Vector3(-3f), new Vector3(3f));
 
@@ -59,7 +55,7 @@ namespace Samples.ShapeRendering
 
         protected override void Draw(GameTime gameTime)
         {
-            context.Clear(Color.CornflowerBlue);
+            DeviceContext.Clear(Color.CornflowerBlue);
 
             float angle = (float) gameTime.TotalGameTime.TotalSeconds;
             Vector3 eye = new Vector3((float) Math.Cos(angle * .5f), 0f, (float) Math.Sin(angle * .5f)) * 12f;
@@ -67,7 +63,7 @@ namespace Samples.ShapeRendering
 
             Matrix view = Matrix.CreateLookAt(eye, Vector3.Zero, Vector3.Up);
             Matrix projection = Matrix.CreatePerspectiveFieldOfView(
-                MathHelper.PiOver4, context.Viewport.AspectRatio, 0.1f, 1000f);
+                MathHelper.PiOver4, DeviceContext.Viewport.AspectRatio, 0.1f, 1000f);
 
             debugShapeRenderer.AddBoundingBox(box, Color.Yellow);
             debugShapeRenderer.AddBoundingFrustum(frustum, Color.Green);

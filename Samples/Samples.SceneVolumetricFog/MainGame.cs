@@ -46,11 +46,6 @@ namespace Samples.SceneVolumetricFog
         XnbManager content;
 
         /// <summary>
-        /// 描画に使用するコンテキスト。
-        /// </summary>
-        DeviceContext context;
-
-        /// <summary>
         /// スプライト バッチ。
         /// </summary>
         SpriteBatch spriteBatch;
@@ -221,9 +216,7 @@ namespace Samples.SceneVolumetricFog
 
         protected override void LoadContent()
         {
-            context = Device.ImmediateContext;
-
-            spriteBatch = new SpriteBatch(context);
+            spriteBatch = new SpriteBatch(DeviceContext);
             spriteFont = content.Load<SpriteFont>("hudFont");
 
             depthMapRenderTarget = Device.CreateRenderTarget();
@@ -260,7 +253,7 @@ namespace Samples.SceneVolumetricFog
             normalSceneRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
             normalSceneRenderTarget.Initialize();
 
-            postprocess = new Postprocess(context);
+            postprocess = new Postprocess(DeviceContext);
             postprocess.Width = WindowWidth;
             postprocess.Height = WindowHeight;
 
@@ -289,11 +282,11 @@ namespace Samples.SceneVolumetricFog
             basicEffect.PerPixelLighting = true;
             basicEffect.EnableDefaultLighting();
 
-            cubeMesh = new CubeMesh(context, 20);
-            sphereMesh = new SphereMesh(context, 20, 32);
-            cylinderMesh = new CylinderMesh(context, 80, 20, 32);
-            squareMesh = new SquareMesh(context, 400);
-            volumetricFogMesh = new CubeMesh(context, 400);
+            cubeMesh = new CubeMesh(DeviceContext, 20);
+            sphereMesh = new SphereMesh(DeviceContext, 20, 32);
+            cylinderMesh = new CylinderMesh(DeviceContext, 80, 20, 32);
+            squareMesh = new SquareMesh(DeviceContext, 400);
+            volumetricFogMesh = new CubeMesh(DeviceContext, 400);
         }
 
         protected override void Update(GameTime gameTime)
@@ -314,8 +307,8 @@ namespace Samples.SceneVolumetricFog
         protected override void Draw(GameTime gameTime)
         {
             // 念のため状態を初期状態へ。
-            context.BlendState = BlendState.Opaque;
-            context.DepthStencilState = DepthStencilState.Default;
+            DeviceContext.BlendState = BlendState.Opaque;
+            DeviceContext.DepthStencilState = DepthStencilState.Default;
 
             // 深度マップを描画。
             CreateDepthMap();
@@ -340,12 +333,12 @@ namespace Samples.SceneVolumetricFog
 
         void CreateDepthMap()
         {
-            context.SetRenderTarget(depthMapRenderTarget);
-            context.Clear(new Vector4(float.MaxValue));
+            DeviceContext.SetRenderTarget(depthMapRenderTarget);
+            DeviceContext.Clear(new Vector4(float.MaxValue));
 
             DrawScene(depthMapEffect);
 
-            context.SetRenderTarget(null);
+            DeviceContext.SetRenderTarget(null);
 
             // エフェクトへ設定。
             fogDepthMapEffect.LinearDepthMap = depthMapRenderTarget;
@@ -362,21 +355,21 @@ namespace Samples.SceneVolumetricFog
             // 状態としては前面がカメラの背後にある事を示さねばならず、
             // すなわち深度 0 を初期値とする必要がある。
 
-            context.SetRenderTarget(frontFogDepthMapRenderTarget);
-            context.Clear(Vector4.Zero);
+            DeviceContext.SetRenderTarget(frontFogDepthMapRenderTarget);
+            DeviceContext.Clear(Vector4.Zero);
 
-            context.RasterizerState = RasterizerState.CullBack;
-
-            DrawVolumetricFog(fogDepthMapEffect);
-
-            context.SetRenderTarget(backFogDepthMapRenderTarget);
-            context.Clear(Vector4.Zero);
-
-            context.RasterizerState = RasterizerState.CullFront;
+            DeviceContext.RasterizerState = RasterizerState.CullBack;
 
             DrawVolumetricFog(fogDepthMapEffect);
 
-            context.SetRenderTarget(null);
+            DeviceContext.SetRenderTarget(backFogDepthMapRenderTarget);
+            DeviceContext.Clear(Vector4.Zero);
+
+            DeviceContext.RasterizerState = RasterizerState.CullFront;
+
+            DrawVolumetricFog(fogDepthMapEffect);
+
+            DeviceContext.SetRenderTarget(null);
 
             // エフェクトへ設定。
             volumetricFogMapEffect.FrontFogDepthMap = frontFogDepthMapRenderTarget;
@@ -386,18 +379,18 @@ namespace Samples.SceneVolumetricFog
             frontFogDepthMapColorFilter.LinearDepthMap = frontFogDepthMapRenderTarget;
             backFogDepthMapColorFilter.LinearDepthMap = backFogDepthMapRenderTarget;
 
-            context.SetRenderTarget(volumetricFogMapRenderTarget);
+            DeviceContext.SetRenderTarget(volumetricFogMapRenderTarget);
             // ボリューム フォグ マップの値はフォグの度合いを示すため、
             // 0 (フォグ無し) で埋めてから描画する。
-            context.Clear(Vector4.Zero);
+            DeviceContext.Clear(Vector4.Zero);
 
-            context.RasterizerState = RasterizerState.CullNone;
+            DeviceContext.RasterizerState = RasterizerState.CullNone;
 
             DrawVolumetricFog(volumetricFogMapEffect);
 
-            context.SetRenderTarget(null);
+            DeviceContext.SetRenderTarget(null);
 
-            context.RasterizerState = RasterizerState.CullBack;
+            DeviceContext.RasterizerState = RasterizerState.CullBack;
 
             // フィルタへ設定。
             volumetricFogCombineFilter.VolumetricFogMap = volumetricFogMapRenderTarget;
@@ -408,12 +401,12 @@ namespace Samples.SceneVolumetricFog
 
         void CreateNormalSceneMap()
         {
-            context.SetRenderTarget(normalSceneRenderTarget);
-            context.Clear(Color.CornflowerBlue);
+            DeviceContext.SetRenderTarget(normalSceneRenderTarget);
+            DeviceContext.Clear(Color.CornflowerBlue);
 
             DrawScene(basicEffect);
 
-            context.SetRenderTarget(null);
+            DeviceContext.SetRenderTarget(null);
 
             // 中間マップ表示。
             textureDisplay.Textures.Add(normalSceneRenderTarget);

@@ -243,11 +243,6 @@ namespace Samples.ShadowMapping
         XnbManager content;
 
         /// <summary>
-        /// 描画に使用するコンテキスト。
-        /// </summary>
-        DeviceContext context;
-
-        /// <summary>
         /// スプライト バッチ。
         /// </summary>
         SpriteBatch spriteBatch;
@@ -511,11 +506,9 @@ namespace Samples.ShadowMapping
 
         protected override void LoadContent()
         {
-            context = Device.ImmediateContext;
-
             drawModelEffect = new DrawModelEffect(Device);
 
-            spriteBatch = new SpriteBatch(context);
+            spriteBatch = new SpriteBatch(DeviceContext);
             spriteFont = content.Load<SpriteFont>("hudFont");
 
             gridModel = content.Load<Model>("grid");
@@ -529,7 +522,7 @@ namespace Samples.ShadowMapping
 
             for (int i = 0; i < shadowMaps.Length; i++)
             {
-                shadowMaps[i] = new ShadowMap(context);
+                shadowMaps[i] = new ShadowMap(DeviceContext);
             }
         }
 
@@ -552,8 +545,8 @@ namespace Samples.ShadowMapping
         protected override void Draw(GameTime gameTime)
         {
             // 念のため状態を初期状態へ。
-            context.BlendState = BlendState.Opaque;
-            context.DepthStencilState = DepthStencilState.Default;
+            DeviceContext.BlendState = BlendState.Opaque;
+            DeviceContext.DepthStencilState = DepthStencilState.Default;
 
             // シャドウ マップの描画。
             CreateShadowMap();
@@ -674,10 +667,10 @@ namespace Samples.ShadowMapping
 
         void DrawWithShadowMap()
         {
-            context.Clear(Color.CornflowerBlue);
+            DeviceContext.Clear(Color.CornflowerBlue);
 
             // シャドウ マップに対するサンプラ。
-            context.PixelShaderSamplers[1] = SamplerState.PointClamp;
+            DeviceContext.PixelShaderSamplers[1] = SamplerState.PointClamp;
 
             // シャドウ マップと共にグリッド モデルを描画。
             world = Matrix.Identity;
@@ -708,17 +701,17 @@ namespace Samples.ShadowMapping
         {
             // シャドウ マップ エフェクトの準備。
             effect.World = world;
-            effect.Apply(context);
+            effect.Apply(DeviceContext);
 
-            context.PrimitiveTopology = PrimitiveTopology.TriangleList;
+            DeviceContext.PrimitiveTopology = PrimitiveTopology.TriangleList;
 
             foreach (var mesh in model.Meshes)
             {
                 foreach (var meshPart in mesh.MeshParts)
                 {
-                    context.SetVertexBuffer(0, meshPart.VertexBuffer);
-                    context.IndexBuffer = meshPart.IndexBuffer;
-                    context.DrawIndexed(meshPart.IndexCount, meshPart.StartIndexLocation, meshPart.BaseVertexLocation);
+                    DeviceContext.SetVertexBuffer(0, meshPart.VertexBuffer);
+                    DeviceContext.IndexBuffer = meshPart.IndexBuffer;
+                    DeviceContext.DrawIndexed(meshPart.IndexCount, meshPart.StartIndexLocation, meshPart.BaseVertexLocation);
                 }
             }
         }
@@ -742,21 +735,21 @@ namespace Samples.ShadowMapping
             // モデルは XNB 標準状態で読み込んでいるため、
             // メッシュ パートのエフェクトには BasicEffect が設定されている。
 
-            context.PrimitiveTopology = PrimitiveTopology.TriangleList;
+            DeviceContext.PrimitiveTopology = PrimitiveTopology.TriangleList;
 
             foreach (var mesh in model.Meshes)
             {
                 foreach (var meshPart in mesh.MeshParts)
                 {
-                    context.SetVertexBuffer(0, meshPart.VertexBuffer);
-                    context.IndexBuffer = meshPart.IndexBuffer;
+                    DeviceContext.SetVertexBuffer(0, meshPart.VertexBuffer);
+                    DeviceContext.IndexBuffer = meshPart.IndexBuffer;
 
                     // BasicEffect に設定されているモデルのテクスチャを取得して設定。
                     drawModelEffect.Texture = (meshPart.Effect as BasicEffect).Texture;
 
-                    drawModelEffect.Apply(context);
+                    drawModelEffect.Apply(DeviceContext);
 
-                    context.DrawIndexed(meshPart.IndexCount, meshPart.StartIndexLocation, meshPart.BaseVertexLocation);
+                    DeviceContext.DrawIndexed(meshPart.IndexCount, meshPart.StartIndexLocation, meshPart.BaseVertexLocation);
                 }
             }
         }

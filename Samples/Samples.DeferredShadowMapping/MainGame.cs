@@ -82,11 +82,6 @@ namespace Samples.DeferredShadowMapping
         XnbManager content;
 
         /// <summary>
-        /// 描画に使用するコンテキスト。
-        /// </summary>
-        DeviceContext context;
-
-        /// <summary>
         /// スプライト バッチ。
         /// </summary>
         SpriteBatch spriteBatch;
@@ -399,9 +394,7 @@ namespace Samples.DeferredShadowMapping
 
         protected override void LoadContent()
         {
-            context = Device.ImmediateContext;
-
-            spriteBatch = new SpriteBatch(context);
+            spriteBatch = new SpriteBatch(DeviceContext);
             spriteFont = content.Load<SpriteFont>("hudFont");
 
             depthMapRenderTarget = Device.CreateRenderTarget();
@@ -423,11 +416,11 @@ namespace Samples.DeferredShadowMapping
             normalSceneRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
             normalSceneRenderTarget.Initialize();
 
-            occlusionPostprocess = new Postprocess(context);
+            occlusionPostprocess = new Postprocess(DeviceContext);
             occlusionPostprocess.Width = occlusionMapRenderTarget.Width;
             occlusionPostprocess.Height = occlusionMapRenderTarget.Height;
 
-            scenePostprocess = new Postprocess(context);
+            scenePostprocess = new Postprocess(DeviceContext);
             scenePostprocess.Width = normalSceneRenderTarget.Width;
             scenePostprocess.Height = normalSceneRenderTarget.Height;
 
@@ -472,21 +465,21 @@ namespace Samples.DeferredShadowMapping
 
             for (int i = 0; i < shadowMaps.Length; i++)
             {
-                shadowMaps[i] = new ShadowMap(context);
+                shadowMaps[i] = new ShadowMap(DeviceContext);
             }
 
             // 深度バイアスは、主に PCF の際に重要となる。
             // VSM の場合、あまり意味は無い。
-            shadowOcclusionMap = new ShadowOcclusionMap(context);
+            shadowOcclusionMap = new ShadowOcclusionMap(DeviceContext);
             shadowOcclusionMap.SplitCount = splitCount;
             shadowOcclusionMap.PcfEnabled = false;
 
-            cubeMesh = new CubeMesh(context, 20);
-            sphereMesh = new SphereMesh(context, 20, 32);
-            cylinderMesh = new CylinderMesh(context, 80, 20, 32);
-            squareMesh = new SquareMesh(context, 400);
-            torusMesh = new TorusMesh(context, 20, 10);
-            teapotMesh = new TeapotMesh(context, 40);
+            cubeMesh = new CubeMesh(DeviceContext, 20);
+            sphereMesh = new SphereMesh(DeviceContext, 20, 32);
+            cylinderMesh = new CylinderMesh(DeviceContext, 80, 20, 32);
+            squareMesh = new SquareMesh(DeviceContext, 400);
+            torusMesh = new TorusMesh(DeviceContext, 20, 10);
+            teapotMesh = new TeapotMesh(DeviceContext, 40);
         }
 
         protected override void Update(GameTime gameTime)
@@ -512,8 +505,8 @@ namespace Samples.DeferredShadowMapping
         protected override void Draw(GameTime gameTime)
         {
             // 念のため状態を初期状態へ。
-            context.BlendState = BlendState.Opaque;
-            context.DepthStencilState = DepthStencilState.Default;
+            DeviceContext.BlendState = BlendState.Opaque;
+            DeviceContext.DepthStencilState = DepthStencilState.Default;
 
             // シャドウ マップの描画。
             CreateShadowMap();
@@ -646,22 +639,22 @@ namespace Samples.DeferredShadowMapping
 
         void CreateDepthMap()
         {
-            context.SetRenderTarget(depthMapRenderTarget);
-            context.Clear(new Vector4(float.MaxValue));
+            DeviceContext.SetRenderTarget(depthMapRenderTarget);
+            DeviceContext.Clear(new Vector4(float.MaxValue));
 
             DrawScene(depthMapEffect);
 
-            context.SetRenderTarget(null);
+            DeviceContext.SetRenderTarget(null);
         }
 
         void CreateNormalSceneMap()
         {
-            context.SetRenderTarget(normalSceneRenderTarget);
-            context.Clear(Color.CornflowerBlue);
+            DeviceContext.SetRenderTarget(normalSceneRenderTarget);
+            DeviceContext.Clear(Color.CornflowerBlue);
 
             DrawScene(basicEffect);
 
-            context.SetRenderTarget(null);
+            DeviceContext.SetRenderTarget(null);
 
             // 中間マップ表示。
             textureDisplay.Textures.Add(normalSceneRenderTarget);
@@ -669,8 +662,8 @@ namespace Samples.DeferredShadowMapping
 
         void CreateShadowOcclusionMap()
         {
-            context.SetRenderTarget(occlusionMapRenderTarget);
-            context.Clear(Vector4.Zero);
+            DeviceContext.SetRenderTarget(occlusionMapRenderTarget);
+            DeviceContext.Clear(Vector4.Zero);
 
             shadowOcclusionMap.ShadowMapForm = shadowMapForm;
             shadowOcclusionMap.View = camera.View;
@@ -687,7 +680,7 @@ namespace Samples.DeferredShadowMapping
 
             shadowOcclusionMap.Draw();
 
-            context.SetRenderTarget(null);
+            DeviceContext.SetRenderTarget(null);
 
             // フィルタへ設定。
 
@@ -738,9 +731,9 @@ namespace Samples.DeferredShadowMapping
                 DrawPrimitiveMesh(cylinderMesh, Matrix.CreateTranslation(-180, 40, z), new Vector3(0, 0, 1), effect);
             }
 
-            context.RasterizerState = RasterizerState.CullNone;
+            DeviceContext.RasterizerState = RasterizerState.CullNone;
             DrawPrimitiveMesh(teapotMesh, Matrix.CreateTranslation(100, 10, -100), new Vector3(0, 1, 1), effect);
-            context.RasterizerState = null;
+            DeviceContext.RasterizerState = null;
         }
 
         void DrawPrimitiveMesh(PrimitiveMesh mesh, Matrix world, Vector3 color, IEffect effect)
@@ -757,7 +750,7 @@ namespace Samples.DeferredShadowMapping
                 basicEffect.DiffuseColor = color;
             }
 
-            effect.Apply(context);
+            effect.Apply(DeviceContext);
             mesh.Draw();
         }
 
