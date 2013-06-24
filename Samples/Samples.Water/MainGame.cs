@@ -133,10 +133,10 @@ namespace Samples.Water
         // Flow 用の流体面メッシュの頂点。
         static readonly VertexPositionTexture[] FlowVertices =
         {
-            new VertexPositionTexture(new Vector3(-200, 0,  200), new Vector2(0, 8)),
+            new VertexPositionTexture(new Vector3(-200, 0,  200), new Vector2(0, 2)),
             new VertexPositionTexture(new Vector3(-200, 0, -200), new Vector2(0, 0)),
-            new VertexPositionTexture(new Vector3( 200, 0, -200), new Vector2(8, 0)),
-            new VertexPositionTexture(new Vector3( 200, 0,  200), new Vector2(8, 8)),
+            new VertexPositionTexture(new Vector3( 200, 0, -200), new Vector2(2, 0)),
+            new VertexPositionTexture(new Vector3( 200, 0,  200), new Vector2(2, 2)),
         };
 
         static readonly VertexPositionNormalTexture[] CloudVertices =
@@ -1040,7 +1040,7 @@ namespace Samples.Water
 
         void DrawSceneWithoutFluid(IEffect effect)
         {
-            DrawPrimitiveMesh(cubeMesh, Matrix.CreateTranslation(-40, 10, 40), new Vector3(0, 0, 0), effect);
+            DrawPrimitiveMesh(cubeMesh, Matrix.CreateTranslation(-40, 30, 40), new Vector3(0, 0, 0), effect);
             DrawPrimitiveMesh(cubeMesh, Matrix.CreateTranslation(-85, 10, -20), new Vector3(1, 0, 0), effect);
             DrawPrimitiveMesh(cubeMesh, Matrix.CreateTranslation(-60, 10, -20), new Vector3(1, 0, 0), effect);
             DrawPrimitiveMesh(cubeMesh, Matrix.CreateTranslation(-40, 10, 0), new Vector3(1, 0, 0), effect);
