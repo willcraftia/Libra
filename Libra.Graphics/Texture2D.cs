@@ -279,6 +279,63 @@ namespace Libra.Graphics
 
         }
 
+        public void SetData<T>(DeviceContext context, int level, Rectangle? rectangle, T[] data, int startIndex, int elementCount) where T : struct
+        {
+            AssertInitialized();
+            if (context == null) throw new ArgumentNullException("context");
+            if (data == null) throw new ArgumentNullException("data");
+            if (startIndex < 0) throw new ArgumentOutOfRangeException("startIndex");
+            if (data.Length < (startIndex + elementCount)) throw new ArgumentOutOfRangeException("elementCount");
+
+            if (Usage == ResourceUsage.Immutable)
+                throw new InvalidOperationException("Data can not be set from CPU.");
+
+            // 領域指定は UpdateSubresource でなければ実装が面倒であるし、
+            // 仮に実装したとしても常に全書き換えを GPU へ命令するため Dynamic の利点も失われるため、
+            // 非サポートとして除外する。
+            if (Usage == ResourceUsage.Dynamic)
+                throw new NotSupportedException("Dynamic texture does not support to write data into the specified bounds.");
+
+            int levelWidth = Width >> level;
+
+            // ブロック圧縮ならばブロック サイズで調整。
+            // この場合、FormatHelper.SizeInBytes で測る値は、
+            // 1 ブロック (4x4 テクセル) に対するバイト数である点に注意。
+            if (FormatHelper.IsBlockCompression(Format))
+            {
+                levelWidth /= 4;
+            }
+
+            var gcHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
+            try
+            {
+                var dataPointer = gcHandle.AddrOfPinnedObject();
+                var sizeOfT = Marshal.SizeOf(typeof(T));
+
+                var sourcePointer = (IntPtr) (dataPointer + startIndex * sizeOfT);
+
+                Box? box = null;
+                if (rectangle.HasValue)
+                {
+                    box = new Box(
+                        rectangle.Value.Left,
+                        rectangle.Value.Top,
+                        0,
+                        rectangle.Value.Right,
+                        rectangle.Value.Bottom,
+                        0);
+                }
+
+                int rowPitch = FormatHelper.SizeInBytes(Format) * levelWidth;
+                context.UpdateSubresource(this, level, box, sourcePointer, rowPitch, 0);
+            }
+            finally
+            {
+                gcHandle.Free();
+            }
+
+        }
+
         public void SetData<T>(DeviceContext context, params T[] data) where T : struct
         {
             SetData(context, 0, data, 0, data.Length);
