@@ -127,13 +127,6 @@ namespace Libra.Games
             }
         }
 
-        // TODO
-        //
-        // フォーム アプリケーションでは、Cursor.Hide/Show で自由に切り替えられる。
-        // しかし、どちらの状態であるかを知ることができない。
-        // ゲーム内から表示を切り替えるにはプラットフォームを経由させれば良いだけだが、
-        // 表示状態はどこからも参照できない。
-
         public bool IsMouseVisible
         {
             get { return isMouseVisible; }
@@ -307,6 +300,9 @@ namespace Libra.Games
                     // Update の GameTime は、前回 Update が呼び出されてからの経過時間 (XNA)。
 
                     gameTime.TotalGameTime += gameTime.ElapsedGameTime;
+
+                    // プラットフォームのマウス表示状態を更新。
+                    gamePlatform.IsMouseVisible = isMouseVisible;
 
                     Update(gameTime);
 

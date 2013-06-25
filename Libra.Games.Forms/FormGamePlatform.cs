@@ -132,6 +132,8 @@ namespace Libra.Games.Forms
             Form.Deactivate += OnDeactivated;
             Form.FormClosing += OnClosing;
 
+            Cursor.Hide();
+
             window = new FormGameWindow(Form);
 
             keyboard = new FormKeyboard();
@@ -145,6 +147,20 @@ namespace Libra.Games.Forms
         protected override void Exit()
         {
             Form.Close();
+        }
+
+        protected override void OnIsMouseVisible()
+        {
+            if (IsMouseVisible)
+            {
+                Cursor.Show();
+            }
+            else
+            {
+                Cursor.Hide();
+            }
+
+            base.OnIsMouseVisible();
         }
 
         protected virtual Form CreateForm()

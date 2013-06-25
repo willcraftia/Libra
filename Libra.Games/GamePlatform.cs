@@ -21,6 +21,22 @@ namespace Libra.Games
 
         public event EventHandler Exiting;
 
+        bool isMouseVisible;
+
+        protected internal bool IsMouseVisible
+        {
+            get { return isMouseVisible; }
+            set
+            {
+                if (isMouseVisible == value)
+                    return;
+
+                isMouseVisible = value;
+
+                OnIsMouseVisible();
+            }
+        }
+
         protected internal abstract GameWindow Window { get; }
 
         protected internal abstract IKeyboard Keyboard { get; }
@@ -65,5 +81,7 @@ namespace Libra.Games
             if (Exiting != null)
                 Exiting(this, EventArgs.Empty);
         }
+
+        protected virtual void OnIsMouseVisible() { }
     }
 }
