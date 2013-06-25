@@ -80,6 +80,22 @@ namespace Libra.Graphics
 
         protected sealed override void InitializeCore()
         {
+            // TODO
+            // そもそも、そのサンプル数が無効 (multisampleQualityLevels = 0) の場合はどうするのだ？
+
+            var multisampleQualityLevels = Device.CheckMultisampleQualityLevels(depthFormat, MultisampleCount);
+            if (0 < multisampleQualityLevels)
+            {
+                // テクスチャと深度ステンシルで低い方の品質へ合わせる。
+                MultisampleQuality = Math.Min(MultisampleQuality, multisampleQualityLevels - 1);
+            }
+            else
+            {
+                // TODO
+                // ひとまず無効化。
+                MultisampleQuality = 0;
+            }
+
             InitializeRenderTarget();
 
             if (depthFormat != DepthFormat.None)

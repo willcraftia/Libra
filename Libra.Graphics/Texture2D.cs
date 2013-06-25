@@ -106,6 +106,14 @@ namespace Libra.Graphics
             AssertNotInitialized();
             if (Usage == ResourceUsage.Immutable) throw new InvalidOperationException("Usage must be not immutable.");
 
+            // TODO
+            // 自動解決してしまって良いのか？
+            var multisampleQualityLevels = Device.CheckMultisampleQualityLevels(format, multisampleCount);
+            if (0 < multisampleQualityLevels)
+            {
+                MultisampleQuality = multisampleQualityLevels - 1;
+            }
+
             InitializeCore();
 
             initialized = true;
