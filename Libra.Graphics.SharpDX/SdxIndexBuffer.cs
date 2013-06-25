@@ -34,6 +34,8 @@ namespace Libra.Graphics.SharpDX
 
         protected override void InitializeCore()
         {
+            ByteWidth = FormatHelper.SizeInBytes(Format) * IndexCount;
+
             D3D11BufferDescription description;
             CreateD3D11BufferDescription(out description);
 
@@ -42,7 +44,7 @@ namespace Libra.Graphics.SharpDX
 
         protected override void InitializeCore<T>(T[] data)
         {
-            ByteWidth = Marshal.SizeOf(typeof(T)) * data.Length;
+            ByteWidth = FormatHelper.SizeInBytes(Format) * IndexCount;
 
             D3D11BufferDescription description;
             CreateD3D11BufferDescription(out description);
