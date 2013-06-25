@@ -8,7 +8,7 @@ namespace Libra.Input.Forms
 {
     public sealed class FormKeyboard : IKeyboard
     {
-        internal KeyboardState State;
+        public KeyboardState State;
 
         public KeyboardState GetState()
         {
