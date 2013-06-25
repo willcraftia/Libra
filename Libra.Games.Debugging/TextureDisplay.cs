@@ -94,7 +94,8 @@ namespace Libra.Games.Debugging
 
         public override void Update(GameTime gameTime)
         {
-            // 登録されているテクスチャを破棄。
+            // Draw メソッドはスキップされる場合もあるため、
+            // ここでも登録されているテクスチャの破棄を試行。
             Textures.Clear();
 
             base.Update(gameTime);
@@ -122,6 +123,9 @@ namespace Libra.Games.Debugging
                     rect.Y += offset.Y + textureHeight;
                 }
             }
+
+            // 登録されているテクスチャを破棄。
+            Textures.Clear();
 
             base.Draw(gameTime);
         }
