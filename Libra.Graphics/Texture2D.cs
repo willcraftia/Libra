@@ -314,20 +314,32 @@ namespace Libra.Graphics
 
                 var sourcePointer = (IntPtr) (dataPointer + startIndex * sizeOfT);
 
-                Box? box = null;
+                int sourceRowPitch;
+
+                Box? destinationBox = null;
                 if (rectangle.HasValue)
                 {
-                    box = new Box(
+                    destinationBox = new Box(
                         rectangle.Value.Left,
                         rectangle.Value.Top,
                         0,
                         rectangle.Value.Right,
                         rectangle.Value.Bottom,
-                        0);
+                        1);
+
+                    sourceRowPitch = FormatHelper.SizeInBytes(Format) * rectangle.Value.Width;
+                }
+                else
+                {
+                    sourceRowPitch = FormatHelper.SizeInBytes(Format) * levelWidth;
                 }
 
-                int rowPitch = FormatHelper.SizeInBytes(Format) * levelWidth;
-                context.UpdateSubresource(this, level, box, sourcePointer, rowPitch, 0);
+                if (FormatHelper.IsBlockCompression(Format))
+                {
+                    sourceRowPitch /= 4;
+                }
+
+                context.UpdateSubresource(this, level, destinationBox, sourcePointer, sourceRowPitch, 0);
             }
             finally
             {

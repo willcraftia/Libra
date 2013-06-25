@@ -131,8 +131,10 @@ namespace Libra.Graphics.SharpDX
                 {
                     Left = rectangle.Value.Left,
                     Top = rectangle.Value.Top,
+                    Front = 0,
                     Right = rectangle.Value.Right,
-                    Bottom = rectangle.Value.Bottom
+                    Bottom = rectangle.Value.Bottom,
+                    Back = 1
                 };
             }
 
@@ -149,15 +151,30 @@ namespace Libra.Graphics.SharpDX
                     var destinationPtr = (IntPtr) (dataPointer + startIndex * sizeOfT);
                     var sizeInBytes = ((elementCount == 0) ? data.Length : elementCount) * sizeOfT;
 
+                    var destinationRowPitch = sizeOfT * w;
+
                     var dataBox = d3dDeviceContext.MapSubresource(staging, 0, D3D11MapMode.Read, D3D11MapFlags.None);
                     try
                     {
-                        // TODO
-                        //
-                        // データ取得の場合、RowPitch を気にせずに取得できる。
-                        // MipLevels = 1 固定でステージングに複製しているからなのだろうか？
+                        // Texture2D に格納されたデータの整列 (マップで得られる DataBox の RowPitch) は、
+                        // 必ずしも頭の中で期待する状態であるとは限らない。
+                        // データ取得先の RowPitch と異なる場合には、メモリの一括複製では済まず、
+                        // 行ごとにポインタを動かしながら複製する必要がある。
 
-                        SDXUtilities.CopyMemory(destinationPtr, dataBox.DataPointer, sizeInBytes);
+                        if (dataBox.RowPitch == destinationRowPitch)
+                        {
+                            SDXUtilities.CopyMemory(destinationPtr, dataBox.DataPointer, sizeInBytes);
+                        }
+                        else
+                        {
+                            var sourcePtr = dataBox.DataPointer;
+                            for (int i = 0; i < h; i++)
+                            {
+                                SDXUtilities.CopyMemory(destinationPtr, sourcePtr, destinationRowPitch);
+                                destinationPtr += destinationRowPitch;
+                                sourcePtr += dataBox.RowPitch;
+                            }
+                        }
                     }
                     finally
                     {
