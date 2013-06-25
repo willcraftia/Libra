@@ -137,7 +137,7 @@ namespace Libra.Games.Forms
             window = new FormGameWindow(Form);
 
             keyboard = new FormKeyboard();
-            mouse = new FormMouse();
+            mouse = new FormMouse(Form);
             joystick = new NullJoystick();
 
             messageFilter = new MessageFilter(window.Handle, keyboard, mouse);

@@ -9,7 +9,14 @@ namespace Libra.Input.Forms
 {
     public sealed class FormMouse : IMouse
     {
-        internal MouseState State;
+        public MouseState State;
+
+        Form form;
+
+        public FormMouse(Form form)
+        {
+            this.form = form;
+        }
 
         public MouseState GetState()
         {
@@ -18,7 +25,10 @@ namespace Libra.Input.Forms
 
         public void SetPosition(int x, int y)
         {
-            Cursor.Position = new System.Drawing.Point(x, y);
+            var clientPoint = new System.Drawing.Point(x, y);
+            var screenPoint = form.PointToScreen(clientPoint);
+
+            Cursor.Position = screenPoint;
         }
     }
 }
