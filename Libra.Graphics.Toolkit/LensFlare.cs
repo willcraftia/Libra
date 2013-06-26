@@ -79,7 +79,7 @@ namespace Libra.Graphics.Toolkit
 
         Vector3 lightDirection;
 
-        Vector2 lightPosition;
+        Vector2 screenLightPosition;
 
         ShaderResourceView glowTexture;
 
@@ -198,8 +198,15 @@ namespace Libra.Graphics.Toolkit
             var infiniteView = view;
             infiniteView.Translation = Vector3.Zero;
 
+            // 参考にした XNA Lens Flare サンプルでは調整無しだが、それは near = 0.1 であるが故であり、
+            // それなりの距離 (near = 1 など) を置くと、単位ベクトルであるライト方向を射影した場合に
+            // 射影空間の外に出てしまう (0 から near の間に射影されてしまう)。
+            // このため、near だけカメラ奥へ押し出した後に射影する (射影空間に収まる位置で射影する)。
+            var lightPosition = -lightDirection;
+            lightPosition.Z -= projection.PerspectiveNearClipDistance;
+
             var viewport = Context.Viewport;
-            var projectedPosition = viewport.Project(-lightDirection, projection, infiniteView, Matrix.Identity);
+            var projectedPosition = viewport.Project(lightPosition, projection, infiniteView, Matrix.Identity);
 
             if (projectedPosition.Z < 0 || 1 < projectedPosition.Z)
             {
@@ -207,7 +214,7 @@ namespace Libra.Graphics.Toolkit
                 return;
             }
 
-            lightPosition = new Vector2(projectedPosition.X, projectedPosition.Y);
+            screenLightPosition = new Vector2(projectedPosition.X, projectedPosition.Y);
             lightBehindCamera = false;
 
             UpdateOcclusion();
@@ -249,7 +256,7 @@ namespace Libra.Graphics.Toolkit
             var viewport = Context.Viewport;
 
             Matrix world;
-            Matrix.CreateTranslation(lightPosition.X, lightPosition.Y, 0, out world);
+            Matrix.CreateTranslation(screenLightPosition.X, screenLightPosition.Y, 0, out world);
 
             Matrix projection;
             Matrix.CreateOrthographicOffCenter(0, viewport.Width, viewport.Height, 0, 0, 1, out projection);
@@ -295,7 +302,7 @@ namespace Libra.Graphics.Toolkit
             var color = Color.White * occlusionAlpha;
 
             spriteBatch.Begin();
-            spriteBatch.Draw(GlowTexture, lightPosition, null, color, 0, glowOrigin, glowScale);
+            spriteBatch.Draw(GlowTexture, screenLightPosition, null, color, 0, glowOrigin, glowScale);
             spriteBatch.End();
         }
 
@@ -307,14 +314,14 @@ namespace Libra.Graphics.Toolkit
             var viewport = Context.Viewport;
             var screenCenter = new Vector2(viewport.Width / 2.0f, viewport.Height / 2.0f);
 
-            var flareVector = screenCenter - lightPosition;
+            var flareVector = screenCenter - screenLightPosition;
 
             spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Additive);
 
             for (int i = 0; i < Flares.Count; i++)
             {
                 var flare = Flares[i];
-                var flarePosition = lightPosition + flareVector * flare.Position;
+                var flarePosition = screenLightPosition + flareVector * flare.Position;
 
                 var flareColor = flare.Color.ToVector4();
                 flareColor.W *= occlusionAlpha;
