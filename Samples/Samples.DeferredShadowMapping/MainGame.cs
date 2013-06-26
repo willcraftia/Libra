@@ -601,7 +601,7 @@ namespace Samples.DeferredShadowMapping
                 // シャドウ マップを描画。
                 shadowMaps[i].Form = shadowMapForm;
                 shadowMaps[i].Size = ShadowMapSizes[currentShadowMapSizeIndex];
-                shadowMaps[i].Draw(context, camera.View, splitProjections[i], lightView, lightProjection, DrawShadowCasters);
+                shadowMaps[i].Draw(camera.View, splitProjections[i], lightView, lightProjection, DrawShadowCasters);
 
                 // VSM の場合は生成したシャドウ マップへブラーを適用。
                 if (shadowMapForm == ShadowMapForm.Variance)

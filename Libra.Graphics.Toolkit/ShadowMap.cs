@@ -106,38 +106,35 @@ namespace Libra.Graphics.Toolkit
         /// <summary>
         /// シャドウ マップを描画します。
         /// </summary>
-        /// <param name="context">デバイス コンテキスト。</param>
         /// <param name="eyeView">表示カメラのビュー行列。</param>
         /// <param name="eyeProjection">表示カメラの射影行列。</param>
         /// <param name="lightView">ライト カメラのビュー行列。</param>
         /// <param name="lightProjection">ライト カメラの射影行列。</param>
         /// <param name="drawShadowCasters">投影オブジェクト描画コールバック。</param>
         public void Draw(
-            DeviceContext context,
             Matrix eyeView, Matrix eyeProjection,
             Matrix lightView, Matrix lightProjection,
             DrawShadowCastersCallback drawShadowCasters)
         {
-            if (context == null) throw new ArgumentNullException("context");
             if (drawShadowCasters == null) throw new ArgumentNullException("drawShadowCasters");
 
             PrepareRenderTarget();
 
-            context.DepthStencilState = DepthStencilState.Default;
-            context.BlendState = BlendState.Opaque;
+            DeviceContext.DepthStencilState = DepthStencilState.Default;
+            DeviceContext.BlendState = BlendState.Opaque;
 
             // エフェクトを設定。
             shadowMapEffect.View = lightView;
             shadowMapEffect.Projection = lightProjection;
 
-            context.SetRenderTarget(RenderTarget);
-            context.Clear(Color.White);
+            DeviceContext.SetRenderTarget(RenderTarget);
+            DeviceContext.Clear(Color.White);
 
             // 描画をコールバック。
             // 描画する投影オブジェクトの選別は、コールバックされる側のクラスで決定。
             drawShadowCasters(eyeView, eyeProjection, shadowMapEffect);
 
-            context.SetRenderTarget(null);
+            DeviceContext.SetRenderTarget(null);
         }
 
         void PrepareRenderTarget()
