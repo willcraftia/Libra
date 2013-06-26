@@ -221,16 +221,26 @@ namespace Samples.SceneGodRay
             var infiniteView = camera.View;
             infiniteView.Translation = Vector3.Zero;
 
+            // 参考にした XNA Lens Flare サンプルでは調整無しだが、
+            // それは near = 0.1 であるが故であり、
+            // それなりの距離 (near = 1 など) を置くと、
+            // 単位ベクトルであるライト方向の射影が射影領域の外に出てしまう (0 から near の間に射影されてしまう)。
+            // このため、常にカメラの外にライトがあると見なされ、レンズ フレアは描画されない。
+            // そこで、near = 0 とした射影行列を構築し、これに基づいてライトの射影を行う。
+
+            // 射影行列から情報を抽出。
+            float fov = camera.Projection.PerspectiveFieldOfView;
+            float aspectRatio = camera.Projection.PerspectiveAspectRatio;
+            float far = camera.Projection.PerspectiveFarClipDistance;
+
+            // near = 0 の射影行列を再構築。
+            Matrix nearZeroProjection;
+            Matrix.CreatePerspectiveFieldOfView(fov, aspectRatio, 0, far, out nearZeroProjection);
+
             var lightPosition = -lightDirection;
-
-            // 参考にした XNA Lens Flare サンプルでは調整無しだが、それは near = 0.1 であるが故であり、
-            // それなりの距離 (near = 1 など) を置くと、単位ベクトルであるライト方向を射影した場合に
-            // 射影空間の外に出てしまう (0 から near の間に射影されてしまう)。
-            // このため、near だけカメラ奥へ押し出した後に射影する (射影空間に収まる位置で射影する)。
-            lightPosition.Z -= camera.NearClipDistance;
-
+            
             var viewport = DeviceContext.Viewport;
-            var projectedPosition = viewport.Project(lightPosition, camera.Projection, infiniteView, Matrix.Identity);
+            var projectedPosition = viewport.Project(lightPosition, nearZeroProjection, infiniteView, Matrix.Identity);
 
             if (projectedPosition.Z < 0 || projectedPosition.Z > 1)
             {
