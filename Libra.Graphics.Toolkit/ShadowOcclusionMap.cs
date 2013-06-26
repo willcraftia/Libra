@@ -197,7 +197,7 @@ namespace Libra.Graphics.Toolkit
 
         DirtyFlags dirtyFlags;
 
-        public DeviceContext Context { get; private set; }
+        public DeviceContext DeviceContext { get; private set; }
 
         public int SplitCount
         {
@@ -281,24 +281,24 @@ namespace Libra.Graphics.Toolkit
 
         public bool Enabled { get; set; }
 
-        public ShadowOcclusionMap(DeviceContext context)
+        public ShadowOcclusionMap(DeviceContext deviceContext)
         {
-            if (context == null) throw new ArgumentNullException("context");
+            if (deviceContext == null) throw new ArgumentNullException("deviceContext");
 
-            Context = context;
+            DeviceContext = deviceContext;
 
-            sharedDeviceResource = context.Device.GetSharedResource<ShadowOcclusionMap, SharedDeviceResource>();
+            sharedDeviceResource = deviceContext.Device.GetSharedResource<ShadowOcclusionMap, SharedDeviceResource>();
 
-            fullScreenQuad = new FullScreenQuad(context);
+            fullScreenQuad = new FullScreenQuad(deviceContext);
             fullScreenQuad.ViewRayEnabled = true;
 
-            constantBufferPerLight = context.Device.CreateConstantBuffer();
+            constantBufferPerLight = deviceContext.Device.CreateConstantBuffer();
             constantBufferPerLight.Initialize<ParametersPerLight>();
 
-            constantBufferPerCamera = context.Device.CreateConstantBuffer();
+            constantBufferPerCamera = deviceContext.Device.CreateConstantBuffer();
             constantBufferPerCamera.Initialize<ParametersPerCamera>();
 
-            constantBufferPcf = context.Device.CreateConstantBuffer();
+            constantBufferPcf = deviceContext.Device.CreateConstantBuffer();
             constantBufferPcf.Initialize<ParametersPcf>();
 
             parametersPerLight.SplitCount = MaxSplitCount;
@@ -387,51 +387,51 @@ namespace Libra.Graphics.Toolkit
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerLight) != 0)
             {
-                constantBufferPerLight.SetData(Context, parametersPerLight);
+                constantBufferPerLight.SetData(DeviceContext, parametersPerLight);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerLight;
             }
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerCamera) != 0)
             {
-                constantBufferPerCamera.SetData(Context, parametersPerCamera);
+                constantBufferPerCamera.SetData(DeviceContext, parametersPerCamera);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerCamera;
             }
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPcf) != 0)
             {
-                constantBufferPcf.SetData(Context, parametersPcf);
+                constantBufferPcf.SetData(DeviceContext, parametersPcf);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPcf;
             }
 
             if (ShadowMapForm == ShadowMapForm.Variance)
             {
-                Context.PixelShader = sharedDeviceResource.VariancePixelShader;
+                DeviceContext.PixelShader = sharedDeviceResource.VariancePixelShader;
             }
             else
             {
                 if (pcfEnabled)
                 {
-                    Context.PixelShader = sharedDeviceResource.PcfPixelShader;
+                    DeviceContext.PixelShader = sharedDeviceResource.PcfPixelShader;
                 }
                 else
                 {
-                    Context.PixelShader = sharedDeviceResource.BasicPixelShader;
+                    DeviceContext.PixelShader = sharedDeviceResource.BasicPixelShader;
                 }
             }
 
-            Context.PixelShaderConstantBuffers[0] = constantBufferPerLight;
-            Context.PixelShaderConstantBuffers[1] = constantBufferPerCamera;
-            Context.PixelShaderConstantBuffers[2] = constantBufferPcf;
-            Context.PixelShaderResources[0] = LinearDepthMap;
-            Context.PixelShaderSamplers[0] = LinearDepthMapSampler;
-            Context.PixelShaderSamplers[1] = ShadowMapSampler;
+            DeviceContext.PixelShaderConstantBuffers[0] = constantBufferPerLight;
+            DeviceContext.PixelShaderConstantBuffers[1] = constantBufferPerCamera;
+            DeviceContext.PixelShaderConstantBuffers[2] = constantBufferPcf;
+            DeviceContext.PixelShaderResources[0] = LinearDepthMap;
+            DeviceContext.PixelShaderSamplers[0] = LinearDepthMapSampler;
+            DeviceContext.PixelShaderSamplers[1] = ShadowMapSampler;
 
             for (int i = 0; i < shadowMaps.Length; i++)
             {
-                Context.PixelShaderResources[1 + i] = shadowMaps[i];
+                DeviceContext.PixelShaderResources[1 + i] = shadowMaps[i];
             }
         }
 

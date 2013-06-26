@@ -103,7 +103,7 @@ namespace Libra.Graphics.Toolkit
 
         DirtyFlags dirtyFlags;
 
-        public DeviceContext Context { get; private set; }
+        public DeviceContext DeviceContext { get; private set; }
 
         public int Seed
         {
@@ -193,21 +193,21 @@ namespace Libra.Graphics.Toolkit
 
         public bool Enabled { get; set; }
 
-        public SSAOMap(DeviceContext context)
+        public SSAOMap(DeviceContext deviceContext)
         {
-            if (context == null) throw new ArgumentNullException("context");
+            if (deviceContext == null) throw new ArgumentNullException("deviceContext");
 
-            Context = context;
+            DeviceContext = deviceContext;
 
-            sharedDeviceResource = context.Device.GetSharedResource<SSAOMap, SharedDeviceResource>();
+            sharedDeviceResource = deviceContext.Device.GetSharedResource<SSAOMap, SharedDeviceResource>();
 
-            fullScreenQuad = new FullScreenQuad(context);
+            fullScreenQuad = new FullScreenQuad(deviceContext);
             fullScreenQuad.ViewRayEnabled = true;
 
-            constantBufferPerObject = context.Device.CreateConstantBuffer();
+            constantBufferPerObject = deviceContext.Device.CreateConstantBuffer();
             constantBufferPerObject.Initialize<ParametersPerObject>();
 
-            constantBufferPerCamera = context.Device.CreateConstantBuffer();
+            constantBufferPerCamera = deviceContext.Device.CreateConstantBuffer();
             constantBufferPerCamera.Initialize<ParametersPerCamera>();
 
             seed = 0;
@@ -256,27 +256,27 @@ namespace Libra.Graphics.Toolkit
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerObject) != 0)
             {
-                constantBufferPerObject.SetData(Context, parametersPerObject);
+                constantBufferPerObject.SetData(DeviceContext, parametersPerObject);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerObject;
             }
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerCamera) != 0)
             {
-                constantBufferPerCamera.SetData(Context, parametersPerCamera);
+                constantBufferPerCamera.SetData(DeviceContext, parametersPerCamera);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerCamera;
             }
 
-            Context.PixelShaderConstantBuffers[0] = constantBufferPerObject;
-            Context.PixelShaderConstantBuffers[1] = constantBufferPerCamera;
-            Context.PixelShader = sharedDeviceResource.PixelShader;
+            DeviceContext.PixelShaderConstantBuffers[0] = constantBufferPerObject;
+            DeviceContext.PixelShaderConstantBuffers[1] = constantBufferPerCamera;
+            DeviceContext.PixelShader = sharedDeviceResource.PixelShader;
 
-            Context.PixelShaderResources[0] = LinearDepthMap;
-            Context.PixelShaderResources[1] = NormalMap;
-            Context.PixelShaderResources[2] = randomNormalMap;
-            Context.PixelShaderSamplers[0] = LinearDepthMapSampler;
-            Context.PixelShaderSamplers[1] = NormalMapSampler;
+            DeviceContext.PixelShaderResources[0] = LinearDepthMap;
+            DeviceContext.PixelShaderResources[1] = NormalMap;
+            DeviceContext.PixelShaderResources[2] = randomNormalMap;
+            DeviceContext.PixelShaderSamplers[0] = LinearDepthMapSampler;
+            DeviceContext.PixelShaderSamplers[1] = NormalMapSampler;
         }
 
         void SetRandomNormals()
@@ -301,12 +301,12 @@ namespace Libra.Graphics.Toolkit
                     normals[i] = new NormalizedByte4(normal);
                 }
 
-                randomNormalMap = Context.Device.CreateTexture2D();
+                randomNormalMap = DeviceContext.Device.CreateTexture2D();
                 randomNormalMap.Width = RandomNormalMapSize;
                 randomNormalMap.Height = RandomNormalMapSize;
                 randomNormalMap.Format = SurfaceFormat.NormalizedByte4;
                 randomNormalMap.Initialize();
-                randomNormalMap.SetData(Context, normals);
+                randomNormalMap.SetData(DeviceContext, normals);
 
 
                 dirtyFlags &= ~DirtyFlags.RandomNormals;

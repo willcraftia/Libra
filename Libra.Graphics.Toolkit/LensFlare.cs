@@ -93,7 +93,7 @@ namespace Libra.Graphics.Toolkit
 
         DirtyFlags dirtyFlags;
 
-        public DeviceContext Context { get; private set; }
+        public DeviceContext DeviceContext { get; private set; }
 
         public float QuerySize
         {
@@ -160,22 +160,22 @@ namespace Libra.Graphics.Toolkit
 
         public bool Enabled { get; set; }
 
-        public LensFlare(DeviceContext context)
+        public LensFlare(DeviceContext deviceContext)
         {
-            if (context == null) throw new ArgumentNullException("context");
+            if (deviceContext == null) throw new ArgumentNullException("deviceContext");
 
-            Context = context;
+            DeviceContext = deviceContext;
 
-            spriteBatch = new SpriteBatch(context);
+            spriteBatch = new SpriteBatch(deviceContext);
 
-            basicEffect = new BasicEffect(context.Device);
+            basicEffect = new BasicEffect(deviceContext.Device);
             basicEffect.View = Matrix.Identity;
             basicEffect.VertexColorEnabled = true;
 
-            vertexBuffer = context.Device.CreateVertexBuffer();
+            vertexBuffer = deviceContext.Device.CreateVertexBuffer();
             vertexBuffer.Initialize(VertexPositionColor.VertexDeclaration, 4);
 
-            occlusionQuery = context.Device.CreateOcclusionQuery();
+            occlusionQuery = deviceContext.Device.CreateOcclusionQuery();
             occlusionQuery.Initialize();
 
             vertices = new VertexPositionColor[4];
@@ -218,7 +218,7 @@ namespace Libra.Graphics.Toolkit
             Matrix.CreatePerspectiveFieldOfView(fov, aspectRatio, 0.001f, far, out localProjection);
 
             // near = 0.001 射影行列でライト位置をスクリーン座標へ射影。
-            var viewport = Context.Viewport;
+            var viewport = DeviceContext.Viewport;
             var projectedPosition = viewport.Project(lightPosition, localProjection, infiniteView, Matrix.Identity);
 
             if (projectedPosition.Z < 0 || 1 < projectedPosition.Z)
@@ -246,7 +246,7 @@ namespace Libra.Graphics.Toolkit
                 vertices[1].Position = new Vector3( querySize * 0.5f, -querySize * 0.5f, -1.0f);
                 vertices[2].Position = new Vector3(-querySize * 0.5f,  querySize * 0.5f, -1.0f);
                 vertices[3].Position = new Vector3( querySize * 0.5f,  querySize * 0.5f, -1.0f);
-                vertexBuffer.SetData(Context, vertices);
+                vertexBuffer.SetData(DeviceContext, vertices);
 
                 dirtyFlags &= ~DirtyFlags.VertexBuffer;
             }
@@ -266,7 +266,7 @@ namespace Libra.Graphics.Toolkit
                 occlusionAlpha = Math.Min(occlusionQuery.PixelCount / queryArea, 1);
             }
 
-            var viewport = Context.Viewport;
+            var viewport = DeviceContext.Viewport;
 
             Matrix world;
             Matrix.CreateTranslation(screenLightPosition.X, screenLightPosition.Y, 0, out world);
@@ -274,20 +274,20 @@ namespace Libra.Graphics.Toolkit
             Matrix projection;
             Matrix.CreateOrthographicOffCenter(0, viewport.Width, viewport.Height, 0, 0, 1, out projection);
 
-            Context.BlendState = ColorWriteDisable;
-            Context.DepthStencilState = DepthStencilState.DepthRead;
-            Context.RasterizerState = RasterizerState.CullNone;
-            Context.SetVertexBuffer(vertexBuffer);
-            Context.PrimitiveTopology = PrimitiveTopology.TriangleStrip;
+            DeviceContext.BlendState = ColorWriteDisable;
+            DeviceContext.DepthStencilState = DepthStencilState.DepthRead;
+            DeviceContext.RasterizerState = RasterizerState.CullNone;
+            DeviceContext.SetVertexBuffer(vertexBuffer);
+            DeviceContext.PrimitiveTopology = PrimitiveTopology.TriangleStrip;
 
             basicEffect.World = world;
             basicEffect.Projection = projection;
-            basicEffect.Apply(Context);
+            basicEffect.Apply(DeviceContext);
 
-            occlusionQuery.Begin(Context);
+            occlusionQuery.Begin(DeviceContext);
 
             // TriangleStrip で 3 * 2 の三角形を描画。
-            Context.Draw(6);
+            DeviceContext.Draw(6);
 
             occlusionQuery.End();
 
@@ -324,7 +324,7 @@ namespace Libra.Graphics.Toolkit
             if (lightBehindCamera || occlusionAlpha <= 0)
                 return;
 
-            var viewport = Context.Viewport;
+            var viewport = DeviceContext.Viewport;
             var screenCenter = new Vector2(viewport.Width / 2.0f, viewport.Height / 2.0f);
 
             var flareVector = screenCenter - screenLightPosition;
@@ -351,10 +351,10 @@ namespace Libra.Graphics.Toolkit
 
         void RestoreRenderStates()
         {
-            Context.BlendState = null;
-            Context.DepthStencilState = null;
-            Context.RasterizerState = null;
-            Context.PixelShaderSamplers[0] = null;
+            DeviceContext.BlendState = null;
+            DeviceContext.DepthStencilState = null;
+            DeviceContext.RasterizerState = null;
+            DeviceContext.PixelShaderSamplers[0] = null;
         }
 
         Texture2D GetTexture2D(ShaderResourceView texture)

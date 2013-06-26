@@ -83,7 +83,7 @@ namespace Libra.Graphics.Toolkit
         /// <summary>
         /// デバイス コンテキストを取得します。
         /// </summary>
-        public DeviceContext Context { get; private set; }
+        public DeviceContext DeviceContext { get; private set; }
 
         /// <summary>
         /// 一度に表示可能なパーティクルの最大数を取得または設定します。
@@ -279,12 +279,12 @@ namespace Libra.Graphics.Toolkit
             set { particleEffect.Projection = value; }
         }
 
-        public ParticleSystem(DeviceContext context, int maxParticleCount)
+        public ParticleSystem(DeviceContext deviceContext, int maxParticleCount)
         {
-            if (context == null) throw new ArgumentNullException("context");
+            if (deviceContext == null) throw new ArgumentNullException("deviceContext");
             if (maxParticleCount < 1) throw new ArgumentOutOfRangeException("maxParticleCount");
 
-            Context = context;
+            DeviceContext = deviceContext;
             MaxParticleCount = maxParticleCount;
 
             EmitterVelocitySensitivity = 1;
@@ -294,7 +294,7 @@ namespace Libra.Graphics.Toolkit
             MaxVerticalVelocity = 0;
             BlendState = BlendState.NonPremultiplied;
 
-            particleEffect = new ParticleEffect(context.Device);
+            particleEffect = new ParticleEffect(deviceContext.Device);
 
             particles = new ParticleVertex[MaxParticleCount * 4];
 
@@ -306,7 +306,7 @@ namespace Libra.Graphics.Toolkit
                 particles[i * 4 + 3].Corner = new Short2(-1, 1);
             }
 
-            vertexBuffer = context.Device.CreateVertexBuffer();
+            vertexBuffer = deviceContext.Device.CreateVertexBuffer();
             vertexBuffer.Usage = ResourceUsage.Dynamic;
             vertexBuffer.Initialize(ParticleVertex.VertexDeclaration, MaxParticleCount * 4);
 
@@ -323,7 +323,7 @@ namespace Libra.Graphics.Toolkit
                 indices[i * 6 + 5] = (ushort) (i * 4 + 3);
             }
 
-            indexBuffer = context.Device.CreateIndexBuffer();
+            indexBuffer = deviceContext.Device.CreateIndexBuffer();
             indexBuffer.Usage = ResourceUsage.Immutable;
             indexBuffer.Initialize(indices);
 
@@ -360,35 +360,35 @@ namespace Libra.Graphics.Toolkit
 
             if (firstActiveParticle != firstFreeParticle)
             {
-                Context.BlendState = BlendState;
-                Context.DepthStencilState = DepthStencilState.DepthRead;
+                DeviceContext.BlendState = BlendState;
+                DeviceContext.DepthStencilState = DepthStencilState.DepthRead;
 
-                Context.PixelShaderResources[0] = Texture;
-                Context.PixelShaderSamplers[0] = SamplerState.LinearClamp;
+                DeviceContext.PixelShaderResources[0] = Texture;
+                DeviceContext.PixelShaderSamplers[0] = SamplerState.LinearClamp;
 
-                Context.PrimitiveTopology = PrimitiveTopology.TriangleList;
-                Context.SetVertexBuffer(0, vertexBuffer);
-                Context.IndexBuffer = indexBuffer;
+                DeviceContext.PrimitiveTopology = PrimitiveTopology.TriangleList;
+                DeviceContext.SetVertexBuffer(0, vertexBuffer);
+                DeviceContext.IndexBuffer = indexBuffer;
 
                 particleEffect.CurrentTime = currentTime;
-                particleEffect.Apply(Context);
+                particleEffect.Apply(DeviceContext);
 
                 if (firstActiveParticle < firstFreeParticle)
                 {
-                    Context.DrawIndexed((firstFreeParticle - firstActiveParticle) * 6, firstActiveParticle * 6);
+                    DeviceContext.DrawIndexed((firstFreeParticle - firstActiveParticle) * 6, firstActiveParticle * 6);
                 }
                 else
                 {
-                    Context.DrawIndexed((MaxParticleCount - firstActiveParticle) * 6, firstActiveParticle * 6);
+                    DeviceContext.DrawIndexed((MaxParticleCount - firstActiveParticle) * 6, firstActiveParticle * 6);
 
                     if (firstFreeParticle > 0)
                     {
-                        Context.DrawIndexed(firstFreeParticle * 6);
+                        DeviceContext.DrawIndexed(firstFreeParticle * 6);
                     }
                 }
 
-                Context.BlendState = null;
-                Context.DepthStencilState = null;
+                DeviceContext.BlendState = null;
+                DeviceContext.DepthStencilState = null;
             }
 
             drawCounter++;
@@ -400,7 +400,7 @@ namespace Libra.Graphics.Toolkit
 
             if (firstNewParticle < firstFreeParticle)
             {
-                vertexBuffer.SetData(Context,
+                vertexBuffer.SetData(DeviceContext,
                     firstNewParticle * stride * 4,
                     particles,
                     firstNewParticle * 4,
@@ -409,7 +409,7 @@ namespace Libra.Graphics.Toolkit
             }
             else
             {
-                vertexBuffer.SetData(Context,
+                vertexBuffer.SetData(DeviceContext,
                     firstNewParticle * stride * 4,
                     particles,
                     firstNewParticle * 4,
@@ -418,7 +418,7 @@ namespace Libra.Graphics.Toolkit
 
                 if (firstFreeParticle > 0)
                 {
-                    vertexBuffer.SetData(Context,
+                    vertexBuffer.SetData(DeviceContext,
                         firstNewParticle * stride * 4,
                         particles,
                         0,
