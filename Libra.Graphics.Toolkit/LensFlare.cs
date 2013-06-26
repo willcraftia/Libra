@@ -242,10 +242,12 @@ namespace Libra.Graphics.Toolkit
         {
             if ((dirtyFlags & DirtyFlags.VertexBuffer) != 0)
             {
-                vertices[0].Position = new Vector3(-querySize * 0.5f, -querySize * 0.5f, -1.0f);
-                vertices[1].Position = new Vector3( querySize * 0.5f, -querySize * 0.5f, -1.0f);
-                vertices[2].Position = new Vector3(-querySize * 0.5f,  querySize * 0.5f, -1.0f);
-                vertices[3].Position = new Vector3( querySize * 0.5f,  querySize * 0.5f, -1.0f);
+                // 頂点順序に注意。
+                vertices[0].Position = new Vector3(-querySize * 0.5f,  querySize * 0.5f, -1.0f);
+                vertices[1].Position = new Vector3( querySize * 0.5f,  querySize * 0.5f, -1.0f);
+                vertices[2].Position = new Vector3(-querySize * 0.5f, -querySize * 0.5f, -1.0f);
+                vertices[3].Position = new Vector3( querySize * 0.5f, -querySize * 0.5f, -1.0f);
+                
                 vertexBuffer.SetData(DeviceContext, vertices);
 
                 dirtyFlags &= ~DirtyFlags.VertexBuffer;
@@ -276,7 +278,6 @@ namespace Libra.Graphics.Toolkit
 
             DeviceContext.BlendState = ColorWriteDisable;
             DeviceContext.DepthStencilState = DepthStencilState.DepthRead;
-            DeviceContext.RasterizerState = RasterizerState.CullNone;
             DeviceContext.SetVertexBuffer(vertexBuffer);
             DeviceContext.PrimitiveTopology = PrimitiveTopology.TriangleStrip;
 
