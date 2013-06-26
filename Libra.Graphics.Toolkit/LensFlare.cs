@@ -198,15 +198,27 @@ namespace Libra.Graphics.Toolkit
             var infiniteView = view;
             infiniteView.Translation = Vector3.Zero;
 
-            // 参考にした XNA Lens Flare サンプルでは調整無しだが、それは near = 0.1 であるが故であり、
-            // それなりの距離 (near = 1 など) を置くと、単位ベクトルであるライト方向を射影した場合に
-            // 射影空間の外に出てしまう (0 から near の間に射影されてしまう)。
-            // このため、near だけカメラ奥へ押し出した後に射影する (射影空間に収まる位置で射影する)。
-            var lightPosition = -lightDirection;
-            lightPosition.Z -= projection.PerspectiveNearClipDistance;
+            // 参考にした XNA Lens Flare サンプルでは調整無しだが、
+            // それは near = 0.1 であるが故であり、
+            // それなりの距離 (near = 1 など) を置くと、
+            // 単位ベクトルであるライト方向の射影が射影領域の外に出てしまう (0 から near の間に射影されてしまう)。
+            // このため、常にカメラの外にライトがあると見なされ、レンズ フレアは描画されない。
+            // そこで、near = 0 とした射影行列を構築し、これに基づいてライトの射影を行う。
 
+            var lightPosition = -lightDirection;
+
+            // 射影行列から情報を抽出。
+            float fov = projection.PerspectiveFieldOfView;
+            float aspectRatio = projection.PerspectiveAspectRatio;
+            float far = projection.PerspectiveFarClipDistance;
+
+            // near = 0 の射影行列を再構築。
+            Matrix nearZeroProjection;
+            Matrix.CreatePerspectiveFieldOfView(fov, aspectRatio, 0, far, out nearZeroProjection);
+
+            // near = 0 射影行列でライト位置をスクリーン座標へ射影。
             var viewport = Context.Viewport;
-            var projectedPosition = viewport.Project(lightPosition, projection, infiniteView, Matrix.Identity);
+            var projectedPosition = viewport.Project(lightPosition, nearZeroProjection, infiniteView, Matrix.Identity);
 
             if (projectedPosition.Z < 0 || 1 < projectedPosition.Z)
             {
@@ -301,7 +313,7 @@ namespace Libra.Graphics.Toolkit
 
             var color = Color.White * occlusionAlpha;
 
-            spriteBatch.Begin();
+            spriteBatch.Begin(SpriteSortMode.Immediate);
             spriteBatch.Draw(GlowTexture, screenLightPosition, null, color, 0, glowOrigin, glowScale);
             spriteBatch.End();
         }
