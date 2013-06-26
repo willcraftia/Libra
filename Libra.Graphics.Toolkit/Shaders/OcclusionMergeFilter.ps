@@ -1,0 +1,15 @@
+Texture2D<float> Texture            : register(t0);
+Texture2D<float> OtherOcclusionMap  : register(t1);
+
+SamplerState TextureSampler             : register(s0);
+SamplerState OtherOcclusionMapSampler   : register(s1);
+
+float4 PS(float2 texCoord : TEXCOORD0) : SV_Target0
+{
+    float occlusion0 = Texture.SampleLevel(TextureSampler, texCoord, 0);
+    float occlusion1 = OtherOcclusionMap.SampleLevel(OtherOcclusionMapSampler, texCoord, 0);
+
+    float merge = min(occlusion0, occlusion1);
+
+    return float4(merge, 0, 0, 1);
+}

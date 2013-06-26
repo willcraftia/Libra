@@ -53,6 +53,7 @@
     <Compile Include="LensFlare.cs" />
     <Compile Include="LinearFogDepthMapEffect.cs" />
     <Compile Include="NormalBilateralFilter.cs" />
+    <Compile Include="OcclusionMergeFilter.cs" />
     <Compile Include="ParticleEffect.cs" />
     <Compile Include="ParticleEmitter.cs" />
     <Compile Include="ParticleSystem.cs" />
@@ -185,6 +186,7 @@
     <None Include="Shaders\Compiled\NormalEdgeDetectFilterPS.bin" />
     <None Include="Shaders\Compiled\OcclusionCombineFilterPS.bin" />
     <None Include="Shaders\Compiled\OcclusionMapColorFilterPS.bin" />
+    <None Include="Shaders\Compiled\OcclusionMergeFilterPS.bin" />
     <None Include="Shaders\Compiled\ParticlePS.bin" />
     <None Include="Shaders\Compiled\ParticleVS.bin" />
     <None Include="Shaders\Compiled\ScanlineFilterPS.bin" />
@@ -208,6 +210,7 @@
     <None Include="Shaders\LinearFogDepthMap.vs" />
     <None Include="Shaders\NormalBilateralFilter.ps" />
     <None Include="Shaders\NormalMap.ps" />
+    <None Include="Shaders\OcclusionMergeFilter.ps" />
     <None Include="Shaders\Particle.ps" />
     <None Include="Shaders\Particle.vs" />
     <None Include="Shaders\DepthVarianceMap.ps" />

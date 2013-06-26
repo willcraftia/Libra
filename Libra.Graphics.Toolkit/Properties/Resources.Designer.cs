@@ -333,6 +333,13 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
+        internal static byte[] OcclusionMergeFilterPS {
+            get {
+                object obj = ResourceManager.GetObject("OcclusionMergeFilterPS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
         internal static byte[] ParticlePS {
             get {
                 object obj = ResourceManager.GetObject("ParticlePS", resourceCulture);

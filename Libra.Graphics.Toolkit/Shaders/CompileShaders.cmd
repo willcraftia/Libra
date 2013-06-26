@@ -30,6 +30,7 @@ call :CompilePS NormalEdgeDetectFilter PS %ps_profile%
 call :CompilePS NegativeFilter PS %ps_profile%
 call :CompilePS OcclusionCombineFilter PS %ps_profile%
 call :CompilePS OcclusionMapColorFilter PS %ps_profile%
+call :CompilePS OcclusionMergeFilter PS %ps_profile%
 call :CompilePS RadialFilter PS %ps_profile%
 call :CompilePS ScanlineFilter PS %ps_profile%
 call :CompilePS UpFilter PS %ps_profile%
