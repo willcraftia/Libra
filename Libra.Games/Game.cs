@@ -76,6 +76,8 @@ namespace Libra.Games
 
         bool isExiting;
 
+        bool isExited;
+
         bool updatedOnce;
 
         bool suppressDraw;
@@ -202,10 +204,10 @@ namespace Libra.Games
 
         public void Exit()
         {
-            // プラットフォームへの終了命令を送信するのみ。
-            // Existing イベントは、プラットフォームからの Existing イベント発生に呼応させる。
+            isExiting = true;
 
-            gamePlatform.Exit();
+            if (Exiting != null)
+                Exiting(this, EventArgs.Empty);
         }
 
         public void Run()
@@ -236,7 +238,7 @@ namespace Libra.Games
             // SharpDX.Toolkit の実装が XNA の設計と同一と思われるため、これを基本として実装。
             // ただし、一部、XNA と振る舞いが異なると思われる点を修正。
 
-            if (isExiting)
+            if (isExited)
                 return;
 
             if (!IsActive)
@@ -293,7 +295,7 @@ namespace Libra.Games
             for (int i = 0; i < updateCount; i++)
             {
                 if (isExiting)
-                    return;
+                    break;
 
                 try
                 {
@@ -336,6 +338,15 @@ namespace Libra.Games
                 {
                     drawElapsedGameTime = TimeSpan.Zero;
                 }
+            }
+
+            if (isExiting)
+            {
+                UnloadContent();
+
+                gamePlatform.Exit();
+                
+                isExited = true;
             }
         }
 
@@ -445,12 +456,6 @@ namespace Libra.Games
 
         protected virtual void OnExiting(object sender, EventArgs e)
         {
-            isExiting = true;
-
-            if (Exiting != null)
-                Exiting(sender, e);
-
-            UnloadContent();
         }
 
         void OnWindowClientSizeChanged(object sender, EventArgs e)
