@@ -143,8 +143,6 @@ namespace Libra.Graphics
 
             AlphaBlend = new BlendState
             {
-                ColorSourceBlend = Blend.One,
-                AlphaSourceBlend = Blend.One,
                 ColorDestinationBlend = Blend.InverseSourceAlpha,
                 AlphaDestinationBlend = Blend.InverseSourceAlpha,
                 Name = "AlphaBlend"
@@ -161,10 +159,6 @@ namespace Libra.Graphics
 
             Opaque = new BlendState
             {
-                ColorSourceBlend = Blend.One,
-                AlphaSourceBlend = Blend.One,
-                ColorDestinationBlend = Blend.Zero,
-                AlphaDestinationBlend = Blend.Zero,
                 Name = "Opaque"
             };
         }
@@ -173,8 +167,8 @@ namespace Libra.Graphics
         {
             colorSourceBlend = Blend.One;
             alphaSourceBlend = Blend.One;
-            colorDestinationBlend = Blend.One;
-            alphaDestinationBlend = Blend.One;
+            colorDestinationBlend = Blend.Zero;
+            alphaDestinationBlend = Blend.Zero;
 
             colorBlendFunction = BlendFunction.Add;
             alphaBlendFunction = BlendFunction.Add;
