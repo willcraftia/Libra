@@ -8,13 +8,41 @@ namespace Libra.Graphics
 {
     public sealed class BlendState : State
     {
-        public static readonly BlendState Additive;
+        public static readonly BlendState Additive = new BlendState
+        {
+            ColorSourceBlend = Blend.SourceAlpha,
+            AlphaSourceBlend = Blend.SourceAlpha,
+            ColorDestinationBlend = Blend.One,
+            AlphaDestinationBlend = Blend.One,
+            Name = "Additive"
+        };
 
-        public static readonly BlendState AlphaBlend;
+        public static readonly BlendState AlphaBlend = new BlendState
+        {
+            ColorDestinationBlend = Blend.InverseSourceAlpha,
+            AlphaDestinationBlend = Blend.InverseSourceAlpha,
+            Name = "AlphaBlend"
+        };
 
-        public static readonly BlendState NonPremultiplied;
+        public static readonly BlendState NonPremultiplied = new BlendState
+        {
+            ColorSourceBlend = Blend.SourceAlpha,
+            AlphaSourceBlend = Blend.SourceAlpha,
+            ColorDestinationBlend = Blend.InverseSourceAlpha,
+            AlphaDestinationBlend = Blend.InverseSourceAlpha,
+            Name = "NonPremultiplied"
+        };
 
-        public static readonly BlendState Opaque;
+        public static readonly BlendState Opaque = new BlendState
+        {
+            Name = "Opaque"
+        };
+
+        public static readonly BlendState ColorWriteDisable = new BlendState
+        {
+            ColorWriteChannels = ColorWriteChannels.None,
+            Name = "ColorWriteDisable"
+        };
 
         Color blendFactor;
 
@@ -128,39 +156,6 @@ namespace Libra.Graphics
                 AssertNotFrozen();
                 multiSampleMask = value;
             }
-        }
-
-        static BlendState()
-        {
-            Additive = new BlendState
-            {
-                ColorSourceBlend = Blend.SourceAlpha,
-                AlphaSourceBlend = Blend.SourceAlpha,
-                ColorDestinationBlend = Blend.One,
-                AlphaDestinationBlend = Blend.One,
-                Name = "Additive"
-            };
-
-            AlphaBlend = new BlendState
-            {
-                ColorDestinationBlend = Blend.InverseSourceAlpha,
-                AlphaDestinationBlend = Blend.InverseSourceAlpha,
-                Name = "AlphaBlend"
-            };
-
-            NonPremultiplied = new BlendState
-            {
-                ColorSourceBlend = Blend.SourceAlpha,
-                AlphaSourceBlend = Blend.SourceAlpha,
-                ColorDestinationBlend = Blend.InverseSourceAlpha,
-                AlphaDestinationBlend = Blend.InverseSourceAlpha,
-                Name = "NonPremultiplied"
-            };
-
-            Opaque = new BlendState
-            {
-                Name = "Opaque"
-            };
         }
 
         public BlendState()
