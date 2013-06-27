@@ -24,11 +24,36 @@ namespace Libra.Graphics
         /// </remarks>
         public const byte DefaultStencilWriteMask = 0xff;
 
-        public static readonly DepthStencilState Default;
+        public static readonly DepthStencilState Default = new DepthStencilState
+        {
+            Name = "Default"
+        };
 
-        public static readonly DepthStencilState DepthRead;
-        
-        public static readonly DepthStencilState None;
+        public static readonly DepthStencilState DepthRead = new DepthStencilState
+        {
+            DepthWriteEnable = false,
+            Name = "DepthRead"
+        };
+
+        public static readonly DepthStencilState DepthReadWriteLessEqual = new DepthStencilState
+        {
+            DepthFunction = ComparisonFunction.LessEqual,
+            Name = "DepthReadWriteLessEqual"
+        };
+
+        public static readonly DepthStencilState DepthReadLessEqual = new DepthStencilState
+        {
+            DepthWriteEnable = false,
+            DepthFunction = ComparisonFunction.LessEqual,
+            Name = "DepthReadLessEqual"
+        };
+
+        public static readonly DepthStencilState None = new DepthStencilState
+        {
+            DepthEnable = false,
+            DepthWriteEnable = false,
+            Name = "None"
+        };
 
         bool depthEnable;
 
@@ -210,30 +235,6 @@ namespace Libra.Graphics
                 AssertNotFrozen();
                 referenceStencil = value;
             }
-        }
-
-        static DepthStencilState()
-        {
-            Default = new DepthStencilState
-            {
-                DepthEnable = true,
-                DepthWriteEnable = true,
-                Name = "Default"
-            };
-
-            DepthRead = new DepthStencilState
-            {
-                DepthEnable = true,
-                DepthWriteEnable = false,
-                Name = "DepthRead"
-            };
-
-            None = new DepthStencilState
-            {
-                DepthEnable = false,
-                DepthWriteEnable = false,
-                Name = "None"
-            };
         }
 
         public DepthStencilState()
