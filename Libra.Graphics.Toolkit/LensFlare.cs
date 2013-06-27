@@ -52,11 +52,6 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        static readonly BlendState ColorWriteDisable = new BlendState
-        {
-            ColorWriteChannels = ColorWriteChannels.None
-        };
-
         SpriteBatch spriteBatch;
 
         BasicEffect basicEffect;
@@ -242,12 +237,11 @@ namespace Libra.Graphics.Toolkit
         {
             if ((dirtyFlags & DirtyFlags.VertexBuffer) != 0)
             {
-                // 頂点順序に注意。
-                vertices[0].Position = new Vector3(-querySize * 0.5f,  querySize * 0.5f, -1.0f);
-                vertices[1].Position = new Vector3( querySize * 0.5f,  querySize * 0.5f, -1.0f);
-                vertices[2].Position = new Vector3(-querySize * 0.5f, -querySize * 0.5f, -1.0f);
-                vertices[3].Position = new Vector3( querySize * 0.5f, -querySize * 0.5f, -1.0f);
-                
+                vertices[0].Position = new Vector3(-querySize * 0.5f, -querySize * 0.5f, -1.0f);
+                vertices[1].Position = new Vector3( querySize * 0.5f, -querySize * 0.5f, -1.0f);
+                vertices[2].Position = new Vector3(-querySize * 0.5f,  querySize * 0.5f, -1.0f);
+                vertices[3].Position = new Vector3( querySize * 0.5f,  querySize * 0.5f, -1.0f);
+
                 vertexBuffer.SetData(DeviceContext, vertices);
 
                 dirtyFlags &= ~DirtyFlags.VertexBuffer;
@@ -276,8 +270,11 @@ namespace Libra.Graphics.Toolkit
             Matrix projection;
             Matrix.CreateOrthographicOffCenter(0, viewport.Width, viewport.Height, 0, 0, 1, out projection);
 
-            DeviceContext.BlendState = ColorWriteDisable;
-            DeviceContext.DepthStencilState = DepthStencilState.DepthRead;
+            // レンダ ターゲットには書き込まない。
+            DeviceContext.BlendState = BlendState.ColorWriteDisable;
+            // 遠クリップ面にクエリのためのメッシュを描画するため、
+            // LessEqual でなければ描画されない。
+            DeviceContext.DepthStencilState = DepthStencilState.DepthReadLessEqual;
             DeviceContext.SetVertexBuffer(vertexBuffer);
             DeviceContext.PrimitiveTopology = PrimitiveTopology.TriangleStrip;
 
@@ -287,8 +284,8 @@ namespace Libra.Graphics.Toolkit
 
             occlusionQuery.Begin(DeviceContext);
 
-            // TriangleStrip で 3 * 2 の三角形を描画。
-            DeviceContext.Draw(6);
+            // TriangleStrip の場合でも単に利用する頂点数を指定するのみ。
+            DeviceContext.Draw(4);
 
             occlusionQuery.End();
 
