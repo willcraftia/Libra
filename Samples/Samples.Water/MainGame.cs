@@ -512,13 +512,19 @@ namespace Samples.Water
             Plane.Transform(ref localeFluidBackPlane, ref fluidWorld, out fluidBackPlane);
 
             // ノイズ設定。
+            var fluidHeightPerlin = new Perlin { Seed = 100 };
+            fluidHeightPerlin.Initialize();
+
+            var cloudVolumePerlin = new Perlin { Seed = 200 };
+            cloudVolumePerlin.Initialize();
+
             fluidHeightNoise = new ScaleBias
             {
                 Scale = 2.0f,
                 Bias = -1.0f,
                 Source = new SumFractal
                 {
-                    Source = new Perlin { Seed = 100 }
+                    Source = fluidHeightPerlin
                 }
             };
 
@@ -529,11 +535,11 @@ namespace Samples.Water
                 //{
                 //    OctaveCount = 4,
                 //    Lacunarity = 1,
-                //    Source = new Perlin { Seed = 200 }
+                //    Source = cloudVolumePerlin
                 //}
                 Source = new SumFractal
                 {
-                    Source = new Perlin { Seed = 200 }
+                    Source = cloudVolumePerlin
                 }
             };
 
