@@ -32,6 +32,12 @@ namespace Libra.Graphics
 
         public int AlignedByteOffset;
 
+        // TODO
+        //
+        // フォーマットから自動算出して良いかどうかが問題。
+        // シェーダで明確に対応するスカラー型がない場合 (Short など)、
+        // シェーダ側の定義に従ったサイズが指定できるべきであると思われる。
+
         public int SizeInBytes
         {
             get { return FormatHelper.SizeInBytes(Format); }

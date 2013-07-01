@@ -41,6 +41,7 @@ namespace Libra.Graphics
 
             // SurfaceFormat に無いもののみ登録。
             sizeInBits[(int) VertexFormat.Byte4] = 32;
+            sizeInBits[(int) VertexFormat.Int] = 32;
             sizeInBits[(int) VertexFormat.Short] = 16;
             sizeInBits[(int) VertexFormat.Short2] = 32;
             sizeInBits[(int) VertexFormat.Short4] = 64;

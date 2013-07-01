@@ -37,6 +37,10 @@ namespace Libra.Graphics
         Byte4               = 30,
 
         // XNA には無いが追加する。
+        // DXGI_FORMAT_R32_SINT
+        Int                 = 43,
+
+        // XNA には無いが追加する。
         // DXGI_FORMAT_R16_SINT
         Short               = 59,
 
