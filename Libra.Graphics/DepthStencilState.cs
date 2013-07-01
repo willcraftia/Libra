@@ -55,33 +55,35 @@ namespace Libra.Graphics
             Name = "None"
         };
 
-        bool depthEnable;
+        bool depthEnable = true;
 
-        bool depthWriteEnable;
+        bool depthWriteEnable = true;
 
-        ComparisonFunction depthFunction;
+        // XNA では ComparisonFunction.LessEqual。
+        // ここでは D3D11 のデフォルトに従う。
+        ComparisonFunction depthFunction = ComparisonFunction.Less;
 
-        bool stencilEnable;
+        bool stencilEnable = false;
 
-        byte stencilReadMask;
+        byte stencilReadMask = DefaultStencilReadMask;
 
-        byte stencilWriteMask;
+        byte stencilWriteMask = DefaultStencilWriteMask;
 
-        StencilOperation frontFaceStencilFail;
+        StencilOperation frontFaceStencilFail = StencilOperation.Keep;
 
-        StencilOperation frontFaceStencilDepthFail;
+        StencilOperation frontFaceStencilDepthFail = StencilOperation.Keep;
 
-        StencilOperation frontFaceStencilPass;
+        StencilOperation frontFaceStencilPass = StencilOperation.Keep;
 
-        ComparisonFunction frontFaceStencilFunction;
+        ComparisonFunction frontFaceStencilFunction = ComparisonFunction.Always;
 
-        StencilOperation backFaceStencilFail;
+        StencilOperation backFaceStencilFail = StencilOperation.Keep;
 
-        StencilOperation backFaceStencilDepthFail;
+        StencilOperation backFaceStencilDepthFail = StencilOperation.Keep;
 
-        StencilOperation backFaceStencilPass;
+        StencilOperation backFaceStencilPass = StencilOperation.Keep;
 
-        ComparisonFunction backFaceStencilFunction;
+        ComparisonFunction backFaceStencilFunction = ComparisonFunction.Always;
 
         int referenceStencil;
 
@@ -235,26 +237,6 @@ namespace Libra.Graphics
                 AssertNotFrozen();
                 referenceStencil = value;
             }
-        }
-
-        public DepthStencilState()
-        {
-            depthEnable = true;
-            depthWriteEnable = true;
-            // XNA では ComparisonFunction.LessEqual。
-            // ここでは D3D11 のデフォルトに従う。
-            depthFunction = ComparisonFunction.Less;
-            stencilEnable = false;
-            stencilReadMask = DefaultStencilReadMask;
-            stencilWriteMask = DefaultStencilWriteMask;
-            frontFaceStencilFail = StencilOperation.Keep;
-            backFaceStencilFail = StencilOperation.Keep;
-            frontFaceStencilDepthFail = StencilOperation.Keep;
-            backFaceStencilDepthFail = StencilOperation.Keep;
-            frontFaceStencilPass = StencilOperation.Keep;
-            backFaceStencilPass = StencilOperation.Keep;
-            frontFaceStencilFunction = ComparisonFunction.Always;
-            backFaceStencilFunction = ComparisonFunction.Always;
         }
     }
 }

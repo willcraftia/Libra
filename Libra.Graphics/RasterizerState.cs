@@ -8,17 +8,33 @@ namespace Libra.Graphics
 {
     public sealed class RasterizerState : State
     {
-        public static readonly RasterizerState CullNone;
+        public static readonly RasterizerState CullNone = new RasterizerState
+        {
+            CullMode = CullMode.None,
+            Name = "CullMode"
+        };
 
-        public static readonly RasterizerState CullFront;
+        public static readonly RasterizerState CullFront = new RasterizerState
+        {
+            CullMode = CullMode.Front,
+            Name = "CullFront"
+        };
 
-        public static readonly RasterizerState CullBack;
+        public static readonly RasterizerState CullBack = new RasterizerState
+        {
+            Name = "CullBack"
+        };
 
-        public static readonly RasterizerState Wireframe;
+        public static readonly RasterizerState Wireframe = new RasterizerState
+        {
+            FillMode = FillMode.Wireframe,
+            CullMode = CullMode.None,
+            Name = "Wireframe"
+        };
 
-        FillMode fillMode;
+        FillMode fillMode = FillMode.Solid;
 
-        CullMode cullMode;
+        CullMode cullMode = CullMode.Back;
 
         int depthBias;
 
@@ -26,7 +42,7 @@ namespace Libra.Graphics
 
         float depthBiasClamp;
 
-        bool depthClipEnable;
+        bool depthClipEnable = true;
 
         bool scissorEnable;
 
@@ -122,47 +138,6 @@ namespace Libra.Graphics
                 AssertNotFrozen();
                 antialiasedLineEnable = value;
             }
-        }
-
-        static RasterizerState()
-        {
-            CullNone = new RasterizerState
-            {
-                CullMode = CullMode.None,
-                Name = "CullMode"
-            };
-
-            CullFront = new RasterizerState
-            {
-                CullMode = CullMode.Front,
-                Name = "CullFront"
-            };
-
-            CullBack = new RasterizerState
-            {
-                CullMode = CullMode.Back,
-                Name = "CullBack"
-            };
-
-            Wireframe = new RasterizerState
-            {
-                FillMode = FillMode.Wireframe,
-                CullMode = CullMode.None,
-                Name = "Wireframe"
-            };
-        }
-
-        public RasterizerState()
-        {
-            FillMode = FillMode.Solid;
-            CullMode = CullMode.Back;
-            DepthBias = 0;
-            SlopeScaleDepthBias = 0;
-            DepthBiasClamp = 0;
-            DepthClipEnable = true;
-            ScissorEnable = false;
-            MultisampleEnable = false;
-            AntialiasedLineEnable = false;
         }
     }
 }

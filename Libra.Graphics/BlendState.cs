@@ -44,23 +44,25 @@ namespace Libra.Graphics
             Name = "ColorWriteDisable"
         };
 
-        Color blendFactor;
+        Color blendFactor = Color.White;
 
-        Blend colorSourceBlend;
+        Blend colorSourceBlend = Blend.One;
 
-        Blend colorDestinationBlend;
+        Blend colorDestinationBlend = Blend.Zero;
 
-        BlendFunction colorBlendFunction;
+        BlendFunction colorBlendFunction = BlendFunction.Add;
 
-        Blend alphaSourceBlend;
+        Blend alphaSourceBlend = Blend.One;
 
-        Blend alphaDestinationBlend;
+        Blend alphaDestinationBlend = Blend.Zero;
 
-        BlendFunction alphaBlendFunction;
+        BlendFunction alphaBlendFunction = BlendFunction.Add;
 
-        ColorWriteChannels colorWriteChannels;
+        // XNA のドキュメントではデフォルト None らしいが、
+        // DirectXTK では All 固定で設定している。
+        ColorWriteChannels colorWriteChannels = ColorWriteChannels.All;
 
-        int multiSampleMask;
+        int multiSampleMask = -1;
 
         public Color BlendFactor
         {
@@ -142,12 +144,6 @@ namespace Libra.Graphics
             }
         }
 
-        //public ColorWriteChannels ColorWriteChannels1 { get; set; }
-
-        //public ColorWriteChannels ColorWriteChannels2 { get; set; }
-
-        //public ColorWriteChannels ColorWriteChannels3 { get; set; }
-
         public int MultiSampleMask
         {
             get { return multiSampleMask; }
@@ -156,27 +152,6 @@ namespace Libra.Graphics
                 AssertNotFrozen();
                 multiSampleMask = value;
             }
-        }
-
-        public BlendState()
-        {
-            colorSourceBlend = Blend.One;
-            alphaSourceBlend = Blend.One;
-            colorDestinationBlend = Blend.Zero;
-            alphaDestinationBlend = Blend.Zero;
-
-            colorBlendFunction = BlendFunction.Add;
-            alphaBlendFunction = BlendFunction.Add;
-
-            // XNA のドキュメントではデフォルト None らしいが、
-            // DirectXTK では All 固定で設定している。
-            colorWriteChannels = ColorWriteChannels.All;
-
-            // TODO
-            // これの意味がわからない。
-            multiSampleMask = -1;
-
-            blendFactor = Color.White;
         }
     }
 }

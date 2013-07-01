@@ -8,43 +8,94 @@ namespace Libra.Graphics
 {
     public sealed class SamplerState : State
     {
-        public static readonly SamplerState AnisotropicClamp;
+        public static readonly SamplerState AnisotropicClamp = new SamplerState
+        {
+            Filter = TextureFilter.Anisotropic,
+            Name = "AnisotropicClamp"
+        };
 
-        public static readonly SamplerState AnisotropicWrap;
+        public static readonly SamplerState AnisotropicWrap = new SamplerState
+        {
+            Filter = TextureFilter.Anisotropic,
+            AddressU = TextureAddressMode.Wrap,
+            AddressV = TextureAddressMode.Wrap,
+            AddressW = TextureAddressMode.Wrap,
+            Name = "AnisotropicWrap"
+        };
 
-        public static readonly SamplerState AnisotropicMirror;
+        public static readonly SamplerState AnisotropicMirror = new SamplerState
+        {
+            Filter = TextureFilter.Anisotropic,
+            AddressU = TextureAddressMode.Mirror,
+            AddressV = TextureAddressMode.Mirror,
+            AddressW = TextureAddressMode.Mirror,
+            Name = "AnisotropicMirror"
+        };
 
-        public static readonly SamplerState LinearClamp;
+        public static readonly SamplerState LinearClamp = new SamplerState
+        {
+            Name = "LinearClamp"
+        };
 
-        public static readonly SamplerState LinearWrap;
+        public static readonly SamplerState LinearWrap = new SamplerState
+        {
+            AddressU = TextureAddressMode.Wrap,
+            AddressV = TextureAddressMode.Wrap,
+            AddressW = TextureAddressMode.Wrap,
+            Name = "LinearWrap"
+        };
 
-        public static readonly SamplerState LinearMirror;
+        public static readonly SamplerState LinearMirror = new SamplerState
+        {
+            AddressU = TextureAddressMode.Mirror,
+            AddressV = TextureAddressMode.Mirror,
+            AddressW = TextureAddressMode.Mirror,
+            Name = "LinearMirror"
+        };
 
-        public static readonly SamplerState PointClamp;
+        public static readonly SamplerState PointClamp = new SamplerState
+        {
+            Filter = TextureFilter.MinMagMipPoint,
+            Name = "PointClamp"
+        };
 
-        public static readonly SamplerState PointWrap;
+        public static readonly SamplerState PointWrap = new SamplerState
+        {
+            Filter = TextureFilter.MinMagMipPoint,
+            AddressU = TextureAddressMode.Wrap,
+            AddressV = TextureAddressMode.Wrap,
+            AddressW = TextureAddressMode.Wrap,
+            Name = "PointWrap"
+        };
 
-        public static readonly SamplerState PointMirror;
+        public static readonly SamplerState PointMirror = new SamplerState
+        {
+            Filter = TextureFilter.MinMagMipPoint,
+            AddressU = TextureAddressMode.Mirror,
+            AddressV = TextureAddressMode.Mirror,
+            AddressW = TextureAddressMode.Mirror,
+            Name = "PointMirror"
+        };
 
-        TextureFilter filter;
+        TextureFilter filter = TextureFilter.MinMagMipLinear;
 
-        TextureAddressMode addressU;
+        TextureAddressMode addressU = TextureAddressMode.Clamp;
 
-        TextureAddressMode addressV;
+        TextureAddressMode addressV = TextureAddressMode.Clamp;
 
-        TextureAddressMode addressW;
+        TextureAddressMode addressW = TextureAddressMode.Clamp;
 
-        float minLod;
+        float minLod = float.MinValue;
 
-        float maxLod;
+        float maxLod = float.MaxValue;
 
         float mipMapLodBias;
 
-        int maxAnisotropy;
+        int maxAnisotropy = 16;
 
-        ComparisonFunction comparisonFunction;
+        ComparisonFunction comparisonFunction = ComparisonFunction.Never;
 
-        Color borderColor;
+        Color borderColor = Color.Black;
 
         public TextureFilter Filter
         {
@@ -144,92 +195,6 @@ namespace Libra.Graphics
                 AssertNotFrozen();
                 borderColor = value;
             }
-        }
-
-        static SamplerState()
-        {
-            AnisotropicClamp = new SamplerState
-            {
-                Filter = TextureFilter.Anisotropic,
-                Name = "AnisotropicClamp"
-            };
-
-            AnisotropicWrap = new SamplerState
-            {
-                Filter = TextureFilter.Anisotropic,
-                AddressU = TextureAddressMode.Wrap,
-                AddressV = TextureAddressMode.Wrap,
-                AddressW = TextureAddressMode.Wrap,
-                Name = "AnisotropicWrap"
-            };
-
-            AnisotropicMirror = new SamplerState
-            {
-                Filter = TextureFilter.Anisotropic,
-                AddressU = TextureAddressMode.Mirror,
-                AddressV = TextureAddressMode.Mirror,
-                AddressW = TextureAddressMode.Mirror,
-                Name = "AnisotropicMirror"
-            };
-
-            LinearClamp = new SamplerState
-            {
-                Name = "LinearClamp"
-            };
-
-            LinearWrap = new SamplerState
-            {
-                AddressU = TextureAddressMode.Wrap,
-                AddressV = TextureAddressMode.Wrap,
-                AddressW = TextureAddressMode.Wrap,
-                Name = "LinearWrap"
-            };
-
-            LinearMirror = new SamplerState
-            {
-                AddressU = TextureAddressMode.Mirror,
-                AddressV = TextureAddressMode.Mirror,
-                AddressW = TextureAddressMode.Mirror,
-                Name = "LinearMirror"
-            };
-
-            PointClamp = new SamplerState
-            {
-                Filter = TextureFilter.MinMagMipPoint,
-                Name = "PointClamp"
-            };
-
-            PointWrap = new SamplerState
-            {
-                Filter = TextureFilter.MinMagMipPoint,
-                AddressU = TextureAddressMode.Wrap,
-                AddressV = TextureAddressMode.Wrap,
-                AddressW = TextureAddressMode.Wrap,
-                Name = "PointWrap"
-            };
-
-            PointMirror = new SamplerState
-            {
-                Filter = TextureFilter.MinMagMipPoint,
-                AddressU = TextureAddressMode.Mirror,
-                AddressV = TextureAddressMode.Mirror,
-                AddressW = TextureAddressMode.Mirror,
-                Name = "PointMirror"
-            };
-        }
-
-        public SamplerState()
-        {
-            Filter = TextureFilter.MinMagMipLinear;
-            AddressU = TextureAddressMode.Clamp;
-            AddressV = TextureAddressMode.Clamp;
-            AddressW = TextureAddressMode.Clamp;
-            MinLod = float.MinValue;
-            MaxLod = float.MaxValue;
-            MipMapLodBias = 0;
-            MaxAnisotropy = 16;
-            ComparisonFunction = ComparisonFunction.Never;
-            BorderColor = Color.Black;
         }
     }
 }
