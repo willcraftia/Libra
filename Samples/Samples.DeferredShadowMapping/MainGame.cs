@@ -413,6 +413,7 @@ namespace Samples.DeferredShadowMapping
             normalSceneRenderTarget = Device.CreateRenderTarget();
             normalSceneRenderTarget.Width = WindowWidth;
             normalSceneRenderTarget.Height = WindowHeight;
+            normalSceneRenderTarget.PreferredMultisampleCount = Device.BackBuffer.MultisampleCount;
             normalSceneRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
             normalSceneRenderTarget.Initialize();
 
