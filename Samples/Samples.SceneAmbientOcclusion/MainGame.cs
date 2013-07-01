@@ -285,6 +285,7 @@ namespace Samples.SceneAmbientOcclusion
             normalSceneRenderTarget = Device.CreateRenderTarget();
             normalSceneRenderTarget.Width = WindowWidth;
             normalSceneRenderTarget.Height = WindowHeight;
+            normalSceneRenderTarget.PreferredMultisampleCount = Device.BackBuffer.MultisampleCount;
             normalSceneRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
             normalSceneRenderTarget.Initialize();
 
@@ -297,8 +298,9 @@ namespace Samples.SceneAmbientOcclusion
             postprocessSSAOMap.Format = SurfaceFormat.Single;
 
             postprocessScene = new Postprocess(DeviceContext);
-            postprocessScene.Width = WindowWidth;
-            postprocessScene.Height = WindowHeight;
+            postprocessScene.Width = normalSceneRenderTarget.Width;
+            postprocessScene.Height = normalSceneRenderTarget.Height;
+            postprocessScene.Format = normalSceneRenderTarget.Format;
 
             downFilter = new DownFilter(Device);
             upFilter = new UpFilter(Device);
@@ -398,7 +400,7 @@ namespace Samples.SceneAmbientOcclusion
 
             base.Draw(gameTime);
         }
-
+    
         void CreateDepthMap()
         {
             DeviceContext.SetRenderTarget(depthMapRenderTarget);

@@ -97,7 +97,7 @@ namespace Samples.BloomPostprocess
             postprocess.Width = width;
             postprocess.Height = height;
             postprocess.Format = format;
-            postprocess.MultisampleCount = multisampleCount;
+            postprocess.PreferredMultisampleCount = multisampleCount;
             postprocess.Filters.Add(downFilter);
             postprocess.Filters.Add(bloomExtractFilter);
             postprocess.Filters.Add(gaussianFilterH);

@@ -27,7 +27,7 @@ namespace Libra.Graphics.Toolkit
 
         SurfaceFormat format;
 
-        int multisampleCount;
+        int preferredMultisampleCount;
 
         Dictionary<ulong, RenderTargetChain> renderTargetChains;
 
@@ -74,14 +74,14 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        public int MultisampleCount
+        public int PreferredMultisampleCount
         {
-            get { return multisampleCount; }
+            get { return preferredMultisampleCount; }
             set
             {
                 if (value < 1) throw new ArgumentOutOfRangeException("value");
 
-                multisampleCount = value;
+                preferredMultisampleCount = value;
 
                 ReleaseRenderTargets();
             }
@@ -108,7 +108,7 @@ namespace Libra.Graphics.Toolkit
             width = 1;
             height = 1;
             format = SurfaceFormat.Color;
-            multisampleCount = 1;
+            preferredMultisampleCount = 1;
             projection = Matrix.Identity;
 
             Enabled = true;
@@ -168,7 +168,7 @@ namespace Libra.Graphics.Toolkit
                         renderTargetChain.Width = currentWidth;
                         renderTargetChain.Height = currentHeight;
                         renderTargetChain.Format = format;
-                        renderTargetChain.PreferredMultisampleCount = multisampleCount;
+                        renderTargetChain.PreferredMultisampleCount = preferredMultisampleCount;
 
                         renderTargetChains[key] = renderTargetChain;
                     }
