@@ -141,7 +141,8 @@ namespace Libra.Graphics.SharpDX
             var d3dDeviceContext = (context as SdxDeviceContext).D3D11DeviceContext;
             using (var staging = new D3D11Texture2D(D3D11Device, stagingDescription))
             {
-                d3dDeviceContext.CopySubresourceRegion(D3D11Texture2D, level, d3d11ResourceRegion, staging, 0);
+                var subresourceIndex = Resource.CalculateSubresource(level, 0, MipLevels);
+                d3dDeviceContext.CopySubresourceRegion(D3D11Texture2D, subresourceIndex, d3d11ResourceRegion, staging, 0);
                 
                 var gcHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
                 try

@@ -216,6 +216,7 @@ namespace Libra.Graphics
         {
             AssertInitialized();
             if (context == null) throw new ArgumentNullException("context");
+            if (level < 0) throw new ArgumentOutOfRangeException("level");
             if (data == null) throw new ArgumentNullException("data");
             if (startIndex < 0) throw new ArgumentOutOfRangeException("startIndex");
             if (data.Length < (startIndex + elementCount)) throw new ArgumentOutOfRangeException("elementCount");
@@ -267,7 +268,8 @@ namespace Libra.Graphics
                     // 対応関係を MSDN から把握できないが、どうすべきか。
                     // ひとまず WriteDiscard とする。
 
-                    var mappedResource = context.Map(this, level, DeviceContext.MapMode.WriteDiscard);
+                    var subresourceIndex = Resource.CalculateSubresource(level, 0, mipLevels);
+                    var mappedResource = context.Map(this, subresourceIndex, DeviceContext.MapMode.WriteDiscard);
                     try
                     {
                         var rowSourcePointer = sourcePointer;
@@ -282,7 +284,7 @@ namespace Libra.Graphics
                     }
                     finally
                     {
-                        context.Unmap(this, level);
+                        context.Unmap(this, subresourceIndex);
                     }
                 }
             }
@@ -353,7 +355,8 @@ namespace Libra.Graphics
                     sourceRowPitch /= 4;
                 }
 
-                context.UpdateSubresource(this, level, destinationBox, sourcePointer, sourceRowPitch, 0);
+                var subresourceIndex = Resource.CalculateSubresource(level, 0, mipLevels);
+                context.UpdateSubresource(this, subresourceIndex, destinationBox, sourcePointer, sourceRowPitch, 0);
             }
             finally
             {

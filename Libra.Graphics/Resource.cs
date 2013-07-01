@@ -21,6 +21,11 @@ namespace Libra.Graphics
             Device = device;
         }
 
+        public static int CalculateSubresource(int mipSlice, int arraySlice, int mipLevels)
+        {
+            return mipSlice + (arraySlice * mipLevels);
+        }
+
         #region ToString
 
         public override string ToString()

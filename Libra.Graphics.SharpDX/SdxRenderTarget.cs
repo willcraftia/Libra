@@ -164,7 +164,8 @@ namespace Libra.Graphics.SharpDX
             var d3dDeviceContext = (context as SdxDeviceContext).D3D11DeviceContext;
             using (var staging = new D3D11Texture2D(D3D11Device, description))
             {
-                d3dDeviceContext.CopySubresourceRegion(D3D11Texture2D, level, d3d11ResourceRegion, staging, 1);
+                var subresourceIndex = Resource.CalculateSubresource(level, 0, MipLevels);
+                d3dDeviceContext.CopySubresourceRegion(D3D11Texture2D, subresourceIndex, d3d11ResourceRegion, staging, 0);
 
                 var gcHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
                 try
@@ -174,14 +175,14 @@ namespace Libra.Graphics.SharpDX
                     var destinationPointer = (IntPtr) (dataPointer + startIndex * sizeOfT);
                     var sizeInBytes = ((elementCount == 0) ? data.Length : elementCount) * sizeOfT;
 
-                    var mappedResource = d3dDeviceContext.MapSubresource(staging, level, D3D11MapMode.Read, D3D11MapFlags.None);
+                    var mappedResource = d3dDeviceContext.MapSubresource(staging, 0, D3D11MapMode.Read, D3D11MapFlags.None);
                     try
                     {
                         SDXUtilities.CopyMemory(destinationPointer, mappedResource.DataPointer, sizeInBytes);
                     }
                     finally
                     {
-                        d3dDeviceContext.UnmapSubresource(staging, level);
+                        d3dDeviceContext.UnmapSubresource(staging, 0);
                     }
                 }
                 finally
