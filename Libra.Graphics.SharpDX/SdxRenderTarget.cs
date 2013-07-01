@@ -108,7 +108,7 @@ namespace Libra.Graphics.SharpDX
         }
 
         protected override void GetDataCore<T>(
-            DeviceContext context, int level, Rectangle? rectangle, T[] data, int startIndex, int elementCount)
+            DeviceContext context, int arrayIndex, int mipLevel, Rectangle? rectangle, T[] data, int startIndex, int elementCount)
         {
             // TODO
             //
@@ -127,8 +127,8 @@ namespace Libra.Graphics.SharpDX
             else
             {
                 // ミップマップのサイズ。
-                w = Width >> level;
-                h = Height >> level;
+                w = Width >> mipLevel;
+                h = Height >> mipLevel;
             }
 
             var description = new D3D11Texture2DDescription
@@ -164,7 +164,7 @@ namespace Libra.Graphics.SharpDX
             var d3dDeviceContext = (context as SdxDeviceContext).D3D11DeviceContext;
             using (var staging = new D3D11Texture2D(D3D11Device, description))
             {
-                var subresourceIndex = Resource.CalculateSubresource(level, 0, MipLevels);
+                var subresourceIndex = Resource.CalculateSubresource(mipLevel, arrayIndex, MipLevels);
                 d3dDeviceContext.CopySubresourceRegion(D3D11Texture2D, subresourceIndex, d3d11ResourceRegion, staging, 0);
 
                 var gcHandle = GCHandle.Alloc(data, GCHandleType.Pinned);

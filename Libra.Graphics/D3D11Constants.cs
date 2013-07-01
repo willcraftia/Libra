@@ -49,5 +49,12 @@ namespace Libra.Graphics
         /// D3D11.h: D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT ( 128 )
         /// </remarks>
         public const int CommnonShaderInputResourceSlotCount = 16;
+
+        /// <summary>
+        /// </summary>
+        /// <remarks>
+        /// D3D11.h: D3D11_REQ_TEXTURE2D_ARRAY_AXIS_DIMENSION ( 2048 )
+        /// </remarks>
+        public const int ReqTexture2dArrayAxisDimension = 2048;
     }
 }

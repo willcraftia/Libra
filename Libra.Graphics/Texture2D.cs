@@ -18,6 +18,8 @@ namespace Libra.Graphics
 
         int mipLevels = 1;
 
+        int arraySize = 1;
+
         SurfaceFormat format = SurfaceFormat.Color;
 
         int preferredMultisampleCount = 1;
@@ -57,6 +59,19 @@ namespace Libra.Graphics
                 if (value < 1) throw new ArgumentOutOfRangeException("value");
 
                 mipLevels = value;
+            }
+        }
+
+        public int ArraySize
+        {
+            get { return arraySize; }
+            set
+            {
+                AssertNotInitialized();
+                if (value < 1 || D3D11Constants.ReqTexture2dArrayAxisDimension < value)
+                    throw new ArgumentOutOfRangeException("value");
+
+                arraySize = value;
             }
         }
 
@@ -176,47 +191,71 @@ namespace Libra.Graphics
             SaveCore(context, stream, format);
         }
 
-        // GetData メソッドは、デバッグ目的と位置付ける。
-        // データ取得のために内部で Staging リソースをインスタンス化し、
-        // データ取得後に破棄するため、GetData の頻繁な呼び出しは GC 負荷となり得る。
+        // GetData メソッドは、データ取得のために内部で Staging リソースをインスタンス化し、
+        // データ取得後に破棄するため、頻繁な呼び出しは GC 負荷となり得る。
 
-        public void GetData<T>(
-            DeviceContext context, int level, Rectangle? rectangle, T[] data, int startIndex, int elementCount) where T : struct
+        public void GetData<T>(DeviceContext context, T[] data) where T : struct
         {
-            AssertInitialized();
-            if (context == null) throw new ArgumentNullException("context");
-            if (data == null) throw new ArgumentNullException("data");
-            if (startIndex < 0) throw new ArgumentOutOfRangeException("startIndex");
-            if (data.Length < (startIndex + elementCount)) throw new ArgumentOutOfRangeException("elementCount");
-
-            GetDataCore(context, level, rectangle, data, startIndex, elementCount);
+            GetData(context, 0, 0, null, data, 0, data.Length);
         }
 
-        public void GetData<T>(DeviceContext context, int level, T[] data) where T : struct
+        public void GetData<T>(DeviceContext context, int arrayIndex, T[] data) where T : struct
         {
-            GetData(context, level, null, data, 0, data.Length);
+            GetData(context, arrayIndex, 0, null, data, 0, data.Length);
         }
 
         public void GetData<T>(DeviceContext context, T[] data, int startIndex, int elementCount) where T : struct
         {
-            GetData(context, 0, null, data, startIndex, elementCount);
+            GetData(context, 0, 0, null, data, startIndex, elementCount);
         }
 
-        public void GetData<T>(DeviceContext context, T[] data) where T : struct
+        public void GetData<T>(DeviceContext context, int arrayIndex, T[] data, int startIndex, int elementCount) where T : struct
         {
-            GetData(context, 0, null, data, 0, data.Length);
+            GetData(context, arrayIndex, 0, null, data, startIndex, elementCount);
+        }
+
+        public void GetData<T>(
+            DeviceContext context, int arrayIndex, int mipLevel, Rectangle? rectangle, T[] data, int startIndex, int elementCount) where T : struct
+        {
+            AssertInitialized();
+            if (context == null) throw new ArgumentNullException("context");
+            if ((uint) (D3D11Constants.ReqTexture2dArrayAxisDimension - 1) < (uint) arrayIndex)
+                throw new ArgumentOutOfRangeException("arrayIndex");
+            if (mipLevel < 0) throw new ArgumentOutOfRangeException("mipLevel");
+            if (data == null) throw new ArgumentNullException("data");
+            if (startIndex < 0) throw new ArgumentOutOfRangeException("startIndex");
+            if (data.Length < (startIndex + elementCount)) throw new ArgumentOutOfRangeException("elementCount");
+
+            GetDataCore(context, arrayIndex, mipLevel, rectangle, data, startIndex, elementCount);
+        }
+
+        public void SetData<T>(DeviceContext context, params T[] data) where T : struct
+        {
+            SetData(context, 0, 0, data, 0, data.Length);
+        }
+
+        public void SetData<T>(DeviceContext context, int arrayIndex, params T[] data) where T : struct
+        {
+            SetData(context, arrayIndex, 0, data, 0, data.Length);
         }
 
         public void SetData<T>(DeviceContext context, T[] data, int startIndex, int elementCount) where T : struct
         {
-            SetData(context, 0, data, startIndex, elementCount);
+            SetData(context, 0, 0, data, startIndex, elementCount);
         }
 
-        public void SetData<T>(DeviceContext context, int level, T[] data, int startIndex, int elementCount) where T : struct
+        public void SetData<T>(DeviceContext context, int arrayIndex, T[] data, int startIndex, int elementCount) where T : struct
+        {
+            SetData(context, arrayIndex, 0, data, startIndex, elementCount);
+        }
+
+        public void SetData<T>(DeviceContext context, int arrayIndex, int mipLevel, T[] data, int startIndex, int elementCount) where T : struct
         {
             AssertInitialized();
             if (context == null) throw new ArgumentNullException("context");
-            if (level < 0) throw new ArgumentOutOfRangeException("level");
+            if ((uint) (D3D11Constants.ReqTexture2dArrayAxisDimension - 1) < (uint) arrayIndex)
+                throw new ArgumentOutOfRangeException("arrayIndex");
+            if (mipLevel < 0) throw new ArgumentOutOfRangeException("mipLevel");
             if (data == null) throw new ArgumentNullException("data");
             if (startIndex < 0) throw new ArgumentOutOfRangeException("startIndex");
             if (data.Length < (startIndex + elementCount)) throw new ArgumentOutOfRangeException("elementCount");
@@ -224,7 +263,7 @@ namespace Libra.Graphics
             if (Usage == ResourceUsage.Immutable)
                 throw new InvalidOperationException("Data can not be set from CPU.");
 
-            int levelWidth = Width >> level;
+            int levelWidth = Width >> mipLevel;
 
             // ブロック圧縮ならばブロック サイズで調整。
             // この場合、FormatHelper.SizeInBytes で測る値は、
@@ -244,14 +283,10 @@ namespace Libra.Graphics
 
                 if (Usage == ResourceUsage.Default)
                 {
-                    // TODO
-                    //
                     // Immutable と Dynamic 以外は UpdateSubresource で更新可能。
                     // Staging は内部利用にとどめるため Default でのみ UpdateSubresource で更新。
-                    // それで良いのか？
-
                     int rowPitch = FormatHelper.SizeInBytes(Format) * levelWidth;
-                    context.UpdateSubresource(this, level, null, sourcePointer, rowPitch, 0);
+                    context.UpdateSubresource(this, mipLevel, null, sourcePointer, rowPitch, 0);
                 }
                 else
                 {
@@ -268,7 +303,7 @@ namespace Libra.Graphics
                     // 対応関係を MSDN から把握できないが、どうすべきか。
                     // ひとまず WriteDiscard とする。
 
-                    var subresourceIndex = Resource.CalculateSubresource(level, 0, mipLevels);
+                    var subresourceIndex = Resource.CalculateSubresource(mipLevel, arrayIndex, mipLevels);
                     var mappedResource = context.Map(this, subresourceIndex, DeviceContext.MapMode.WriteDiscard);
                     try
                     {
@@ -295,10 +330,13 @@ namespace Libra.Graphics
 
         }
 
-        public void SetData<T>(DeviceContext context, int level, Rectangle? rectangle, T[] data, int startIndex, int elementCount) where T : struct
+        public void SetData<T>(DeviceContext context, int arrayIndex, int mipLevel, Rectangle? rectangle, T[] data, int startIndex, int elementCount) where T : struct
         {
             AssertInitialized();
             if (context == null) throw new ArgumentNullException("context");
+            if ((uint) (D3D11Constants.ReqTexture2dArrayAxisDimension - 1) < (uint) arrayIndex)
+                throw new ArgumentOutOfRangeException("arrayIndex");
+            if (mipLevel < 0) throw new ArgumentOutOfRangeException("mipLevel");
             if (data == null) throw new ArgumentNullException("data");
             if (startIndex < 0) throw new ArgumentOutOfRangeException("startIndex");
             if (data.Length < (startIndex + elementCount)) throw new ArgumentOutOfRangeException("elementCount");
@@ -312,7 +350,7 @@ namespace Libra.Graphics
             if (Usage == ResourceUsage.Dynamic)
                 throw new NotSupportedException("Dynamic texture does not support to write data into the specified bounds.");
 
-            int levelWidth = Width >> level;
+            int levelWidth = Width >> mipLevel;
 
             // ブロック圧縮ならばブロック サイズで調整。
             // この場合、FormatHelper.SizeInBytes で測る値は、
@@ -355,7 +393,7 @@ namespace Libra.Graphics
                     sourceRowPitch /= 4;
                 }
 
-                var subresourceIndex = Resource.CalculateSubresource(level, 0, mipLevels);
+                var subresourceIndex = Resource.CalculateSubresource(mipLevel, arrayIndex, mipLevels);
                 context.UpdateSubresource(this, subresourceIndex, destinationBox, sourcePointer, sourceRowPitch, 0);
             }
             finally
@@ -365,16 +403,6 @@ namespace Libra.Graphics
 
         }
 
-        public void SetData<T>(DeviceContext context, params T[] data) where T : struct
-        {
-            SetData(context, 0, data, 0, data.Length);
-        }
-
-        public void SetData<T>(DeviceContext context, int level, params T[] data) where T : struct
-        {
-            SetData(context, level, data, 0, data.Length);
-        }
-
         protected abstract void InitializeCore();
 
         protected abstract void InitializeCore(Stream stream);
@@ -382,7 +410,7 @@ namespace Libra.Graphics
         protected abstract void SaveCore(DeviceContext context, Stream stream, ImageFileFormat format);
 
         protected abstract void GetDataCore<T>(
-            DeviceContext context, int level, Rectangle? rectangle, T[] data, int startIndex, int elementCount) where T : struct;
+            DeviceContext context, int arrayIndex, int level, Rectangle? rectangle, T[] data, int startIndex, int elementCount) where T : struct;
 
         protected override void DisposeOverride(bool disposing)
         {

@@ -25,18 +25,6 @@ namespace Libra.Graphics.SharpDX
 {
     public class SdxTexture2D : Texture2D
     {
-        // TODO
-        //
-        // 以下のメモは何か勘違いしている。
-        // D3DX11_IMAGE_LOAD_INFO に画像形式指定などない。
-        //
-        // メモ
-        //
-        // ・ストリームからの生成では ResourceUsage 決定を D3D11Resource.FromStream に委任
-        //      これを指定可能とするには D3DX11_IMAGE_LOAD_INFO の全指定などが必要となり、
-        //      画像データの自動認識が行えなくなる。
-        //      ここでは、自動認識の利点を優先し、ResourceUsage 指定を破棄する。
-
         public D3D11Device D3D11Device { get; private set; }
 
         public D3D11Texture2D D3D11Texture2D { get; private set; }
@@ -88,7 +76,7 @@ namespace Libra.Graphics.SharpDX
         }
 
         protected override void GetDataCore<T>(
-            DeviceContext context, int level, Rectangle? rectangle, T[] data, int startIndex, int elementCount)
+            DeviceContext context, int arrayIndex, int mipLevel, Rectangle? rectangle, T[] data, int startIndex, int elementCount)
         {
             int w;
             int h;
@@ -102,8 +90,8 @@ namespace Libra.Graphics.SharpDX
             else
             {
                 // ミップマップのサイズ。
-                w = Width >> level;
-                h = Height >> level;
+                w = Width >> mipLevel;
+                h = Height >> mipLevel;
             }
 
             var stagingDescription = new D3D11Texture2DDescription
@@ -141,7 +129,7 @@ namespace Libra.Graphics.SharpDX
             var d3dDeviceContext = (context as SdxDeviceContext).D3D11DeviceContext;
             using (var staging = new D3D11Texture2D(D3D11Device, stagingDescription))
             {
-                var subresourceIndex = Resource.CalculateSubresource(level, 0, MipLevels);
+                var subresourceIndex = Resource.CalculateSubresource(mipLevel, arrayIndex, MipLevels);
                 d3dDeviceContext.CopySubresourceRegion(D3D11Texture2D, subresourceIndex, d3d11ResourceRegion, staging, 0);
                 
                 var gcHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
@@ -200,7 +188,7 @@ namespace Libra.Graphics.SharpDX
                 Width = Width,
                 Height = Height,
                 MipLevels = MipLevels,
-                ArraySize = 1,
+                ArraySize = ArraySize,
                 Format = (DXGIFormat) Format,
                 SampleDescription =
                 {
