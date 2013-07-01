@@ -105,6 +105,10 @@ namespace Libra.Graphics
             AssertNotInitialized();
             if (Usage == ResourceUsage.Immutable) throw new InvalidOperationException("Usage must be not immutable.");
 
+            // マルチサンプリングを有効にする場合はミップマップ レベルが 1 でなければならない。
+            if (1 < preferredMultisampleCount && mipLevels != 1)
+                throw new InvalidOperationException("MipLevels must be 1 for a multisampled texture.");
+
             for (int i = preferredMultisampleCount; 1 < i; i /= 2)
             {
                 var multisampleQualityLevels = Device.CheckMultisampleQualityLevels(format, i);
