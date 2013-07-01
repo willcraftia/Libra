@@ -108,7 +108,7 @@ namespace Samples.BloomPostprocess
             sceneRenderTarget = Device.CreateRenderTarget();
             sceneRenderTarget.Width = width;
             sceneRenderTarget.Height = height;
-            sceneRenderTarget.MultisampleCount = multisampleCount;
+            sceneRenderTarget.PreferredMultisampleCount = multisampleCount;
             sceneRenderTarget.Format = format;
             sceneRenderTarget.DepthFormat = depthFormat;
             sceneRenderTarget.Initialize();

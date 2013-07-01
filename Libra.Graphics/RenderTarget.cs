@@ -80,21 +80,36 @@ namespace Libra.Graphics
 
         protected sealed override void InitializeCore()
         {
-            // TODO
-            // そもそも、そのサンプル数が無効 (multisampleQualityLevels = 0) の場合はどうするのだ？
+            // 深度ステンシル フォーマットについて最適なマルチサンプリング設定を検出。
+            int depthStencilMultisampleCount = 1;
+            int depthStencilMultisampleQuality = 0;
+            for (int i = PreferredMultisampleCount; 1 < i; i /= 2)
+            {
+                var multisampleQualityLevels = Device.CheckMultisampleQualityLevels(depthFormat, i);
+                if (0 < multisampleQualityLevels)
+                {
+                    depthStencilMultisampleCount = i;
+                    depthStencilMultisampleQuality = multisampleQualityLevels - 1;
+                    break;
+                }
+            }
 
-            var multisampleQualityLevels = Device.CheckMultisampleQualityLevels(depthFormat, MultisampleCount);
-            if (0 < multisampleQualityLevels)
+            if (depthStencilMultisampleCount < MultisampleCount)
             {
-                // テクスチャと深度ステンシルで低い方の品質へ合わせる。
-                MultisampleQuality = Math.Min(MultisampleQuality, multisampleQualityLevels - 1);
+                // マルチサンプリング数が少ない場合、レンダ ターゲットもこれに合わせる。
+                MultisampleCount = depthStencilMultisampleCount;
+                MultisampleQuality = depthStencilMultisampleQuality;
             }
-            else
+            else if (depthStencilMultisampleCount == MultisampleCount &&
+                depthStencilMultisampleQuality < MultisampleQuality)
             {
-                // TODO
-                // ひとまず無効化。
-                MultisampleQuality = 0;
+                // マルチサンプリング数が同じでも、
+                // マルチサンプリング品質レベルが低い場合、レンダ ターゲットもこれに合わせる。
+                MultisampleQuality = depthStencilMultisampleQuality;
             }
+
+            // レンダ ターゲットのマルチサンプリング性能の方が低い場合は、
+            // 深度ステンシルもこれに合わせる。
 
             InitializeRenderTarget();
 

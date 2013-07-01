@@ -12,15 +12,15 @@ namespace Libra.Graphics
     {
         internal bool initialized;
 
-        int width;
+        int width = 1;
 
-        int height;
+        int height = 1;
 
-        int mipLevels;
+        int mipLevels = 1;
 
-        SurfaceFormat format;
+        SurfaceFormat format = SurfaceFormat.Color;
 
-        int multisampleCount;
+        int preferredMultisampleCount = 1;
 
         ShaderResourceView shaderResourceView;
 
@@ -71,17 +71,20 @@ namespace Libra.Graphics
             }
         }
 
-        public int MultisampleCount
+        public int PreferredMultisampleCount
         {
-            get { return multisampleCount; }
+            get { return preferredMultisampleCount; }
             set
             {
                 AssertNotInitialized();
-                if (value < 1) throw new ArgumentOutOfRangeException("value");
+                if (!MathHelper.IsPowerOf2(value))
+                    throw new ArgumentException("The specified value is not a power of 2.", "value");
 
-                multisampleCount = value;
+                preferredMultisampleCount = value;
             }
         }
+
+        public int MultisampleCount { get; protected set; }
 
         public int MultisampleQuality { get; protected set; }
 
@@ -93,11 +96,7 @@ namespace Libra.Graphics
         protected Texture2D(Device device)
             : base(device)
         {
-            width = 1;
-            height = 1;
-            mipLevels = 1;
-            format = SurfaceFormat.Color;
-            multisampleCount = 1;
+            MultisampleCount = 1;
             MultisampleQuality = 0;
         }
 
@@ -106,12 +105,15 @@ namespace Libra.Graphics
             AssertNotInitialized();
             if (Usage == ResourceUsage.Immutable) throw new InvalidOperationException("Usage must be not immutable.");
 
-            // TODO
-            // 自動解決してしまって良いのか？
-            var multisampleQualityLevels = Device.CheckMultisampleQualityLevels(format, multisampleCount);
-            if (0 < multisampleQualityLevels)
+            for (int i = preferredMultisampleCount; 1 < i; i /= 2)
             {
-                MultisampleQuality = multisampleQualityLevels - 1;
+                var multisampleQualityLevels = Device.CheckMultisampleQualityLevels(format, i);
+                if (0 < multisampleQualityLevels)
+                {
+                    MultisampleCount = i;
+                    MultisampleQuality = multisampleQualityLevels - 1;
+                    break;
+                }
             }
 
             InitializeCore();

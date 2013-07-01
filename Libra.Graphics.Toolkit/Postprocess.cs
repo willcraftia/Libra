@@ -168,7 +168,7 @@ namespace Libra.Graphics.Toolkit
                         renderTargetChain.Width = currentWidth;
                         renderTargetChain.Height = currentHeight;
                         renderTargetChain.Format = format;
-                        renderTargetChain.MultisampleCount = multisampleCount;
+                        renderTargetChain.PreferredMultisampleCount = multisampleCount;
 
                         renderTargetChains[key] = renderTargetChain;
                     }

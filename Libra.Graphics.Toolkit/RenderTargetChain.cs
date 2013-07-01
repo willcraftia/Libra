@@ -16,7 +16,7 @@ namespace Libra.Graphics.Toolkit
 
         SurfaceFormat format;
 
-        int multisampleCount;
+        int preferredMultisampleCount;
 
         DepthFormat depthFormat;
 
@@ -64,14 +64,14 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        public int MultisampleCount
+        public int PreferredMultisampleCount
         {
-            get { return multisampleCount; }
+            get { return preferredMultisampleCount; }
             set
             {
-                if (multisampleCount == value) return;
+                if (preferredMultisampleCount == value) return;
 
-                multisampleCount = value;
+                preferredMultisampleCount = value;
                 renderTargetsInvalid = true;
             }
         }
@@ -123,7 +123,7 @@ namespace Libra.Graphics.Toolkit
                     current.Width = width;
                     current.Height = height;
                     current.Format = format;
-                    current.MultisampleCount = multisampleCount;
+                    current.PreferredMultisampleCount = preferredMultisampleCount;
                     current.DepthFormat = depthFormat;
                     current.RenderTargetUsage = renderTargetUsage;
                     current.Initialize();
@@ -157,7 +157,7 @@ namespace Libra.Graphics.Toolkit
                     last.Width = width;
                     last.Height = height;
                     last.Format = format;
-                    last.MultisampleCount = multisampleCount;
+                    last.PreferredMultisampleCount = preferredMultisampleCount;
                     last.DepthFormat = depthFormat;
                     last.RenderTargetUsage = renderTargetUsage;
                     last.Initialize();
@@ -181,7 +181,7 @@ namespace Libra.Graphics.Toolkit
             width = 1;
             height = 1;
             format = SurfaceFormat.Color;
-            multisampleCount = 1;
+            preferredMultisampleCount = 1;
 
             currentIndex = 0;
             renderTargetsInvalid = false;
