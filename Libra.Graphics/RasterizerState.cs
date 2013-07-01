@@ -11,7 +11,7 @@ namespace Libra.Graphics
         public static readonly RasterizerState CullNone = new RasterizerState
         {
             CullMode = CullMode.None,
-            Name = "CullMode"
+            Name = "CullNone"
         };
 
         public static readonly RasterizerState CullFront = new RasterizerState
