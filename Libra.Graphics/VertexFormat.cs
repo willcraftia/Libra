@@ -36,17 +36,29 @@ namespace Libra.Graphics
         // DXGI_FORMAT_R8G8B8A8_UINT
         Byte4               = 30,
 
+        // XNA には無いが追加する。
+        // DXGI_FORMAT_R16_SINT
+        Short               = 59,
+
         // DXGI_FORMAT_R16G16_SINT
         Short2              = 38,
 
         // DXGI_FORMAT_R16G16B16A16_SINT
         Short4              = 14,
 
+        // XNA には無いが追加する。
+        // DXGI_FORMAT_R16_SNORM
+        NormalizedShort     = 58,
+
         // DXGI_FORMAT_R16G16_SNORM
         NormalizedShort2    = 37,
 
         // DXGI_FORMAT_R16G16B16A16_SNORM
         NormalizedShort4    = 13,
+
+        // XNA には無いが追加する。
+        // DXGI_FORMAT_R16_FLOAT
+        HalfSingle          = 54,
 
         // DXGI_FORMAT_R16G16_FLOAT
         HalfVector2         = 34,
