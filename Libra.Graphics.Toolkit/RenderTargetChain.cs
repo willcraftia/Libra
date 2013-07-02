@@ -187,6 +187,11 @@ namespace Libra.Graphics.Toolkit
             renderTargetsInvalid = false;
         }
 
+        public void Reset()
+        {
+            currentIndex = 0;
+        }
+
         public void Next()
         {
             currentIndex++;

@@ -137,6 +137,9 @@ namespace Libra.Graphics.Toolkit
 
             RenderTargetChain renderTargetChain = null;
 
+            foreach (var chain in renderTargetChains.Values)
+                chain.Reset();
+
             for (int i = 0; i < Filters.Count; i++)
             {
                 var filter = Filters[i];
@@ -174,10 +177,6 @@ namespace Libra.Graphics.Toolkit
                         renderTargetChains[key] = renderTargetChain;
                     }
                 }
-                else
-                {
-                    renderTargetChain.Next();
-                }
 
                 DeviceContext.SetRenderTarget(renderTargetChain.Current);
 
@@ -200,6 +199,8 @@ namespace Libra.Graphics.Toolkit
                 DeviceContext.SetRenderTarget(null);
 
                 currentTexture = renderTargetChain.Current;
+
+                renderTargetChain.Next();
             }
 
             // ステートを以前の状態へ戻す。
