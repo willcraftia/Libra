@@ -181,9 +181,9 @@ namespace Libra.Graphics.Toolkit
 
                 DeviceContext.SetRenderTarget(renderTargetChain.Current);
 
-                DeviceContext.BlendState = BlendState.Opaque;
+                DeviceContext.BlendState = null;
+                DeviceContext.RasterizerState = null;
                 DeviceContext.DepthStencilState = DepthStencilState.None;
-                DeviceContext.RasterizerState = RasterizerState.CullBack;
 
                 filter.Texture = currentTexture;
                 filter.Apply();
