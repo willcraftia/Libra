@@ -122,29 +122,14 @@ namespace Samples.DeferredShadowMapping
         RenderTarget depthMapRenderTarget;
 
         /// <summary>
-        /// シャドウ閉塞マップの描画先レンダ ターゲット。
-        /// </summary>
-        RenderTarget occlusionMapRenderTarget;
-
-        /// <summary>
         /// 通常シーンの描画先レンダ ターゲット。
         /// </summary>
         RenderTarget normalSceneRenderTarget;
 
         /// <summary>
-        /// ポストプロセス適用後の最終閉塞マップ。
-        /// </summary>
-        ShaderResourceView finalOcclusionMap;
-
-        /// <summary>
         /// ポストプロセス適用後の最終シーン。
         /// </summary>
         ShaderResourceView finalSceneTexture;
-
-        /// <summary>
-        /// 閉塞マップ用ポストプロセス。
-        /// </summary>
-        Postprocess occlusionPostprocess;
 
         /// <summary>
         /// 表示シーン用ポストプロセス。
@@ -167,31 +152,6 @@ namespace Samples.DeferredShadowMapping
         OcclusionMapColorFilter occlusionMapColorFilter;
 
         /// <summary>
-        /// 閉塞マップのブラー後に行うアップ サンプリング。
-        /// </summary>
-        UpFilter upFilter;
-
-        /// <summary>
-        /// 閉塞マップのブラー前に行うダウン サンプリング。
-        /// </summary>
-        DownFilter downFilter;
-
-        /// <summary>
-        /// 閉塞マップのブラー用ガウシアン フィルタ。
-        /// </summary>
-        GaussianFilter occlusionGaussianFilter;
-
-        /// <summary>
-        /// 閉塞マップのブラー用ガウシアン フィルタ水平パス。
-        /// </summary>
-        GaussianFilterPass occlusionGaussianFilterPassH;
-
-        /// <summary>
-        /// 閉塞マップのブラー用ガウシアン フィルタ垂直パス。
-        /// </summary>
-        GaussianFilterPass occlusionGaussianFilterPassV;
-
-        /// <summary>
         /// 線形深度マップ エフェクト。
         /// </summary>
         LinearDepthMapEffect depthMapEffect;
@@ -200,11 +160,6 @@ namespace Samples.DeferredShadowMapping
         /// メッシュ描画のための基礎エフェクト。
         /// </summary>
         BasicEffect basicEffect;
-
-        /// <summary>
-        /// シャドウ閉塞マップ機能。
-        /// </summary>
-        ShadowOcclusionMap shadowOcclusionMap;
 
         /// <summary>
         /// 立方体メッシュ。
@@ -283,40 +238,10 @@ namespace Samples.DeferredShadowMapping
         /// </summary>
         CascadeShadowMap cascadeShadowMap;
 
-        ///// <summary>
-        ///// 分割数。
-        ///// </summary>
-        //int splitCount = MaxSplitCount;
-
-        ///// <summary>
-        ///// PSSM 分割機能。
-        ///// </summary>
-        //PSSM pssm = new PSSM();
-
-        ///// <summary>
-        ///// 分割された距離の配列。
-        ///// </summary>
-        //float[] splitDistances = new float[MaxSplitCount + 1];
-
-        ///// <summary>
-        ///// 分割された射影行列の配列。
-        ///// </summary>
-        //Matrix[] splitProjections = new Matrix[MaxSplitCount];
-
-        ///// <summary>
-        ///// 分割されたシャドウ マップの配列。
-        ///// </summary>
-        //ShadowMap[] shadowMaps = new ShadowMap[MaxSplitCount];
-
-        ///// <summary>
-        ///// 分割されたライト カメラ空間行列の配列。
-        ///// </summary>
-        //Matrix[] lightViewProjections = new Matrix[MaxSplitCount];
-
-        ///// <summary>
-        ///// シャドウ マップ形式。
-        ///// </summary>
-        //ShadowMapForm shadowMapForm = ShadowMapForm.Basic;
+        /// <summary>
+        /// シャドウ シーン マップ。
+        /// </summary>
+        ShadowSceneMap shadowSceneMap;
 
         /// <summary>
         /// ライトの進行方向。
@@ -367,19 +292,12 @@ namespace Samples.DeferredShadowMapping
             uniformLightCameraBuilder.LightFarClipDistance = lightFar;
             liSPSMLightCameraBuilder.LightFarClipDistance = lightFar;
 
-            //pssm.Fov = camera.Fov;
-            //pssm.AspectRatio = camera.AspectRatio;
-            //pssm.NearClipDistance = camera.NearClipDistance;
-            //pssm.FarClipDistance = camera.FarClipDistance;
-
             textureDisplay = new TextureDisplay(this);
             textureDisplay.Visible = false;
             Components.Add(textureDisplay);
 
             frameRateMeasure = new FrameRateMeasure(this);
             Components.Add(frameRateMeasure);
-
-            //IsFixedTimeStep = false;
         }
 
         protected override void LoadContent()
@@ -394,22 +312,12 @@ namespace Samples.DeferredShadowMapping
             depthMapRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
             depthMapRenderTarget.Initialize();
 
-            occlusionMapRenderTarget = Device.CreateRenderTarget();
-            occlusionMapRenderTarget.Width = WindowWidth / 1;
-            occlusionMapRenderTarget.Height = WindowHeight / 1;
-            occlusionMapRenderTarget.Format = SurfaceFormat.Single;
-            occlusionMapRenderTarget.Initialize();
-
             normalSceneRenderTarget = Device.CreateRenderTarget();
             normalSceneRenderTarget.Width = WindowWidth;
             normalSceneRenderTarget.Height = WindowHeight;
             normalSceneRenderTarget.PreferredMultisampleCount = Device.BackBuffer.MultisampleCount;
             normalSceneRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
             normalSceneRenderTarget.Initialize();
-
-            occlusionPostprocess = new Postprocess(DeviceContext);
-            occlusionPostprocess.Width = occlusionMapRenderTarget.Width;
-            occlusionPostprocess.Height = occlusionMapRenderTarget.Height;
 
             scenePostprocess = new Postprocess(DeviceContext);
             scenePostprocess.Width = normalSceneRenderTarget.Width;
@@ -430,22 +338,6 @@ namespace Samples.DeferredShadowMapping
             scenePostprocess.Filters.Add(linearDepthMapColorFilter);
             scenePostprocess.Filters.Add(occlusionMapColorFilter);
 
-            upFilter = new UpFilter(DeviceContext);
-            downFilter = new DownFilter(DeviceContext);
-
-            // 範囲と標準偏差に適した値は、アップ/ダウン サンプリングを伴うか否かで大きく異なる。
-            occlusionGaussianFilter = new GaussianFilter(DeviceContext);
-            occlusionGaussianFilter.Radius = 3;
-            occlusionGaussianFilter.Sigma = 1;
-            occlusionGaussianFilterPassH = new GaussianFilterPass(occlusionGaussianFilter, GaussianFilterDirection.Horizon);
-            occlusionGaussianFilterPassV = new GaussianFilterPass(occlusionGaussianFilter, GaussianFilterDirection.Vertical);
-
-            occlusionPostprocess.Filters.Add(downFilter);
-            occlusionPostprocess.Filters.Add(occlusionGaussianFilterPassH);
-            occlusionPostprocess.Filters.Add(occlusionGaussianFilterPassV);
-            occlusionPostprocess.Filters.Add(upFilter);
-            occlusionPostprocess.Enabled = true;
-
             depthMapEffect = new LinearDepthMapEffect(DeviceContext);
 
             basicEffect = new BasicEffect(DeviceContext);
@@ -461,11 +353,10 @@ namespace Samples.DeferredShadowMapping
             cascadeShadowMap.FarClipDistance = camera.FarClipDistance;
             cascadeShadowMap.DrawShadowCastersCallback = DrawShadowCasters;
 
-            // 深度バイアスは、主に PCF の際に重要となる。
-            // VSM の場合、あまり意味は無い。
-            shadowOcclusionMap = new ShadowOcclusionMap(DeviceContext);
-            shadowOcclusionMap.SplitCount = cascadeShadowMap.SplitCount;
-            shadowOcclusionMap.PcfEnabled = false;
+            shadowSceneMap = new ShadowSceneMap(DeviceContext);
+            shadowSceneMap.RenderTargetWidth = WindowWidth;
+            shadowSceneMap.RenderTargetHeight = WindowHeight;
+            shadowSceneMap.SplitCount = cascadeShadowMap.SplitCount;
 
             cubeMesh = new CubeMesh(DeviceContext, 20);
             sphereMesh = new SphereMesh(DeviceContext, 20, 32);
@@ -510,11 +401,8 @@ namespace Samples.DeferredShadowMapping
             // シャドウ マップの描画。
             CreateShadowMap();
 
-            // シャドウ閉塞マップを描画。
-            CreateShadowOcclusionMap();
-
-            // 閉塞マップへポストプロセスを適用。
-            ApplyOcclusionMapPostprocess();
+            // シャドウ シーン マップを描画。
+            CreateShadowSceneMap();
 
             // 通常シーンへポストプロセスを適用。
             ApplyScenePostprocess();
@@ -593,41 +481,20 @@ namespace Samples.DeferredShadowMapping
 
             DeviceContext.SetRenderTarget(null);
 
-            // 中間マップ表示。
             textureDisplay.Textures.Add(normalSceneRenderTarget);
         }
 
-        void CreateShadowOcclusionMap()
+        void CreateShadowSceneMap()
         {
-            DeviceContext.SetRenderTarget(occlusionMapRenderTarget);
-            DeviceContext.Clear(Vector4.Zero);
+            shadowSceneMap.View = camera.View;
+            shadowSceneMap.Projection = camera.Projection;
+            shadowSceneMap.LinearDepthMap = depthMapRenderTarget;
+            shadowSceneMap.UpdateShadowMapSettings(cascadeShadowMap);
 
-            shadowOcclusionMap.ShadowMapForm = cascadeShadowMap.ShadowMapForm;
-            shadowOcclusionMap.View = camera.View;
-            shadowOcclusionMap.Projection = camera.Projection;
+            shadowSceneMap.Draw();
 
-            int i = 0;
-            for (; i < CascadeShadowMap.MaxSplitCount; i++)
-            {
-                shadowOcclusionMap.SetSplitDistance(i, cascadeShadowMap.GetSplitDistance(i));
-                shadowOcclusionMap.SetLightViewProjection(i, cascadeShadowMap.GetLightViewProjection(i));
-                shadowOcclusionMap.SetShadowMap(i, cascadeShadowMap.GetTexture(i));
-            }
-            shadowOcclusionMap.SetSplitDistance(i, cascadeShadowMap.GetSplitDistance(i));
-            shadowOcclusionMap.LinearDepthMap = depthMapRenderTarget;
-
-            shadowOcclusionMap.Draw();
-
-            DeviceContext.SetRenderTarget(null);
-
-            // フィルタへ設定。
-
-            // 中間マップ表示。
-            textureDisplay.Textures.Add(occlusionMapRenderTarget);
-        }
-        void ApplyOcclusionMapPostprocess()
-        {
-            finalOcclusionMap = occlusionPostprocess.Draw(occlusionMapRenderTarget);
+            textureDisplay.Textures.Add(shadowSceneMap.BaseTexture);
+            textureDisplay.Textures.Add(shadowSceneMap.FinalTexture);
         }
 
         void DrawPrimitiveMesh(PrimitiveMesh mesh, Matrix world, Vector3 color)
@@ -695,8 +562,8 @@ namespace Samples.DeferredShadowMapping
         void ApplyScenePostprocess()
         {
             linearDepthMapColorFilter.LinearDepthMap = depthMapRenderTarget;
-            occlusionCombineFilter.OcclusionMap = finalOcclusionMap;
-            occlusionMapColorFilter.OcclusionMap = finalOcclusionMap;
+            occlusionCombineFilter.OcclusionMap = shadowSceneMap.FinalTexture;
+            occlusionMapColorFilter.OcclusionMap = shadowSceneMap.FinalTexture;
 
             finalSceneTexture = scenePostprocess.Draw(normalSceneRenderTarget);
         }
@@ -723,8 +590,8 @@ namespace Samples.DeferredShadowMapping
                     "[3] Camera Frustum as Scene Box (" + useCameraFrustumSceneBox + ")\n" +
                     "[4] Split count (" + cascadeShadowMap.SplitCount + ")\n" +
                     "[5] Shadow map size (" + ShadowMapSizes[currentShadowMapSizeIndex] + "x" + ShadowMapSizes[currentShadowMapSizeIndex] + ")\n" +
-                    "[T/G] Depth Bias (" + shadowOcclusionMap.DepthBias.ToString("F5") + ")\n" +
-                    "[Y/H] PCF Radius (" + shadowOcclusionMap.PcfRadius + ")";
+                    "[T/G] Depth Bias (" + shadowSceneMap.DepthBias.ToString("F5") + ")\n" +
+                    "[Y/H] PCF Radius (" + shadowSceneMap.PcfRadius + ")";
             }
             else
             {
@@ -738,8 +605,8 @@ namespace Samples.DeferredShadowMapping
                 "[F3] Combine Occlusion (" + occlusionCombineFilter.Enabled + ")\n" +
                 "[F4] Depth Map (" + linearDepthMapColorFilter.Enabled + ")\n" +
                 "[F5] Occlusion Map " + (occlusionMapColorFilter.Enabled ? "(Current)" : "") + "\n" +
-                "[F6] Use Pcf (" + shadowOcclusionMap.PcfEnabled + ")\n" +
-                "[F7] Use Screen Space Blur (" + occlusionPostprocess.Enabled + ")";
+                "[F6] Use Pcf (" + shadowSceneMap.PcfEnabled + ")\n" +
+                "[F7] Use Screen Space Blur (" + shadowSceneMap.BlurEnabled + ")";
 
             spriteBatch.Begin();
 
@@ -787,18 +654,18 @@ namespace Samples.DeferredShadowMapping
 
             if (currentKeyboardState.IsKeyUp(Keys.F6) && lastKeyboardState.IsKeyDown(Keys.F6))
             {
-                shadowOcclusionMap.PcfEnabled = !shadowOcclusionMap.PcfEnabled;
+                shadowSceneMap.PcfEnabled = !shadowSceneMap.PcfEnabled;
 
-                if (shadowOcclusionMap.PcfEnabled)
-                    occlusionPostprocess.Enabled = false;
+                if (shadowSceneMap.PcfEnabled)
+                    shadowSceneMap.BlurEnabled = false;
             }
 
             if (currentKeyboardState.IsKeyUp(Keys.F7) && lastKeyboardState.IsKeyDown(Keys.F7))
             {
-                occlusionPostprocess.Enabled = !occlusionPostprocess.Enabled;
+                shadowSceneMap.BlurEnabled = !shadowSceneMap.BlurEnabled;
 
-                if (occlusionPostprocess.Enabled)
-                    shadowOcclusionMap.PcfEnabled = false;
+                if (shadowSceneMap.BlurEnabled)
+                    shadowSceneMap.PcfEnabled = false;
             }
 
             if (currentKeyboardState.IsKeyUp(Keys.D1) && lastKeyboardState.IsKeyDown(Keys.D1))
@@ -842,21 +709,21 @@ namespace Samples.DeferredShadowMapping
 
             if (currentKeyboardState.IsKeyDown(Keys.T))
             {
-                shadowOcclusionMap.DepthBias += 0.00001f;
+                shadowSceneMap.DepthBias += 0.00001f;
             }
             if (currentKeyboardState.IsKeyDown(Keys.G))
             {
-                shadowOcclusionMap.DepthBias = Math.Max(shadowOcclusionMap.DepthBias - 0.00001f, 0.0f);
+                shadowSceneMap.DepthBias = Math.Max(shadowSceneMap.DepthBias - 0.00001f, 0.0f);
             }
 
             if (currentKeyboardState.IsKeyUp(Keys.Y) && lastKeyboardState.IsKeyDown(Keys.Y))
             {
-                shadowOcclusionMap.PcfRadius = Math.Min(ShadowOcclusionMap.MaxPcfRadius, shadowOcclusionMap.PcfRadius + 1);
+                shadowSceneMap.PcfRadius = Math.Min(ShadowSceneMapEffect.MaxPcfRadius, shadowSceneMap.PcfRadius + 1);
             }
 
             if (currentKeyboardState.IsKeyUp(Keys.H) && lastKeyboardState.IsKeyDown(Keys.H))
             {
-                shadowOcclusionMap.PcfRadius = Math.Max(2, shadowOcclusionMap.PcfRadius - 1);
+                shadowSceneMap.PcfRadius = Math.Max(2, shadowSceneMap.PcfRadius - 1);
             }
 
             if (currentKeyboardState.IsKeyDown(Keys.Escape))

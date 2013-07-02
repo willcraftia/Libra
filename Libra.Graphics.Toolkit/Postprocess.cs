@@ -44,6 +44,8 @@ namespace Libra.Graphics.Toolkit
             {
                 if (value < 1) throw new ArgumentOutOfRangeException("value");
 
+                if (width == value) return;
+
                 width = value;
 
                 ReleaseRenderTargets();
@@ -57,6 +59,8 @@ namespace Libra.Graphics.Toolkit
             {
                 if (value < 1) throw new ArgumentOutOfRangeException("value");
 
+                if (height == value) return;
+
                 height = value;
 
                 ReleaseRenderTargets();
@@ -68,6 +72,8 @@ namespace Libra.Graphics.Toolkit
             get { return format; }
             set
             {
+                if (format == value) return;
+
                 format = value;
 
                 ReleaseRenderTargets();
@@ -80,6 +86,8 @@ namespace Libra.Graphics.Toolkit
             set
             {
                 if (value < 1) throw new ArgumentOutOfRangeException("value");
+
+                if (preferredMultisampleCount == value) return;
 
                 preferredMultisampleCount = value;
 

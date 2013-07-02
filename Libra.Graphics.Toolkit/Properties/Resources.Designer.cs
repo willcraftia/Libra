@@ -368,23 +368,23 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
-        internal static byte[] ShadowOcclusionMapBasicPS {
+        internal static byte[] ShadowSceneMapBasicPS {
             get {
-                object obj = ResourceManager.GetObject("ShadowOcclusionMapBasicPS", resourceCulture);
+                object obj = ResourceManager.GetObject("ShadowSceneMapBasicPS", resourceCulture);
                 return ((byte[])(obj));
             }
         }
         
-        internal static byte[] ShadowOcclusionMapPcfPS {
+        internal static byte[] ShadowSceneMapPcfPS {
             get {
-                object obj = ResourceManager.GetObject("ShadowOcclusionMapPcfPS", resourceCulture);
+                object obj = ResourceManager.GetObject("ShadowSceneMapPcfPS", resourceCulture);
                 return ((byte[])(obj));
             }
         }
         
-        internal static byte[] ShadowOcclusionMapVariancePS {
+        internal static byte[] ShadowSceneMapVariancePS {
             get {
-                object obj = ResourceManager.GetObject("ShadowOcclusionMapVariancePS", resourceCulture);
+                object obj = ResourceManager.GetObject("ShadowSceneMapVariancePS", resourceCulture);
                 return ((byte[])(obj));
             }
         }

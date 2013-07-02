@@ -8,7 +8,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class ShadowOcclusionMap : IDisposable
+    public sealed class ShadowSceneMapEffect : IEffect, IDisposable
     {
         #region SharedDeviceResource
 
@@ -31,7 +31,7 @@ namespace Libra.Graphics.Toolkit
                         if (basicPixelShader == null)
                         {
                             basicPixelShader = device.CreatePixelShader();
-                            basicPixelShader.Initialize(Resources.ShadowOcclusionMapBasicPS);
+                            basicPixelShader.Initialize(Resources.ShadowSceneMapBasicPS);
                         }
                         return basicPixelShader;
                     }
@@ -47,7 +47,7 @@ namespace Libra.Graphics.Toolkit
                         if (pcfPixelShader == null)
                         {
                             pcfPixelShader = device.CreatePixelShader();
-                            pcfPixelShader.Initialize(Resources.ShadowOcclusionMapPcfPS);
+                            pcfPixelShader.Initialize(Resources.ShadowSceneMapPcfPS);
                         }
                         return pcfPixelShader;
                     }
@@ -63,7 +63,7 @@ namespace Libra.Graphics.Toolkit
                         if (variancePixelShader == null)
                         {
                             variancePixelShader = device.CreatePixelShader();
-                            variancePixelShader.Initialize(Resources.ShadowOcclusionMapVariancePS);
+                            variancePixelShader.Initialize(Resources.ShadowSceneMapVariancePS);
                         }
                         return variancePixelShader;
                     }
@@ -167,23 +167,34 @@ namespace Libra.Graphics.Toolkit
 
         SharedDeviceResource sharedDeviceResource;
 
-        FullScreenQuad fullScreenQuad;
-
         ConstantBuffer constantBufferPerLight;
 
         ConstantBuffer constantBufferPerCamera;
 
         ConstantBuffer constantBufferPcf;
 
-        ParametersPerLight parametersPerLight;
+        ParametersPerLight parametersPerLight = new ParametersPerLight
+        {
+            SplitCount = MaxSplitCount,
+            DepthBias = 0.0001f,
+            SplitDistances = new Vector4[MaxSplitDistanceCount],
+            LightViewProjections = new Matrix[MaxSplitCount]
+        };
 
-        ParametersPerCamera parametersPerCamera;
+        ParametersPerCamera parametersPerCamera = new ParametersPerCamera
+        {
+            FocalLength = Vector2.One,
+            FarClipDistance = 1000.0f
+        };
 
-        ParametersPcf parametersPcf;
+        ParametersPcf parametersPcf = new ParametersPcf
+        {
+            Offsets = new Vector4[MaxPcfKernelSize]
+        };
 
-        Matrix view;
+        Matrix view = Matrix.Identity;
 
-        Matrix projection;
+        Matrix projection = Matrix.Identity;
 
         bool pcfEnabled;
 
@@ -193,9 +204,13 @@ namespace Libra.Graphics.Toolkit
 
         int shadowMapHeight;
 
-        ShaderResourceView[] shadowMaps;
+        ShaderResourceView[] shadowMaps = new ShaderResourceView[MaxSplitCount];
 
-        DirtyFlags dirtyFlags;
+        DirtyFlags dirtyFlags =
+            DirtyFlags.ConstantBufferPerLight |
+            DirtyFlags.ConstantBufferPerCamera |
+            DirtyFlags.ConstantBufferPcf |
+            DirtyFlags.PcfKernel;
 
         public DeviceContext DeviceContext { get; private set; }
 
@@ -279,18 +294,13 @@ namespace Libra.Graphics.Toolkit
 
         public SamplerState ShadowMapSampler { get; set; }
 
-        public bool Enabled { get; set; }
-
-        public ShadowOcclusionMap(DeviceContext deviceContext)
+        public ShadowSceneMapEffect(DeviceContext deviceContext)
         {
             if (deviceContext == null) throw new ArgumentNullException("deviceContext");
 
             DeviceContext = deviceContext;
 
-            sharedDeviceResource = deviceContext.Device.GetSharedResource<ShadowOcclusionMap, SharedDeviceResource>();
-
-            fullScreenQuad = new FullScreenQuad(deviceContext);
-            fullScreenQuad.ViewRayEnabled = true;
+            sharedDeviceResource = deviceContext.Device.GetSharedResource<ShadowSceneMapEffect, SharedDeviceResource>();
 
             constantBufferPerLight = deviceContext.Device.CreateConstantBuffer();
             constantBufferPerLight.Initialize<ParametersPerLight>();
@@ -301,27 +311,8 @@ namespace Libra.Graphics.Toolkit
             constantBufferPcf = deviceContext.Device.CreateConstantBuffer();
             constantBufferPcf.Initialize<ParametersPcf>();
 
-            parametersPerLight.SplitCount = MaxSplitCount;
-            parametersPerLight.DepthBias = 0.0001f;
-            parametersPerLight.SplitDistances = new Vector4[MaxSplitDistanceCount];
-            parametersPerLight.LightViewProjections = new Matrix[MaxSplitCount];
-
-            parametersPerCamera.FocalLength = Vector2.One;
-            parametersPerCamera.FarClipDistance = 1000.0f;
-
-            parametersPcf.Offsets = new Vector4[MaxPcfKernelSize];
-
-            shadowMaps = new ShaderResourceView[MaxSplitCount];
             ShadowMapForm = ShadowMapForm.Basic;
             LinearDepthMapSampler = SamplerState.PointClamp;
-
-            Enabled = true;
-
-            dirtyFlags =
-                DirtyFlags.ConstantBufferPerLight |
-                DirtyFlags.ConstantBufferPerCamera |
-                DirtyFlags.ConstantBufferPcf |
-                DirtyFlags.PcfKernel;
         }
 
         public float GetSplitDistance(int index)
@@ -373,14 +364,7 @@ namespace Libra.Graphics.Toolkit
             shadowMaps[index] = value;
         }
 
-        public void Draw()
-        {
-            Apply();
-
-            fullScreenQuad.Draw();
-        }
-
-        void Apply()
+        public void Apply()
         {
             SetCamera();
             SetPcfKernel();
@@ -450,7 +434,6 @@ namespace Libra.Graphics.Toolkit
 
             if ((dirtyFlags & DirtyFlags.Projection) != 0)
             {
-                fullScreenQuad.Projection = projection;
                 parametersPerCamera.FocalLength.X = projection.M11;
                 parametersPerCamera.FocalLength.Y = projection.M22;
                 parametersPerCamera.FarClipDistance = projection.PerspectiveFarClipDistance;
@@ -530,7 +513,7 @@ namespace Libra.Graphics.Toolkit
 
         bool disposed;
 
-        ~ShadowOcclusionMap()
+        ~ShadowSceneMapEffect()
         {
             Dispose(false);
         }

@@ -60,7 +60,6 @@
     <Compile Include="ParticleEmitter.cs" />
     <Compile Include="ParticleSystem.cs" />
     <Compile Include="RenderTargetChain.cs" />
-    <Compile Include="ShadowOcclusionMap.cs" />
     <Compile Include="NormalDepthBilateralFilter.cs" />
     <Compile Include="OcclusionCombineFilter.cs" />
     <Compile Include="DebugShapeRenderer.cs" />
@@ -91,6 +90,8 @@
     <Compile Include="Postprocess.cs" />
     <Compile Include="RadialFilter.cs" />
     <Compile Include="ScanlineFilter.cs" />
+    <Compile Include="ShadowSceneMap.cs" />
+    <Compile Include="ShadowSceneMapEffect.cs" />
     <Compile Include="SingleColorObjectEffect.cs" />
     <Compile Include="PrimitiveMesh.cs" />
     <Compile Include="SphereMesh.cs" />
@@ -185,9 +186,9 @@
     <None Include="Shaders\Compiled\ParticlePS.bin" />
     <None Include="Shaders\Compiled\ParticleVS.bin" />
     <None Include="Shaders\Compiled\ScanlineFilterPS.bin" />
-    <None Include="Shaders\Compiled\ShadowOcclusionMapBasicPS.bin" />
-    <None Include="Shaders\Compiled\ShadowOcclusionMapPcfPS.bin" />
-    <None Include="Shaders\Compiled\ShadowOcclusionMapVariancePS.bin" />
+    <None Include="Shaders\Compiled\ShadowSceneMapBasicPS.bin" />
+    <None Include="Shaders\Compiled\ShadowSceneMapPcfPS.bin" />
+    <None Include="Shaders\Compiled\ShadowSceneMapVariancePS.bin" />
     <None Include="Shaders\Compiled\SSAOMapPS.bin" />
     <None Include="Shaders\Compiled\VolumetricFogCombineFilterPS.bin" />
     <None Include="Shaders\Compiled\VolumetricFogMapPS.bin" />
@@ -209,7 +210,7 @@
     <None Include="Shaders\Particle.ps" />
     <None Include="Shaders\Particle.vs" />
     <None Include="Shaders\DepthVarianceMap.ps" />
-    <None Include="Shaders\ShadowOcclusionMap.ps" />
+    <None Include="Shaders\ShadowSceneMap.ps" />
     <None Include="Shaders\SingleColorObject.ps" />
     <None Include="Shaders\SSAOMap.ps" />
     <None Include="Shaders\VolumetricFogCombineFilter.ps" />

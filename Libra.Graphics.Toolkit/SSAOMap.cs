@@ -281,6 +281,7 @@ namespace Libra.Graphics.Toolkit
 
         void DrawOcclusion()
         {
+            DeviceContext.DepthStencilState = DepthStencilState.None;
             DeviceContext.SetRenderTarget(renderTarget);
             DeviceContext.Clear(Vector4.One);
 
@@ -290,6 +291,8 @@ namespace Libra.Graphics.Toolkit
             fullScreenQuad.Draw();
 
             DeviceContext.SetRenderTarget(null);
+
+            DeviceContext.DepthStencilState = null;
 
             BaseTexture = renderTarget;
         }
