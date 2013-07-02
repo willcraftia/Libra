@@ -15,7 +15,7 @@ namespace Libra.Graphics.Toolkit
     /// </remarks>
     public sealed class BasicLightCameraBuilder : LightCameraBuilder
     {
-        Vector3[] corners;
+        Vector3[] eyeFrustumCorners;
 
         /// <summary>
         /// ライトのある方向へシーン領域を押し出す距離を取得または設定します。
@@ -28,7 +28,7 @@ namespace Libra.Graphics.Toolkit
 
         public BasicLightCameraBuilder()
         {
-            corners = new Vector3[8];
+            eyeFrustumCorners = new Vector3[BoundingFrustum.CornerCount];
 
             SceneExtrudeDistance = 500.0f;
         }
@@ -50,17 +50,13 @@ namespace Libra.Graphics.Toolkit
             // 仮ライト ビュー行列。
             Matrix.CreateLook(ref position, ref lightDirection, ref up, out lightView);
 
-            // ライト位置へ向かうレイ。
-            //var ray = new Ray();
-            //Vector3.Negate(ref lightDirection, out ray.Direction);
-
             // 仮ライト ビュー空間における表示カメラの境界錐台を包む境界ボックス。
             var boxLV = BoundingBox.Empty;
-            eyeFrustum.GetCorners(corners);
-            for (int i = 0; i < corners.Length; i++)
+            eyeFrustum.GetCorners(eyeFrustumCorners);
+            for (int i = 0; i < eyeFrustumCorners.Length; i++)
             {
                 Vector3 cornerLV;
-                Vector3.Transform(ref corners[i], ref lightView, out cornerLV);
+                Vector3.Transform(ref eyeFrustumCorners[i], ref lightView, out cornerLV);
 
                 boxLV.Merge(ref cornerLV);
             }
@@ -89,26 +85,31 @@ namespace Libra.Graphics.Toolkit
             Matrix.CreateLook(ref position, ref lightDirection, ref up, out lightView);
 
             // ビュー空間における表示カメラの境界錐台を包む境界ボックス。
+            // ここで作成する境界ボックスは、SceneExtrudeDistance に応じてガメラ側へ押し出す。
+            // これにより、表示カメラの境界錐台の外に存在する投影オブジェクトを
+            // ライト カメラ内へ含める事ができる。
+            // この処理は、ライト カメラの位置の後退では満たせず、
+            // 射影空間の押し出しでなければならない点に注意する。
             boxLV = BoundingBox.Empty;
-            for (int i = 0; i < corners.Length; i++)
+            for (int i = 0; i < eyeFrustumCorners.Length; i++)
             {
                 // ビュー空間へ頂点を変換してマージ。
                 Vector3 cornerLV;
-                Vector3.Transform(ref corners[i], ref lightView, out cornerLV);
+                Vector3.Transform(ref eyeFrustumCorners[i], ref lightView, out cornerLV);
+
+                boxLV.Merge(ref cornerLV);
+
+                // カメラ側へ押し出した頂点をマージ。
+                cornerLV.Z += SceneExtrudeDistance;
 
                 boxLV.Merge(ref cornerLV);
             }
 
             // 境界ボックスのある範囲で正射影。
-            // ただし、SceneExtrudeDistance に応じて near をライト カメラ側へ押し出す。
-            // これにより、表示カメラの境界錐台の外に存在する投影オブジェクトを
-            // ライト カメラ内へ含める事ができる。
-            // この処理は、ライト カメラの位置の後退では満たせず、
-            // 射影空間の押し出しでなければならない点に注意する。
             Matrix.CreateOrthographicOffCenter(
                 boxLV.Min.X, boxLV.Max.X,
                 boxLV.Min.Y, boxLV.Max.Y,
-                -boxLV.Max.Z - SceneExtrudeDistance, -boxLV.Min.Z,
+                -boxLV.Max.Z, -boxLV.Min.Z,
                 out lightProjection);
         }
     }
