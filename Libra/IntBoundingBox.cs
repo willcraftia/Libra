@@ -61,7 +61,7 @@ namespace Libra
         public void Contains(ref IntVector3 point, out bool result)
         {
             if (point.X < Min.X || point.Y < Min.Y || point.Z < Min.Z ||
-                Max.X < point.X || Max.Y < point.Y || Max.Y < point.Y)
+                Max.X < point.X || Max.Y < point.Y || Max.Z < point.Z)
             {
                 result = false;
             }
