@@ -188,8 +188,6 @@ namespace Libra.Graphics.Toolkit
 
         public SamplerState NormalMapSampler { get; set; }
 
-        public bool Enabled { get; set; }
-
         public SSAOMapEffect(DeviceContext deviceContext)
         {
             if (deviceContext == null) throw new ArgumentNullException("deviceContext");
@@ -217,8 +215,6 @@ namespace Libra.Graphics.Toolkit
 
             LinearDepthMapSampler = SamplerState.PointClamp;
             NormalMapSampler = SamplerState.PointClamp;
-
-            Enabled = true;
 
             dirtyFlags =
                 DirtyFlags.ConstantBufferPerCamera |
