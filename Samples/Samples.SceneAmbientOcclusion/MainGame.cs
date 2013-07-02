@@ -279,7 +279,6 @@ namespace Samples.SceneAmbientOcclusion
             ssaoMapRenderTarget.Width = WindowWidth / 1;
             ssaoMapRenderTarget.Height = WindowHeight / 1;
             ssaoMapRenderTarget.Format = SurfaceFormat.Single;
-            ssaoMapRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
             ssaoMapRenderTarget.Initialize();
 
             normalSceneRenderTarget = Device.CreateRenderTarget();
