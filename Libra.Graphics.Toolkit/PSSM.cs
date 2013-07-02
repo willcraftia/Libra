@@ -14,12 +14,12 @@ namespace Libra.Graphics.Toolkit
         /// <summary>
         /// 分割数。
         /// </summary>
-        int count;
+        int count = 3;
 
         /// <summary>
         /// 視野角。
         /// </summary>
-        float fov;
+        float fov = MathHelper.PiOver4;
 
         /// <summary>
         /// アスペクト比。
@@ -29,29 +29,32 @@ namespace Libra.Graphics.Toolkit
         /// <summary>
         /// 近クリップ面距離。
         /// </summary>
-        float nearClipDistance;
+        float nearClipDistance = 0.1f;
 
         /// <summary>
         /// 遠クリップ面距離。
         /// </summary>
-        float farClipDistance;
+        float farClipDistance = 1000.0f;
 
         /// <summary>
         /// ラムダ値。
         /// </summary>
-        float lambda;
+        float lambda = 0.5f;
 
         /// <summary>
         /// ビュー行列。
         /// </summary>
-        Matrix view;
+        Matrix view = Matrix.Identity;
 
         /// <summary>
         /// シーン領域。
         /// </summary>
-        BoundingBox sceneBox;
+        BoundingBox sceneBox = BoundingBox.Empty;
 
-        Vector3[] corners;
+        /// <summary>
+        /// 境界ボックスの作業用頂点配列。
+        /// </summary>
+        Vector3[] corners = new Vector3[BoundingBox.CornerCount];
 
         /// <summary>
         /// 分割数を取得または設定します。
@@ -158,16 +161,6 @@ namespace Libra.Graphics.Toolkit
         {
             get { return sceneBox; }
             set { sceneBox = value; }
-        }
-
-        /// <summary>
-        /// インスタンスを生成します。
-        /// </summary>
-        public PSSM()
-        {
-            lambda = 0.5f;
-
-            corners = new Vector3[BoundingBox.CornerCount];
         }
 
         /// <summary>
