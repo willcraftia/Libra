@@ -21,10 +21,8 @@ namespace Libra.Graphics.Toolkit
         /// コールバックを受けたクラスは、シャドウ マップ エフェクトを用いて投影オブジェクトを描画します。
         /// 描画する投影オブジェクトの選択は、コールバックを受けたクラスが決定します。
         /// </summary>
-        /// <param name="eyeView">現在の表示カメラのビュー行列。</param>
-        /// <param name="eyeProjection">現在の表示カメラの射影行列。</param>
         /// <param name="effect">シャドウ マップ エフェクト。</param>
-        public delegate void DrawShadowCastersCallback(Matrix eyeView, Matrix eyeProjection, ShadowMapEffect effect);
+        public delegate void DrawShadowCastersCallback(ShadowMapEffect effect);
 
         /// <summary>
         /// シャドウ マップ エフェクト。
@@ -106,15 +104,10 @@ namespace Libra.Graphics.Toolkit
         /// <summary>
         /// シャドウ マップを描画します。
         /// </summary>
-        /// <param name="eyeView">表示カメラのビュー行列。</param>
-        /// <param name="eyeProjection">表示カメラの射影行列。</param>
         /// <param name="lightView">ライト カメラのビュー行列。</param>
         /// <param name="lightProjection">ライト カメラの射影行列。</param>
         /// <param name="drawShadowCasters">投影オブジェクト描画コールバック。</param>
-        public void Draw(
-            Matrix eyeView, Matrix eyeProjection,
-            Matrix lightView, Matrix lightProjection,
-            DrawShadowCastersCallback drawShadowCasters)
+        public void Draw(Matrix lightView, Matrix lightProjection, DrawShadowCastersCallback drawShadowCasters)
         {
             if (drawShadowCasters == null) throw new ArgumentNullException("drawShadowCasters");
 
@@ -132,7 +125,7 @@ namespace Libra.Graphics.Toolkit
 
             // 描画をコールバック。
             // 描画する投影オブジェクトの選別は、コールバックされる側のクラスで決定。
-            drawShadowCasters(eyeView, eyeProjection, shadowMapEffect);
+            drawShadowCasters(shadowMapEffect);
 
             DeviceContext.SetRenderTarget(null);
         }

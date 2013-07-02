@@ -414,11 +414,6 @@ namespace Samples.ShadowMapping
         float lightFar = 500.0f;
 
         /// <summary>
-        /// 現在の表示カメラの境界錐台。
-        /// </summary>
-        BoundingFrustum currentFrustum;
-
-        /// <summary>
         /// 現在のシャドウ マップ サイズのインデックス。
         /// </summary>
         int currentShadowMapSizeIndex = 1;
@@ -490,8 +485,6 @@ namespace Samples.ShadowMapping
 
             // 単位ベクトル。
             lightDirection = new Vector3(0.3333333f, -0.6666667f, -0.6666667f);
-
-            currentFrustum = new BoundingFrustum(Matrix.Identity);
 
             frameRateMeasure = new FrameRateMeasure(this);
             Components.Add(frameRateMeasure);
@@ -640,7 +633,7 @@ namespace Samples.ShadowMapping
                 // シャドウ マップを描画。
                 shadowMaps[i].Form = shadowMapForm;
                 shadowMaps[i].Size = ShadowMapSizes[currentShadowMapSizeIndex];
-                shadowMaps[i].Draw(camera.View, splitProjections[i], lightView, lightProjection, DrawShadowCasters);
+                shadowMaps[i].Draw(lightView, lightProjection, DrawShadowCasters);
 
                 // VSM の場合は生成したシャドウ マップへブラーを適用。
                 if (shadowMapForm == ShadowMapForm.Variance)
@@ -682,19 +675,9 @@ namespace Samples.ShadowMapping
         }
 
         // コールバック。
-        void DrawShadowCasters(Matrix eyeView, Matrix eyeProjection, ShadowMapEffect effect)
+        void DrawShadowCasters(ShadowMapEffect effect)
         {
-            Matrix viewProjection;
-            Matrix.Multiply(ref eyeView, ref eyeProjection, out viewProjection);
-
-            currentFrustum.Matrix = viewProjection;
-
-            ContainmentType containment;
-            currentFrustum.Contains(ref dudeBoxWorld, out containment);
-            if (containment != ContainmentType.Disjoint)
-            {
-                DrawShadowCaster(effect, dudeModel);
-            }
+            DrawShadowCaster(effect, dudeModel);
         }
 
         void DrawShadowCaster(ShadowMapEffect effect, Model model)

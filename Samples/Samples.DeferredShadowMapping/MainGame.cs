@@ -334,11 +334,6 @@ namespace Samples.DeferredShadowMapping
         float lightFar = 1000.0f;
 
         /// <summary>
-        /// 現在の表示カメラの境界錐台。
-        /// </summary>
-        BoundingFrustum currentFrustum = new BoundingFrustum(Matrix.Identity);
-
-        /// <summary>
         /// 現在のシャドウ マップ サイズのインデックス。
         /// </summary>
         int currentShadowMapSizeIndex = 1;
@@ -602,7 +597,7 @@ namespace Samples.DeferredShadowMapping
                 // シャドウ マップを描画。
                 shadowMaps[i].Form = shadowMapForm;
                 shadowMaps[i].Size = ShadowMapSizes[currentShadowMapSizeIndex];
-                shadowMaps[i].Draw(camera.View, splitProjections[i], lightView, lightProjection, DrawShadowCasters);
+                shadowMaps[i].Draw(lightView, lightProjection, DrawShadowCasters);
 
                 // VSM の場合は生成したシャドウ マップへブラーを適用。
                 if (shadowMapForm == ShadowMapForm.Variance)
@@ -630,11 +625,6 @@ namespace Samples.DeferredShadowMapping
         // コールバック。
         void DrawShadowCasters(Matrix eyeView, Matrix eyeProjection, ShadowMapEffect effect)
         {
-            Matrix viewProjection;
-            Matrix.Multiply(ref eyeView, ref eyeProjection, out viewProjection);
-
-            currentFrustum.Matrix = viewProjection;
-
             DrawShadowCasters(effect);
         }
 

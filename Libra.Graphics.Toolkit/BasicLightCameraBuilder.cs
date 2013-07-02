@@ -99,7 +99,7 @@ namespace Libra.Graphics.Toolkit
 
                 boxLV.Merge(ref cornerLV);
 
-                // カメラ側へ押し出した頂点をマージ。
+                // ライト カメラ側へ押し出した頂点をマージ。
                 cornerLV.Z += SceneExtrudeDistance;
 
                 boxLV.Merge(ref cornerLV);
