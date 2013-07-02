@@ -359,6 +359,7 @@ namespace Samples.SceneAmbientOcclusion
 
         void CreateSSAOMap()
         {
+            ssaoMapRenderer.Projection = camera.Projection;
             ssaoMapRenderer.Draw();
 
             occlusionMapColorFilter.OcclusionMap = ssaoMapRenderer.BaseTexture;

@@ -285,6 +285,8 @@ namespace Libra.Graphics.Toolkit
             DeviceContext.Clear(Vector4.One);
 
             ssaoMapEffect.Apply();
+
+            fullScreenQuad.Projection = ssaoMapEffect.Projection;
             fullScreenQuad.Draw();
 
             DeviceContext.SetRenderTarget(null);

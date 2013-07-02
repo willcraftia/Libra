@@ -333,16 +333,6 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        static void GetTextureSize(ShaderResourceView shaderResourceView, out int width, out int height)
-        {
-            var texture = shaderResourceView.Resource as Texture2D;
-            if (texture == null)
-                throw new ArgumentException("ShaderResourceView is not for Texture2D.", "shaderResourceView");
-
-            width = texture.Width;
-            height = texture.Height;
-        }
-
         #region IDisposable
 
         bool disposed;
