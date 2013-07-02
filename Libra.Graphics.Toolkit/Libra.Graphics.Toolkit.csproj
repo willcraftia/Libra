@@ -41,9 +41,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BezierMesh.cs" />
+    <Compile Include="CascadeShadowMap.cs" />
     <Compile Include="CloudEffect.cs" />
     <Compile Include="CloudLayerFilter.cs" />
     <Compile Include="CloudLayerFilterPass.cs" />
+    <Compile Include="DrawShadowCastersCallback.cs" />
     <Compile Include="ExponentialFogFilter.cs" />
     <Compile Include="FluidEffect.cs" />
     <Compile Include="HeightFogFilter.cs" />

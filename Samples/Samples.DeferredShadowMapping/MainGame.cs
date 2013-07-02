@@ -52,11 +52,6 @@ namespace Samples.DeferredShadowMapping
         const int WindowHeight = 480;
 
         /// <summary>
-        /// 最大分割数。
-        /// </summary>
-        const int MaxSplitCount = 3;
-
-        /// <summary>
         /// シャドウ マップのサイズ。
         /// </summary>
         static readonly int[] ShadowMapSizes = { 512, 1024, 2048 };
@@ -172,11 +167,6 @@ namespace Samples.DeferredShadowMapping
         OcclusionMapColorFilter occlusionMapColorFilter;
 
         /// <summary>
-        /// VSM 用ガウシアン フィルタ。
-        /// </summary>
-        GaussianFilterSuite vsmGaussianFilterSuite;
-
-        /// <summary>
         /// 閉塞マップのブラー後に行うアップ サンプリング。
         /// </summary>
         UpFilter upFilter;
@@ -289,39 +279,44 @@ namespace Samples.DeferredShadowMapping
         LiSPSMLightCameraBuilder liSPSMLightCameraBuilder = new LiSPSMLightCameraBuilder();
 
         /// <summary>
-        /// 分割数。
+        /// カスケード シャドウ マップ。
         /// </summary>
-        int splitCount = MaxSplitCount;
+        CascadeShadowMap cascadeShadowMap;
 
-        /// <summary>
-        /// PSSM 分割機能。
-        /// </summary>
-        PSSM pssm = new PSSM();
+        ///// <summary>
+        ///// 分割数。
+        ///// </summary>
+        //int splitCount = MaxSplitCount;
 
-        /// <summary>
-        /// 分割された距離の配列。
-        /// </summary>
-        float[] splitDistances = new float[MaxSplitCount + 1];
+        ///// <summary>
+        ///// PSSM 分割機能。
+        ///// </summary>
+        //PSSM pssm = new PSSM();
 
-        /// <summary>
-        /// 分割された射影行列の配列。
-        /// </summary>
-        Matrix[] splitProjections = new Matrix[MaxSplitCount];
+        ///// <summary>
+        ///// 分割された距離の配列。
+        ///// </summary>
+        //float[] splitDistances = new float[MaxSplitCount + 1];
 
-        /// <summary>
-        /// 分割されたシャドウ マップの配列。
-        /// </summary>
-        ShadowMap[] shadowMaps = new ShadowMap[MaxSplitCount];
+        ///// <summary>
+        ///// 分割された射影行列の配列。
+        ///// </summary>
+        //Matrix[] splitProjections = new Matrix[MaxSplitCount];
 
-        /// <summary>
-        /// 分割されたライト カメラ空間行列の配列。
-        /// </summary>
-        Matrix[] lightViewProjections = new Matrix[MaxSplitCount];
+        ///// <summary>
+        ///// 分割されたシャドウ マップの配列。
+        ///// </summary>
+        //ShadowMap[] shadowMaps = new ShadowMap[MaxSplitCount];
 
-        /// <summary>
-        /// シャドウ マップ形式。
-        /// </summary>
-        ShadowMapForm shadowMapForm = ShadowMapForm.Basic;
+        ///// <summary>
+        ///// 分割されたライト カメラ空間行列の配列。
+        ///// </summary>
+        //Matrix[] lightViewProjections = new Matrix[MaxSplitCount];
+
+        ///// <summary>
+        ///// シャドウ マップ形式。
+        ///// </summary>
+        //ShadowMapForm shadowMapForm = ShadowMapForm.Basic;
 
         /// <summary>
         /// ライトの進行方向。
@@ -372,10 +367,10 @@ namespace Samples.DeferredShadowMapping
             uniformLightCameraBuilder.LightFarClipDistance = lightFar;
             liSPSMLightCameraBuilder.LightFarClipDistance = lightFar;
 
-            pssm.Fov = camera.Fov;
-            pssm.AspectRatio = camera.AspectRatio;
-            pssm.NearClipDistance = camera.NearClipDistance;
-            pssm.FarClipDistance = camera.FarClipDistance;
+            //pssm.Fov = camera.Fov;
+            //pssm.AspectRatio = camera.AspectRatio;
+            //pssm.NearClipDistance = camera.NearClipDistance;
+            //pssm.FarClipDistance = camera.FarClipDistance;
 
             textureDisplay = new TextureDisplay(this);
             textureDisplay.Visible = false;
@@ -459,16 +454,17 @@ namespace Samples.DeferredShadowMapping
             basicEffect.EnableDefaultLighting();
             basicEffect.DirectionalLights[0].Direction = lightDirection;
 
-            for (int i = 0; i < shadowMaps.Length; i++)
-            {
-                shadowMaps[i] = new ShadowMap(DeviceContext);
-                shadowMaps[i].DrawShadowCastersMethod = DrawShadowCasters;
-            }
+            cascadeShadowMap = new CascadeShadowMap(DeviceContext);
+            cascadeShadowMap.Fov = camera.Fov;
+            cascadeShadowMap.AspectRatio = camera.AspectRatio;
+            cascadeShadowMap.NearClipDistance = camera.NearClipDistance;
+            cascadeShadowMap.FarClipDistance = camera.FarClipDistance;
+            cascadeShadowMap.DrawShadowCastersCallback = DrawShadowCasters;
 
             // 深度バイアスは、主に PCF の際に重要となる。
             // VSM の場合、あまり意味は無い。
             shadowOcclusionMap = new ShadowOcclusionMap(DeviceContext);
-            shadowOcclusionMap.SplitCount = splitCount;
+            shadowOcclusionMap.SplitCount = cascadeShadowMap.SplitCount;
             shadowOcclusionMap.PcfEnabled = false;
 
             cubeMesh = new CubeMesh(DeviceContext, 20);
@@ -551,15 +547,6 @@ namespace Samples.DeferredShadowMapping
                 actualSceneBox.Merge(camera.Position);
             }
 
-            // 表示カメラの分割。
-            // デフォルトのラムダ値 0.5f ではカメラ手前が少し狭すぎるか？
-            // ここは表示カメラの far の値に応じて調整する。
-            pssm.Count = splitCount;
-            pssm.Lambda = 0.4f;
-            pssm.View = camera.View;
-            pssm.SceneBox = actualSceneBox;
-            pssm.Split(splitDistances, splitProjections);
-
             // 使用するライト カメラ ビルダの選択。
             LightCameraBuilder currentLightCameraBuilder;
             switch (currentLightCameraType)
@@ -575,54 +562,16 @@ namespace Samples.DeferredShadowMapping
                     break;
             }
 
-            // 各分割で共通のビルダ プロパティを設定。
-            currentLightCameraBuilder.EyeView = camera.View;
-            currentLightCameraBuilder.LightDirection = lightDirection;
-            currentLightCameraBuilder.SceneBox = sceneBox;
+            cascadeShadowMap.View = camera.View;
+            cascadeShadowMap.LightDirection = lightDirection;
+            cascadeShadowMap.ShadowMapSize = ShadowMapSizes[currentShadowMapSizeIndex];
+            cascadeShadowMap.SceneBox = actualSceneBox;
+            cascadeShadowMap.LightCameraBuilder = currentLightCameraBuilder;
 
-            var context = Device.ImmediateContext;
+            cascadeShadowMap.Draw();
 
-            for (int i = 0; i < splitCount; i++)
-            {
-                // 射影行列は分割毎に異なる。
-                currentLightCameraBuilder.EyeProjection = splitProjections[i];
-
-                // ライトのビューおよび射影行列の算出。
-                Matrix lightView;
-                Matrix lightProjection;
-                currentLightCameraBuilder.Build(out lightView, out lightProjection);
-
-                // 後のモデル描画用にライト空間行列を算出。
-                Matrix.Multiply(ref lightView, ref lightProjection, out lightViewProjections[i]);
-
-                // シャドウ マップを描画。
-                shadowMaps[i].Form = shadowMapForm;
-                shadowMaps[i].Size = ShadowMapSizes[currentShadowMapSizeIndex];
-                shadowMaps[i].View = lightView;
-                shadowMaps[i].Projection = lightProjection;
-                shadowMaps[i].Draw();
-
-                // VSM の場合は生成したシャドウ マップへブラーを適用。
-                if (shadowMapForm == ShadowMapForm.Variance)
-                {
-                    if (vsmGaussianFilterSuite == null)
-                    {
-                        var shadowMapSize = ShadowMapSizes[currentShadowMapSizeIndex];
-                        vsmGaussianFilterSuite = new GaussianFilterSuite(
-                            Device.ImmediateContext,
-                            shadowMapSize,
-                            shadowMapSize,
-                            SurfaceFormat.Vector2);
-                        vsmGaussianFilterSuite.Radius = 3;
-                        vsmGaussianFilterSuite.Sigma = 1;
-                    }
-
-                    vsmGaussianFilterSuite.Filter(shadowMaps[i].RenderTarget, shadowMaps[i].RenderTarget);
-                }
-
-                // 生成されたシャドウ マップを一覧表示機能へ追加。
-                textureDisplay.Textures.Add(shadowMaps[i].RenderTarget);
-            }
+            for (int i = 0; i < cascadeShadowMap.SplitCount; i++)
+                textureDisplay.Textures.Add(cascadeShadowMap.GetTexture(i));
         }
 
         void CreateDepthMap()
@@ -653,17 +602,18 @@ namespace Samples.DeferredShadowMapping
             DeviceContext.SetRenderTarget(occlusionMapRenderTarget);
             DeviceContext.Clear(Vector4.Zero);
 
-            shadowOcclusionMap.ShadowMapForm = shadowMapForm;
+            shadowOcclusionMap.ShadowMapForm = cascadeShadowMap.ShadowMapForm;
             shadowOcclusionMap.View = camera.View;
             shadowOcclusionMap.Projection = camera.Projection;
 
-            for (int i = 0; i < MaxSplitCount; i++)
+            int i = 0;
+            for (; i < CascadeShadowMap.MaxSplitCount; i++)
             {
-                shadowOcclusionMap.SetSplitDistance(i, splitDistances[i]);
-                shadowOcclusionMap.SetLightViewProjection(i, lightViewProjections[i]);
-                shadowOcclusionMap.SetShadowMap(i, shadowMaps[i].RenderTarget);
+                shadowOcclusionMap.SetSplitDistance(i, cascadeShadowMap.GetSplitDistance(i));
+                shadowOcclusionMap.SetLightViewProjection(i, cascadeShadowMap.GetLightViewProjection(i));
+                shadowOcclusionMap.SetShadowMap(i, cascadeShadowMap.GetTexture(i));
             }
-            shadowOcclusionMap.SetSplitDistance(MaxSplitCount, splitDistances[MaxSplitCount]);
+            shadowOcclusionMap.SetSplitDistance(i, cascadeShadowMap.GetSplitDistance(i));
             shadowOcclusionMap.LinearDepthMap = depthMapRenderTarget;
 
             shadowOcclusionMap.Draw();
@@ -769,9 +719,9 @@ namespace Samples.DeferredShadowMapping
             {
                 text0 =
                     "[1] Light Camera Type (" + currentLightCameraType + ")\n" +
-                    "[2] Shadow Map Form (" + shadowMapForm + ")\n" +
+                    "[2] Shadow Map Form (" + cascadeShadowMap.ShadowMapForm + ")\n" +
                     "[3] Camera Frustum as Scene Box (" + useCameraFrustumSceneBox + ")\n" +
-                    "[4] Split count (" + splitCount + ")\n" +
+                    "[4] Split count (" + cascadeShadowMap.SplitCount + ")\n" +
                     "[5] Shadow map size (" + ShadowMapSizes[currentShadowMapSizeIndex] + "x" + ShadowMapSizes[currentShadowMapSizeIndex] + ")\n" +
                     "[T/G] Depth Bias (" + shadowOcclusionMap.DepthBias.ToString("F5") + ")\n" +
                     "[Y/H] PCF Radius (" + shadowOcclusionMap.PcfRadius + ")";
@@ -861,13 +811,13 @@ namespace Samples.DeferredShadowMapping
 
             if (currentKeyboardState.IsKeyUp(Keys.D2) && lastKeyboardState.IsKeyDown(Keys.D2))
             {
-                if (shadowMapForm == ShadowMapForm.Basic)
+                if (cascadeShadowMap.ShadowMapForm == ShadowMapForm.Basic)
                 {
-                    shadowMapForm = ShadowMapForm.Variance;
+                    cascadeShadowMap.ShadowMapForm = ShadowMapForm.Variance;
                 }
                 else
                 {
-                    shadowMapForm = ShadowMapForm.Basic;
+                    cascadeShadowMap.ShadowMapForm = ShadowMapForm.Basic;
                 }
             }
 
@@ -878,9 +828,9 @@ namespace Samples.DeferredShadowMapping
 
             if (currentKeyboardState.IsKeyUp(Keys.D4) && lastKeyboardState.IsKeyDown(Keys.D4))
             {
-                splitCount++;
-                if (MaxSplitCount < splitCount)
-                    splitCount = 1;
+                var count = cascadeShadowMap.SplitCount + 1;
+                if (CascadeShadowMap.MaxSplitCount < count) count = 1;
+                cascadeShadowMap.SplitCount = count;
             }
 
             if (currentKeyboardState.IsKeyUp(Keys.D5) && lastKeyboardState.IsKeyDown(Keys.D5))
@@ -888,12 +838,6 @@ namespace Samples.DeferredShadowMapping
                 currentShadowMapSizeIndex++;
                 if (ShadowMapSizes.Length <= currentShadowMapSizeIndex)
                     currentShadowMapSizeIndex = 0;
-
-                if (vsmGaussianFilterSuite != null)
-                {
-                    vsmGaussianFilterSuite.Dispose();
-                    vsmGaussianFilterSuite = null;
-                }
             }
 
             if (currentKeyboardState.IsKeyDown(Keys.T))

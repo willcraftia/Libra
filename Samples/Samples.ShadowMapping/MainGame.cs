@@ -516,7 +516,7 @@ namespace Samples.ShadowMapping
             for (int i = 0; i < shadowMaps.Length; i++)
             {
                 shadowMaps[i] = new ShadowMap(DeviceContext);
-                shadowMaps[i].DrawShadowCastersMethod = DrawShadowCasters;
+                shadowMaps[i].DrawShadowCastersCallback = DrawShadowCasters;
             }
         }
 

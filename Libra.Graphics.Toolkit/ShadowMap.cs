@@ -26,14 +26,6 @@ namespace Libra.Graphics.Toolkit
         #endregion
 
         /// <summary>
-        /// 投影オブジェクトを描画する際に呼び出されるコールバック デリゲートです。
-        /// コールバックを受けたクラスは、シャドウ マップ エフェクトを用いて投影オブジェクトを描画します。
-        /// 描画する投影オブジェクトの選択は、コールバックを受けたクラスが決定します。
-        /// </summary>
-        /// <param name="effect">シャドウ マップ エフェクト。</param>
-        public delegate void DrawShadowCastersCallback(IEffect effect);
-
-        /// <summary>
         /// シャドウ マップ エフェクト。
         /// </summary>
         ShadowMapEffect shadowMapEffect;
@@ -115,7 +107,7 @@ namespace Libra.Graphics.Toolkit
         /// <summary>
         /// 投影オブジェクト描画コールバックを取得または設定します。
         /// </summary>
-        public DrawShadowCastersCallback DrawShadowCastersMethod { get; set; }
+        public DrawShadowCastersCallback DrawShadowCastersCallback { get; set; }
 
         /// <summary>
         /// シャドウ マップが描画されるレンダ ターゲットを取得します。
@@ -185,8 +177,8 @@ namespace Libra.Graphics.Toolkit
 
             // 描画をコールバック。
             // 描画する投影オブジェクトの選別は、コールバックされる側のクラスで決定。
-            if (DrawShadowCastersMethod != null)
-                DrawShadowCastersMethod(shadowMapEffect);
+            if (DrawShadowCastersCallback != null)
+                DrawShadowCastersCallback(shadowMapEffect);
 
             DeviceContext.SetRenderTarget(null);
 
