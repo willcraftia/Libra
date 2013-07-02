@@ -63,7 +63,7 @@ namespace Samples.Primitives3D
 
         protected override void LoadContent()
         {
-            basicEffect = new BasicEffect(Device);
+            basicEffect = new BasicEffect(DeviceContext);
             basicEffect.EnableDefaultLighting();
 
             spriteBatch = new SpriteBatch(DeviceContext);
@@ -87,17 +87,15 @@ namespace Samples.Primitives3D
 
         protected override void Draw(GameTime gameTime)
         {
-            var context = Device.ImmediateContext;
-
-            context.Clear(Color.CornflowerBlue);
+            DeviceContext.Clear(Color.CornflowerBlue);
 
             if (isWireframe)
             {
-                context.RasterizerState = RasterizerState.Wireframe;
+                DeviceContext.RasterizerState = RasterizerState.Wireframe;
             }
             else
             {
-                context.RasterizerState = RasterizerState.CullBack;
+                DeviceContext.RasterizerState = RasterizerState.CullBack;
             }
 
             float time = (float) gameTime.TotalGameTime.TotalSeconds;
@@ -107,7 +105,7 @@ namespace Samples.Primitives3D
 
             var cameraPosition = new Vector3(0, 0, 2.5f);
 
-            var aspect = context.Viewport.AspectRatio;
+            var aspect = DeviceContext.Viewport.AspectRatio;
 
             var world = Matrix.CreateFromYawPitchRoll(yaw, pitch, roll);
             var view = Matrix.CreateLookAt(cameraPosition, Vector3.Zero, Vector3.Up);
@@ -122,10 +120,10 @@ namespace Samples.Primitives3D
             basicEffect.DiffuseColor = color.ToVector3();
             basicEffect.Alpha = color.A / 255.0f;
 
-            basicEffect.Apply(context);
+            basicEffect.Apply();
             currentPrimitive.Draw();
 
-            context.RasterizerState = RasterizerState.CullBack;
+            DeviceContext.RasterizerState = RasterizerState.CullBack;
 
             var text = "A or tap top of screen = Change primitive\n" +
                        "B or tap bottom left of screen = Change color\n" +

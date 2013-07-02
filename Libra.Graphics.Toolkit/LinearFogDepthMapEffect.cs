@@ -53,8 +53,6 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        Device device;
-
         SharedDeviceResource sharedDeviceResource;
 
         ConstantBuffer constantBufferPerObject;
@@ -70,6 +68,8 @@ namespace Libra.Graphics.Toolkit
         Matrix viewProjection;
 
         DirtyFlags dirtyFlags;
+
+        public DeviceContext DeviceContext { get; private set; }
 
         public Matrix World
         {
@@ -108,15 +108,15 @@ namespace Libra.Graphics.Toolkit
 
         public SamplerState LinearDepthMapSampler { get; set; }
 
-        public LinearFogDepthMapEffect(Device device)
+        public LinearFogDepthMapEffect(DeviceContext deviceContext)
         {
-            if (device == null) throw new ArgumentNullException("device");
+            if (deviceContext == null) throw new ArgumentNullException("deviceContext");
 
-            this.device = device;
+            DeviceContext = deviceContext;
 
-            sharedDeviceResource = device.GetSharedResource<LinearFogDepthMapEffect, SharedDeviceResource>();
+            sharedDeviceResource = deviceContext.Device.GetSharedResource<LinearFogDepthMapEffect, SharedDeviceResource>();
 
-            constantBufferPerObject = device.CreateConstantBuffer();
+            constantBufferPerObject = deviceContext.Device.CreateConstantBuffer();
             constantBufferPerObject.Initialize<ParametersPerObject>();
 
             world = Matrix.Identity;
@@ -131,7 +131,7 @@ namespace Libra.Graphics.Toolkit
             dirtyFlags = DirtyFlags.ConstantBufferPerObject;
         }
 
-        public void Apply(DeviceContext context)
+        public void Apply()
         {
             if ((dirtyFlags & DirtyFlags.ViewProjection) != 0)
             {
@@ -165,17 +165,17 @@ namespace Libra.Graphics.Toolkit
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerObject) != 0)
             {
-                constantBufferPerObject.SetData(context, parametersPerObject);
+                constantBufferPerObject.SetData(DeviceContext, parametersPerObject);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerObject;
             }
 
-            context.VertexShaderConstantBuffers[0] = constantBufferPerObject;
-            context.VertexShader = sharedDeviceResource.VertexShader;
-            context.PixelShader = sharedDeviceResource.PixelShader;
+            DeviceContext.VertexShaderConstantBuffers[0] = constantBufferPerObject;
+            DeviceContext.VertexShader = sharedDeviceResource.VertexShader;
+            DeviceContext.PixelShader = sharedDeviceResource.PixelShader;
 
-            context.PixelShaderResources[0] = LinearDepthMap;
-            context.PixelShaderSamplers[0] = LinearDepthMapSampler;
+            DeviceContext.PixelShaderResources[0] = LinearDepthMap;
+            DeviceContext.PixelShaderSamplers[0] = LinearDepthMapSampler;
         }
 
         #region IDisposable

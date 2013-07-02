@@ -169,8 +169,6 @@ namespace Libra.Graphics
         
         static readonly Vector2 SelectAlways  = new Vector2( 1,  1);
 
-        Device device;
-
         SharedDeviceResource sharedDeviceResource;
 
         DirtyFlags dirtyFlags;
@@ -201,6 +199,8 @@ namespace Libra.Graphics
         Matrix worldView;
 
         ConstantBuffer constantBuffer;
+
+        public DeviceContext DeviceContext { get; private set; }
 
         public Matrix World
         {
@@ -322,15 +322,15 @@ namespace Libra.Graphics
 
         public ShaderResourceView Texture { get; set; }
 
-        public AlphaTestEffect(Device device)
+        public AlphaTestEffect(DeviceContext deviceContext)
         {
-            if (device == null) throw new ArgumentNullException("device");
+            if (deviceContext == null) throw new ArgumentNullException("deviceContext");
 
-            this.device = device;
+            DeviceContext = deviceContext;
 
-            sharedDeviceResource = device.GetSharedResource<AlphaTestEffect, SharedDeviceResource>();
+            sharedDeviceResource = deviceContext.Device.GetSharedResource<AlphaTestEffect, SharedDeviceResource>();
 
-            constantBuffer = device.CreateConstantBuffer();
+            constantBuffer = deviceContext.Device.CreateConstantBuffer();
             constantBuffer.Usage = ResourceUsage.Dynamic;
             constantBuffer.Initialize<Constants>();
 
@@ -357,16 +357,16 @@ namespace Libra.Graphics
                 DirtyFlags.FogEnable;
         }
 
-        public void Apply(DeviceContext context)
+        public void Apply()
         {
             SetWorldViewProjConstant();
             SetFogConstants();
             SetMaterialColorConstants();
             SetAlphaTestConstants();
 
-            context.PixelShaderResources[0] = Texture;
+            DeviceContext.PixelShaderResources[0] = Texture;
 
-            ApplyShaders(context, GetCurrentShaderPermutation());
+            ApplyShaders(GetCurrentShaderPermutation());
         }
 
         void SetWorldViewProjConstant()
@@ -517,20 +517,20 @@ namespace Libra.Graphics
             return permutation;
         }
 
-        void ApplyShaders(DeviceContext context, int permutation)
+        void ApplyShaders(int permutation)
         {
-            context.VertexShader = sharedDeviceResource.GetVertexShader(permutation);
-            context.PixelShader = sharedDeviceResource.GetPixelShader(permutation);
+            DeviceContext.VertexShader = sharedDeviceResource.GetVertexShader(permutation);
+            DeviceContext.PixelShader = sharedDeviceResource.GetPixelShader(permutation);
 
             if ((dirtyFlags & DirtyFlags.Contants) != 0)
             {
-                constantBuffer.SetData(context, constants);
+                constantBuffer.SetData(DeviceContext, constants);
 
                 dirtyFlags &= ~DirtyFlags.Contants;
             }
 
-            context.VertexShaderConstantBuffers[0] = constantBuffer;
-            context.PixelShaderConstantBuffers[0] = constantBuffer;
+            DeviceContext.VertexShaderConstantBuffers[0] = constantBuffer;
+            DeviceContext.PixelShaderConstantBuffers[0] = constantBuffer;
         }
 
         #region IDisposable

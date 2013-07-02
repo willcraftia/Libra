@@ -174,16 +174,16 @@ namespace Samples.SceneGodRay
             normalSceneRenderTarget.Name = "Normal";
             normalSceneRenderTarget.Initialize();
 
-            basicEffect = new BasicEffect(Device);
+            basicEffect = new BasicEffect(DeviceContext);
             basicEffect.Projection = camera.Projection;
             basicEffect.DiffuseColor = Color.Black.ToVector3();
             basicEffect.DirectionalLights[0].Direction = lightDirection;
             basicEffect.EnableDefaultLighting();
 
-            singleColorObjectEffect = new SingleColorObjectEffect(Device);
+            singleColorObjectEffect = new SingleColorObjectEffect(DeviceContext);
             singleColorObjectEffect.Projection = camera.Projection;
 
-            lightScatteringFilter = new LightScatteringFilter(Device);
+            lightScatteringFilter = new LightScatteringFilter(DeviceContext);
             lightScatteringFilter.Density = 2.0f;
             lightScatteringFilter.Exposure = 2.0f;
 
@@ -343,7 +343,7 @@ namespace Samples.SceneGodRay
                             effectMatrices.World = world;
                         }
 
-                        effect.Apply(DeviceContext);
+                        effect.Apply();
                         cubeMesh.Draw();
                     }
                 }
@@ -376,7 +376,7 @@ namespace Samples.SceneGodRay
             // テクスチャ座標としてライト位置を設定。
             lightScatteringFilter.ScreenLightPosition = screenLightPosition;
             lightScatteringFilter.Texture = occlusionRenderTarget;
-            lightScatteringFilter.Apply(DeviceContext);
+            lightScatteringFilter.Apply();
 
             fullScreenQuad.Draw();
 

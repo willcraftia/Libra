@@ -8,7 +8,7 @@ namespace Libra.Graphics.Toolkit
 {
     public sealed class GaussianFilterSuite : IDisposable
     {
-        DeviceContext context;
+        DeviceContext DeviceContext;
 
         FullScreenQuad fullScreenQuad;
 
@@ -34,21 +34,21 @@ namespace Libra.Graphics.Toolkit
             set { gaussianFilter.Sigma = value; }
         }
 
-        public GaussianFilterSuite(DeviceContext context, int width, int height, SurfaceFormat format)
+        public GaussianFilterSuite(DeviceContext deviceContext, int width, int height, SurfaceFormat format)
         {
-            if (context == null) throw new ArgumentNullException("context");
+            if (deviceContext == null) throw new ArgumentNullException("deviceContext");
             if (width < 1) throw new ArgumentOutOfRangeException("width");
             if (height < 1) throw new ArgumentOutOfRangeException("height");
 
-            this.context = context;
+            DeviceContext = deviceContext;
             Width = width;
             Height = height;
 
-            fullScreenQuad = new FullScreenQuad(context);
+            fullScreenQuad = new FullScreenQuad(deviceContext);
 
-            gaussianFilter = new GaussianFilter(context.Device);
+            gaussianFilter = new GaussianFilter(deviceContext);
 
-            backingRenderTarget = context.Device.CreateRenderTarget();
+            backingRenderTarget = deviceContext.Device.CreateRenderTarget();
             backingRenderTarget.Width = width;
             backingRenderTarget.Height = height;
             backingRenderTarget.Format = format;
@@ -60,36 +60,36 @@ namespace Libra.Graphics.Toolkit
             if (source == null) throw new ArgumentNullException("source");
             if (destination == null) throw new ArgumentNullException("destination");
 
-            var previousBlendState = context.BlendState;
-            var previousDepthStencilState = context.DepthStencilState;
-            var previousRasterizerState = context.RasterizerState;
-            var previousSamplerState = context.PixelShaderSamplers[0];
+            var previousBlendState = DeviceContext.BlendState;
+            var previousDepthStencilState = DeviceContext.DepthStencilState;
+            var previousRasterizerState = DeviceContext.RasterizerState;
+            var previousSamplerState = DeviceContext.PixelShaderSamplers[0];
 
-            context.BlendState = BlendState.Opaque;
-            context.DepthStencilState = DepthStencilState.None;
-            context.RasterizerState = RasterizerState.CullBack;
-            context.PixelShaderSamplers[0] = SamplerState.LinearClamp;
+            DeviceContext.BlendState = BlendState.Opaque;
+            DeviceContext.DepthStencilState = DepthStencilState.None;
+            DeviceContext.RasterizerState = RasterizerState.CullBack;
+            DeviceContext.PixelShaderSamplers[0] = SamplerState.LinearClamp;
 
             Filter(source, backingRenderTarget, GaussianFilterDirection.Horizon);
             Filter(backingRenderTarget, destination, GaussianFilterDirection.Vertical);
 
-            context.SetRenderTarget(null);
+            DeviceContext.SetRenderTarget(null);
 
             // ステートを以前の状態へ戻す。
-            context.BlendState = previousBlendState;
-            context.DepthStencilState = previousDepthStencilState;
-            context.RasterizerState = previousRasterizerState;
-            context.PixelShaderSamplers[0] = previousSamplerState;
+            DeviceContext.BlendState = previousBlendState;
+            DeviceContext.DepthStencilState = previousDepthStencilState;
+            DeviceContext.RasterizerState = previousRasterizerState;
+            DeviceContext.PixelShaderSamplers[0] = previousSamplerState;
         }
 
         void Filter(ShaderResourceView source, RenderTargetView destination, GaussianFilterDirection direction)
         {
-            context.SetRenderTarget(destination);
+            DeviceContext.SetRenderTarget(destination);
 
             gaussianFilter.Direction = direction;
-            gaussianFilter.Apply(context);
+            gaussianFilter.Apply();
 
-            context.PixelShaderResources[0] = source;
+            DeviceContext.PixelShaderResources[0] = source;
 
             fullScreenQuad.Draw();
         }

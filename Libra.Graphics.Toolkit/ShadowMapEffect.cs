@@ -55,8 +55,6 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        Device device;
-
         SharedDeviceResource sharedDeviceResource;
 
         ConstantBuffer constantBuffer;
@@ -72,6 +70,8 @@ namespace Libra.Graphics.Toolkit
         Matrix viewProjection;
 
         DirtyFlags dirtyFlags;
+
+        public DeviceContext DeviceContext { get; private set; }
 
         public Matrix World
         {
@@ -108,15 +108,15 @@ namespace Libra.Graphics.Toolkit
 
         public ShadowMapForm Form { get; set; }
 
-        public ShadowMapEffect(Device device)
+        public ShadowMapEffect(DeviceContext deviceContext)
         {
-            if (device == null) throw new ArgumentNullException("device");
+            if (deviceContext == null) throw new ArgumentNullException("deviceContext");
 
-            this.device = device;
+            DeviceContext = deviceContext;
 
-            sharedDeviceResource = device.GetSharedResource<ShadowMapEffect, SharedDeviceResource>();
+            sharedDeviceResource = deviceContext.Device.GetSharedResource<ShadowMapEffect, SharedDeviceResource>();
 
-            constantBuffer = device.CreateConstantBuffer();
+            constantBuffer = deviceContext.Device.CreateConstantBuffer();
             constantBuffer.Initialize<Constants>();
 
             world = Matrix.Identity;
@@ -130,7 +130,7 @@ namespace Libra.Graphics.Toolkit
             dirtyFlags = DirtyFlags.Constants;
         }
 
-        public void Apply(DeviceContext context)
+        public void Apply()
         {
             if ((dirtyFlags & DirtyFlags.ViewProjection) != 0)
             {
@@ -153,21 +153,21 @@ namespace Libra.Graphics.Toolkit
 
             if ((dirtyFlags & DirtyFlags.Constants) != 0)
             {
-                constantBuffer.SetData(context, constants);
+                constantBuffer.SetData(DeviceContext, constants);
 
                 dirtyFlags &= ~DirtyFlags.Constants;
             }
 
-            context.VertexShaderConstantBuffers[0] = constantBuffer;
-            context.VertexShader = sharedDeviceResource.VertexShader;
+            DeviceContext.VertexShaderConstantBuffers[0] = constantBuffer;
+            DeviceContext.VertexShader = sharedDeviceResource.VertexShader;
 
             if (Form == ShadowMapForm.Variance)
             {
-                context.PixelShader = sharedDeviceResource.DepthVarianceMapPixelShader;
+                DeviceContext.PixelShader = sharedDeviceResource.DepthVarianceMapPixelShader;
             }
             else
             {
-                context.PixelShader = sharedDeviceResource.DepthMapPixelShader;
+                DeviceContext.PixelShader = sharedDeviceResource.DepthMapPixelShader;
             }
         }
 

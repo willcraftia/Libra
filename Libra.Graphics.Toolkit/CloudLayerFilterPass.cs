@@ -10,6 +10,11 @@ namespace Libra.Graphics.Toolkit
     {
         Vector2 pixelOffset;
 
+        public DeviceContext DeviceContext
+        {
+            get { return CloudLayerFilter.DeviceContext; }
+        }
+
         public CloudLayerFilter CloudLayerFilter { get; set; }
 
         public Vector2 PixelOffset
@@ -33,14 +38,12 @@ namespace Libra.Graphics.Toolkit
             Enabled = true;
         }
 
-        public void Apply(DeviceContext context)
+        public void Apply()
         {
-            if (context == null) throw new ArgumentNullException("context");
-
             CloudLayerFilter.PixelOffset = pixelOffset;
             CloudLayerFilter.Texture = Texture;
             CloudLayerFilter.TextureSampler = TextureSampler;
-            CloudLayerFilter.Apply(context);
+            CloudLayerFilter.Apply();
         }
     }
 }

@@ -104,8 +104,6 @@ namespace Libra.Graphics.Toolkit
             new Vector2( 1, -1)
         };
 
-        Device device;
-
         SharedDeviceResource sharedDeviceResource;
 
         ConstantBuffer constantBufferPerObject;
@@ -127,6 +125,8 @@ namespace Libra.Graphics.Toolkit
         int viewportHeight;
 
         DirtyFlags dirtyFlags;
+
+        public DeviceContext DeviceContext { get; private set; }
 
         public float EdgeWidth
         {
@@ -259,21 +259,21 @@ namespace Libra.Graphics.Toolkit
 
         public SamplerState TextureSampler { get; set; }
 
-        public EdgeFilter(Device device)
+        public EdgeFilter(DeviceContext deviceContext)
         {
-            if (device == null) throw new ArgumentNullException("device");
+            if (deviceContext == null) throw new ArgumentNullException("deviceContext");
 
-            this.device = device;
+            DeviceContext = deviceContext;
 
-            sharedDeviceResource = device.GetSharedResource<EdgeFilter, SharedDeviceResource>();
+            sharedDeviceResource = deviceContext.Device.GetSharedResource<EdgeFilter, SharedDeviceResource>();
 
-            constantBufferPerObject = device.CreateConstantBuffer();
+            constantBufferPerObject = deviceContext.Device.CreateConstantBuffer();
             constantBufferPerObject.Initialize<ParametersPerObject>();
 
-            constantBufferPerRenderTarget = device.CreateConstantBuffer();
+            constantBufferPerRenderTarget = deviceContext.Device.CreateConstantBuffer();
             constantBufferPerRenderTarget.Initialize<ParametersPerRenderTarget>();
 
-            constantBufferPerCamera = device.CreateConstantBuffer();
+            constantBufferPerCamera = deviceContext.Device.CreateConstantBuffer();
             constantBufferPerCamera.Initialize<ParametersPerCamera>();
 
             edgeWidth = 1;
@@ -302,11 +302,9 @@ namespace Libra.Graphics.Toolkit
                 DirtyFlags.Offsets;
         }
 
-        public void Apply(DeviceContext context)
+        public void Apply()
         {
-            if (context == null) throw new ArgumentNullException("context");
-
-            var viewport = context.Viewport;
+            var viewport = DeviceContext.Viewport;
             int w = (int) viewport.Width;
             int h = (int) viewport.Height;
 
@@ -335,35 +333,35 @@ namespace Libra.Graphics.Toolkit
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerObject) != 0)
             {
-                constantBufferPerObject.SetData(context, parametersPerObject);
+                constantBufferPerObject.SetData(DeviceContext, parametersPerObject);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerObject;
             }
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerRenderTarget) != 0)
             {
-                constantBufferPerRenderTarget.SetData(context, parametersPerRenderTarget);
+                constantBufferPerRenderTarget.SetData(DeviceContext, parametersPerRenderTarget);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerRenderTarget;
             }
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerCamera) != 0)
             {
-                constantBufferPerCamera.SetData(context, parametersPerCamera);
+                constantBufferPerCamera.SetData(DeviceContext, parametersPerCamera);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerCamera;
             }
 
-            context.PixelShader = sharedDeviceResource.PixelShader;
-            context.PixelShaderConstantBuffers[0] = constantBufferPerObject;
-            context.PixelShaderConstantBuffers[1] = constantBufferPerRenderTarget;
-            context.PixelShaderConstantBuffers[2] = constantBufferPerCamera;
-            context.PixelShaderResources[0] = Texture;
-            context.PixelShaderResources[1] = LinearDepthMap;
-            context.PixelShaderResources[2] = NormalMap;
-            context.PixelShaderSamplers[0] = TextureSampler;
-            context.PixelShaderSamplers[1] = LinearDepthMapSampler;
-            context.PixelShaderSamplers[2] = NormalMapSampler;
+            DeviceContext.PixelShader = sharedDeviceResource.PixelShader;
+            DeviceContext.PixelShaderConstantBuffers[0] = constantBufferPerObject;
+            DeviceContext.PixelShaderConstantBuffers[1] = constantBufferPerRenderTarget;
+            DeviceContext.PixelShaderConstantBuffers[2] = constantBufferPerCamera;
+            DeviceContext.PixelShaderResources[0] = Texture;
+            DeviceContext.PixelShaderResources[1] = LinearDepthMap;
+            DeviceContext.PixelShaderResources[2] = NormalMap;
+            DeviceContext.PixelShaderSamplers[0] = TextureSampler;
+            DeviceContext.PixelShaderSamplers[1] = LinearDepthMapSampler;
+            DeviceContext.PixelShaderSamplers[2] = NormalMapSampler;
         }
 
         #region IDisposable

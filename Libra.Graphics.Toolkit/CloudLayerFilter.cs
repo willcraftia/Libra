@@ -54,8 +54,6 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        Device device;
-
         SharedDeviceResource sharedDeviceResource;
 
         ParametersPerObject parametersPerObject;
@@ -69,6 +67,8 @@ namespace Libra.Graphics.Toolkit
         int viewportHeight;
 
         DirtyFlags dirtyFlags;
+
+        public DeviceContext DeviceContext { get; private set; }
 
         public Vector2 PixelOffset
         {
@@ -91,15 +91,15 @@ namespace Libra.Graphics.Toolkit
 
         public SamplerState TextureSampler { get; set; }
 
-        public CloudLayerFilter(Device device)
+        public CloudLayerFilter(DeviceContext deviceContext)
         {
-            if (device == null) throw new ArgumentNullException("device");
+            if (deviceContext == null) throw new ArgumentNullException("deviceContext");
 
-            this.device = device;
+            DeviceContext = deviceContext;
 
-            sharedDeviceResource = device.GetSharedResource<CloudLayerFilter, SharedDeviceResource>();
+            sharedDeviceResource = deviceContext.Device.GetSharedResource<CloudLayerFilter, SharedDeviceResource>();
 
-            constantBufferPerObject = device.CreateConstantBuffer();
+            constantBufferPerObject = deviceContext.Device.CreateConstantBuffer();
             constantBufferPerObject.Initialize<ParametersPerObject>();
 
             parametersPerObject.CloudColor = Vector3.One;
@@ -116,9 +116,9 @@ namespace Libra.Graphics.Toolkit
                 DirtyFlags.Offset;
         }
 
-        public void Apply(DeviceContext context)
+        public void Apply()
         {
-            var viewport = context.Viewport;
+            var viewport = DeviceContext.Viewport;
             int currentWidth = (int) viewport.Width;
             int currentHeight = (int) viewport.Height;
 
@@ -141,17 +141,17 @@ namespace Libra.Graphics.Toolkit
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerObject) != 0)
             {
-                constantBufferPerObject.SetData(context, parametersPerObject);
+                constantBufferPerObject.SetData(DeviceContext, parametersPerObject);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerObject;
             }
 
-            context.PixelShader = sharedDeviceResource.PixelShader;
-            context.PixelShaderConstantBuffers[0] = constantBufferPerObject;
-            context.PixelShaderResources[0] = Texture;
-            context.PixelShaderResources[1] = DensityMap;
-            context.PixelShaderSamplers[0] = TextureSampler;
-            context.PixelShaderSamplers[1] = DensityMapSampler;
+            DeviceContext.PixelShader = sharedDeviceResource.PixelShader;
+            DeviceContext.PixelShaderConstantBuffers[0] = constantBufferPerObject;
+            DeviceContext.PixelShaderResources[0] = Texture;
+            DeviceContext.PixelShaderResources[1] = DensityMap;
+            DeviceContext.PixelShaderSamplers[0] = TextureSampler;
+            DeviceContext.PixelShaderSamplers[1] = DensityMapSampler;
         }
 
         #region IDisposable

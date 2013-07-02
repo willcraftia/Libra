@@ -310,8 +310,6 @@ namespace Samples.Water
 
         static readonly Vector3 DefaultAmbientLightColor = new Vector3(0.05333332f, 0.09882354f, 0.1819608f);
 
-        Device device;
-
         SharedDeviceResource sharedDeviceResource;
 
         DirtyFlags dirtyFlags;
@@ -344,6 +342,8 @@ namespace Samples.Water
         ConstantBuffer constantBuffer;
 
         ConstantBuffer clippingConstantBuffer;
+
+        public DeviceContext DeviceContext { get; private set; }
 
         public Matrix World
         {
@@ -479,21 +479,21 @@ namespace Samples.Water
             }
         }
 
-        public ClippingEffect(Device device)
+        public ClippingEffect(DeviceContext deviceContext)
         {
-            if (device == null) throw new ArgumentNullException("device");
+            if (deviceContext == null) throw new ArgumentNullException("deviceContext");
 
-            this.device = device;
+            DeviceContext = deviceContext;
 
-            sharedDeviceResource = device.GetSharedResource<ClippingEffect, SharedDeviceResource>();
+            sharedDeviceResource = deviceContext.Device.GetSharedResource<ClippingEffect, SharedDeviceResource>();
 
             directionalLights = new DirectionalLightCollection(this);
 
-            constantBuffer = device.CreateConstantBuffer();
+            constantBuffer = deviceContext.Device.CreateConstantBuffer();
             constantBuffer.Usage = ResourceUsage.Dynamic;
             constantBuffer.Initialize<Constants>();
 
-            clippingConstantBuffer = device.CreateConstantBuffer();
+            clippingConstantBuffer = deviceContext.Device.CreateConstantBuffer();
             clippingConstantBuffer.Usage = ResourceUsage.Dynamic;
             clippingConstantBuffer.Initialize<ClippingConstants>();
 
@@ -527,12 +527,12 @@ namespace Samples.Water
                 DirtyFlags.MaterialColor;
         }
 
-        public void Apply(DeviceContext context)
+        public void Apply()
         {
             SetWorldViewProjConstant();
             SetLightConstants();
 
-            ApplyShaders(context);
+            ApplyShaders();
         }
 
         public void EnableDefaultLighting()
@@ -623,26 +623,26 @@ namespace Samples.Water
             }
         }
 
-        void ApplyShaders(DeviceContext context)
+        void ApplyShaders()
         {
-            context.VertexShader = sharedDeviceResource.VertexShader;
-            context.PixelShader = sharedDeviceResource.PixelShader;
+            DeviceContext.VertexShader = sharedDeviceResource.VertexShader;
+            DeviceContext.PixelShader = sharedDeviceResource.PixelShader;
 
             if ((dirtyFlags & DirtyFlags.Contants) != 0)
             {
-                constantBuffer.SetData(context, constants);
+                constantBuffer.SetData(DeviceContext, constants);
                 dirtyFlags &= ~DirtyFlags.Contants;
             }
 
             if ((dirtyFlags & DirtyFlags.ClippingContants) != 0)
             {
-                clippingConstantBuffer.SetData(context, clippingConstants);
+                clippingConstantBuffer.SetData(DeviceContext, clippingConstants);
                 dirtyFlags &= ~DirtyFlags.ClippingContants;
             }
 
-            context.VertexShaderConstantBuffers[0] = constantBuffer;
-            context.VertexShaderConstantBuffers[1] = clippingConstantBuffer;
-            context.PixelShaderConstantBuffers[0] = constantBuffer;
+            DeviceContext.VertexShaderConstantBuffers[0] = constantBuffer;
+            DeviceContext.VertexShaderConstantBuffers[1] = clippingConstantBuffer;
+            DeviceContext.PixelShaderConstantBuffers[0] = constantBuffer;
         }
 
         #region IDisposable

@@ -24,8 +24,6 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        Device device;
-
         SharedDeviceResource sharedDeviceResource;
 
         ConstantBuffer constantBufferPerObject;
@@ -39,6 +37,8 @@ namespace Libra.Graphics.Toolkit
         float bloomSaturation;
 
         bool constantBufferPerObjectDirty;
+
+        public DeviceContext DeviceContext { get; private set; }
 
         public float BaseIntensity
         {
@@ -110,15 +110,15 @@ namespace Libra.Graphics.Toolkit
 
         public SamplerState TextureSampler { get; set; }
 
-        public BloomCombineFilter(Device device)
+        public BloomCombineFilter(DeviceContext deviceContext)
         {
-            if (device == null) throw new ArgumentNullException("device");
+            if (deviceContext == null) throw new ArgumentNullException("deviceContext");
 
-            this.device = device;
+            DeviceContext = deviceContext;
 
-            sharedDeviceResource = device.GetSharedResource<BloomCombineFilter, SharedDeviceResource>();
+            sharedDeviceResource = deviceContext.Device.GetSharedResource<BloomCombineFilter, SharedDeviceResource>();
 
-            constantBufferPerObject = device.CreateConstantBuffer();
+            constantBufferPerObject = deviceContext.Device.CreateConstantBuffer();
             constantBufferPerObject.Initialize(16);
 
             baseIntensity = 1.0f;
@@ -131,24 +131,22 @@ namespace Libra.Graphics.Toolkit
             Enabled = true;
         }
 
-        public void Apply(DeviceContext context)
+        public void Apply()
         {
-            if (context == null) throw new ArgumentNullException("context");
-
             if (constantBufferPerObjectDirty)
             {
                 var data = new Vector4(baseIntensity, baseSaturation, bloomIntensity, bloomSaturation);
-                constantBufferPerObject.SetData(context, data);
+                constantBufferPerObject.SetData(DeviceContext, data);
 
                 constantBufferPerObjectDirty = false;
             }
 
-            context.PixelShader = sharedDeviceResource.PixelShader;
-            context.PixelShaderConstantBuffers[0] = constantBufferPerObject;
-            context.PixelShaderResources[0] = Texture;
-            context.PixelShaderResources[1] = BaseTexture;
-            context.PixelShaderSamplers[0] = TextureSampler;
-            context.PixelShaderSamplers[1] = BaseTextureSampler;
+            DeviceContext.PixelShader = sharedDeviceResource.PixelShader;
+            DeviceContext.PixelShaderConstantBuffers[0] = constantBufferPerObject;
+            DeviceContext.PixelShaderResources[0] = Texture;
+            DeviceContext.PixelShaderResources[1] = BaseTexture;
+            DeviceContext.PixelShaderSamplers[0] = TextureSampler;
+            DeviceContext.PixelShaderSamplers[1] = BaseTextureSampler;
         }
 
         #region IDisposable

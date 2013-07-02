@@ -49,8 +49,6 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        Device device;
-
         SharedDeviceResource sharedDeviceResource;
 
         ConstantBuffer constantBufferPerCamera;
@@ -58,6 +56,8 @@ namespace Libra.Graphics.Toolkit
         ParametersPerCamera parametersPerCamera;
 
         DirtyFlags dirtyFlags;
+
+        public DeviceContext DeviceContext { get; private set; }
 
         public float NearClipDistance
         {
@@ -103,15 +103,15 @@ namespace Libra.Graphics.Toolkit
             set { }
         }
 
-        public LinearDepthMapColorFilter(Device device)
+        public LinearDepthMapColorFilter(DeviceContext deviceContext)
         {
-            if (device == null) throw new ArgumentNullException("device");
+            if (deviceContext == null) throw new ArgumentNullException("deviceContext");
 
-            this.device = device;
+            DeviceContext = deviceContext;
 
-            sharedDeviceResource = device.GetSharedResource<LinearDepthMapColorFilter, SharedDeviceResource>();
+            sharedDeviceResource = deviceContext.Device.GetSharedResource<LinearDepthMapColorFilter, SharedDeviceResource>();
 
-            constantBufferPerCamera = device.CreateConstantBuffer();
+            constantBufferPerCamera = deviceContext.Device.CreateConstantBuffer();
             constantBufferPerCamera.Initialize<ParametersPerCamera>();
 
             parametersPerCamera.NearClipDistance = 1.0f;
@@ -124,21 +124,19 @@ namespace Libra.Graphics.Toolkit
             dirtyFlags = DirtyFlags.ConstantBufferPerCamera;
         }
 
-        public void Apply(DeviceContext context)
+        public void Apply()
         {
-            if (context == null) throw new ArgumentNullException("context");
-
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerCamera) != 0)
             {
-                constantBufferPerCamera.SetData(context, parametersPerCamera);
+                constantBufferPerCamera.SetData(DeviceContext, parametersPerCamera);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerCamera;
             }
 
-            context.PixelShader = sharedDeviceResource.PixelShader;
-            context.PixelShaderConstantBuffers[0] = constantBufferPerCamera;
-            context.PixelShaderResources[1] = LinearDepthMap;
-            context.PixelShaderSamplers[1] = LinearDepthMapSampler;
+            DeviceContext.PixelShader = sharedDeviceResource.PixelShader;
+            DeviceContext.PixelShaderConstantBuffers[0] = constantBufferPerCamera;
+            DeviceContext.PixelShaderResources[1] = LinearDepthMap;
+            DeviceContext.PixelShaderSamplers[1] = LinearDepthMapSampler;
         }
 
         #region IDisposable

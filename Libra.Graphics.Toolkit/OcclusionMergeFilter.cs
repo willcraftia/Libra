@@ -24,9 +24,9 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        Device device;
-
         SharedDeviceResource sharedDeviceResource;
+
+        public DeviceContext DeviceContext { get; private set; }
 
         public ShaderResourceView OtherOcclusionMap { get; set; }
 
@@ -38,13 +38,13 @@ namespace Libra.Graphics.Toolkit
 
         public SamplerState TextureSampler { get; set; }
 
-        public OcclusionMergeFilter(Device device)
+        public OcclusionMergeFilter(DeviceContext deviceContext)
         {
-            if (device == null) throw new ArgumentNullException("device");
+            if (deviceContext == null) throw new ArgumentNullException("deviceContext");
 
-            this.device = device;
+            DeviceContext = deviceContext;
 
-            sharedDeviceResource = device.GetSharedResource<OcclusionMergeFilter, SharedDeviceResource>();
+            sharedDeviceResource = deviceContext.Device.GetSharedResource<OcclusionMergeFilter, SharedDeviceResource>();
 
             TextureSampler = SamplerState.PointClamp;
             OtherOcclusionMapSampler = SamplerState.PointClamp;
@@ -52,16 +52,13 @@ namespace Libra.Graphics.Toolkit
             Enabled = true;
         }
 
-        public void Apply(DeviceContext context)
+        public void Apply()
         {
-            if (context == null) throw new ArgumentNullException("context");
-
-            context.PixelShader = sharedDeviceResource.PixelShader;
-
-            context.PixelShaderResources[0] = Texture;
-            context.PixelShaderResources[1] = OtherOcclusionMap;
-            context.PixelShaderSamplers[0] = TextureSampler;
-            context.PixelShaderSamplers[1] = OtherOcclusionMapSampler;
+            DeviceContext.PixelShader = sharedDeviceResource.PixelShader;
+            DeviceContext.PixelShaderResources[0] = Texture;
+            DeviceContext.PixelShaderResources[1] = OtherOcclusionMap;
+            DeviceContext.PixelShaderSamplers[0] = TextureSampler;
+            DeviceContext.PixelShaderSamplers[1] = OtherOcclusionMapSampler;
         }
 
         #region IDisposable

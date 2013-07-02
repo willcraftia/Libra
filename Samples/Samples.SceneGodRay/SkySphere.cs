@@ -22,8 +22,6 @@ namespace Samples.SceneGodRay
 
         #endregion
 
-        DeviceContext context;
-
         SkySphereEffect skySphereEffect;
 
         SphereMesh sphereMesh;
@@ -33,6 +31,8 @@ namespace Samples.SceneGodRay
         Matrix projection;
 
         DirtyFlags dirtyFlags;
+
+        public DeviceContext DeviceContext { get; private set; }
 
         public Matrix View
         {
@@ -86,15 +86,15 @@ namespace Samples.SceneGodRay
             set { skySphereEffect.SunVisible = value; }
         }
 
-        public SkySphere(DeviceContext context)
+        public SkySphere(DeviceContext deviceContext)
         {
-            if (context == null) throw new ArgumentNullException("context");
+            if (deviceContext == null) throw new ArgumentNullException("deviceContext");
 
-            this.context = context;
+            DeviceContext = deviceContext;
 
-            skySphereEffect = new SkySphereEffect(context.Device);
+            skySphereEffect = new SkySphereEffect(deviceContext);
             skySphereEffect.World = Matrix.Identity;
-            sphereMesh = new SphereMesh(context, 1, 32);
+            sphereMesh = new SphereMesh(deviceContext, 1, 32);
 
             dirtyFlags |= DirtyFlags.LocalView | DirtyFlags.LocalProjection;
         }
@@ -126,16 +126,16 @@ namespace Samples.SceneGodRay
             }
 
             // 遠クリップ面への描画であるため、深度比較は LessEqual とする。
-            context.DepthStencilState = DepthStencilState.DepthReadLessEqual;
+            DeviceContext.DepthStencilState = DepthStencilState.DepthReadLessEqual;
             // 内側 (背面) を描画。
-            context.RasterizerState = RasterizerState.CullFront;
+            DeviceContext.RasterizerState = RasterizerState.CullFront;
 
-            skySphereEffect.Apply(context);
+            skySphereEffect.Apply();
             sphereMesh.Draw();
 
             // デフォルトへ戻す。
-            context.DepthStencilState = DepthStencilState.Default;
-            context.RasterizerState = RasterizerState.CullBack;
+            DeviceContext.DepthStencilState = DepthStencilState.Default;
+            DeviceContext.RasterizerState = RasterizerState.CullBack;
         }
     }
 }

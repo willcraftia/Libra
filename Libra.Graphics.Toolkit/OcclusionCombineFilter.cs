@@ -45,8 +45,6 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        Device device;
-
         SharedDeviceResource sharedDeviceResource;
 
         ConstantBuffer constantBufferPerObject;
@@ -54,6 +52,8 @@ namespace Libra.Graphics.Toolkit
         ParametersPerObject parametersPerObject;
 
         DirtyFlags dirtyFlags;
+
+        public DeviceContext DeviceContext { get; private set; }
 
         public Vector3 ShadowColor
         {
@@ -79,15 +79,15 @@ namespace Libra.Graphics.Toolkit
 
         public SamplerState TextureSampler { get; set; }
 
-        public OcclusionCombineFilter(Device device)
+        public OcclusionCombineFilter(DeviceContext deviceContext)
         {
-            if (device == null) throw new ArgumentNullException("device");
+            if (deviceContext == null) throw new ArgumentNullException("deviceContext");
 
-            this.device = device;
+            DeviceContext = deviceContext;
 
-            sharedDeviceResource = device.GetSharedResource<OcclusionCombineFilter, SharedDeviceResource>();
+            sharedDeviceResource = deviceContext.Device.GetSharedResource<OcclusionCombineFilter, SharedDeviceResource>();
 
-            constantBufferPerObject = device.CreateConstantBuffer();
+            constantBufferPerObject = deviceContext.Device.CreateConstantBuffer();
             constantBufferPerObject.Initialize<ParametersPerObject>();
 
             parametersPerObject.ShadowColor = Vector3.Zero;
@@ -97,21 +97,21 @@ namespace Libra.Graphics.Toolkit
             dirtyFlags = DirtyFlags.ConstantBufferPerObject;
         }
 
-        public void Apply(DeviceContext context)
+        public void Apply()
         {
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerObject) != 0)
             {
-                constantBufferPerObject.SetData(context, parametersPerObject);
+                constantBufferPerObject.SetData(DeviceContext, parametersPerObject);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerObject;
             }
 
-            context.PixelShader = sharedDeviceResource.PixelShader;
-            context.PixelShaderConstantBuffers[0] = constantBufferPerObject;
-            context.PixelShaderResources[0] = Texture;
-            context.PixelShaderResources[1] = OcclusionMap;
-            context.PixelShaderSamplers[1] = OcclusionMapSampler;
-            context.PixelShaderSamplers[0] = TextureSampler;
+            DeviceContext.PixelShader = sharedDeviceResource.PixelShader;
+            DeviceContext.PixelShaderConstantBuffers[0] = constantBufferPerObject;
+            DeviceContext.PixelShaderResources[0] = Texture;
+            DeviceContext.PixelShaderResources[1] = OcclusionMap;
+            DeviceContext.PixelShaderSamplers[1] = OcclusionMapSampler;
+            DeviceContext.PixelShaderSamplers[0] = TextureSampler;
         }
 
         #region IDisposable

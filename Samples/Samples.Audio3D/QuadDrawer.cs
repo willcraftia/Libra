@@ -10,7 +10,7 @@ namespace Samples.Audio3D
 {
     public sealed class QuadDrawer
     {
-        Device device;
+        DeviceContext deviceContext;
 
         AlphaTestEffect effect;
         
@@ -18,11 +18,11 @@ namespace Samples.Audio3D
 
         VertexBuffer vertexBuffer;
 
-        public QuadDrawer(Device device)
+        public QuadDrawer(DeviceContext deviceContext)
         {
-            this.device = device;
+            this.deviceContext = deviceContext;
 
-            effect = new AlphaTestEffect(device);
+            effect = new AlphaTestEffect(deviceContext);
 
             effect.AlphaFunction = ComparisonFunction.Greater;
             effect.ReferenceAlpha = 128;
@@ -33,13 +33,12 @@ namespace Samples.Audio3D
             vertices[2].Position = new Vector3( 1, -1, 0);
             vertices[3].Position = new Vector3(-1, -1, 0);
 
-            vertexBuffer = device.CreateVertexBuffer();
+            vertexBuffer = deviceContext.Device.CreateVertexBuffer();
             vertexBuffer.Usage = ResourceUsage.Dynamic;
             vertexBuffer.Initialize<VertexPositionTexture>(vertices.Length);
         }
 
-        public void DrawQuad(DeviceContext context,
-            ShaderResourceView texture, float textureRepeats, Matrix world, Matrix view, Matrix projection)
+        public void DrawQuad(ShaderResourceView texture, float textureRepeats, Matrix world, Matrix view, Matrix projection)
         {
             effect.Texture = texture;
 
@@ -52,15 +51,15 @@ namespace Samples.Audio3D
             vertices[2].TexCoord = new Vector2(0, textureRepeats);
             vertices[3].TexCoord = new Vector2(textureRepeats, textureRepeats);
 
-            vertexBuffer.SetData(context, vertices);
-            context.SetVertexBuffer(0, vertexBuffer);
+            vertexBuffer.SetData(deviceContext, vertices);
+            deviceContext.SetVertexBuffer(0, vertexBuffer);
 
-            context.PrimitiveTopology = PrimitiveTopology.TriangleStrip;
-            context.PixelShaderSamplers[0] = SamplerState.LinearWrap;
+            deviceContext.PrimitiveTopology = PrimitiveTopology.TriangleStrip;
+            deviceContext.PixelShaderSamplers[0] = SamplerState.LinearWrap;
 
-            effect.Apply(context);
+            effect.Apply();
 
-            context.Draw(4);
+            deviceContext.Draw(4);
         }
     }
 }

@@ -302,10 +302,10 @@ namespace Samples.SceneAmbientOcclusion
             postprocessScene.Height = normalSceneRenderTarget.Height;
             postprocessScene.Format = normalSceneRenderTarget.Format;
 
-            downFilter = new DownFilter(Device);
-            upFilter = new UpFilter(Device);
+            downFilter = new DownFilter(DeviceContext);
+            upFilter = new UpFilter(DeviceContext);
 
-            bormalDepthBilateralFilter = new NormalDepthBilateralFilter(Device);
+            bormalDepthBilateralFilter = new NormalDepthBilateralFilter(DeviceContext);
             ssaoBlurH = new GaussianFilterPass(bormalDepthBilateralFilter, GaussianFilterDirection.Horizon);
             ssaoBlurV = new GaussianFilterPass(bormalDepthBilateralFilter, GaussianFilterDirection.Vertical);
 
@@ -317,14 +317,14 @@ namespace Samples.SceneAmbientOcclusion
             }
             postprocessSSAOMap.Filters.Add(upFilter);
 
-            occlusionCombineFilter = new OcclusionCombineFilter(Device);
-            linearDepthMapColorFilter = new LinearDepthMapColorFilter(Device);
+            occlusionCombineFilter = new OcclusionCombineFilter(DeviceContext);
+            linearDepthMapColorFilter = new LinearDepthMapColorFilter(DeviceContext);
             linearDepthMapColorFilter.NearClipDistance = camera.NearClipDistance;
             linearDepthMapColorFilter.FarClipDistance = camera.FarClipDistance;
             linearDepthMapColorFilter.Enabled = false;
-            occlusionMapColorFilter = new OcclusionMapColorFilter(Device);
+            occlusionMapColorFilter = new OcclusionMapColorFilter(DeviceContext);
             occlusionMapColorFilter.Enabled = false;
-            finalOcclusionMapColorFilter = new OcclusionMapColorFilter(Device);
+            finalOcclusionMapColorFilter = new OcclusionMapColorFilter(DeviceContext);
             finalOcclusionMapColorFilter.Enabled = false;
 
             postprocessScene.Filters.Add(occlusionCombineFilter);
@@ -332,10 +332,10 @@ namespace Samples.SceneAmbientOcclusion
             postprocessScene.Filters.Add(occlusionMapColorFilter);
             postprocessScene.Filters.Add(finalOcclusionMapColorFilter);
 
-            depthMapEffect = new LinearDepthMapEffect(Device);
-            normalMapEffect = new NormalMapEffect(Device);
+            depthMapEffect = new LinearDepthMapEffect(DeviceContext);
+            normalMapEffect = new NormalMapEffect(DeviceContext);
 
-            basicEffect = new BasicEffect(Device);
+            basicEffect = new BasicEffect(DeviceContext);
             basicEffect.AmbientLightColor = new Vector3(0.15f, 0.15f, 0.15f);
             basicEffect.PerPixelLighting = true;
             basicEffect.EnableDefaultLighting();
@@ -506,7 +506,7 @@ namespace Samples.SceneAmbientOcclusion
                 basicEffect.DiffuseColor = color;
             }
 
-            effect.Apply(DeviceContext);
+            effect.Apply();
             mesh.Draw();
         }
 

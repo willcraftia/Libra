@@ -163,7 +163,7 @@ namespace Libra.Graphics.Toolkit
 
             spriteBatch = new SpriteBatch(deviceContext);
 
-            basicEffect = new BasicEffect(deviceContext.Device);
+            basicEffect = new BasicEffect(deviceContext);
             basicEffect.View = Matrix.Identity;
             basicEffect.VertexColorEnabled = true;
 
@@ -280,7 +280,7 @@ namespace Libra.Graphics.Toolkit
 
             basicEffect.World = world;
             basicEffect.Projection = projection;
-            basicEffect.Apply(DeviceContext);
+            basicEffect.Apply();
 
             occlusionQuery.Begin(DeviceContext);
 

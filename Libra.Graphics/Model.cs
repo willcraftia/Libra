@@ -16,10 +16,8 @@ namespace Libra.Graphics
 
         public ModelMeshCollection Meshes { get; set; }
 
-        public void Draw(DeviceContext context, Matrix world, Matrix view, Matrix projection)
+        public void Draw(Matrix world, Matrix view, Matrix projection)
         {
-            if (context == null) throw new ArgumentNullException("context");
-
             if (boneTransforms == null)
             {
                 boneTransforms = new Matrix[Bones.Count];
@@ -47,13 +45,12 @@ namespace Libra.Graphics
                     }
                 }
 
-                mesh.Draw(context);
+                mesh.Draw();
             }
         }
 
-        public void Draw(DeviceContext context, IEffect effect, Matrix world)
+        public void Draw(IEffect effect, Matrix world)
         {
-            if (context == null) throw new ArgumentNullException("context");
             if (effect == null) throw new ArgumentNullException("effect");
 
             if (boneTransforms == null)
@@ -76,7 +73,7 @@ namespace Libra.Graphics
                     effectMatrices.World = finalWorld;
                 }
 
-                mesh.Draw(context, effect);
+                mesh.Draw(effect);
             }
         }
 
@@ -101,33 +98,5 @@ namespace Libra.Graphics
                 }
             }
         }
-
-        // TODO
-        //
-        // Transform を public フィールドにしたので要らないのでは？
-
-        //public void CopyBoneTransformsFrom(Matrix[] sourceBoneTransforms)
-        //{
-        //    if (sourceBoneTransforms == null) throw new ArgumentNullException("sourceBoneTransforms");
-        //    if (sourceBoneTransforms.Length != Bones.Count)
-        //        throw new ArgumentOutOfRangeException("sourceBoneTransforms");
-
-        //    for (int i = 0; i < sourceBoneTransforms.Length; i++)
-        //    {
-        //        Bones[i].Transform = sourceBoneTransforms[i];
-        //    }
-        //}
-
-        //public void CopyBoneTransformsTo(Matrix[] destinationBoneTransforms)
-        //{
-        //    if (destinationBoneTransforms == null) throw new ArgumentNullException("destinationBoneTransforms");
-        //    if (destinationBoneTransforms.Length != Bones.Count)
-        //        throw new ArgumentOutOfRangeException("destinationBoneTransforms");
-
-        //    for (int i = 0; i < destinationBoneTransforms.Length; i++)
-        //    {
-        //        destinationBoneTransforms[i] = Bones[i].Transform;
-        //    }
-        //}
     }
 }

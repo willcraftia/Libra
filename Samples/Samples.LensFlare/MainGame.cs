@@ -142,7 +142,7 @@ namespace Samples.LensFlare
                     effect.FogColor = Color.CornflowerBlue.ToVector3();
                 }
 
-                mesh.Draw(DeviceContext);
+                mesh.Draw();
             }
 
             DeviceContext.PixelShaderSamplers[0] = null;

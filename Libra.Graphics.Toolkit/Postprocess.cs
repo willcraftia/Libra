@@ -19,8 +19,6 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        DeviceContext context;
-
         int width;
 
         int height;
@@ -34,6 +32,8 @@ namespace Libra.Graphics.Toolkit
         FullScreenQuad fullScreenQuad;
 
         Matrix projection;
+
+        public DeviceContext DeviceContext { get; private set; }
 
         public FilterCollection Filters { get; private set; }
 
@@ -99,7 +99,7 @@ namespace Libra.Graphics.Toolkit
         {
             if (context == null) throw new ArgumentNullException("context");
 
-            this.context = context;
+            this.DeviceContext = context;
 
             renderTargetChains = new Dictionary<ulong, RenderTargetChain>(4);
             Filters = new FilterCollection();
@@ -129,10 +129,10 @@ namespace Libra.Graphics.Toolkit
             int lastWidth = width;
             int lastHeight = height;
 
-            var previousBlendState = context.BlendState;
-            var previousDepthStencilState = context.DepthStencilState;
-            var previousRasterizerState = context.RasterizerState;
-            var previousSamplerState = context.PixelShaderSamplers[0];
+            var previousBlendState = DeviceContext.BlendState;
+            var previousDepthStencilState = DeviceContext.DepthStencilState;
+            var previousRasterizerState = DeviceContext.RasterizerState;
+            var previousSamplerState = DeviceContext.PixelShaderSamplers[0];
 
             RenderTargetChain renderTargetChain = null;
 
@@ -164,7 +164,7 @@ namespace Libra.Graphics.Toolkit
 
                     if (!renderTargetChains.TryGetValue(key, out renderTargetChain))
                     {
-                        renderTargetChain = new RenderTargetChain(context.Device);
+                        renderTargetChain = new RenderTargetChain(DeviceContext.Device);
                         renderTargetChain.Width = currentWidth;
                         renderTargetChain.Height = currentHeight;
                         renderTargetChain.Format = format;
@@ -178,14 +178,14 @@ namespace Libra.Graphics.Toolkit
                     renderTargetChain.Next();
                 }
 
-                context.SetRenderTarget(renderTargetChain.Current);
+                DeviceContext.SetRenderTarget(renderTargetChain.Current);
 
-                context.BlendState = BlendState.Opaque;
-                context.DepthStencilState = DepthStencilState.None;
-                context.RasterizerState = RasterizerState.CullBack;
+                DeviceContext.BlendState = BlendState.Opaque;
+                DeviceContext.DepthStencilState = DepthStencilState.None;
+                DeviceContext.RasterizerState = RasterizerState.CullBack;
 
                 filter.Texture = currentTexture;
-                filter.Apply(context);
+                filter.Apply();
 
                 if (Attribute.IsDefined(filter.GetType(), typeof(ViewRayRequiredAttribute)))
                 {
@@ -196,16 +196,16 @@ namespace Libra.Graphics.Toolkit
                 fullScreenQuad.Draw();
                 fullScreenQuad.ViewRayEnabled = false;
 
-                context.SetRenderTarget(null);
+                DeviceContext.SetRenderTarget(null);
 
                 currentTexture = renderTargetChain.Current;
             }
 
             // ステートを以前の状態へ戻す。
-            context.BlendState = previousBlendState;
-            context.DepthStencilState = previousDepthStencilState;
-            context.RasterizerState = previousRasterizerState;
-            context.PixelShaderSamplers[0] = previousSamplerState;
+            DeviceContext.BlendState = previousBlendState;
+            DeviceContext.DepthStencilState = previousDepthStencilState;
+            DeviceContext.RasterizerState = previousRasterizerState;
+            DeviceContext.PixelShaderSamplers[0] = previousSamplerState;
 
             return currentTexture;
         }

@@ -77,8 +77,6 @@ namespace Libra.Graphics.Toolkit
 
         public const float DefaultSigma = 4.0f;
 
-        Device device;
-
         SharedDeviceResource sharedDeviceResource;
 
         ParametersPerObject parametersPerObject;
@@ -102,6 +100,8 @@ namespace Libra.Graphics.Toolkit
         int viewportHeight;
 
         DirtyFlags dirtyFlags;
+
+        public DeviceContext DeviceContext { get; private set; }
 
         public GaussianFilterDirection Direction { get; set; }
 
@@ -142,21 +142,21 @@ namespace Libra.Graphics.Toolkit
 
         public SamplerState TextureSampler { get; set; }
 
-        public GaussianFilter(Device device)
+        public GaussianFilter(DeviceContext deviceContext)
         {
-            if (device == null) throw new ArgumentNullException("device");
+            if (deviceContext == null) throw new ArgumentNullException("deviceContext");
 
-            this.device = device;
+            DeviceContext = deviceContext;
 
-            sharedDeviceResource = device.GetSharedResource<GaussianFilter, SharedDeviceResource>();
+            sharedDeviceResource = deviceContext.Device.GetSharedResource<GaussianFilter, SharedDeviceResource>();
 
-            constantBufferPerObject = device.CreateConstantBuffer();
+            constantBufferPerObject = deviceContext.Device.CreateConstantBuffer();
             constantBufferPerObject.Initialize<ParametersPerObject>();
 
-            constantBufferPerRenderTargetH = device.CreateConstantBuffer();
+            constantBufferPerRenderTargetH = deviceContext.Device.CreateConstantBuffer();
             constantBufferPerRenderTargetH.Initialize<ParametersPerRenderTarget>();
 
-            constantBufferPerRenderTargetV = device.CreateConstantBuffer();
+            constantBufferPerRenderTargetV = deviceContext.Device.CreateConstantBuffer();
             constantBufferPerRenderTargetV.Initialize<ParametersPerRenderTarget>();
 
             parametersPerObject.Weights = new Vector4[MaxKernelSize];
@@ -179,11 +179,9 @@ namespace Libra.Graphics.Toolkit
                 DirtyFlags.Offsets;
         }
 
-        public void Apply(DeviceContext context)
+        public void Apply()
         {
-            if (context == null) throw new ArgumentNullException("context");
-
-            var viewport = context.Viewport;
+            var viewport = DeviceContext.Viewport;
             int currentWidth = (int) viewport.Width;
             int currentHeight = (int) viewport.Height;
 
@@ -200,36 +198,36 @@ namespace Libra.Graphics.Toolkit
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerObject) != 0)
             {
-                constantBufferPerObject.SetData(context, parametersPerObject);
+                constantBufferPerObject.SetData(DeviceContext, parametersPerObject);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerObject;
             }
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerRenderTarget) != 0)
             {
-                constantBufferPerRenderTargetH.SetData(context, parametersPerRenderTargetH);
-                constantBufferPerRenderTargetV.SetData(context, parametersPerRenderTargetV);
+                constantBufferPerRenderTargetH.SetData(DeviceContext, parametersPerRenderTargetH);
+                constantBufferPerRenderTargetV.SetData(DeviceContext, parametersPerRenderTargetV);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerRenderTarget;
             }
 
-            context.PixelShader = sharedDeviceResource.PixelShader;
-            context.PixelShaderConstantBuffers[0] = constantBufferPerObject;
+            DeviceContext.PixelShader = sharedDeviceResource.PixelShader;
+            DeviceContext.PixelShaderConstantBuffers[0] = constantBufferPerObject;
 
             switch (Direction)
             {
                 case GaussianFilterDirection.Horizon:
-                    context.PixelShaderConstantBuffers[1] = constantBufferPerRenderTargetH;
+                    DeviceContext.PixelShaderConstantBuffers[1] = constantBufferPerRenderTargetH;
                     break;
                 case GaussianFilterDirection.Vertical:
-                    context.PixelShaderConstantBuffers[1] = constantBufferPerRenderTargetV;
+                    DeviceContext.PixelShaderConstantBuffers[1] = constantBufferPerRenderTargetV;
                     break;
                 default:
                     throw new InvalidOperationException("Unknown direction: " + Direction);
             }
 
-            context.PixelShaderResources[0] = Texture;
-            context.PixelShaderSamplers[0] = TextureSampler;
+            DeviceContext.PixelShaderResources[0] = Texture;
+            DeviceContext.PixelShaderSamplers[0] = TextureSampler;
         }
 
         void SetWeights()

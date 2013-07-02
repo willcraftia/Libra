@@ -59,8 +59,6 @@ namespace Libra.Graphics.Toolkit
             new Vector2( 0.0f,  1.5f),
         };
 
-        Device device;
-
         SharedDeviceResource sharedDeviceResource;
 
         ParametersPerRenderTarget parametersPerRenderTarget;
@@ -73,19 +71,21 @@ namespace Libra.Graphics.Toolkit
 
         DirtyFlags dirtyFlags;
 
+        public DeviceContext DeviceContext { get; private set; }
+
         public ShaderResourceView HeightMap { get; set; }
 
         public SamplerState HeightMapSampler { get; set; }
 
-        public HeightToGradientConverter(Device device)
+        public HeightToGradientConverter(DeviceContext deviceContext)
         {
-            if (device == null) throw new ArgumentNullException("device");
+            if (deviceContext == null) throw new ArgumentNullException("deviceContext");
 
-            this.device = device;
+            DeviceContext = deviceContext;
 
-            sharedDeviceResource = device.GetSharedResource<HeightToGradientConverter, SharedDeviceResource>();
+            sharedDeviceResource = deviceContext.Device.GetSharedResource<HeightToGradientConverter, SharedDeviceResource>();
 
-            constantBufferPerRenderTarget = device.CreateConstantBuffer();
+            constantBufferPerRenderTarget = deviceContext.Device.CreateConstantBuffer();
             constantBufferPerRenderTarget.Initialize<ParametersPerRenderTarget>();
             
             viewportWidth = 1;
@@ -98,11 +98,9 @@ namespace Libra.Graphics.Toolkit
                 DirtyFlags.Offsets;
         }
 
-        public void Apply(DeviceContext context)
+        public void Apply()
         {
-            if (context == null) throw new ArgumentNullException("context");
-
-            var viewport = context.Viewport;
+            var viewport = DeviceContext.Viewport;
             int currentWidth = (int) viewport.Width;
             int currentHeight = (int) viewport.Height;
 
@@ -128,15 +126,15 @@ namespace Libra.Graphics.Toolkit
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerRenderTarget) != 0)
             {
-                constantBufferPerRenderTarget.SetData(context, parametersPerRenderTarget);
+                constantBufferPerRenderTarget.SetData(DeviceContext, parametersPerRenderTarget);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerRenderTarget;
             }
 
-            context.PixelShader = sharedDeviceResource.PixelShader;
-            context.PixelShaderConstantBuffers[0] = constantBufferPerRenderTarget;
-            context.PixelShaderResources[0] = HeightMap;
-            context.PixelShaderSamplers[0] = HeightMapSampler;
+            DeviceContext.PixelShader = sharedDeviceResource.PixelShader;
+            DeviceContext.PixelShaderConstantBuffers[0] = constantBufferPerRenderTarget;
+            DeviceContext.PixelShaderResources[0] = HeightMap;
+            DeviceContext.PixelShaderSamplers[0] = HeightMapSampler;
         }
 
         #region IDisposable

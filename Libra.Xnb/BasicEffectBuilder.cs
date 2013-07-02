@@ -26,7 +26,9 @@ namespace Libra.Xnb
 
         protected override void Begin()
         {
-            instance = new BasicEffect(graphicsService.Device);
+            // TODO
+            // DeferredContext 対応。
+            instance = new BasicEffect(graphicsService.Device.ImmediateContext);
         }
 
         protected override void SetTexture(string value)

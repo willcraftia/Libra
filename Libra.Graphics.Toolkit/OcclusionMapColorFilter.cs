@@ -24,9 +24,9 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        Device device;
-
         SharedDeviceResource sharedDeviceResource;
+
+        public DeviceContext DeviceContext { get; private set; }
 
         public ShaderResourceView OcclusionMap { get; set; }
 
@@ -46,27 +46,24 @@ namespace Libra.Graphics.Toolkit
             set { }
         }
 
-        public OcclusionMapColorFilter(Device device)
+        public OcclusionMapColorFilter(DeviceContext deviceContext)
         {
-            if (device == null) throw new ArgumentNullException("device");
+            if (deviceContext == null) throw new ArgumentNullException("deviceContext");
 
-            this.device = device;
+            DeviceContext = deviceContext;
 
-            sharedDeviceResource = device.GetSharedResource<OcclusionMapColorFilter, SharedDeviceResource>();
+            sharedDeviceResource = deviceContext.Device.GetSharedResource<OcclusionMapColorFilter, SharedDeviceResource>();
 
             OcclusionMapSampler = SamplerState.PointClamp;
 
             Enabled = true;
         }
 
-        public void Apply(DeviceContext context)
+        public void Apply()
         {
-            if (context == null) throw new ArgumentNullException("context");
-
-            context.PixelShader = sharedDeviceResource.PixelShader;
-
-            context.PixelShaderResources[1] = OcclusionMap;
-            context.PixelShaderSamplers[1] = OcclusionMapSampler;
+            DeviceContext.PixelShader = sharedDeviceResource.PixelShader;
+            DeviceContext.PixelShaderResources[1] = OcclusionMap;
+            DeviceContext.PixelShaderSamplers[1] = OcclusionMapSampler;
         }
 
         #region IDisposable

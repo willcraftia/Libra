@@ -294,7 +294,7 @@ namespace Libra.Graphics.Toolkit
             MaxVerticalVelocity = 0;
             BlendState = BlendState.NonPremultiplied;
 
-            particleEffect = new ParticleEffect(deviceContext.Device);
+            particleEffect = new ParticleEffect(deviceContext);
 
             particles = new ParticleVertex[MaxParticleCount * 4];
 
@@ -371,7 +371,7 @@ namespace Libra.Graphics.Toolkit
                 DeviceContext.IndexBuffer = indexBuffer;
 
                 particleEffect.CurrentTime = currentTime;
-                particleEffect.Apply(DeviceContext);
+                particleEffect.Apply();
 
                 if (firstActiveParticle < firstFreeParticle)
                 {

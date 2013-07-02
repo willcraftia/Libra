@@ -65,8 +65,6 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        Device device;
-
         SharedDeviceResource sharedDeviceResource;
 
         ParametersPerScene parametersPerScene;
@@ -80,6 +78,8 @@ namespace Libra.Graphics.Toolkit
         Matrix view;
 
         DirtyFlags dirtyFlags;
+
+        public DeviceContext DeviceContext { get; private set; }
 
         public float FogMinHeight
         {
@@ -146,15 +146,15 @@ namespace Libra.Graphics.Toolkit
 
         public SamplerState TextureSampler { get; set; }
 
-        public HeightFogFilter(Device device)
+        public HeightFogFilter(DeviceContext deviceContext)
         {
-            if (device == null) throw new ArgumentNullException("device");
+            if (deviceContext == null) throw new ArgumentNullException("deviceContext");
 
-            this.device = device;
+            DeviceContext = deviceContext;
 
-            sharedDeviceResource = device.GetSharedResource<HeightFogFilter, SharedDeviceResource>();
+            sharedDeviceResource = deviceContext.Device.GetSharedResource<HeightFogFilter, SharedDeviceResource>();
 
-            constantBufferPerScene = device.CreateConstantBuffer();
+            constantBufferPerScene = deviceContext.Device.CreateConstantBuffer();
             constantBufferPerScene.Initialize<ParametersPerScene>();
 
             fogMinHeight = 0.0f;
@@ -172,7 +172,7 @@ namespace Libra.Graphics.Toolkit
                 DirtyFlags.InverseView;
         }
 
-        public void Apply(DeviceContext context)
+        public void Apply()
         {
             if ((dirtyFlags & DirtyFlags.FogGradientIntercept) != 0)
             {
@@ -198,17 +198,17 @@ namespace Libra.Graphics.Toolkit
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerScene) != 0)
             {
-                constantBufferPerScene.SetData(context, parametersPerScene);
+                constantBufferPerScene.SetData(DeviceContext, parametersPerScene);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerScene;
             }
 
-            context.PixelShader = sharedDeviceResource.PixelShader;
-            context.PixelShaderConstantBuffers[0] = constantBufferPerScene;
-            context.PixelShaderResources[0] = Texture;
-            context.PixelShaderResources[1] = LinearDepthMap;
-            context.PixelShaderSamplers[0] = TextureSampler;
-            context.PixelShaderSamplers[1] = LinearDepthMapSampler;
+            DeviceContext.PixelShader = sharedDeviceResource.PixelShader;
+            DeviceContext.PixelShaderConstantBuffers[0] = constantBufferPerScene;
+            DeviceContext.PixelShaderResources[0] = Texture;
+            DeviceContext.PixelShaderResources[1] = LinearDepthMap;
+            DeviceContext.PixelShaderSamplers[0] = TextureSampler;
+            DeviceContext.PixelShaderSamplers[1] = LinearDepthMapSampler;
         }
 
         #region IDisposable

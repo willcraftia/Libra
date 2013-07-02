@@ -111,13 +111,13 @@ namespace Libra.Graphics
         [Flags]
         enum DirtyFlags
         {
-            Contants                = 0x01,
-            WorldViewProj           = 0x02,
-            WorldInverseTranspose   = 0x04,
-            EyePosition             = 0x08,
-            MaterialColor           = 0x10,
-            FogVector               = 0x20,
-            FogEnable               = 0x40,
+            Contants                = (1 << 0),
+            WorldViewProj           = (1 << 1),
+            WorldInverseTranspose   = (1 << 2),
+            EyePosition             = (1 << 3),
+            MaterialColor           = (1 << 4),
+            FogVector               = (1 << 5),
+            FogEnable               = (1 << 6),
         }
 
         #endregion
@@ -500,8 +500,6 @@ namespace Libra.Graphics
             };
         }
 
-        Device device;
-
         SharedDeviceResource sharedDeviceResource;
 
         DirtyFlags dirtyFlags;
@@ -536,6 +534,8 @@ namespace Libra.Graphics
         Matrix worldView;
 
         ConstantBuffer constantBuffer;
+
+        public DeviceContext DeviceContext { get; private set; }
 
         public Matrix World
         {
@@ -697,17 +697,17 @@ namespace Libra.Graphics
 
         public ShaderResourceView Texture { get; set; }
 
-        public BasicEffect(Device device)
+        public BasicEffect(DeviceContext deviceContext)
         {
-            if (device == null) throw new ArgumentNullException("device");
+            if (deviceContext == null) throw new ArgumentNullException("deviceContext");
 
-            this.device = device;
+            DeviceContext = deviceContext;
 
-            sharedDeviceResource = device.GetSharedResource<BasicEffect, SharedDeviceResource>();
+            sharedDeviceResource = deviceContext.Device.GetSharedResource<BasicEffect, SharedDeviceResource>();
 
             directionalLights = new DirectionalLightCollection(this);
 
-            constantBuffer = device.CreateConstantBuffer();
+            constantBuffer = deviceContext.Device.CreateConstantBuffer();
             constantBuffer.Usage = ResourceUsage.Dynamic;
             constantBuffer.Initialize<Constants>();
 
@@ -742,7 +742,7 @@ namespace Libra.Graphics
                 DirtyFlags.FogEnable;
         }
 
-        public void Apply(DeviceContext context)
+        public void Apply()
         {
             SetWorldViewProjConstant();
             SetFogConstants();
@@ -750,10 +750,10 @@ namespace Libra.Graphics
 
             if (TextureEnabled)
             {
-                context.PixelShaderResources[0] = Texture;
+                DeviceContext.PixelShaderResources[0] = Texture;
             }
 
-            ApplyShaders(context, GetCurrentShaderPermutation());
+            ApplyShaders(GetCurrentShaderPermutation());
         }
 
         public void EnableDefaultLighting()
@@ -919,7 +919,7 @@ namespace Libra.Graphics
             return permutation;
         }
 
-        void ApplyShaders(DeviceContext context, int permutation)
+        void ApplyShaders(int permutation)
         {
             var vertexShaderIndex = VertexShaderIndices[permutation];
             var pixelShaderIndex = PixelShaderIndices[permutation];
@@ -927,17 +927,17 @@ namespace Libra.Graphics
             var vertexShader = sharedDeviceResource.GetVertexShader(vertexShaderIndex);
             var pixelShader = sharedDeviceResource.GetPixelShader(pixelShaderIndex);
 
-            context.VertexShader = vertexShader;
-            context.PixelShader = pixelShader;
+            DeviceContext.VertexShader = vertexShader;
+            DeviceContext.PixelShader = pixelShader;
 
             if ((dirtyFlags & DirtyFlags.Contants) != 0)
             {
-                constantBuffer.SetData(context, constants);
+                constantBuffer.SetData(DeviceContext, constants);
                 dirtyFlags &= ~DirtyFlags.Contants;
             }
 
-            context.VertexShaderConstantBuffers[0] = constantBuffer;
-            context.PixelShaderConstantBuffers[0] = constantBuffer;
+            DeviceContext.VertexShaderConstantBuffers[0] = constantBuffer;
+            DeviceContext.PixelShaderConstantBuffers[0] = constantBuffer;
         }
 
         #region IDisposable

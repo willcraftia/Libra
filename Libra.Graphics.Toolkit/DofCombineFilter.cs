@@ -28,8 +28,6 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        Device device;
-
         SharedDeviceResource sharedDeviceResource;
 
         ConstantBuffer constantBuffer;
@@ -39,6 +37,8 @@ namespace Libra.Graphics.Toolkit
         float focusDistance;
 
         bool constantBufferDirty;
+
+        public DeviceContext DeviceContext { get; private set; }
 
         /// <summary>
         /// 焦点範囲を取得または設定します。
@@ -88,15 +88,15 @@ namespace Libra.Graphics.Toolkit
 
         public SamplerState TextureSampler { get; set; }
 
-        public DofCombineFilter(Device device)
+        public DofCombineFilter(DeviceContext deviceContext)
         {
-            if (device == null) throw new ArgumentNullException("device");
+            if (deviceContext == null) throw new ArgumentNullException("deviceContext");
 
-            this.device = device;
+            DeviceContext = deviceContext;
 
-            sharedDeviceResource = device.GetSharedResource<DofCombineFilter, SharedDeviceResource>();
+            sharedDeviceResource = deviceContext.Device.GetSharedResource<DofCombineFilter, SharedDeviceResource>();
 
-            constantBuffer = device.CreateConstantBuffer();
+            constantBuffer = deviceContext.Device.CreateConstantBuffer();
             constantBuffer.Initialize(16);
 
             focusRange = 200.0f;
@@ -107,25 +107,25 @@ namespace Libra.Graphics.Toolkit
             constantBufferDirty = true;
         }
 
-        public void Apply(DeviceContext context)
+        public void Apply()
         {
             if (constantBufferDirty)
             {
                 var data = new Vector4(1.0f / focusRange, focusDistance, 0.0f, 0.0f);
 
-                constantBuffer.SetData(context, data);
+                constantBuffer.SetData(DeviceContext, data);
 
                 constantBufferDirty = false;
             }
 
-            context.PixelShader = sharedDeviceResource.PixelShader;
-            context.PixelShaderConstantBuffers[0] = constantBuffer;
-            context.PixelShaderResources[0] = Texture;
-            context.PixelShaderResources[1] = BaseTexture;
-            context.PixelShaderResources[2] = LinearDepthMap;
-            context.PixelShaderSamplers[0] = TextureSampler;
-            context.PixelShaderSamplers[1] = BaseTextureSampler;
-            context.PixelShaderSamplers[2] = LinearDepthMapSampler;
+            DeviceContext.PixelShader = sharedDeviceResource.PixelShader;
+            DeviceContext.PixelShaderConstantBuffers[0] = constantBuffer;
+            DeviceContext.PixelShaderResources[0] = Texture;
+            DeviceContext.PixelShaderResources[1] = BaseTexture;
+            DeviceContext.PixelShaderResources[2] = LinearDepthMap;
+            DeviceContext.PixelShaderSamplers[0] = TextureSampler;
+            DeviceContext.PixelShaderSamplers[1] = BaseTextureSampler;
+            DeviceContext.PixelShaderSamplers[2] = LinearDepthMapSampler;
         }
 
         #region IDisposable

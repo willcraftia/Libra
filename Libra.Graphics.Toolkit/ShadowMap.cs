@@ -100,7 +100,7 @@ namespace Libra.Graphics.Toolkit
 
             DeviceContext = deviceContext;
 
-            shadowMapEffect = new ShadowMapEffect(deviceContext.Device);
+            shadowMapEffect = new ShadowMapEffect(deviceContext);
         }
 
         /// <summary>

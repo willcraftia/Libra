@@ -599,21 +599,21 @@ namespace Samples.Water
             refractionSceneRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
             refractionSceneRenderTarget.Initialize();
 
-            basicEffect = new BasicEffect(Device);
+            basicEffect = new BasicEffect(DeviceContext);
             basicEffect.AmbientLightColor = ambientLightColor;
             basicEffect.PerPixelLighting = true;
             basicEffect.EnableDefaultLighting();
             basicEffect.DirectionalLights[0].Direction = lightDirection;
 
-            fluidRippleFilter = new FluidRippleFilter(Device);
+            fluidRippleFilter = new FluidRippleFilter(DeviceContext);
             fluidRippleFilter.TextureSampler = SamplerState.LinearClamp;
 
-            heightToNormalConverter = new HeightToNormalConverter(Device);
+            heightToNormalConverter = new HeightToNormalConverter(DeviceContext);
             heightToNormalConverter.HeightMapSampler = SamplerState.LinearClamp;
 
             fullScreenQuad = new FullScreenQuad(DeviceContext);
 
-            fluidEffect = new FluidEffect(Device);
+            fluidEffect = new FluidEffect(DeviceContext);
             fluidEffect.RippleScale = 0.05f;
             fluidEffect.AmbientLightColor = ambientLightColor;
             fluidEffect.DiffuseColor = fluidDiffuseColor;
@@ -621,22 +621,22 @@ namespace Samples.Water
             fluidEffect.SpecularPower = fluidSpecularPower;
             fluidEffect.LightDirection = lightDirection;
 
-            clippingEffect = new ClippingEffect(Device);
+            clippingEffect = new ClippingEffect(DeviceContext);
             clippingEffect.AmbientLightColor = ambientLightColor;
             clippingEffect.EnableDefaultLighting();
 
-            cloudEffect = new CloudEffect(Device);
+            cloudEffect = new CloudEffect(DeviceContext);
             cloudEffect.VolumeMapSampler = SamplerState.LinearWrap;
             cloudEffect.Density = 1.0f;
             cloudEffect.LayerCount = CloudEffect.MaxLayerCount;
 
-            depthMapEffect = new LinearDepthMapEffect(Device);
+            depthMapEffect = new LinearDepthMapEffect(DeviceContext);
 
             postprocess = new Postprocess(DeviceContext);
             postprocess.Width = normalSceneRenderTarget.Width;
             postprocess.Height = normalSceneRenderTarget.Height;
 
-            linearFogFilter = new LinearFogFilter(Device);
+            linearFogFilter = new LinearFogFilter(DeviceContext);
             linearFogFilter.FogStart = camera.FarClipDistance - 400;
             linearFogFilter.FogEnd = camera.FarClipDistance - 10;
             linearFogFilter.FogColor = Color.CornflowerBlue.ToVector3();
@@ -884,7 +884,7 @@ namespace Samples.Water
             DeviceContext.DepthStencilState = DepthStencilState.None;
 
             fluidRippleFilter.Texture = rippleRenderTargetChain.Last;
-            fluidRippleFilter.Apply(DeviceContext);
+            fluidRippleFilter.Apply();
 
             fullScreenQuad.Draw();
 
@@ -906,7 +906,7 @@ namespace Samples.Water
             DeviceContext.DepthStencilState = DepthStencilState.None;
 
             heightToNormalConverter.HeightMapSampler = SamplerState.LinearWrap;
-            heightToNormalConverter.Apply(DeviceContext);
+            heightToNormalConverter.Apply();
 
             fullScreenQuad.Draw();
 
@@ -1115,7 +1115,7 @@ namespace Samples.Water
                 effectMatrices.World = fluidWorld;
             }
 
-            effect.Apply(DeviceContext);
+            effect.Apply();
 
             DeviceContext.DrawIndexed(quadIndexBuffer.IndexCount);
             DeviceContext.RasterizerState = null;
@@ -1134,7 +1134,7 @@ namespace Samples.Water
                 effectMatrices.World = cloudWorld;
             }
 
-            effect.Apply(DeviceContext);
+            effect.Apply();
             
             DeviceContext.DrawIndexed(quadIndexBuffer.IndexCount);
             
@@ -1161,7 +1161,7 @@ namespace Samples.Water
                 clippingEffect.DiffuseColor = color;
             }
 
-            effect.Apply(DeviceContext);
+            effect.Apply();
             mesh.Draw();
         }
 

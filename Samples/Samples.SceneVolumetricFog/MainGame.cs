@@ -257,15 +257,15 @@ namespace Samples.SceneVolumetricFog
             postprocess.Width = WindowWidth;
             postprocess.Height = WindowHeight;
 
-            downFilter = new DownFilter(Device);
-            upFilter = new UpFilter(Device);
-            volumetricFogCombineFilter = new VolumetricFogCombineFilter(Device);
+            downFilter = new DownFilter(DeviceContext);
+            upFilter = new UpFilter(DeviceContext);
+            volumetricFogCombineFilter = new VolumetricFogCombineFilter(DeviceContext);
             volumetricFogCombineFilter.FogColor = Color.White.ToVector3();
-            depthMapColorFilter = new LinearDepthMapColorFilter(Device);
+            depthMapColorFilter = new LinearDepthMapColorFilter(DeviceContext);
             depthMapColorFilter.Enabled = false;
-            frontFogDepthMapColorFilter = new LinearDepthMapColorFilter(Device);
+            frontFogDepthMapColorFilter = new LinearDepthMapColorFilter(DeviceContext);
             frontFogDepthMapColorFilter.Enabled = false;
-            backFogDepthMapColorFilter = new LinearDepthMapColorFilter(Device);
+            backFogDepthMapColorFilter = new LinearDepthMapColorFilter(DeviceContext);
             backFogDepthMapColorFilter.Enabled = false;
             
             postprocess.Filters.Add(volumetricFogCombineFilter);
@@ -273,11 +273,11 @@ namespace Samples.SceneVolumetricFog
             postprocess.Filters.Add(frontFogDepthMapColorFilter);
             postprocess.Filters.Add(backFogDepthMapColorFilter);
 
-            depthMapEffect = new LinearDepthMapEffect(Device);
-            fogDepthMapEffect = new LinearFogDepthMapEffect(Device);
-            volumetricFogMapEffect = new VolumetricFogMapEffect(Device);
+            depthMapEffect = new LinearDepthMapEffect(DeviceContext);
+            fogDepthMapEffect = new LinearFogDepthMapEffect(DeviceContext);
+            volumetricFogMapEffect = new VolumetricFogMapEffect(DeviceContext);
 
-            basicEffect = new BasicEffect(Device);
+            basicEffect = new BasicEffect(DeviceContext);
             basicEffect.AmbientLightColor = new Vector3(0.15f, 0.15f, 0.15f);
             basicEffect.PerPixelLighting = true;
             basicEffect.EnableDefaultLighting();
@@ -472,7 +472,7 @@ namespace Samples.SceneVolumetricFog
                 basicEffect.DiffuseColor = color;
             }
 
-            effect.Apply(Device.ImmediateContext);
+            effect.Apply();
             mesh.Draw();
         }
 

@@ -24,9 +24,9 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        Device device;
-
         SharedDeviceResource sharedDeviceResource;
+
+        public DeviceContext DeviceContext { get; private set; }
 
         public ShaderResourceView BaseTexture { get; set; }
 
@@ -38,28 +38,26 @@ namespace Libra.Graphics.Toolkit
 
         public SamplerState TextureSampler { get; set; }
 
-        public CombineFilter(Device device)
+        public CombineFilter(DeviceContext deviceContext)
         {
-            if (device == null) throw new ArgumentNullException("device");
+            if (deviceContext == null) throw new ArgumentNullException("deviceContext");
 
-            this.device = device;
+            DeviceContext = deviceContext;
 
-            sharedDeviceResource = device.GetSharedResource<CombineFilter, SharedDeviceResource>();
+            sharedDeviceResource = deviceContext.Device.GetSharedResource<CombineFilter, SharedDeviceResource>();
 
             BaseTextureSampler = SamplerState.LinearClamp;
 
             Enabled = true;
         }
 
-        public void Apply(DeviceContext context)
+        public void Apply()
         {
-            if (context == null) throw new ArgumentNullException("context");
-
-            context.PixelShader = sharedDeviceResource.PixelShader;
-            context.PixelShaderResources[0] = Texture;
-            context.PixelShaderResources[1] = BaseTexture;
-            context.PixelShaderSamplers[0] = TextureSampler;
-            context.PixelShaderSamplers[1] = BaseTextureSampler;
+            DeviceContext.PixelShader = sharedDeviceResource.PixelShader;
+            DeviceContext.PixelShaderResources[0] = Texture;
+            DeviceContext.PixelShaderResources[1] = BaseTexture;
+            DeviceContext.PixelShaderSamplers[0] = TextureSampler;
+            DeviceContext.PixelShaderSamplers[1] = BaseTextureSampler;
         }
 
         #region IDisposable

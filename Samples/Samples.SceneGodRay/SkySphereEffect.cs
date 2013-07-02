@@ -83,8 +83,6 @@ namespace Samples.SceneGodRay
 
         #endregion
 
-        Device device;
-
         SharedDeviceResource sharedDeviceResource;
 
         ConstantBuffer vsConstantBuffer;
@@ -104,6 +102,8 @@ namespace Samples.SceneGodRay
         Matrix viewProjection;
 
         DirtyFlags dirtyFlags;
+
+        public DeviceContext DeviceContext { get; private set; }
 
         public Matrix World
         {
@@ -193,18 +193,18 @@ namespace Samples.SceneGodRay
             }
         }
 
-        public SkySphereEffect(Device device)
+        public SkySphereEffect(DeviceContext deviceContext)
         {
-            if (device == null) throw new ArgumentNullException("device");
+            if (deviceContext == null) throw new ArgumentNullException("deviceContext");
 
-            this.device = device;
+            DeviceContext = deviceContext;
 
-            sharedDeviceResource = device.GetSharedResource<SkySphereEffect, SharedDeviceResource>();
+            sharedDeviceResource = deviceContext.Device.GetSharedResource<SkySphereEffect, SharedDeviceResource>();
 
-            vsConstantBuffer = device.CreateConstantBuffer();
+            vsConstantBuffer = deviceContext.Device.CreateConstantBuffer();
             vsConstantBuffer.Initialize<VSConstants>();
 
-            psConstantBuffer = device.CreateConstantBuffer();
+            psConstantBuffer = deviceContext.Device.CreateConstantBuffer();
             psConstantBuffer.Initialize<PSConstants>();
 
             world = Matrix.Identity;
@@ -222,7 +222,7 @@ namespace Samples.SceneGodRay
             dirtyFlags = DirtyFlags.VSConstants | DirtyFlags.PSConstants;
         }
 
-        public void Apply(DeviceContext context)
+        public void Apply()
         {
             if ((dirtyFlags & DirtyFlags.ViewProjection) != 0)
             {
@@ -245,22 +245,22 @@ namespace Samples.SceneGodRay
 
             if ((dirtyFlags & DirtyFlags.VSConstants) != 0)
             {
-                vsConstantBuffer.SetData(context, vsConstants);
+                vsConstantBuffer.SetData(DeviceContext, vsConstants);
 
                 dirtyFlags &= ~DirtyFlags.VSConstants;
             }
 
             if ((dirtyFlags & DirtyFlags.PSConstants) != 0)
             {
-                psConstantBuffer.SetData(context, psConstants);
+                psConstantBuffer.SetData(DeviceContext, psConstants);
 
                 dirtyFlags &= ~DirtyFlags.PSConstants;
             }
 
-            context.VertexShaderConstantBuffers[0] = vsConstantBuffer;
-            context.VertexShader = sharedDeviceResource.VertexShader;
-            context.PixelShaderConstantBuffers[0] = psConstantBuffer;
-            context.PixelShader = sharedDeviceResource.PixelShader;
+            DeviceContext.VertexShaderConstantBuffers[0] = vsConstantBuffer;
+            DeviceContext.VertexShader = sharedDeviceResource.VertexShader;
+            DeviceContext.PixelShaderConstantBuffers[0] = psConstantBuffer;
+            DeviceContext.PixelShader = sharedDeviceResource.PixelShader;
         }
 
         #region IDisposable

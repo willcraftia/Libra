@@ -425,26 +425,26 @@ namespace Samples.DeferredShadowMapping
             scenePostprocess.Width = normalSceneRenderTarget.Width;
             scenePostprocess.Height = normalSceneRenderTarget.Height;
 
-            occlusionCombineFilter = new OcclusionCombineFilter(Device);
+            occlusionCombineFilter = new OcclusionCombineFilter(DeviceContext);
             occlusionCombineFilter.ShadowColor = new Vector3(0.5f, 0.5f, 0.5f);
-            
-            linearDepthMapColorFilter = new LinearDepthMapColorFilter(Device);
+
+            linearDepthMapColorFilter = new LinearDepthMapColorFilter(DeviceContext);
             linearDepthMapColorFilter.NearClipDistance = camera.NearClipDistance;
             linearDepthMapColorFilter.FarClipDistance = camera.FarClipDistance;
             linearDepthMapColorFilter.Enabled = false;
 
-            occlusionMapColorFilter = new OcclusionMapColorFilter(Device);
+            occlusionMapColorFilter = new OcclusionMapColorFilter(DeviceContext);
             occlusionMapColorFilter.Enabled = false;
 
             scenePostprocess.Filters.Add(occlusionCombineFilter);
             scenePostprocess.Filters.Add(linearDepthMapColorFilter);
             scenePostprocess.Filters.Add(occlusionMapColorFilter);
 
-            upFilter = new UpFilter(Device);
-            downFilter = new DownFilter(Device);
+            upFilter = new UpFilter(DeviceContext);
+            downFilter = new DownFilter(DeviceContext);
 
             // 範囲と標準偏差に適した値は、アップ/ダウン サンプリングを伴うか否かで大きく異なる。
-            occlusionGaussianFilter = new GaussianFilter(Device);
+            occlusionGaussianFilter = new GaussianFilter(DeviceContext);
             occlusionGaussianFilter.Radius = 3;
             occlusionGaussianFilter.Sigma = 1;
             occlusionGaussianFilterPassH = new GaussianFilterPass(occlusionGaussianFilter, GaussianFilterDirection.Horizon);
@@ -456,9 +456,9 @@ namespace Samples.DeferredShadowMapping
             occlusionPostprocess.Filters.Add(upFilter);
             occlusionPostprocess.Enabled = true;
 
-            depthMapEffect = new LinearDepthMapEffect(Device);
+            depthMapEffect = new LinearDepthMapEffect(DeviceContext);
 
-            basicEffect = new BasicEffect(Device);
+            basicEffect = new BasicEffect(DeviceContext);
             basicEffect.AmbientLightColor = new Vector3(0.15f, 0.15f, 0.15f);
             basicEffect.PerPixelLighting = true;
             basicEffect.EnableDefaultLighting();
@@ -751,7 +751,7 @@ namespace Samples.DeferredShadowMapping
                 basicEffect.DiffuseColor = color;
             }
 
-            effect.Apply(DeviceContext);
+            effect.Apply();
             mesh.Draw();
         }
 

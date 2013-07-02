@@ -47,8 +47,6 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        Device device;
-
         SharedDeviceResource sharedDeviceResource;
 
         ConstantBuffer constantBufferPerShader;
@@ -56,6 +54,8 @@ namespace Libra.Graphics.Toolkit
         ParametersPerShader parametersPerShader;
 
         DirtyFlags dirtyFlags;
+
+        public DeviceContext DeviceContext { get; private set; }
 
         public float Density
         {
@@ -87,15 +87,15 @@ namespace Libra.Graphics.Toolkit
 
         public SamplerState TextureSampler { get; set; }
 
-        public ScanlineFilter(Device device)
+        public ScanlineFilter(DeviceContext deviceContext)
         {
-            if (device == null) throw new ArgumentNullException("device");
+            if (deviceContext == null) throw new ArgumentNullException("deviceContext");
 
-            this.device = device;
+            DeviceContext = deviceContext;
 
-            sharedDeviceResource = device.GetSharedResource<ScanlineFilter, SharedDeviceResource>();
+            sharedDeviceResource = deviceContext.Device.GetSharedResource<ScanlineFilter, SharedDeviceResource>();
 
-            constantBufferPerShader = device.CreateConstantBuffer();
+            constantBufferPerShader = deviceContext.Device.CreateConstantBuffer();
             constantBufferPerShader.Initialize<ParametersPerShader>();
 
             parametersPerShader.Density = MathHelper.PiOver2;
@@ -106,21 +106,19 @@ namespace Libra.Graphics.Toolkit
             dirtyFlags = DirtyFlags.ConstantBufferPerShader;
         }
 
-        public void Apply(DeviceContext context)
+        public void Apply()
         {
-            if (context == null) throw new ArgumentNullException("context");
-
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerShader) != 0)
             {
-                constantBufferPerShader.SetData(context, parametersPerShader);
+                constantBufferPerShader.SetData(DeviceContext, parametersPerShader);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerShader;
             }
 
-            context.PixelShader = sharedDeviceResource.PixelShader;
-            context.PixelShaderConstantBuffers[0] = constantBufferPerShader;
-            context.PixelShaderResources[0] = Texture;
-            context.PixelShaderSamplers[0] = TextureSampler;
+            DeviceContext.PixelShader = sharedDeviceResource.PixelShader;
+            DeviceContext.PixelShaderConstantBuffers[0] = constantBufferPerShader;
+            DeviceContext.PixelShaderResources[0] = Texture;
+            DeviceContext.PixelShaderSamplers[0] = TextureSampler;
         }
 
         #region IDisposable

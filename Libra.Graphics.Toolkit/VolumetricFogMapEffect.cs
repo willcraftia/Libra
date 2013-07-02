@@ -65,8 +65,6 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        Device device;
-
         SharedDeviceResource sharedDeviceResource;
 
         ConstantBuffer constantBufferPerObjectVS;
@@ -86,6 +84,8 @@ namespace Libra.Graphics.Toolkit
         Matrix viewProjection;
 
         DirtyFlags dirtyFlags;
+
+        public DeviceContext DeviceContext { get; private set; }
 
         public Matrix World
         {
@@ -141,17 +141,17 @@ namespace Libra.Graphics.Toolkit
 
         public SamplerState BackFogDepthMapSampler { get; set; }
 
-        public VolumetricFogMapEffect(Device device)
+        public VolumetricFogMapEffect(DeviceContext deviceContext)
         {
-            if (device == null) throw new ArgumentNullException("device");
+            if (deviceContext == null) throw new ArgumentNullException("deviceContext");
 
-            this.device = device;
+            DeviceContext = deviceContext;
 
-            sharedDeviceResource = device.GetSharedResource<VolumetricFogMapEffect, SharedDeviceResource>();
+            sharedDeviceResource = deviceContext.Device.GetSharedResource<VolumetricFogMapEffect, SharedDeviceResource>();
 
-            constantBufferPerObjectVS = device.CreateConstantBuffer();
+            constantBufferPerObjectVS = deviceContext.Device.CreateConstantBuffer();
             constantBufferPerObjectVS.Initialize<ParametersPerObjectVS>();
-            constantBufferPerObjectPS = device.CreateConstantBuffer();
+            constantBufferPerObjectPS = deviceContext.Device.CreateConstantBuffer();
             constantBufferPerObjectPS.Initialize<ParametersPerObjectPS>();
 
             world = Matrix.Identity;
@@ -169,7 +169,7 @@ namespace Libra.Graphics.Toolkit
             dirtyFlags = DirtyFlags.ConstantBufferPerObjectVS | DirtyFlags.ConstantBufferPerObjectPS;
         }
 
-        public void Apply(DeviceContext context)
+        public void Apply()
         {
             if ((dirtyFlags & DirtyFlags.ViewProjection) != 0)
             {
@@ -203,28 +203,28 @@ namespace Libra.Graphics.Toolkit
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerObjectVS) != 0)
             {
-                constantBufferPerObjectVS.SetData(context, parametersPerObjectVS);
+                constantBufferPerObjectVS.SetData(DeviceContext, parametersPerObjectVS);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerObjectVS;
             }
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerObjectPS) != 0)
             {
-                constantBufferPerObjectPS.SetData(context, parametersPerObjectPS);
+                constantBufferPerObjectPS.SetData(DeviceContext, parametersPerObjectPS);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerObjectPS;
             }
 
-            context.VertexShaderConstantBuffers[0] = constantBufferPerObjectVS;
-            context.VertexShader = sharedDeviceResource.VertexShader;
+            DeviceContext.VertexShaderConstantBuffers[0] = constantBufferPerObjectVS;
+            DeviceContext.VertexShader = sharedDeviceResource.VertexShader;
 
-            context.PixelShaderConstantBuffers[0] = constantBufferPerObjectPS;
-            context.PixelShader = sharedDeviceResource.PixelShader;
+            DeviceContext.PixelShaderConstantBuffers[0] = constantBufferPerObjectPS;
+            DeviceContext.PixelShader = sharedDeviceResource.PixelShader;
 
-            context.PixelShaderResources[0] = FrontFogDepthMap;
-            context.PixelShaderResources[1] = BackFogDepthMap;
-            context.PixelShaderSamplers[0] = FrontFogDepthMapSampler;
-            context.PixelShaderSamplers[1] = BackFogDepthMapSampler;
+            DeviceContext.PixelShaderResources[0] = FrontFogDepthMap;
+            DeviceContext.PixelShaderResources[1] = BackFogDepthMap;
+            DeviceContext.PixelShaderSamplers[0] = FrontFogDepthMapSampler;
+            DeviceContext.PixelShaderSamplers[1] = BackFogDepthMapSampler;
         }
 
         #region IDisposable

@@ -38,21 +38,21 @@ namespace Libra.Graphics.Toolkit
 
         VertexPositionColor[] verts = new VertexPositionColor[64];
 
-        DeviceContext context;
-
         BasicEffect effect;
 
         VertexBuffer vertexBuffer;
 
         Vector3[] corners = new Vector3[8];
 
-        public DebugShapeRenderer(DeviceContext context)
+        public DeviceContext DeviceContext { get; private set; }
+
+        public DebugShapeRenderer(DeviceContext deviceContext)
         {
-            if (context == null) throw new ArgumentNullException("context");
+            if (deviceContext == null) throw new ArgumentNullException("deviceContext");
 
-            this.context = context;
+            DeviceContext = deviceContext;
 
-            effect = new BasicEffect(context.Device);
+            effect = new BasicEffect(deviceContext);
             effect.VertexColorEnabled = true;
             effect.TextureEnabled = false;
             effect.DiffuseColor = Vector3.One;
@@ -204,7 +204,7 @@ namespace Libra.Graphics.Toolkit
 
                     if (vertexBuffer == null)
                     {
-                        vertexBuffer = context.Device.CreateVertexBuffer();
+                        vertexBuffer = DeviceContext.Device.CreateVertexBuffer();
                         vertexBuffer.Usage = ResourceUsage.Dynamic;
                         vertexBuffer.Initialize(VertexPositionColor.VertexDeclaration, vertexBufferSize);
                     }
@@ -220,7 +220,7 @@ namespace Libra.Graphics.Toolkit
                         verts[vertIndex++] = shape.Vertices[i];
                 }
 
-                effect.Apply(context);
+                effect.Apply();
 
                 int vertexOffset = 0;
                 while (0 < lineCount)
@@ -230,11 +230,11 @@ namespace Libra.Graphics.Toolkit
 
                     int vertexCountToDraw = linesToDraw * 2;
 
-                    vertexBuffer.SetData(context, verts, vertexOffset, vertexCountToDraw);
-                    context.SetVertexBuffer(vertexBuffer);
-                    context.PrimitiveTopology = PrimitiveTopology.LineList;
+                    vertexBuffer.SetData(DeviceContext, verts, vertexOffset, vertexCountToDraw);
+                    DeviceContext.SetVertexBuffer(vertexBuffer);
+                    DeviceContext.PrimitiveTopology = PrimitiveTopology.LineList;
 
-                    context.Draw(vertexCountToDraw);
+                    DeviceContext.Draw(vertexCountToDraw);
 
                     vertexOffset += vertexCountToDraw;
 

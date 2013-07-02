@@ -370,13 +370,11 @@ namespace Samples.Particles3D
 
         void DrawGrid(Matrix view, Matrix projection)
         {
-            var context = Device.ImmediateContext;
+            DeviceContext.BlendState = BlendState.Opaque;
+            DeviceContext.DepthStencilState = DepthStencilState.Default;
+            DeviceContext.PixelShaderSamplers[0] = SamplerState.LinearWrap;
 
-            context.BlendState = BlendState.Opaque;
-            context.DepthStencilState = DepthStencilState.Default;
-            context.PixelShaderSamplers[0] = SamplerState.LinearWrap;
-
-            grid.Draw(Device.ImmediateContext, Matrix.Identity, view, projection);
+            grid.Draw(Matrix.Identity, view, projection);
         }
 
         void DrawMessage()

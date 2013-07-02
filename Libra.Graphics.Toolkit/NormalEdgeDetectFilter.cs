@@ -59,8 +59,6 @@ namespace Libra.Graphics.Toolkit
             new Vector2(-1,  0),
         };
 
-        Device device;
-
         SharedDeviceResource sharedDeviceResource;
 
         ConstantBuffer constantBufferPerRenderTarget;
@@ -72,6 +70,8 @@ namespace Libra.Graphics.Toolkit
         int viewportHeight;
 
         DirtyFlags dirtyFlags;
+
+        public DeviceContext DeviceContext { get; private set; }
 
         public ShaderResourceView NormalMap { get; set; }
 
@@ -91,15 +91,15 @@ namespace Libra.Graphics.Toolkit
             set { }
         }
 
-        public NormalEdgeDetectFilter(Device device)
+        public NormalEdgeDetectFilter(DeviceContext deviceContext)
         {
-            if (device == null) throw new ArgumentNullException("device");
+            if (deviceContext == null) throw new ArgumentNullException("deviceContext");
 
-            this.device = device;
+            DeviceContext = deviceContext;
 
-            sharedDeviceResource = device.GetSharedResource<NormalEdgeDetectFilter, SharedDeviceResource>();
+            sharedDeviceResource = deviceContext.Device.GetSharedResource<NormalEdgeDetectFilter, SharedDeviceResource>();
 
-            constantBufferPerRenderTarget = device.CreateConstantBuffer();
+            constantBufferPerRenderTarget = deviceContext.Device.CreateConstantBuffer();
             constantBufferPerRenderTarget.Initialize<ParametersPerRenderTarget>();
 
             parametersPerRenderTarget.Offsets = new Vector4[KernelSize];
@@ -109,11 +109,9 @@ namespace Libra.Graphics.Toolkit
             dirtyFlags = DirtyFlags.Offsets | DirtyFlags.ConstantBufferPerRenderTarget;
         }
 
-        public void Apply(DeviceContext context)
+        public void Apply()
         {
-            if (context == null) throw new ArgumentNullException("context");
-
-            var viewport = context.Viewport;
+            var viewport = DeviceContext.Viewport;
             int currentWidth = (int) viewport.Width;
             int currentHeight = (int) viewport.Height;
 
@@ -139,15 +137,15 @@ namespace Libra.Graphics.Toolkit
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerRenderTarget) != 0)
             {
-                constantBufferPerRenderTarget.SetData(context, parametersPerRenderTarget);
+                constantBufferPerRenderTarget.SetData(DeviceContext, parametersPerRenderTarget);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerRenderTarget;
             }
 
-            context.PixelShader = sharedDeviceResource.PixelShader;
-            context.PixelShaderConstantBuffers[0] = constantBufferPerRenderTarget;
-            context.PixelShaderResources[1] = NormalMap;
-            context.PixelShaderSamplers[1] = NormalMapSampler;
+            DeviceContext.PixelShader = sharedDeviceResource.PixelShader;
+            DeviceContext.PixelShaderConstantBuffers[0] = constantBufferPerRenderTarget;
+            DeviceContext.PixelShaderResources[1] = NormalMap;
+            DeviceContext.PixelShaderSamplers[1] = NormalMapSampler;
         }
 
         #region IDisposable

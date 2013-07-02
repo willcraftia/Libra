@@ -314,63 +314,63 @@ namespace Samples.ScenePostprocess
             postprocess.Width = WindowWidth;
             postprocess.Height = WindowHeight;
 
-            downFilter = new DownFilter(Device);
-            upFilter = new UpFilter(Device);
+            downFilter = new DownFilter(DeviceContext);
+            upFilter = new UpFilter(DeviceContext);
 
-            gaussianFilter = new GaussianFilter(Device);
+            gaussianFilter = new GaussianFilter(DeviceContext);
             gaussianFilterH = new GaussianFilterPass(gaussianFilter, GaussianFilterDirection.Horizon);
             gaussianFilterV = new GaussianFilterPass(gaussianFilter, GaussianFilterDirection.Vertical);
 
-            bilateralFilter = new BilateralFilter(Device);
+            bilateralFilter = new BilateralFilter(DeviceContext);
             bilateralFilterH = new GaussianFilterPass(bilateralFilter, GaussianFilterDirection.Horizon);
             bilateralFilterV = new GaussianFilterPass(bilateralFilter, GaussianFilterDirection.Vertical);
 
-            bloomExtractFilter = new BloomExtractFilter(Device);
-            bloomCombineFilter = new BloomCombineFilter(Device);
+            bloomExtractFilter = new BloomExtractFilter(DeviceContext);
+            bloomCombineFilter = new BloomCombineFilter(DeviceContext);
 
-            dofCombineFilter = new DofCombineFilter(Device);
+            dofCombineFilter = new DofCombineFilter(DeviceContext);
 
-            monochromeFilter = new MonochromeFilter(Device);
+            monochromeFilter = new MonochromeFilter(DeviceContext);
             monochromeFilter.Enabled = false;
 
-            scanlineFilter = new ScanlineFilter(Device);
+            scanlineFilter = new ScanlineFilter(DeviceContext);
             scanlineFilter.Enabled = false;
             scanlineFilter.Density = WindowHeight * MathHelper.PiOver2;
 
-            edgeFilter = new EdgeFilter(Device);
+            edgeFilter = new EdgeFilter(DeviceContext);
             edgeFilter.Enabled = false;
             edgeFilter.NearClipDistance = camera.NearClipDistance;
             edgeFilter.FarClipDistance = camera.FarClipDistance;
 
-            negativeFilter = new NegativeFilter(Device);
+            negativeFilter = new NegativeFilter(DeviceContext);
             negativeFilter.Enabled = false;
 
-            radialFilter = new RadialFilter(Device);
+            radialFilter = new RadialFilter(DeviceContext);
             radialFilter.Enabled = false;
 
-            normalEdgeDetectFilter = new NormalEdgeDetectFilter(Device);
+            normalEdgeDetectFilter = new NormalEdgeDetectFilter(DeviceContext);
             normalEdgeDetectFilter.Enabled = false;
 
-            linearFogFilter = new LinearFogFilter(Device);
+            linearFogFilter = new LinearFogFilter(DeviceContext);
             linearFogFilter.FogStart = 10;
             linearFogFilter.FogEnd = 500;
             linearFogFilter.FarClipDistance = camera.FarClipDistance;
             linearFogFilter.Enabled = false;
 
-            exponentialFogFilter = new ExponentialFogFilter(Device);
+            exponentialFogFilter = new ExponentialFogFilter(DeviceContext);
             exponentialFogFilter.FarClipDistance = camera.FarClipDistance;
             exponentialFogFilter.Enabled = false;
 
-            heightFogFilter = new HeightFogFilter(Device);
+            heightFogFilter = new HeightFogFilter(DeviceContext);
             heightFogFilter.FogMinHeight = -5;
             heightFogFilter.FogMaxHeight = 20;
             heightFogFilter.FarClipDistance = camera.FarClipDistance;
             heightFogFilter.Enabled = false;
 
-            depthMapEffect = new LinearDepthMapEffect(Device);
-            normalMapEffect = new NormalMapEffect(Device);
+            depthMapEffect = new LinearDepthMapEffect(DeviceContext);
+            normalMapEffect = new NormalMapEffect(DeviceContext);
 
-            basicEffect = new BasicEffect(Device);
+            basicEffect = new BasicEffect(DeviceContext);
             basicEffect.AmbientLightColor = new Vector3(0.15f, 0.15f, 0.15f);
             basicEffect.PerPixelLighting = true;
             basicEffect.EnableDefaultLighting();
@@ -531,7 +531,7 @@ namespace Samples.ScenePostprocess
                 basicEffect.DiffuseColor = color;
             }
 
-            effect.Apply(DeviceContext);
+            effect.Apply();
             mesh.Draw();
         }
 

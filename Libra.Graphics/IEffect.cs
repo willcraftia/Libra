@@ -8,6 +8,8 @@ namespace Libra.Graphics
 {
     public interface IEffect
     {
-        void Apply(DeviceContext context);
+        DeviceContext DeviceContext { get; }
+
+        void Apply();
     }
 }

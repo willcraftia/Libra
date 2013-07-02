@@ -84,8 +84,6 @@ namespace Libra.Graphics.Toolkit
 
         public const int MaxKernelSize = 32;
 
-        Device device;
-
         SharedDeviceResource sharedDeviceResource;
 
         ConstantBuffer constantBufferPerShader;
@@ -107,6 +105,8 @@ namespace Libra.Graphics.Toolkit
         int viewportHeight;
 
         DirtyFlags dirtyFlags;
+
+        public DeviceContext DeviceContext { get; private set; }
 
         public int SampleCount
         {
@@ -164,21 +164,19 @@ namespace Libra.Graphics.Toolkit
 
         public SamplerState TextureSampler { get; set; }
 
-        public RadialFilter(Device device)
+        public RadialFilter(DeviceContext deviceContext)
         {
-            if (device == null) throw new ArgumentNullException("device");
+            DeviceContext = deviceContext;
 
-            this.device = device;
+            sharedDeviceResource = deviceContext.Device.GetSharedResource<RadialFilter, SharedDeviceResource>();
 
-            sharedDeviceResource = device.GetSharedResource<RadialFilter, SharedDeviceResource>();
-
-            constantBufferPerShader = device.CreateConstantBuffer();
+            constantBufferPerShader = deviceContext.Device.CreateConstantBuffer();
             constantBufferPerShader.Initialize<ParametersPerShader>();
 
-            constantBufferPerRenderTarget = device.CreateConstantBuffer();
+            constantBufferPerRenderTarget = deviceContext.Device.CreateConstantBuffer();
             constantBufferPerRenderTarget.Initialize<ParametersPerShader>();
 
-            constantBufferPerFrame = device.CreateConstantBuffer();
+            constantBufferPerFrame = deviceContext.Device.CreateConstantBuffer();
             constantBufferPerFrame.Initialize<ParametersPerShader>();
 
             sigma = 10.0f;
@@ -201,12 +199,9 @@ namespace Libra.Graphics.Toolkit
                 DirtyFlags.Offsets;
         }
 
-        public void Apply(DeviceContext context)
+        public void Apply()
         {
-            if (context == null) throw new ArgumentNullException("context");
-
-
-            var viewport = context.Viewport;
+            var viewport = DeviceContext.Viewport;
             int currentWidth = (int) viewport.Width;
             int currentHeight = (int) viewport.Height;
 
@@ -223,31 +218,31 @@ namespace Libra.Graphics.Toolkit
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerShader) != 0)
             {
-                constantBufferPerShader.SetData(context, parametersPerShader);
+                constantBufferPerShader.SetData(DeviceContext, parametersPerShader);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerShader;
             }
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerRenderTarget) != 0)
             {
-                constantBufferPerRenderTarget.SetData(context, parametersPerRenderTarget);
+                constantBufferPerRenderTarget.SetData(DeviceContext, parametersPerRenderTarget);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerRenderTarget;
             }
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerFrame) != 0)
             {
-                constantBufferPerFrame.SetData(context, parametersPerFrame);
+                constantBufferPerFrame.SetData(DeviceContext, parametersPerFrame);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerFrame;
             }
 
-            context.PixelShader = sharedDeviceResource.PixelShader;
-            context.PixelShaderConstantBuffers[0] = constantBufferPerShader;
-            context.PixelShaderConstantBuffers[1] = constantBufferPerRenderTarget;
-            context.PixelShaderConstantBuffers[2] = constantBufferPerFrame;
-            context.PixelShaderResources[0] = Texture;
-            context.PixelShaderSamplers[0] = TextureSampler;
+            DeviceContext.PixelShader = sharedDeviceResource.PixelShader;
+            DeviceContext.PixelShaderConstantBuffers[0] = constantBufferPerShader;
+            DeviceContext.PixelShaderConstantBuffers[1] = constantBufferPerRenderTarget;
+            DeviceContext.PixelShaderConstantBuffers[2] = constantBufferPerFrame;
+            DeviceContext.PixelShaderResources[0] = Texture;
+            DeviceContext.PixelShaderSamplers[0] = TextureSampler;
         }
 
         void SetWeights()

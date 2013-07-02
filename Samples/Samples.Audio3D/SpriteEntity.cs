@@ -53,13 +53,13 @@ namespace Samples.Audio3D
 
         public abstract void Update(GameTime gameTime, AudioComponent audioManager);
 
-        public void Draw(DeviceContext context, QuadDrawer quadDrawer, Vector3 cameraPosition, Matrix view, Matrix projection)
+        public void Draw(QuadDrawer quadDrawer, Vector3 cameraPosition, Matrix view, Matrix projection)
         {
             var world = Matrix.CreateTranslation(0, 1, 0) *
                         Matrix.CreateScale(800) *
                         Matrix.CreateConstrainedBillboard(Position, cameraPosition, Up, null, null);
 
-            quadDrawer.DrawQuad(context, Texture, 1, world, view, projection);
+            quadDrawer.DrawQuad(Texture, 1, world, view, projection);
         }
     }
 }

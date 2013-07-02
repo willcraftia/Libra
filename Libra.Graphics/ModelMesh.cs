@@ -18,28 +18,25 @@ namespace Libra.Graphics
 
         public ModelEffectCollection Effects { get; set; }
 
-        public void Draw(DeviceContext context)
+        public void Draw()
         {
-            if (context == null) throw new ArgumentNullException("context");
-
             for (int i = 0; i < MeshParts.Count; i++)
             {
                 var meshPart = MeshParts[i];
 
                 if (meshPart.IndexCount != 0)
                 {
-                    meshPart.Effect.Apply(context);
-                    DrawMeshPart(context, meshPart);
+                    meshPart.Effect.Apply();
+                    DrawMeshPart(meshPart.Effect.DeviceContext, meshPart);
                 }
             }
         }
 
-        public void Draw(DeviceContext context, IEffect effect)
+        public void Draw(IEffect effect)
         {
-            if (context == null) throw new ArgumentNullException("context");
             if (effect == null) throw new ArgumentNullException("effect");
 
-            effect.Apply(context);
+            effect.Apply();
 
             for (int i = 0; i < MeshParts.Count; i++)
             {
@@ -47,7 +44,7 @@ namespace Libra.Graphics
 
                 if (meshPart.IndexCount != 0)
                 {
-                    DrawMeshPart(context, meshPart);
+                    DrawMeshPart(effect.DeviceContext, meshPart);
                 }
             }
         }

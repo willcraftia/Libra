@@ -53,8 +53,8 @@ namespace Samples.BloomPostprocess
 
         protected override void LoadContent()
         {
-            basicEffect = new BasicEffect(Device);
-            spriteBatch = new SpriteBatch(Device.ImmediateContext);
+            basicEffect = new BasicEffect(DeviceContext);
+            spriteBatch = new SpriteBatch(DeviceContext);
             spriteFont = Content.Load<SpriteFont>("hudFont");
             background = Content.Load<Texture2D>("sunset");
             model = Content.Load<Model>("tank");
@@ -116,7 +116,7 @@ namespace Samples.BloomPostprocess
                     effect.SpecularColor = Vector3.One;
                 }
 
-                mesh.Draw(DeviceContext);
+                mesh.Draw();
             }
         }
 

@@ -11,6 +11,11 @@ namespace Libra.Graphics.Toolkit
     /// </summary>
     public sealed class GaussianFilterPass : IFilterEffect
     {
+        public DeviceContext DeviceContext
+        {
+            get { return GaussianFilterEffect.DeviceContext; }
+        }
+
         public IGaussianFilterEffect GaussianFilterEffect { get; private set; }
 
         public GaussianFilterDirection Direction { get; private set; }
@@ -31,14 +36,12 @@ namespace Libra.Graphics.Toolkit
             Enabled = true;
         }
 
-        public void Apply(DeviceContext context)
+        public void Apply()
         {
-            if (context == null) throw new ArgumentNullException("context");
-
             GaussianFilterEffect.Direction = Direction;
             GaussianFilterEffect.Texture = Texture;
             GaussianFilterEffect.TextureSampler = TextureSampler;
-            GaussianFilterEffect.Apply(context);
+            GaussianFilterEffect.Apply();
         }
     }
 }

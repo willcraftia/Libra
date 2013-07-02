@@ -122,8 +122,6 @@ namespace Libra.Graphics.Toolkit
         // 20℃
         public const float RefracticeIndexWater = 1.3334f;
 
-        Device device;
-
         SharedDeviceResource sharedDeviceResource;
 
         ConstantBuffer constantBufferPerObjectVS;
@@ -163,6 +161,8 @@ namespace Libra.Graphics.Toolkit
         float alpha;
 
         DirtyFlags dirtyFlags;
+
+        public DeviceContext DeviceContext { get; private set; }
 
         public Matrix World
         {
@@ -377,19 +377,19 @@ namespace Libra.Graphics.Toolkit
 
         public SamplerState RefractionMapSampler { get; set; }
 
-        public FluidEffect(Device device)
+        public FluidEffect(DeviceContext deviceContext)
         {
-            if (device == null) throw new ArgumentNullException("device");
+            if (deviceContext == null) throw new ArgumentNullException("deviceContext");
 
-            this.device = device;
+            DeviceContext = deviceContext;
 
-            sharedDeviceResource = device.GetSharedResource<FluidEffect, SharedDeviceResource>();
+            sharedDeviceResource = deviceContext.Device.GetSharedResource<FluidEffect, SharedDeviceResource>();
 
-            constantBufferPerObjectVS = device.CreateConstantBuffer();
+            constantBufferPerObjectVS = deviceContext.Device.CreateConstantBuffer();
             constantBufferPerObjectVS.Initialize<ParametersPerObjectVS>();
-            constantBufferPerObjectPS = device.CreateConstantBuffer();
+            constantBufferPerObjectPS = deviceContext.Device.CreateConstantBuffer();
             constantBufferPerObjectPS.Initialize<ParametersPerObjectPS>();
-            constantBufferPerFramePS = device.CreateConstantBuffer();
+            constantBufferPerFramePS = deviceContext.Device.CreateConstantBuffer();
             constantBufferPerFramePS.Initialize<ParametersPerFramePS>();
 
             world = Matrix.Identity;
@@ -422,7 +422,7 @@ namespace Libra.Graphics.Toolkit
                 DirtyFlags.MaterialColor;
         }
 
-        public void Apply(DeviceContext context)
+        public void Apply()
         {
             if ((dirtyFlags & DirtyFlags.WorldView) != 0)
             {
@@ -503,38 +503,38 @@ namespace Libra.Graphics.Toolkit
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerObjectVS) != 0)
             {
-                constantBufferPerObjectVS.SetData(context, parametersPerObjectVS);
+                constantBufferPerObjectVS.SetData(DeviceContext, parametersPerObjectVS);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerObjectVS;
             }
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerObjectPS) != 0)
             {
-                constantBufferPerObjectPS.SetData(context, parametersPerObjectPS);
+                constantBufferPerObjectPS.SetData(DeviceContext, parametersPerObjectPS);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerObjectPS;
             }
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerFramePS) != 0)
             {
-                constantBufferPerFramePS.SetData(context, parametersPerFramePS);
+                constantBufferPerFramePS.SetData(DeviceContext, parametersPerFramePS);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerFramePS;
             }
 
-            context.VertexShader = sharedDeviceResource.VertexShader;
-            context.VertexShaderConstantBuffers[0] = constantBufferPerObjectVS;
+            DeviceContext.VertexShader = sharedDeviceResource.VertexShader;
+            DeviceContext.VertexShaderConstantBuffers[0] = constantBufferPerObjectVS;
 
-            context.PixelShader = sharedDeviceResource.PixelShader;
-            context.PixelShaderConstantBuffers[0] = constantBufferPerObjectPS;
-            context.PixelShaderConstantBuffers[1] = constantBufferPerFramePS;
-            context.PixelShaderResources[0] = NormalMap0;
-            context.PixelShaderResources[1] = NormalMap1;
-            context.PixelShaderResources[2] = ReflectionMap;
-            context.PixelShaderResources[3] = RefractionMap;
-            context.PixelShaderSamplers[0] = NormalMapSampler;
-            context.PixelShaderSamplers[1] = ReflectionMapSampler;
-            context.PixelShaderSamplers[2] = RefractionMapSampler;
+            DeviceContext.PixelShader = sharedDeviceResource.PixelShader;
+            DeviceContext.PixelShaderConstantBuffers[0] = constantBufferPerObjectPS;
+            DeviceContext.PixelShaderConstantBuffers[1] = constantBufferPerFramePS;
+            DeviceContext.PixelShaderResources[0] = NormalMap0;
+            DeviceContext.PixelShaderResources[1] = NormalMap1;
+            DeviceContext.PixelShaderResources[2] = ReflectionMap;
+            DeviceContext.PixelShaderResources[3] = RefractionMap;
+            DeviceContext.PixelShaderSamplers[0] = NormalMapSampler;
+            DeviceContext.PixelShaderSamplers[1] = ReflectionMapSampler;
+            DeviceContext.PixelShaderSamplers[2] = RefractionMapSampler;
         }
 
         #region IDisposable

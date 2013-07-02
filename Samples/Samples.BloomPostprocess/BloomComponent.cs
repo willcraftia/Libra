@@ -21,7 +21,7 @@ namespace Samples.BloomPostprocess
             FinalResult,
         }
 
-        DeviceContext context;
+        DeviceContext deviceContext;
 
         SpriteBatch spriteBatch;
 
@@ -70,19 +70,19 @@ namespace Samples.BloomPostprocess
 
         protected override void LoadContent()
         {
-            context = Device.ImmediateContext;
+            deviceContext = Device.ImmediateContext;
 
-            spriteBatch = new SpriteBatch(context);
+            spriteBatch = new SpriteBatch(deviceContext);
 
-            bloomExtractFilter = new BloomExtractFilter(Device);
-            bloomCombineFilter = new BloomCombineFilter(Device);
-            gaussianFilter = new GaussianFilter(Device);
+            bloomExtractFilter = new BloomExtractFilter(deviceContext);
+            bloomCombineFilter = new BloomCombineFilter(deviceContext);
+            gaussianFilter = new GaussianFilter(deviceContext);
             gaussianFilterH = new GaussianFilterPass(gaussianFilter, GaussianFilterDirection.Horizon);
             gaussianFilterV = new GaussianFilterPass(gaussianFilter, GaussianFilterDirection.Vertical);
-            downFilter = new DownFilter(Device);
+            downFilter = new DownFilter(deviceContext);
             downFilter.WidthScale = 0.5f;
             downFilter.HeightScale = 0.5f;
-            upFilter = new UpFilter(Device);
+            upFilter = new UpFilter(deviceContext);
             upFilter.WidthScale = 2.0f;
             upFilter.HeightScale = 2.0f;
 
@@ -93,7 +93,7 @@ namespace Samples.BloomPostprocess
             var multisampleCount = backBuffer.MultisampleCount;
             var depthFormat = backBuffer.DepthFormat;
 
-            postprocess = new Postprocess(context);
+            postprocess = new Postprocess(deviceContext);
             postprocess.Width = width;
             postprocess.Height = height;
             postprocess.Format = format;
@@ -118,7 +118,7 @@ namespace Samples.BloomPostprocess
         {
             if (Visible)
             {
-                context.SetRenderTarget(sceneRenderTarget);
+                deviceContext.SetRenderTarget(sceneRenderTarget);
             }
         }
 

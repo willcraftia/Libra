@@ -107,8 +107,6 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        Device device;
-
         SharedDeviceResource sharedDeviceResource;
 
         ConstantBuffer constantBufferPerObject;
@@ -130,6 +128,8 @@ namespace Libra.Graphics.Toolkit
         Matrix viewProjection;
 
         DirtyFlags dirtyFlags;
+
+        public DeviceContext DeviceContext { get; private set; }
 
         /// <summary>
         /// パーティクル存続期間 (秒) を取得または設定します。
@@ -359,19 +359,19 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        public ParticleEffect(Device device)
+        public ParticleEffect(DeviceContext deviceContext)
         {
-            if (device == null) throw new ArgumentNullException("device");
+            if (deviceContext == null) throw new ArgumentNullException("deviceContext");
 
-            this.device = device;
+            DeviceContext = deviceContext;
 
-            sharedDeviceResource = device.GetSharedResource<ParticleEffect, SharedDeviceResource>();
+            sharedDeviceResource = deviceContext.Device.GetSharedResource<ParticleEffect, SharedDeviceResource>();
 
-            constantBufferPerObject = device.CreateConstantBuffer();
+            constantBufferPerObject = deviceContext.Device.CreateConstantBuffer();
             constantBufferPerObject.Initialize<ParametersPerObject>();
-            constantBufferPerCamera = device.CreateConstantBuffer();
+            constantBufferPerCamera = deviceContext.Device.CreateConstantBuffer();
             constantBufferPerCamera.Initialize<ParametersPerCamera>();
-            constantBufferPerFrame = device.CreateConstantBuffer();
+            constantBufferPerFrame = deviceContext.Device.CreateConstantBuffer();
             constantBufferPerFrame.Initialize<ParametersPerFrame>();
 
             view = Matrix.Identity;
@@ -397,7 +397,7 @@ namespace Libra.Graphics.Toolkit
             dirtyFlags = DirtyFlags.ViewportScale | DirtyFlags.ConstantBufferPerObject | DirtyFlags.ConstantBufferPerFrame;
         }
 
-        public void Apply(DeviceContext context)
+        public void Apply()
         {
             if ((dirtyFlags & DirtyFlags.ViewProjection) != 0)
             {
@@ -426,30 +426,30 @@ namespace Libra.Graphics.Toolkit
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerObject) != 0)
             {
-                constantBufferPerObject.SetData(context, parametersPerObject);
+                constantBufferPerObject.SetData(DeviceContext, parametersPerObject);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerObject;
             }
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerCamera) != 0)
             {
-                constantBufferPerCamera.SetData(context, parametersPerCamera);
+                constantBufferPerCamera.SetData(DeviceContext, parametersPerCamera);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerCamera;
             }
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerFrame) != 0)
             {
-                constantBufferPerFrame.SetData(context, parametersPerFrame);
+                constantBufferPerFrame.SetData(DeviceContext, parametersPerFrame);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerFrame;
             }
 
-            context.VertexShaderConstantBuffers[0] = constantBufferPerObject;
-            context.VertexShaderConstantBuffers[1] = constantBufferPerCamera;
-            context.VertexShaderConstantBuffers[2] = constantBufferPerFrame;
-            context.VertexShader = sharedDeviceResource.VertexShader;
-            context.PixelShader = sharedDeviceResource.PixelShader;
+            DeviceContext.VertexShaderConstantBuffers[0] = constantBufferPerObject;
+            DeviceContext.VertexShaderConstantBuffers[1] = constantBufferPerCamera;
+            DeviceContext.VertexShaderConstantBuffers[2] = constantBufferPerFrame;
+            DeviceContext.VertexShader = sharedDeviceResource.VertexShader;
+            DeviceContext.PixelShader = sharedDeviceResource.PixelShader;
         }
 
         #region IDisposable

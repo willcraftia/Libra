@@ -65,7 +65,7 @@ namespace Samples.Audio3D
 
             checkerTexture = Content.Load<Texture2D>("checker");
 
-            quadDrawer = new QuadDrawer(Device);
+            quadDrawer = new QuadDrawer(DeviceContext);
         }
 
         protected override void Update(GameTime gameTime)
@@ -96,10 +96,10 @@ namespace Samples.Audio3D
 
             var groundTransform = Matrix.CreateScale(20000) * Matrix.CreateRotationX(MathHelper.PiOver2);
 
-            quadDrawer.DrawQuad(DeviceContext, checkerTexture, 32, groundTransform, view, projection);
+            quadDrawer.DrawQuad(checkerTexture, 32, groundTransform, view, projection);
 
-            cat.Draw(DeviceContext, quadDrawer, cameraPosition, view, projection);
-            dog.Draw(DeviceContext, quadDrawer, cameraPosition, view, projection);
+            cat.Draw(quadDrawer, cameraPosition, view, projection);
+            dog.Draw(quadDrawer, cameraPosition, view, projection);
 
             base.Draw(gameTime);
         }

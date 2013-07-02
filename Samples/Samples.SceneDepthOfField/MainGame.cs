@@ -204,14 +204,14 @@ namespace Samples.SceneDepthOfField
             postprocess.Width = WindowWidth;
             postprocess.Height = WindowHeight;
 
-            downFilter = new DownFilter(Device);
-            upFilter = new UpFilter(Device);
+            downFilter = new DownFilter(DeviceContext);
+            upFilter = new UpFilter(DeviceContext);
 
-            gaussianFilter = new GaussianFilter(Device);
+            gaussianFilter = new GaussianFilter(DeviceContext);
             gaussianFilterH = new GaussianFilterPass(gaussianFilter, GaussianFilterDirection.Horizon);
             gaussianFilterV = new GaussianFilterPass(gaussianFilter, GaussianFilterDirection.Vertical);
 
-            dofCombineFilter = new DofCombineFilter(Device);
+            dofCombineFilter = new DofCombineFilter(DeviceContext);
 
             postprocess.Filters.Add(downFilter);
             postprocess.Filters.Add(gaussianFilterH);
@@ -219,9 +219,9 @@ namespace Samples.SceneDepthOfField
             postprocess.Filters.Add(upFilter);
             postprocess.Filters.Add(dofCombineFilter);
 
-            depthMapEffect = new LinearDepthMapEffect(Device);
+            depthMapEffect = new LinearDepthMapEffect(DeviceContext);
 
-            basicEffect = new BasicEffect(Device);
+            basicEffect = new BasicEffect(DeviceContext);
             basicEffect.AmbientLightColor = new Vector3(0.15f, 0.15f, 0.15f);
             basicEffect.PerPixelLighting = true;
             basicEffect.EnableDefaultLighting();
@@ -341,7 +341,7 @@ namespace Samples.SceneDepthOfField
                 basicEffect.DiffuseColor = color;
             }
 
-            effect.Apply(DeviceContext);
+            effect.Apply();
             mesh.Draw();
         }
 

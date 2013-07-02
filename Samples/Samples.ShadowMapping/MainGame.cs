@@ -701,7 +701,7 @@ namespace Samples.ShadowMapping
         {
             // シャドウ マップ エフェクトの準備。
             effect.World = world;
-            effect.Apply(DeviceContext);
+            effect.Apply();
 
             DeviceContext.PrimitiveTopology = PrimitiveTopology.TriangleList;
 
