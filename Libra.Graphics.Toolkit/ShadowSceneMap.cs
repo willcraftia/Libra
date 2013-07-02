@@ -306,6 +306,7 @@ namespace Libra.Graphics.Toolkit
         {
             if (cascadeShadowMap == null) throw new ArgumentNullException("cascadeShadowMap");
 
+            SplitCount = cascadeShadowMap.SplitCount;
             ShadowMapForm = cascadeShadowMap.ShadowMapForm;
 
             int i = 0;
@@ -360,6 +361,8 @@ namespace Libra.Graphics.Toolkit
             fullScreenQuad.Draw();
 
             DeviceContext.SetRenderTarget(null);
+
+            DeviceContext.DepthStencilState = null;
 
             BaseTexture = renderTarget;
         }
