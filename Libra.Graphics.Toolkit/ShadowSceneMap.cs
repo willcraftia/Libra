@@ -239,6 +239,7 @@ namespace Libra.Graphics.Toolkit
             fullScreenQuad.ViewRayEnabled = true;
 
             postprocess = new Postprocess(deviceContext);
+            postprocess.Format = SurfaceFormat.Single;
         }
 
         public float GetSplitDistance(int index)
@@ -322,7 +323,6 @@ namespace Libra.Graphics.Toolkit
 
                 postprocess.Width = renderTarget.Width;
                 postprocess.Height = renderTarget.Height;
-                postprocess.Format = renderTarget.Format;
 
                 dirtyFlags &= ~DirtyFlags.RenderTarget;
             }

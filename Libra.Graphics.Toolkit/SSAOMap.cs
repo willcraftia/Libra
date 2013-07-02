@@ -238,6 +238,9 @@ namespace Libra.Graphics.Toolkit
             fullScreenQuad = new FullScreenQuad(deviceContext);
             fullScreenQuad.ViewRayEnabled = true;
 
+            postprocess = new Postprocess(DeviceContext);
+            postprocess.Format = SurfaceFormat.Single;
+
             blurFilter = new NormalDepthBilateralFilter(DeviceContext);
             blurPassH = new GaussianFilterPass(blurFilter, GaussianFilterDirection.Horizon);
             blurPassV = new GaussianFilterPass(blurFilter, GaussianFilterDirection.Vertical);
@@ -260,22 +263,16 @@ namespace Libra.Graphics.Toolkit
                 if (renderTarget != null)
                     renderTarget.Dispose();
 
-                if (postprocess != null)
-                    postprocess.Dispose();
-
                 renderTarget = DeviceContext.Device.CreateRenderTarget();
                 renderTarget.Width = renderTargetWidth;
                 renderTarget.Height = renderTargetHeight;
                 renderTarget.Format = SurfaceFormat.Single;
                 renderTarget.Initialize();
 
-                postprocess = new Postprocess(DeviceContext);
                 postprocess.Width = renderTarget.Width;
                 postprocess.Height = renderTarget.Height;
-                postprocess.Format = renderTarget.Format;
 
                 dirtyFlags &= ~DirtyFlags.RenderTarget;
-                dirtyFlags |= DirtyFlags.Postprocess;
             }
         }
 
@@ -369,10 +366,10 @@ namespace Libra.Graphics.Toolkit
             {
                 ssaoMapEffect.Dispose();
                 fullScreenQuad.Dispose();
+                postprocess.Dispose();
                 blurFilter.Dispose();
 
                 if (renderTarget != null) renderTarget.Dispose();
-                if (postprocess != null) postprocess.Dispose();
                 if (downFilter != null) downFilter.Dispose();
                 if (upFilter != null) upFilter.Dispose();
             }
