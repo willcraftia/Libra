@@ -97,11 +97,6 @@ namespace Samples.SceneAmbientOcclusion
         RenderTarget normalMapRenderTarget;
 
         /// <summary>
-        /// 環境光閉塞マップの描画先レンダ ターゲット。
-        /// </summary>
-        RenderTarget ssaoMapRenderTarget;
-
-        /// <summary>
         /// 通常シーンの描画先レンダ ターゲット。
         /// </summary>
         RenderTarget normalSceneRenderTarget;
@@ -112,44 +107,14 @@ namespace Samples.SceneAmbientOcclusion
         ShaderResourceView finalSceneTexture;
 
         /// <summary>
-        /// 環境光閉塞マップ シェーダ。
+        /// 環境光閉塞マップ レンダラ。
         /// </summary>
-        SSAOMap ssaoMap;
-
-        /// <summary>
-        /// 環境光閉塞マップ用ポストプロセス。
-        /// </summary>
-        Postprocess postprocessSSAOMap;
+        SSAOMapRenderer ssaoMapRenderer;
 
         /// <summary>
         /// 表示シーン用ポストプロセス。
         /// </summary>
         Postprocess postprocessScene;
-
-        /// <summary>
-        /// ダウン フィルタ。
-        /// </summary>
-        DownFilter downFilter;
-
-        /// <summary>
-        /// アップ フィルタ。
-        /// </summary>
-        UpFilter upFilter;
-
-        /// <summary>
-        /// 法線深度バイラテラル フィルタ。
-        /// </summary>
-        NormalDepthBilateralFilter bormalDepthBilateralFilter;
-
-        /// <summary>
-        /// 環境光閉塞ブラー フィルタ 水平パス。
-        /// </summary>
-        GaussianFilterPass ssaoBlurH;
-
-        /// <summary>
-        /// 環境光閉塞ブラー フィルタ 垂直パス。
-        /// </summary>
-        GaussianFilterPass ssaoBlurV;
 
         /// <summary>
         /// 閉塞マップ合成フィルタ。
@@ -217,11 +182,6 @@ namespace Samples.SceneAmbientOcclusion
         TeapotMesh teapotMesh;
 
         /// <summary>
-        /// ブラー適用回数。
-        /// </summary>
-        int blurIteration = 3;
-
-        /// <summary>
         /// HUD テキストを表示するか否かを示す値。
         /// </summary>
         bool hudVisible = true;
@@ -252,8 +212,6 @@ namespace Samples.SceneAmbientOcclusion
 
             frameRateMeasure = new FrameRateMeasure(this);
             Components.Add(frameRateMeasure);
-
-            //IsFixedTimeStep = false;
         }
 
         protected override void LoadContent()
@@ -275,12 +233,6 @@ namespace Samples.SceneAmbientOcclusion
             normalMapRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
             normalMapRenderTarget.Initialize();
 
-            ssaoMapRenderTarget = Device.CreateRenderTarget();
-            ssaoMapRenderTarget.Width = WindowWidth / 1;
-            ssaoMapRenderTarget.Height = WindowHeight / 1;
-            ssaoMapRenderTarget.Format = SurfaceFormat.Single;
-            ssaoMapRenderTarget.Initialize();
-
             normalSceneRenderTarget = Device.CreateRenderTarget();
             normalSceneRenderTarget.Width = WindowWidth;
             normalSceneRenderTarget.Height = WindowHeight;
@@ -288,33 +240,14 @@ namespace Samples.SceneAmbientOcclusion
             normalSceneRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
             normalSceneRenderTarget.Initialize();
 
-            ssaoMap = new SSAOMap(DeviceContext);
-            ssaoMap.Projection = camera.Projection;
-
-            postprocessSSAOMap = new Postprocess(DeviceContext);
-            postprocessSSAOMap.Width = ssaoMapRenderTarget.Width;
-            postprocessSSAOMap.Height = ssaoMapRenderTarget.Height;
-            postprocessSSAOMap.Format = SurfaceFormat.Single;
-
             postprocessScene = new Postprocess(DeviceContext);
             postprocessScene.Width = normalSceneRenderTarget.Width;
             postprocessScene.Height = normalSceneRenderTarget.Height;
             postprocessScene.Format = normalSceneRenderTarget.Format;
 
-            downFilter = new DownFilter(DeviceContext);
-            upFilter = new UpFilter(DeviceContext);
-
-            bormalDepthBilateralFilter = new NormalDepthBilateralFilter(DeviceContext);
-            ssaoBlurH = new GaussianFilterPass(bormalDepthBilateralFilter, GaussianFilterDirection.Horizon);
-            ssaoBlurV = new GaussianFilterPass(bormalDepthBilateralFilter, GaussianFilterDirection.Vertical);
-
-            postprocessSSAOMap.Filters.Add(downFilter);
-            for (int i = 0; i < blurIteration; i++)
-            {
-                postprocessSSAOMap.Filters.Add(ssaoBlurH);
-                postprocessSSAOMap.Filters.Add(ssaoBlurV);
-            }
-            postprocessSSAOMap.Filters.Add(upFilter);
+            ssaoMapRenderer = new SSAOMapRenderer(DeviceContext);
+            ssaoMapRenderer.RenderTargetWidth = WindowWidth;
+            ssaoMapRenderer.RenderTargetHeight = WindowHeight;
 
             occlusionCombineFilter = new OcclusionCombineFilter(DeviceContext);
             linearDepthMapColorFilter = new LinearDepthMapColorFilter(DeviceContext);
@@ -385,9 +318,6 @@ namespace Samples.SceneAmbientOcclusion
             // 通常シーンを描画。
             CreateNormalSceneMap();
 
-            // 環境光閉塞マップへポストプロセスを適用。
-            ApplyPostprocessSSAOMap();
-
             // 通常シーンへポストプロセスを適用。
             ApplyPostprocessScene();
 
@@ -409,9 +339,7 @@ namespace Samples.SceneAmbientOcclusion
 
             DeviceContext.SetRenderTarget(null);
 
-            // フィルタへ設定。
-            ssaoMap.LinearDepthMap = depthMapRenderTarget;
-            bormalDepthBilateralFilter.LinearDepthMap = depthMapRenderTarget;
+            ssaoMapRenderer.LinearDepthMap = depthMapRenderTarget;
             linearDepthMapColorFilter.LinearDepthMap = depthMapRenderTarget;
         }
 
@@ -424,28 +352,21 @@ namespace Samples.SceneAmbientOcclusion
 
             DeviceContext.SetRenderTarget(null);
 
-            // フィルタへ設定。
-            ssaoMap.NormalMap = normalMapRenderTarget;
-            bormalDepthBilateralFilter.NormalMap = normalMapRenderTarget;
+            ssaoMapRenderer.NormalMap = normalMapRenderTarget;
 
-            // 中間マップ表示。
             textureDisplay.Textures.Add(normalMapRenderTarget);
         }
 
         void CreateSSAOMap()
         {
-            DeviceContext.SetRenderTarget(ssaoMapRenderTarget);
-            DeviceContext.Clear(Vector4.One);
+            ssaoMapRenderer.Draw();
 
-            ssaoMap.Draw();
+            occlusionMapColorFilter.OcclusionMap = ssaoMapRenderer.BaseTexture;
+            occlusionCombineFilter.OcclusionMap = ssaoMapRenderer.FinalTexture;
+            finalOcclusionMapColorFilter.OcclusionMap = ssaoMapRenderer.FinalTexture;
 
-            DeviceContext.SetRenderTarget(null);
-
-            // フィルタへ設定。
-            occlusionMapColorFilter.OcclusionMap = ssaoMapRenderTarget;
-
-            // 中間マップ表示。
-            textureDisplay.Textures.Add(ssaoMapRenderTarget);
+            textureDisplay.Textures.Add(ssaoMapRenderer.BaseTexture);
+            textureDisplay.Textures.Add(ssaoMapRenderer.FinalTexture);
         }
 
         void CreateNormalSceneMap()
@@ -457,7 +378,6 @@ namespace Samples.SceneAmbientOcclusion
 
             DeviceContext.SetRenderTarget(null);
 
-            // 中間マップ表示。
             textureDisplay.Textures.Add(normalSceneRenderTarget);
         }
 
@@ -509,24 +429,6 @@ namespace Samples.SceneAmbientOcclusion
             mesh.Draw();
         }
 
-        void ApplyPostprocessSSAOMap()
-        {
-            postprocessSSAOMap.Filters.Clear();
-            for (int i = 0; i < blurIteration; i++)
-            {
-                postprocessSSAOMap.Filters.Add(ssaoBlurH);
-                postprocessSSAOMap.Filters.Add(ssaoBlurV);
-            }
-
-            var finalSSAOMap = postprocessSSAOMap.Draw(ssaoMapRenderTarget);
-
-            // フィルタへ設定。
-            occlusionCombineFilter.OcclusionMap = finalSSAOMap;
-            finalOcclusionMapColorFilter.OcclusionMap = finalSSAOMap;
-
-            textureDisplay.Textures.Add(finalSSAOMap);
-        }
-
         void ApplyPostprocessScene()
         {
             finalSceneTexture = postprocessScene.Draw(normalSceneRenderTarget);
@@ -550,19 +452,19 @@ namespace Samples.SceneAmbientOcclusion
             {
                 text =
                     "AO Settings ([Control] Blur Settings)\n" +
-                    "[T/G] Strength (" + ssaoMap.Strength.ToString("F1") + ")\n" +
-                    "[Y/H] Attenuation (" + ssaoMap.Attenuation.ToString("F2") + ")\n" +
-                    "[U/J] Radius (" + ssaoMap.Radius.ToString("F1") + ")\n" +
-                    "[I/K] SampleCount (" + ssaoMap.SampleCount + ")";
+                    "[T/G] Strength (" + ssaoMapRenderer.Strength.ToString("F1") + ")\n" +
+                    "[Y/H] Attenuation (" + ssaoMapRenderer.Attenuation.ToString("F2") + ")\n" +
+                    "[U/J] Radius (" + ssaoMapRenderer.Radius.ToString("F1") + ")\n" +
+                    "[I/K] SampleCount (" + ssaoMapRenderer.SampleCount + ")";
             }
             else
             {
                 text =
                     "Blur Settings\n" +
-                    "[T/G] Radius (" + bormalDepthBilateralFilter.Radius + ")\n" +
-                    "[Y/H] Space Sigma (" + bormalDepthBilateralFilter.SpaceSigma.ToString("F1") + ")\n" +
-                    "[U/J] Depth Sigma (" + bormalDepthBilateralFilter.DepthSigma.ToString("F2") + ")\n" +
-                    "[I/K] Normal Sigma (" + bormalDepthBilateralFilter.NormalSigma.ToString("F2") + ")";
+                    "[T/G] Radius (" + ssaoMapRenderer.BlurRadius + ")\n" +
+                    "[Y/H] Space Sigma (" + ssaoMapRenderer.BlurSpaceSigma.ToString("F1") + ")\n" +
+                    "[U/J] Depth Sigma (" + ssaoMapRenderer.BlurDepthSigma.ToString("F2") + ")\n" +
+                    "[I/K] Normal Sigma (" + ssaoMapRenderer.BlurNormalSigma.ToString("F2") + ")";
             }
 
             string basicText =
@@ -572,7 +474,7 @@ namespace Samples.SceneAmbientOcclusion
                 "[F4] Depth Map " + (linearDepthMapColorFilter.Enabled ? "(Current)" : "") + "\n" +
                 "[F5] Occlusion Map " + (occlusionMapColorFilter.Enabled ? "(Current)" : "") + "\n" +
                 "[F6] Final Occlusion Map " + (finalOcclusionMapColorFilter.Enabled ? "(Current)" : "") + "\n" +
-                "[PageUp/Down] Blur Iteration (" + blurIteration + ")";
+                "[PageUp/Down] Blur Iteration (" + ssaoMapRenderer.BlurIteration + ")";
 
             spriteBatch.Begin();
 
@@ -595,46 +497,46 @@ namespace Samples.SceneAmbientOcclusion
             if (currentKeyboardState.IsKeyUp(Keys.ControlKey))
             {
                 if (currentKeyboardState.IsKeyDown(Keys.T))
-                    ssaoMap.Strength += 0.1f;
+                    ssaoMapRenderer.Strength += 0.1f;
                 if (currentKeyboardState.IsKeyDown(Keys.G))
-                    ssaoMap.Strength = Math.Max(0.0f, ssaoMap.Strength - 0.1f);
+                    ssaoMapRenderer.Strength = Math.Max(0.0f, ssaoMapRenderer.Strength - 0.1f);
 
                 if (currentKeyboardState.IsKeyDown(Keys.Y))
-                    ssaoMap.Attenuation += 0.01f;
+                    ssaoMapRenderer.Attenuation += 0.01f;
                 if (currentKeyboardState.IsKeyDown(Keys.H))
-                    ssaoMap.Attenuation = Math.Max(0.0f, ssaoMap.Attenuation - 0.01f);
+                    ssaoMapRenderer.Attenuation = Math.Max(0.0f, ssaoMapRenderer.Attenuation - 0.01f);
 
                 if (currentKeyboardState.IsKeyDown(Keys.U))
-                    ssaoMap.Radius += 0.1f;
+                    ssaoMapRenderer.Radius += 0.1f;
                 if (currentKeyboardState.IsKeyDown(Keys.J))
-                    ssaoMap.Radius = Math.Max(0.1f, ssaoMap.Radius - 0.1f);
+                    ssaoMapRenderer.Radius = Math.Max(0.1f, ssaoMapRenderer.Radius - 0.1f);
 
                 if (currentKeyboardState.IsKeyDown(Keys.I))
-                    ssaoMap.SampleCount = Math.Min(128, ssaoMap.SampleCount + 1);
+                    ssaoMapRenderer.SampleCount = Math.Min(128, ssaoMapRenderer.SampleCount + 1);
                 if (currentKeyboardState.IsKeyDown(Keys.K))
-                    ssaoMap.SampleCount = Math.Max(1, ssaoMap.SampleCount - 1);
+                    ssaoMapRenderer.SampleCount = Math.Max(1, ssaoMapRenderer.SampleCount - 1);
             }
             else
             {
                 if (currentKeyboardState.IsKeyDown(Keys.T))
-                    bormalDepthBilateralFilter.Radius = Math.Min(7, bormalDepthBilateralFilter.Radius + 1);
+                    ssaoMapRenderer.BlurRadius = Math.Min(7, ssaoMapRenderer.BlurRadius + 1);
                 if (currentKeyboardState.IsKeyDown(Keys.G))
-                    bormalDepthBilateralFilter.Radius = Math.Max(1, bormalDepthBilateralFilter.Radius - 1);
+                    ssaoMapRenderer.BlurRadius = Math.Max(1, ssaoMapRenderer.BlurRadius - 1);
 
                 if (currentKeyboardState.IsKeyDown(Keys.Y))
-                    bormalDepthBilateralFilter.SpaceSigma += 0.1f;
+                    ssaoMapRenderer.BlurSpaceSigma += 0.1f;
                 if (currentKeyboardState.IsKeyDown(Keys.H))
-                    bormalDepthBilateralFilter.SpaceSigma = Math.Max(0.1f, bormalDepthBilateralFilter.SpaceSigma - 0.1f);
+                    ssaoMapRenderer.BlurSpaceSigma = Math.Max(0.1f, ssaoMapRenderer.BlurSpaceSigma - 0.1f);
 
                 if (currentKeyboardState.IsKeyDown(Keys.U))
-                    bormalDepthBilateralFilter.DepthSigma += 0.01f;
+                    ssaoMapRenderer.BlurDepthSigma += 0.01f;
                 if (currentKeyboardState.IsKeyDown(Keys.J))
-                    bormalDepthBilateralFilter.DepthSigma = Math.Max(0.1f, bormalDepthBilateralFilter.DepthSigma - 0.01f);
+                    ssaoMapRenderer.BlurDepthSigma = Math.Max(0.1f, ssaoMapRenderer.BlurDepthSigma - 0.01f);
 
                 if (currentKeyboardState.IsKeyDown(Keys.I))
-                    bormalDepthBilateralFilter.NormalSigma += 0.01f;
+                    ssaoMapRenderer.BlurNormalSigma += 0.01f;
                 if (currentKeyboardState.IsKeyDown(Keys.K))
-                    bormalDepthBilateralFilter.NormalSigma = Math.Max(0.1f, bormalDepthBilateralFilter.NormalSigma - 0.01f);
+                    ssaoMapRenderer.BlurNormalSigma = Math.Max(0.1f, ssaoMapRenderer.BlurNormalSigma - 0.01f);
             }
 
             if (currentKeyboardState.IsKeyUp(Keys.F1) && lastKeyboardState.IsKeyDown(Keys.F1))
@@ -668,10 +570,10 @@ namespace Samples.SceneAmbientOcclusion
             }
 
             if (currentKeyboardState.IsKeyUp(Keys.PageUp) && lastKeyboardState.IsKeyDown(Keys.PageUp))
-                blurIteration = Math.Min(10, blurIteration + 1);
+                ssaoMapRenderer.BlurIteration = Math.Min(10, ssaoMapRenderer.BlurIteration + 1);
 
             if (currentKeyboardState.IsKeyUp(Keys.PageDown) && lastKeyboardState.IsKeyDown(Keys.PageDown))
-                blurIteration = Math.Max(0, blurIteration - 1);
+                ssaoMapRenderer.BlurIteration = Math.Max(0, ssaoMapRenderer.BlurIteration - 1);
 
             if (currentKeyboardState.IsKeyDown(Keys.Escape))
                 Exit();

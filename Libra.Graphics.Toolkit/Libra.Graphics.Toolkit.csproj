@@ -62,7 +62,6 @@
     <Compile Include="NormalDepthBilateralFilter.cs" />
     <Compile Include="OcclusionCombineFilter.cs" />
     <Compile Include="DebugShapeRenderer.cs" />
-    <Compile Include="SSAOMap.cs" />
     <Compile Include="BasicCamera.cs" />
     <Compile Include="BasicLightCameraBuilder.cs" />
     <Compile Include="BilateralFilter.cs" />
@@ -95,6 +94,8 @@
     <Compile Include="SphereMesh.cs" />
     <Compile Include="SquareMesh.cs" />
     <Compile Include="OcclusionMapColorFilter.cs" />
+    <Compile Include="SSAOMapEffect.cs" />
+    <Compile Include="SSAOMapRenderer.cs" />
     <Compile Include="TeapotMesh.cs" />
     <Compile Include="TorusMesh.cs" />
     <Compile Include="UniformLightCameraBuilder.cs" />

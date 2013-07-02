@@ -9,7 +9,7 @@ using Libra.Graphics.Toolkit.Properties;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class SSAOMap : IDisposable
+    public sealed class SSAOMapEffect : IEffect, IDisposable
     {
         #region SharedDeviceResource
 
@@ -82,8 +82,6 @@ namespace Libra.Graphics.Toolkit
         const int RandomNormalMapSize = 64;
 
         SharedDeviceResource sharedDeviceResource;
-
-        FullScreenQuad fullScreenQuad;
 
         ConstantBuffer constantBufferPerObject;
 
@@ -174,7 +172,6 @@ namespace Libra.Graphics.Toolkit
             set
             {
                 projection = value;
-                fullScreenQuad.Projection = projection;
                 parametersPerCamera.FocalLength.X = projection.M11;
                 parametersPerCamera.FocalLength.Y = projection.M22;
                 parametersPerCamera.FarClipDistance = projection.PerspectiveFarClipDistance;
@@ -193,16 +190,13 @@ namespace Libra.Graphics.Toolkit
 
         public bool Enabled { get; set; }
 
-        public SSAOMap(DeviceContext deviceContext)
+        public SSAOMapEffect(DeviceContext deviceContext)
         {
             if (deviceContext == null) throw new ArgumentNullException("deviceContext");
 
             DeviceContext = deviceContext;
 
-            sharedDeviceResource = deviceContext.Device.GetSharedResource<SSAOMap, SharedDeviceResource>();
-
-            fullScreenQuad = new FullScreenQuad(deviceContext);
-            fullScreenQuad.ViewRayEnabled = true;
+            sharedDeviceResource = deviceContext.Device.GetSharedResource<SSAOMapEffect, SharedDeviceResource>();
 
             constantBufferPerObject = deviceContext.Device.CreateConstantBuffer();
             constantBufferPerObject.Initialize<ParametersPerObject>();
@@ -234,14 +228,7 @@ namespace Libra.Graphics.Toolkit
                 DirtyFlags.SampleSphere;
         }
 
-        public void Draw()
-        {
-            Apply();
-
-            fullScreenQuad.Draw();
-        }
-
-        void Apply()
+        public void Apply()
         {
             if ((dirtyFlags & DirtyFlags.Random) != 0)
             {
@@ -360,7 +347,7 @@ namespace Libra.Graphics.Toolkit
 
         bool disposed;
 
-        ~SSAOMap()
+        ~SSAOMapEffect()
         {
             Dispose(false);
         }
