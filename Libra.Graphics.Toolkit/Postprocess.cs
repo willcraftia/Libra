@@ -19,19 +19,19 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        int width;
+        int width = 1;
 
-        int height;
+        int height = 1;
 
-        SurfaceFormat format;
+        SurfaceFormat format = SurfaceFormat.Color;
 
-        int preferredMultisampleCount;
+        int preferredMultisampleCount = 1;
 
-        Dictionary<ulong, RenderTargetChain> renderTargetChains;
+        Dictionary<ulong, RenderTargetChain> renderTargetChains = new Dictionary<ulong, RenderTargetChain>(4);
 
         FullScreenQuad fullScreenQuad;
 
-        Matrix projection;
+        Matrix projection = Matrix.Identity;
 
         public DeviceContext DeviceContext { get; private set; }
 
@@ -107,17 +107,10 @@ namespace Libra.Graphics.Toolkit
         {
             if (context == null) throw new ArgumentNullException("context");
 
-            this.DeviceContext = context;
+            DeviceContext = context;
 
-            renderTargetChains = new Dictionary<ulong, RenderTargetChain>(4);
             Filters = new FilterCollection();
             fullScreenQuad = new FullScreenQuad(context);
-
-            width = 1;
-            height = 1;
-            format = SurfaceFormat.Color;
-            preferredMultisampleCount = 1;
-            projection = Matrix.Identity;
 
             Enabled = true;
         }
