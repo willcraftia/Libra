@@ -107,9 +107,9 @@ namespace Samples.SceneAmbientOcclusion
         ShaderResourceView finalSceneTexture;
 
         /// <summary>
-        /// 環境光閉塞マップ レンダラ。
+        /// 環境光閉塞マップ。
         /// </summary>
-        SSAOMapRenderer ssaoMapRenderer;
+        SSAOMap ssaoMap;
 
         /// <summary>
         /// 表示シーン用ポストプロセス。
@@ -245,9 +245,9 @@ namespace Samples.SceneAmbientOcclusion
             postprocessScene.Height = normalSceneRenderTarget.Height;
             postprocessScene.Format = normalSceneRenderTarget.Format;
 
-            ssaoMapRenderer = new SSAOMapRenderer(DeviceContext);
-            ssaoMapRenderer.RenderTargetWidth = WindowWidth;
-            ssaoMapRenderer.RenderTargetHeight = WindowHeight;
+            ssaoMap = new SSAOMap(DeviceContext);
+            ssaoMap.RenderTargetWidth = WindowWidth;
+            ssaoMap.RenderTargetHeight = WindowHeight;
 
             occlusionCombineFilter = new OcclusionCombineFilter(DeviceContext);
             linearDepthMapColorFilter = new LinearDepthMapColorFilter(DeviceContext);
@@ -339,7 +339,7 @@ namespace Samples.SceneAmbientOcclusion
 
             DeviceContext.SetRenderTarget(null);
 
-            ssaoMapRenderer.LinearDepthMap = depthMapRenderTarget;
+            ssaoMap.LinearDepthMap = depthMapRenderTarget;
             linearDepthMapColorFilter.LinearDepthMap = depthMapRenderTarget;
         }
 
@@ -352,22 +352,22 @@ namespace Samples.SceneAmbientOcclusion
 
             DeviceContext.SetRenderTarget(null);
 
-            ssaoMapRenderer.NormalMap = normalMapRenderTarget;
+            ssaoMap.NormalMap = normalMapRenderTarget;
 
             textureDisplay.Textures.Add(normalMapRenderTarget);
         }
 
         void CreateSSAOMap()
         {
-            ssaoMapRenderer.Projection = camera.Projection;
-            ssaoMapRenderer.Draw();
+            ssaoMap.Projection = camera.Projection;
+            ssaoMap.Draw();
 
-            occlusionMapColorFilter.OcclusionMap = ssaoMapRenderer.BaseTexture;
-            occlusionCombineFilter.OcclusionMap = ssaoMapRenderer.FinalTexture;
-            finalOcclusionMapColorFilter.OcclusionMap = ssaoMapRenderer.FinalTexture;
+            occlusionMapColorFilter.OcclusionMap = ssaoMap.BaseTexture;
+            occlusionCombineFilter.OcclusionMap = ssaoMap.FinalTexture;
+            finalOcclusionMapColorFilter.OcclusionMap = ssaoMap.FinalTexture;
 
-            textureDisplay.Textures.Add(ssaoMapRenderer.BaseTexture);
-            textureDisplay.Textures.Add(ssaoMapRenderer.FinalTexture);
+            textureDisplay.Textures.Add(ssaoMap.BaseTexture);
+            textureDisplay.Textures.Add(ssaoMap.FinalTexture);
         }
 
         void CreateNormalSceneMap()
@@ -453,19 +453,19 @@ namespace Samples.SceneAmbientOcclusion
             {
                 text =
                     "AO Settings ([Control] Blur Settings)\n" +
-                    "[T/G] Strength (" + ssaoMapRenderer.Strength.ToString("F1") + ")\n" +
-                    "[Y/H] Attenuation (" + ssaoMapRenderer.Attenuation.ToString("F2") + ")\n" +
-                    "[U/J] Radius (" + ssaoMapRenderer.Radius.ToString("F1") + ")\n" +
-                    "[I/K] SampleCount (" + ssaoMapRenderer.SampleCount + ")";
+                    "[T/G] Strength (" + ssaoMap.Strength.ToString("F1") + ")\n" +
+                    "[Y/H] Attenuation (" + ssaoMap.Attenuation.ToString("F2") + ")\n" +
+                    "[U/J] Radius (" + ssaoMap.Radius.ToString("F1") + ")\n" +
+                    "[I/K] SampleCount (" + ssaoMap.SampleCount + ")";
             }
             else
             {
                 text =
                     "Blur Settings\n" +
-                    "[T/G] Radius (" + ssaoMapRenderer.BlurRadius + ")\n" +
-                    "[Y/H] Space Sigma (" + ssaoMapRenderer.BlurSpaceSigma.ToString("F1") + ")\n" +
-                    "[U/J] Depth Sigma (" + ssaoMapRenderer.BlurDepthSigma.ToString("F2") + ")\n" +
-                    "[I/K] Normal Sigma (" + ssaoMapRenderer.BlurNormalSigma.ToString("F2") + ")";
+                    "[T/G] Radius (" + ssaoMap.BlurRadius + ")\n" +
+                    "[Y/H] Space Sigma (" + ssaoMap.BlurSpaceSigma.ToString("F1") + ")\n" +
+                    "[U/J] Depth Sigma (" + ssaoMap.BlurDepthSigma.ToString("F2") + ")\n" +
+                    "[I/K] Normal Sigma (" + ssaoMap.BlurNormalSigma.ToString("F2") + ")";
             }
 
             string basicText =
@@ -475,7 +475,7 @@ namespace Samples.SceneAmbientOcclusion
                 "[F4] Depth Map " + (linearDepthMapColorFilter.Enabled ? "(Current)" : "") + "\n" +
                 "[F5] Occlusion Map " + (occlusionMapColorFilter.Enabled ? "(Current)" : "") + "\n" +
                 "[F6] Final Occlusion Map " + (finalOcclusionMapColorFilter.Enabled ? "(Current)" : "") + "\n" +
-                "[PageUp/Down] Blur Iteration (" + ssaoMapRenderer.BlurIteration + ")";
+                "[PageUp/Down] Blur Iteration (" + ssaoMap.BlurIteration + ")";
 
             spriteBatch.Begin();
 
@@ -498,46 +498,46 @@ namespace Samples.SceneAmbientOcclusion
             if (currentKeyboardState.IsKeyUp(Keys.ControlKey))
             {
                 if (currentKeyboardState.IsKeyDown(Keys.T))
-                    ssaoMapRenderer.Strength += 0.1f;
+                    ssaoMap.Strength += 0.1f;
                 if (currentKeyboardState.IsKeyDown(Keys.G))
-                    ssaoMapRenderer.Strength = Math.Max(0.0f, ssaoMapRenderer.Strength - 0.1f);
+                    ssaoMap.Strength = Math.Max(0.0f, ssaoMap.Strength - 0.1f);
 
                 if (currentKeyboardState.IsKeyDown(Keys.Y))
-                    ssaoMapRenderer.Attenuation += 0.01f;
+                    ssaoMap.Attenuation += 0.01f;
                 if (currentKeyboardState.IsKeyDown(Keys.H))
-                    ssaoMapRenderer.Attenuation = Math.Max(0.0f, ssaoMapRenderer.Attenuation - 0.01f);
+                    ssaoMap.Attenuation = Math.Max(0.0f, ssaoMap.Attenuation - 0.01f);
 
                 if (currentKeyboardState.IsKeyDown(Keys.U))
-                    ssaoMapRenderer.Radius += 0.1f;
+                    ssaoMap.Radius += 0.1f;
                 if (currentKeyboardState.IsKeyDown(Keys.J))
-                    ssaoMapRenderer.Radius = Math.Max(0.1f, ssaoMapRenderer.Radius - 0.1f);
+                    ssaoMap.Radius = Math.Max(0.1f, ssaoMap.Radius - 0.1f);
 
                 if (currentKeyboardState.IsKeyDown(Keys.I))
-                    ssaoMapRenderer.SampleCount = Math.Min(128, ssaoMapRenderer.SampleCount + 1);
+                    ssaoMap.SampleCount = Math.Min(128, ssaoMap.SampleCount + 1);
                 if (currentKeyboardState.IsKeyDown(Keys.K))
-                    ssaoMapRenderer.SampleCount = Math.Max(1, ssaoMapRenderer.SampleCount - 1);
+                    ssaoMap.SampleCount = Math.Max(1, ssaoMap.SampleCount - 1);
             }
             else
             {
                 if (currentKeyboardState.IsKeyDown(Keys.T))
-                    ssaoMapRenderer.BlurRadius = Math.Min(7, ssaoMapRenderer.BlurRadius + 1);
+                    ssaoMap.BlurRadius = Math.Min(7, ssaoMap.BlurRadius + 1);
                 if (currentKeyboardState.IsKeyDown(Keys.G))
-                    ssaoMapRenderer.BlurRadius = Math.Max(1, ssaoMapRenderer.BlurRadius - 1);
+                    ssaoMap.BlurRadius = Math.Max(1, ssaoMap.BlurRadius - 1);
 
                 if (currentKeyboardState.IsKeyDown(Keys.Y))
-                    ssaoMapRenderer.BlurSpaceSigma += 0.1f;
+                    ssaoMap.BlurSpaceSigma += 0.1f;
                 if (currentKeyboardState.IsKeyDown(Keys.H))
-                    ssaoMapRenderer.BlurSpaceSigma = Math.Max(0.1f, ssaoMapRenderer.BlurSpaceSigma - 0.1f);
+                    ssaoMap.BlurSpaceSigma = Math.Max(0.1f, ssaoMap.BlurSpaceSigma - 0.1f);
 
                 if (currentKeyboardState.IsKeyDown(Keys.U))
-                    ssaoMapRenderer.BlurDepthSigma += 0.01f;
+                    ssaoMap.BlurDepthSigma += 0.01f;
                 if (currentKeyboardState.IsKeyDown(Keys.J))
-                    ssaoMapRenderer.BlurDepthSigma = Math.Max(0.1f, ssaoMapRenderer.BlurDepthSigma - 0.01f);
+                    ssaoMap.BlurDepthSigma = Math.Max(0.1f, ssaoMap.BlurDepthSigma - 0.01f);
 
                 if (currentKeyboardState.IsKeyDown(Keys.I))
-                    ssaoMapRenderer.BlurNormalSigma += 0.01f;
+                    ssaoMap.BlurNormalSigma += 0.01f;
                 if (currentKeyboardState.IsKeyDown(Keys.K))
-                    ssaoMapRenderer.BlurNormalSigma = Math.Max(0.1f, ssaoMapRenderer.BlurNormalSigma - 0.01f);
+                    ssaoMap.BlurNormalSigma = Math.Max(0.1f, ssaoMap.BlurNormalSigma - 0.01f);
             }
 
             if (currentKeyboardState.IsKeyUp(Keys.F1) && lastKeyboardState.IsKeyDown(Keys.F1))
@@ -571,10 +571,10 @@ namespace Samples.SceneAmbientOcclusion
             }
 
             if (currentKeyboardState.IsKeyUp(Keys.PageUp) && lastKeyboardState.IsKeyDown(Keys.PageUp))
-                ssaoMapRenderer.BlurIteration = Math.Min(10, ssaoMapRenderer.BlurIteration + 1);
+                ssaoMap.BlurIteration = Math.Min(10, ssaoMap.BlurIteration + 1);
 
             if (currentKeyboardState.IsKeyUp(Keys.PageDown) && lastKeyboardState.IsKeyDown(Keys.PageDown))
-                ssaoMapRenderer.BlurIteration = Math.Max(0, ssaoMapRenderer.BlurIteration - 1);
+                ssaoMap.BlurIteration = Math.Max(0, ssaoMap.BlurIteration - 1);
 
             if (currentKeyboardState.IsKeyDown(Keys.Escape))
                 Exit();

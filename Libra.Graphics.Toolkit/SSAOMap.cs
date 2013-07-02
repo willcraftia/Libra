@@ -6,7 +6,7 @@ using System;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class SSAOMapRenderer : IDisposable
+    public sealed class SSAOMap : IDisposable
     {
         #region DirtyFlags
 
@@ -227,7 +227,7 @@ namespace Libra.Graphics.Toolkit
 
         public ShaderResourceView FinalTexture { get; private set; }
 
-        public SSAOMapRenderer(DeviceContext deviceContext)
+        public SSAOMap(DeviceContext deviceContext)
         {
             if (deviceContext == null) throw new ArgumentNullException("deviceContext");
 
@@ -347,7 +347,7 @@ namespace Libra.Graphics.Toolkit
 
         bool disposed;
 
-        ~SSAOMapRenderer()
+        ~SSAOMap()
         {
             Dispose(false);
         }
