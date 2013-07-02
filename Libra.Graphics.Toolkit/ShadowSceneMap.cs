@@ -37,6 +37,8 @@ namespace Libra.Graphics.Toolkit
 
         int renderTargetHeight;
 
+        int preferredRenderTargetMultisampleCount = 1;
+
         /// <summary>
         /// ポストプロセス。
         /// </summary>
@@ -110,6 +112,22 @@ namespace Libra.Graphics.Toolkit
                     return;
 
                 renderTargetHeight = value;
+
+                dirtyFlags |= DirtyFlags.RenderTarget;
+            }
+        }
+
+        public int PreferredRenderTargetMultisampleCount
+        {
+            get { return preferredRenderTargetMultisampleCount; }
+            set
+            {
+                if (value < 1) throw new ArgumentOutOfRangeException("value");
+
+                if (preferredRenderTargetMultisampleCount == value)
+                    return;
+
+                preferredRenderTargetMultisampleCount = value;
 
                 dirtyFlags |= DirtyFlags.RenderTarget;
             }
@@ -319,10 +337,12 @@ namespace Libra.Graphics.Toolkit
                 renderTarget.Width = renderTargetWidth;
                 renderTarget.Height = renderTargetHeight;
                 renderTarget.Format = SurfaceFormat.Single;
+                renderTarget.PreferredMultisampleCount = preferredRenderTargetMultisampleCount;
                 renderTarget.Initialize();
 
                 postprocess.Width = renderTarget.Width;
                 postprocess.Height = renderTarget.Height;
+                postprocess.PreferredMultisampleCount = preferredRenderTargetMultisampleCount;
 
                 dirtyFlags &= ~DirtyFlags.RenderTarget;
             }

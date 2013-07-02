@@ -356,6 +356,7 @@ namespace Samples.DeferredShadowMapping
             shadowSceneMap = new ShadowSceneMap(DeviceContext);
             shadowSceneMap.RenderTargetWidth = WindowWidth;
             shadowSceneMap.RenderTargetHeight = WindowHeight;
+            shadowSceneMap.PreferredRenderTargetMultisampleCount = DeviceContext.Device.BackBuffer.MultisampleCount;
             shadowSceneMap.SplitCount = cascadeShadowMap.SplitCount;
 
             cubeMesh = new CubeMesh(DeviceContext, 20);
