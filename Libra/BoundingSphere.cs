@@ -182,14 +182,11 @@ namespace Libra
 
         public static void CreateFromBoundingBox(ref BoundingBox box, out BoundingSphere result)
         {
-            Vector3.Lerp(ref box.Min, ref box.Max, 0.5f, out result.Center);
+            result.Center.X = (box.Min.X + box.Max.X) * 0.5f;
+            result.Center.Y = (box.Min.Y + box.Max.Y) * 0.5f;
+            result.Center.Z = (box.Min.Z + box.Max.Z) * 0.5f;
 
-            float x = box.Min.X - box.Max.X;
-            float y = box.Min.Y - box.Max.Y;
-            float z = box.Min.Z - box.Max.Z;
-
-            float distance = (float) Math.Sqrt(x * x + y * y + z * z);
-            result.Radius = distance * 0.5f;
+            Vector3.Distance(ref result.Center, ref box.Max, out result.Radius);
         }
 
         public static BoundingSphere CreateFromFrustum(BoundingFrustum frustum)
