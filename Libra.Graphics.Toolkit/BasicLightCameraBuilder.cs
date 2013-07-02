@@ -85,7 +85,7 @@ namespace Libra.Graphics.Toolkit
             Matrix.CreateLook(ref position, ref lightDirection, ref up, out lightView);
 
             // ビュー空間における表示カメラの境界錐台を包む境界ボックス。
-            // ここで作成する境界ボックスは、SceneExtrudeDistance に応じてガメラ側へ押し出す。
+            // ここで作成する境界ボックスは、SceneExtrudeDistance に応じてカメラ側へ押し出す。
             // これにより、表示カメラの境界錐台の外に存在する投影オブジェクトを
             // ライト カメラ内へ含める事ができる。
             // この処理は、ライト カメラの位置の後退では満たせず、
