@@ -462,6 +462,7 @@ namespace Samples.DeferredShadowMapping
             for (int i = 0; i < shadowMaps.Length; i++)
             {
                 shadowMaps[i] = new ShadowMap(DeviceContext);
+                shadowMaps[i].DrawShadowCastersMethod = DrawShadowCasters;
             }
 
             // 深度バイアスは、主に PCF の際に重要となる。
@@ -597,7 +598,9 @@ namespace Samples.DeferredShadowMapping
                 // シャドウ マップを描画。
                 shadowMaps[i].Form = shadowMapForm;
                 shadowMaps[i].Size = ShadowMapSizes[currentShadowMapSizeIndex];
-                shadowMaps[i].Draw(lightView, lightProjection, DrawShadowCasters);
+                shadowMaps[i].View = lightView;
+                shadowMaps[i].Projection = lightProjection;
+                shadowMaps[i].Draw();
 
                 // VSM の場合は生成したシャドウ マップへブラーを適用。
                 if (shadowMapForm == ShadowMapForm.Variance)
@@ -620,12 +623,6 @@ namespace Samples.DeferredShadowMapping
                 // 生成されたシャドウ マップを一覧表示機能へ追加。
                 textureDisplay.Textures.Add(shadowMaps[i].RenderTarget);
             }
-        }
-
-        // コールバック。
-        void DrawShadowCasters(Matrix eyeView, Matrix eyeProjection, ShadowMapEffect effect)
-        {
-            DrawShadowCasters(effect);
         }
 
         void CreateDepthMap()

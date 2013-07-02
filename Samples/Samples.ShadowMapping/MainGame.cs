@@ -516,6 +516,7 @@ namespace Samples.ShadowMapping
             for (int i = 0; i < shadowMaps.Length; i++)
             {
                 shadowMaps[i] = new ShadowMap(DeviceContext);
+                shadowMaps[i].DrawShadowCastersMethod = DrawShadowCasters;
             }
         }
 
@@ -633,7 +634,9 @@ namespace Samples.ShadowMapping
                 // シャドウ マップを描画。
                 shadowMaps[i].Form = shadowMapForm;
                 shadowMaps[i].Size = ShadowMapSizes[currentShadowMapSizeIndex];
-                shadowMaps[i].Draw(lightView, lightProjection, DrawShadowCasters);
+                shadowMaps[i].View = lightView;
+                shadowMaps[i].Projection = lightProjection;
+                shadowMaps[i].Draw();
 
                 // VSM の場合は生成したシャドウ マップへブラーを適用。
                 if (shadowMapForm == ShadowMapForm.Variance)
@@ -675,15 +678,18 @@ namespace Samples.ShadowMapping
         }
 
         // コールバック。
-        void DrawShadowCasters(ShadowMapEffect effect)
+        void DrawShadowCasters(IEffect effect)
         {
             DrawShadowCaster(effect, dudeModel);
         }
 
-        void DrawShadowCaster(ShadowMapEffect effect, Model model)
+        void DrawShadowCaster(IEffect effect, Model model)
         {
             // シャドウ マップ エフェクトの準備。
-            effect.World = world;
+            var effectMatrices = effect as IEffectMatrices;
+            if (effectMatrices != null)
+                effectMatrices.World = world;
+
             effect.Apply();
 
             DeviceContext.PrimitiveTopology = PrimitiveTopology.TriangleList;

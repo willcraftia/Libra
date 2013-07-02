@@ -16,13 +16,22 @@ namespace Libra.Graphics.Toolkit
     /// </remarks>
     public sealed class ShadowMap : IDisposable
     {
+        #region DirtyFlags
+
+        enum DirtyFlags
+        {
+            RenderTarget = (1 << 0)
+        }
+
+        #endregion
+
         /// <summary>
         /// 投影オブジェクトを描画する際に呼び出されるコールバック デリゲートです。
         /// コールバックを受けたクラスは、シャドウ マップ エフェクトを用いて投影オブジェクトを描画します。
         /// 描画する投影オブジェクトの選択は、コールバックを受けたクラスが決定します。
         /// </summary>
         /// <param name="effect">シャドウ マップ エフェクト。</param>
-        public delegate void DrawShadowCastersCallback(ShadowMapEffect effect);
+        public delegate void DrawShadowCastersCallback(IEffect effect);
 
         /// <summary>
         /// シャドウ マップ エフェクト。
@@ -32,7 +41,12 @@ namespace Libra.Graphics.Toolkit
         /// <summary>
         /// シャドウ マップのサイズ。
         /// </summary>
-        int size;
+        int size = 1024;
+
+        /// <summary>
+        /// ダーティ フラグ。
+        /// </summary>
+        DirtyFlags dirtyFlags = DirtyFlags.RenderTarget;
 
         /// <summary>
         /// デバイス コンテキストを取得します。
@@ -57,7 +71,7 @@ namespace Libra.Graphics.Toolkit
                 if (previous == ShadowMapForm.Variance ||
                     shadowMapEffect.Form == ShadowMapForm.Variance)
                 {
-                    InvalidateRenderTarget();
+                    dirtyFlags |= DirtyFlags.RenderTarget;
                 }
             }
         }
@@ -70,16 +84,43 @@ namespace Libra.Graphics.Toolkit
             get { return size; }
             set
             {
+                if (value < 1) throw new ArgumentOutOfRangeException("value");
+
                 if (size == value) return;
 
                 size = value;
 
-                InvalidateRenderTarget();
+                dirtyFlags |= DirtyFlags.RenderTarget;
             }
         }
 
         /// <summary>
+        /// ライト カメラのビュー行列を取得または設定します。
+        /// </summary>
+        public Matrix View
+        {
+            get { return shadowMapEffect.View; }
+            set { shadowMapEffect.View = value; }
+        }
+
+        /// <summary>
+        /// ライト カメラの射影行列を取得または設定します。
+        /// </summary>
+        public Matrix Projection
+        {
+            get { return shadowMapEffect.Projection; }
+            set { shadowMapEffect.Projection = value; }
+        }
+
+        /// <summary>
+        /// 投影オブジェクト描画コールバックを取得または設定します。
+        /// </summary>
+        public DrawShadowCastersCallback DrawShadowCastersMethod { get; set; }
+
+        /// <summary>
         /// シャドウ マップが描画されるレンダ ターゲットを取得します。
+        /// 分散シャドウ マップを用いる場合、このクラスで深度を描画した後に、
+        /// 別途、生成されたシャドウ マップに対してブラーを適用する必要があります。
         /// </summary>
         /// <remarks>
         /// レンダ ターゲットは、初回の Draw メソッドが呼び出されるまで生成されません。
@@ -104,36 +145,19 @@ namespace Libra.Graphics.Toolkit
         /// <summary>
         /// シャドウ マップを描画します。
         /// </summary>
-        /// <param name="lightView">ライト カメラのビュー行列。</param>
-        /// <param name="lightProjection">ライト カメラの射影行列。</param>
-        /// <param name="drawShadowCasters">投影オブジェクト描画コールバック。</param>
-        public void Draw(Matrix lightView, Matrix lightProjection, DrawShadowCastersCallback drawShadowCasters)
+        public void Draw()
         {
-            if (drawShadowCasters == null) throw new ArgumentNullException("drawShadowCasters");
-
             PrepareRenderTarget();
-
-            DeviceContext.DepthStencilState = DepthStencilState.Default;
-            DeviceContext.BlendState = BlendState.Opaque;
-
-            // エフェクトを設定。
-            shadowMapEffect.View = lightView;
-            shadowMapEffect.Projection = lightProjection;
-
-            DeviceContext.SetRenderTarget(RenderTarget);
-            DeviceContext.Clear(Color.White);
-
-            // 描画をコールバック。
-            // 描画する投影オブジェクトの選別は、コールバックされる側のクラスで決定。
-            drawShadowCasters(shadowMapEffect);
-
-            DeviceContext.SetRenderTarget(null);
+            DrawDepth();
         }
 
         void PrepareRenderTarget()
         {
-            if (RenderTarget == null)
+            if ((dirtyFlags & DirtyFlags.RenderTarget) != 0)
             {
+                if (RenderTarget != null)
+                    RenderTarget.Dispose();
+
                 var format = SurfaceFormat.Single;
                 if (shadowMapEffect.Form == ShadowMapForm.Variance)
                     format = SurfaceFormat.Vector2;
@@ -145,16 +169,28 @@ namespace Libra.Graphics.Toolkit
                 RenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
                 RenderTarget.RenderTargetUsage = RenderTargetUsage.Preserve;
                 RenderTarget.Initialize();
+
+                dirtyFlags &= ~DirtyFlags.RenderTarget;
             }
         }
 
-        void InvalidateRenderTarget()
+        void DrawDepth()
         {
-            if (RenderTarget != null)
-            {
-                RenderTarget.Dispose();
-                RenderTarget = null;
-            }
+            DeviceContext.RasterizerState = RasterizerState.CullNone;
+            DeviceContext.DepthStencilState = null;
+            DeviceContext.BlendState = null;
+
+            DeviceContext.SetRenderTarget(RenderTarget);
+            DeviceContext.Clear(Color.White);
+
+            // 描画をコールバック。
+            // 描画する投影オブジェクトの選別は、コールバックされる側のクラスで決定。
+            if (DrawShadowCastersMethod != null)
+                DrawShadowCastersMethod(shadowMapEffect);
+
+            DeviceContext.SetRenderTarget(null);
+
+            DeviceContext.RasterizerState = null;
         }
 
         #region IDisposable
