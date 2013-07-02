@@ -501,14 +501,14 @@ namespace Samples.DeferredShadowMapping
             DeviceContext.BlendState = BlendState.Opaque;
             DeviceContext.DepthStencilState = DepthStencilState.Default;
 
-            // シャドウ マップの描画。
-            CreateShadowMap();
-
             // 深度マップを描画。
             CreateDepthMap();
 
             // 通常シーンを描画。
             CreateNormalSceneMap();
+
+            // シャドウ マップの描画。
+            CreateShadowMap();
 
             // シャドウ閉塞マップを描画。
             CreateShadowOcclusionMap();
