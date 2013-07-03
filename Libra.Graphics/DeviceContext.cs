@@ -313,6 +313,8 @@ namespace Libra.Graphics
 
         RenderTargetView[] activeRenderTargetViews;
 
+        bool backBufferActive;
+
         VertexShader vertexShader;
 
         PixelShader pixelShader;
@@ -663,6 +665,8 @@ namespace Libra.Graphics
 
         public void SetRenderTarget(DepthStencilView depthStencilView, RenderTargetView renderTargetView)
         {
+            backBufferActive = false;
+
             if (renderTargetView == null)
             {
                 if (depthStencilView != null)
@@ -671,6 +675,8 @@ namespace Libra.Graphics
                 // アクティブな深度ステンシルとレンダ ターゲットをクリア。
                 activeDepthStencilView = null;
                 Array.Clear(activeRenderTargetViews, 0, activeRenderTargetViews.Length);
+
+                backBufferActive = true;
 
                 SetRenderTargetsCore(null, null);
 
@@ -722,6 +728,8 @@ namespace Libra.Graphics
             if (RenderTargetCount < renderTargetViews.Length) throw new ArgumentOutOfRangeException("renderTargetViews");
             if (renderTargetViews[0] == null)
                 throw new ArgumentException(string.Format("renderTargetViews[{0}] is null.", 0), "renderTargetViews");
+
+            backBufferActive = false;
 
             if (depthStencilView != null)
                 PixelShaderResources.Remove(depthStencilView.DepthStencil);
@@ -834,13 +842,23 @@ namespace Libra.Graphics
 
         public void Clear(ClearOptions options, Vector4 color, float depth = 1, byte stencil = 0)
         {
-            // アクティブな全レンダ ターゲットをクリア。
-            for (int i = 0; i < activeRenderTargetViews.Length; i++)
+            if (backBufferActive)
             {
-                var renderTarget = activeRenderTargetViews[i];
-                if (renderTarget != null)
+                ClearRenderTargetCore(BackBufferView, options, ref color, depth, stencil);
+            }
+            else
+            {
+                if (activeDepthStencilView != null)
+                    ClearDepthStencilCore(activeDepthStencilView, options, depth, stencil);
+
+                // アクティブな全レンダ ターゲットをクリア。
+                for (int i = 0; i < activeRenderTargetViews.Length; i++)
                 {
-                    ClearRenderTargetCore(renderTarget, options, ref color, depth, stencil);
+                    var renderTarget = activeRenderTargetViews[i];
+                    if (renderTarget != null)
+                    {
+                        ClearRenderTargetCore(renderTarget, options, ref color, depth, stencil);
+                    }
                 }
             }
         }
