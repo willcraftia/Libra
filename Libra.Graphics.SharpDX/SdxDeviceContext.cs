@@ -311,6 +311,24 @@ namespace Libra.Graphics.SharpDX
             throw new ArgumentException("Unknown shader stage: " + shaderStage, "shaderStage");
         }
 
+        protected override void ClearDepthStencilCore(DepthStencilView depthStencilView, ClearOptions options, float depth, byte stencil)
+        {
+            D3D11DepthStencilClearFlags flags = 0;
+
+            if ((options & ClearOptions.Depth) != 0)
+                flags |= D3D11DepthStencilClearFlags.Depth;
+
+            if ((options & ClearOptions.Stencil) != 0)
+                flags |= D3D11DepthStencilClearFlags.Stencil;
+
+            if (flags != 0)
+            {
+                var d3d11DepthStencilView = (depthStencilView as SdxDepthStencilView).D3D11DepthStencilView;
+
+                D3D11DeviceContext.ClearDepthStencilView(d3d11DepthStencilView, flags, depth, stencil);
+            }
+        }
+
         protected override void ClearRenderTargetCore(
             RenderTargetView renderTarget, ClearOptions options, ref Vector4 color, float depth, byte stencil)
         {

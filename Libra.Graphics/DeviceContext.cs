@@ -776,6 +776,18 @@ namespace Libra.Graphics
 
         protected abstract void SetShaderResourceCore(ShaderStage shaderStage, int slot, ShaderResourceView view);
 
+        public void ClearDepthStencil(DepthStencilView depthStencil, float depth = 1, byte stencil = 0)
+        {
+            ClearDepthStencil(depthStencil, ClearOptions.Depth | ClearOptions.Stencil, depth, stencil);
+        }
+
+        public void ClearDepthStencil(DepthStencilView depthStencil, ClearOptions options, float depth = 1, byte stencil = 0)
+        {
+            if (depthStencil == null) throw new ArgumentNullException("depthStencil");
+
+            ClearDepthStencilCore(depthStencil, options, depth, stencil);
+        }
+
         public void ClearRenderTarget(RenderTargetView renderTarget, Color color)
         {
             ClearRenderTarget(renderTarget, ClearOptions.Target | ClearOptions.Depth | ClearOptions.Stencil, color, Viewport.MaxDepth);
@@ -786,19 +798,21 @@ namespace Libra.Graphics
             ClearRenderTarget(renderTarget, ClearOptions.Target | ClearOptions.Depth | ClearOptions.Stencil, color, Viewport.MaxDepth);
         }
 
-        public void ClearRenderTarget(RenderTargetView renderTarget, ClearOptions options, Color color, float depth, byte stencil = 0)
+        public void ClearRenderTarget(RenderTargetView renderTarget, ClearOptions options, Color color, float depth = 1, byte stencil = 0)
         {
             if (renderTarget == null) throw new ArgumentNullException("renderTarget");
 
             ClearRenderTarget(renderTarget, options, color.ToVector4(), depth, stencil);
         }
 
-        public void ClearRenderTarget(RenderTargetView renderTarget, ClearOptions options, Vector4 color, float depth, byte stencil = 0)
+        public void ClearRenderTarget(RenderTargetView renderTarget, ClearOptions options, Vector4 color, float depth = 1, byte stencil = 0)
         {
             if (renderTarget == null) throw new ArgumentNullException("renderTarget");
 
             ClearRenderTargetCore(renderTarget, options, ref color, depth, stencil);
         }
+
+        protected abstract void ClearDepthStencilCore(DepthStencilView depthStencilView, ClearOptions options, float depth, byte stencil);
 
         protected abstract void ClearRenderTargetCore(
             RenderTargetView renderTarget, ClearOptions options, ref Vector4 color, float depth, byte stencil);
@@ -813,12 +827,12 @@ namespace Libra.Graphics
             Clear(ClearOptions.Target | ClearOptions.Depth | ClearOptions.Stencil, color, Viewport.MaxDepth);
         }
 
-        public void Clear(ClearOptions options, Color color, float depth = 1f, byte stencil = 0)
+        public void Clear(ClearOptions options, Color color, float depth = 1, byte stencil = 0)
         {
             Clear(options, color.ToVector4(), depth, stencil);
         }
 
-        public void Clear(ClearOptions options, Vector4 color, float depth = 1f, byte stencil = 0)
+        public void Clear(ClearOptions options, Vector4 color, float depth = 1, byte stencil = 0)
         {
             // アクティブな全レンダ ターゲットをクリア。
             for (int i = 0; i < activeRenderTargetViews.Length; i++)
