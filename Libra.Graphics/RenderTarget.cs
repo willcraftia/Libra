@@ -9,8 +9,6 @@ namespace Libra.Graphics
 {
     public abstract class RenderTarget : Texture2D
     {
-        internal event EventHandler BindingToOutputMerger;
-
         SurfaceFormat depthStencilFormat;
 
         RenderTargetView renderTargetView;
@@ -147,12 +145,6 @@ namespace Libra.Graphics
             }
 
             base.DisposeOverride(disposing);
-        }
-
-        internal void OnBindingToOutputMerger()
-        {
-            if (BindingToOutputMerger != null)
-                BindingToOutputMerger(this, EventArgs.Empty);
         }
     }
 }
