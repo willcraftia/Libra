@@ -35,9 +35,8 @@ namespace Libra.Graphics
             sizeInBits[(int) SurfaceFormat.HalfSingle] = 16;
             sizeInBits[(int) SurfaceFormat.HalfVector2] = 32;
             sizeInBits[(int) SurfaceFormat.HalfVector4] = 64;
-
-            sizeInBits[(int) DepthFormat.Depth16] = 16;
-            sizeInBits[(int) DepthFormat.Depth24Stencil8] = 32;
+            sizeInBits[(int) SurfaceFormat.Depth16] = 16;
+            sizeInBits[(int) SurfaceFormat.Depth24Stencil8] = 32;
 
             // SurfaceFormat に無いもののみ登録。
             sizeInBits[(int) VertexFormat.Byte4] = 32;
@@ -59,11 +58,6 @@ namespace Libra.Graphics
             return sizeInBits[(int) format];
         }
 
-        public static int SizeInBits(DepthFormat format)
-        {
-            return sizeInBits[(int) format];
-        }
-
         public static int SizeInBits(VertexFormat format)
         {
             return sizeInBits[(int) format];
@@ -75,11 +69,6 @@ namespace Libra.Graphics
         }
 
         public static int SizeInBytes(SurfaceFormat format)
-        {
-            return SizeInBits(format) / 8;
-        }
-
-        public static int SizeInBytes(DepthFormat format)
         {
             return SizeInBits(format) / 8;
         }

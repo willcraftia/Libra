@@ -191,13 +191,13 @@ namespace Samples.SceneDepthOfField
             depthMapRenderTarget.Width = WindowWidth;
             depthMapRenderTarget.Height = WindowWidth;
             depthMapRenderTarget.Format = SurfaceFormat.Single;
-            depthMapRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
+            depthMapRenderTarget.DepthStencilEnabled = true;
             depthMapRenderTarget.Initialize();
 
             normalSceneRenderTarget = Device.CreateRenderTarget();
             normalSceneRenderTarget.Width = WindowWidth;
             normalSceneRenderTarget.Height = WindowHeight;
-            normalSceneRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
+            normalSceneRenderTarget.DepthStencilEnabled = true;
             normalSceneRenderTarget.Initialize();
 
             postprocess = new Postprocess(DeviceContext);

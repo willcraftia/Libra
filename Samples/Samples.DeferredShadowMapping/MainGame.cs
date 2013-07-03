@@ -309,14 +309,14 @@ namespace Samples.DeferredShadowMapping
             depthMapRenderTarget.Width = WindowWidth;
             depthMapRenderTarget.Height = WindowHeight;
             depthMapRenderTarget.Format = SurfaceFormat.Single;
-            depthMapRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
+            depthMapRenderTarget.DepthStencilEnabled = true;
             depthMapRenderTarget.Initialize();
 
             normalSceneRenderTarget = Device.CreateRenderTarget();
             normalSceneRenderTarget.Width = WindowWidth;
             normalSceneRenderTarget.Height = WindowHeight;
             normalSceneRenderTarget.PreferredMultisampleCount = Device.BackBuffer.MultisampleCount;
-            normalSceneRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
+            normalSceneRenderTarget.DepthStencilEnabled = true;
             normalSceneRenderTarget.Initialize();
 
             scenePostprocess = new Postprocess(DeviceContext);

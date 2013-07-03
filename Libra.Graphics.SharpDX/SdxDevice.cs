@@ -219,15 +219,6 @@ namespace Libra.Graphics.SharpDX
             return D3D11Device.CheckMultisampleQualityLevels((DXGIFormat) format, sampleCount);
         }
 
-        public override int CheckMultisampleQualityLevels(DepthFormat format, int sampleCount)
-        {
-            if (sampleCount < 1) throw new ArgumentOutOfRangeException("sampleCount");
-
-            if (sampleCount == 1) return 0;
-
-            return D3D11Device.CheckMultisampleQualityLevels((DXGIFormat) format, sampleCount);
-        }
-
         D3DFeatureLevel[] ToD3DFeatureLevels(DeviceProfile[] profiles)
         {
             if (profiles == null || profiles.Length == 0)

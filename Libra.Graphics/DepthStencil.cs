@@ -6,99 +6,26 @@ using System;
 
 namespace Libra.Graphics
 {
-    public abstract class DepthStencil : Resource
+    public abstract class DepthStencil : Texture2D
     {
-        bool initialized;
-
-        int width;
-
-        int height;
-
-        DepthFormat format;
-
-        int multisampleCount;
-
-        int multisampleQuality;
-
         DepthStencilView depthStencilView;
-
-        public int Width
-        {
-            get { return width; }
-            set
-            {
-                AssertNotInitialized();
-                if (value < 1) throw new ArgumentOutOfRangeException("value");
-
-                width = value;
-            }
-        }
-
-        public int Height
-        {
-            get { return height; }
-            set
-            {
-                AssertNotInitialized();
-                if (value < 1) throw new ArgumentOutOfRangeException("value");
-
-                height = value;
-            }
-        }
-
-        public DepthFormat Format
-        {
-            get { return format; }
-            set
-            {
-                AssertNotInitialized();
-                if (value == DepthFormat.None) throw new ArgumentException("Format must be not 'None'.", "value");
-
-                format = value;
-            }
-        }
-
-        public int MultisampleCount
-        {
-            get { return multisampleCount; }
-            set
-            {
-                AssertNotInitialized();
-                if (value < 1) throw new ArgumentOutOfRangeException("value");
-
-                multisampleCount = value;
-            }
-        }
-
-        public int MultisampleQuality
-        {
-            get { return multisampleQuality; }
-            set
-            {
-                AssertNotInitialized();
-                if (value < 0) throw new ArgumentOutOfRangeException("value");
-
-                multisampleQuality = value;
-            }
-        }
 
         protected DepthStencil(Device device)
             : base(device)
         {
-            width = 1;
-            height = 1;
-            format = DepthFormat.Depth24Stencil8;
-            multisampleCount = 1;
-            multisampleQuality = 0;
+            Format = SurfaceFormat.Depth24Stencil8;
         }
 
-        public void Initialize()
+        /// <summary>
+        /// 暗黙的に GetDepthStencilView() を呼び出して DepthStencilView 型とします。
+        /// </summary>
+        /// <param name="depthStencil">DepthStencil。</param>
+        /// <returns>DepthStencil 内部で管理する DepthStencilView。</returns>
+        public static implicit operator DepthStencilView(DepthStencil depthStencil)
         {
-            AssertNotInitialized();
+            if (depthStencil == null) return null;
 
-            InitializeCore();
-
-            initialized = true;
+            return depthStencil.GetDepthStencilView();
         }
 
         public DepthStencilView GetDepthStencilView()
@@ -111,8 +38,6 @@ namespace Libra.Graphics
             return depthStencilView;
         }
 
-        protected abstract void InitializeCore();
-
         protected override void DisposeOverride(bool disposing)
         {
             if (disposing)
@@ -122,11 +47,6 @@ namespace Libra.Graphics
             }
 
             base.DisposeOverride(disposing);
-        }
-
-        void AssertNotInitialized()
-        {
-            if (initialized) throw new InvalidOperationException("Already initialized.");
         }
     }
 }

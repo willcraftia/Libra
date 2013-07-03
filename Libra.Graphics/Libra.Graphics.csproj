@@ -51,7 +51,6 @@
     <Compile Include="ConstantBuffer.cs" />
     <Compile Include="CullMode.cs" />
     <Compile Include="D3D11Constants.cs" />
-    <Compile Include="DepthFormat.cs" />
     <Compile Include="DepthStencil.cs" />
     <Compile Include="DepthStencilState.cs" />
     <Compile Include="DepthStencilView.cs" />

@@ -11,22 +11,24 @@ namespace Libra.Graphics
     {
         internal event EventHandler BindingToOutputMerger;
 
-        DepthFormat depthFormat;
+        SurfaceFormat depthStencilFormat;
 
         RenderTargetView renderTargetView;
 
         public bool IsBackBuffer { get; private set; }
 
-        public DepthFormat DepthFormat
+        public SurfaceFormat DepthStencilFormat
         {
-            get { return depthFormat; }
+            get { return depthStencilFormat; }
             set
             {
                 AssertNotInitialized();
 
-                depthFormat = value;
+                depthStencilFormat = value;
             }
         }
+
+        public bool DepthStencilEnabled { get; set; }
 
         public RenderTargetUsage RenderTargetUsage { get; set; }
 
@@ -37,7 +39,7 @@ namespace Libra.Graphics
         {
             IsBackBuffer = isBackBuffer;
 
-            depthFormat = DepthFormat.None;
+            depthStencilFormat = SurfaceFormat.Depth24Stencil8;
             RenderTargetUsage = RenderTargetUsage.Discard;
         }
 
@@ -50,7 +52,7 @@ namespace Libra.Graphics
 
             InitializeRenderTarget(swapChain, index);
 
-            if (depthFormat != DepthFormat.None)
+            if (DepthStencilEnabled)
                 DepthStencil = InitializeDepthStencil();
 
             initialized = true;
@@ -85,7 +87,7 @@ namespace Libra.Graphics
             int depthStencilMultisampleQuality = 0;
             for (int i = PreferredMultisampleCount; 1 < i; i /= 2)
             {
-                var multisampleQualityLevels = Device.CheckMultisampleQualityLevels(depthFormat, i);
+                var multisampleQualityLevels = Device.CheckMultisampleQualityLevels(depthStencilFormat, i);
                 if (0 < multisampleQualityLevels)
                 {
                     depthStencilMultisampleCount = i;
@@ -113,7 +115,7 @@ namespace Libra.Graphics
 
             InitializeRenderTarget();
 
-            if (depthFormat != DepthFormat.None)
+            if (DepthStencilEnabled)
                 DepthStencil = InitializeDepthStencil();
         }
 
@@ -121,7 +123,7 @@ namespace Libra.Graphics
         {
             InitializeRenderTarget(stream);
 
-            if (depthFormat != DepthFormat.None)
+            if (DepthStencilEnabled)
                 DepthStencil = InitializeDepthStencil();
         }
 

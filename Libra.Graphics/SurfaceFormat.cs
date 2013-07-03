@@ -196,5 +196,11 @@ namespace Libra.Graphics
 
         // TODO: 対応が分からない。
         //HdrBlendable = 19,
+
+        // DXGI_FORMAT_D16_UNORM
+        Depth16         = 55,
+
+        // DXGI_FORMAT_D24_UNORM_S8_UINT
+        Depth24Stencil8 = 45
     }
 }

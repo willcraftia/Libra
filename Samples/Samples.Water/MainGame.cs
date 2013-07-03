@@ -567,13 +567,13 @@ namespace Samples.Water
             depthMapRenderTarget.Width = WindowWidth;
             depthMapRenderTarget.Height = WindowHeight;
             depthMapRenderTarget.Format = SurfaceFormat.Single;
-            depthMapRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
+            depthMapRenderTarget.DepthStencilEnabled = true;
             depthMapRenderTarget.Initialize();
 
             normalSceneRenderTarget = Device.CreateRenderTarget();
             normalSceneRenderTarget.Width = WindowWidth;
             normalSceneRenderTarget.Height = WindowHeight;
-            normalSceneRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
+            normalSceneRenderTarget.DepthStencilEnabled = true;
             normalSceneRenderTarget.Initialize();
 
             rippleNormalMapRenderTarget = Device.CreateRenderTarget();
@@ -590,13 +590,13 @@ namespace Samples.Water
             reflectionSceneRenderTarget = Device.CreateRenderTarget();
             reflectionSceneRenderTarget.Width = WindowWidth;
             reflectionSceneRenderTarget.Height = WindowHeight;
-            reflectionSceneRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
+            reflectionSceneRenderTarget.DepthStencilEnabled = true;
             reflectionSceneRenderTarget.Initialize();
 
             refractionSceneRenderTarget = Device.CreateRenderTarget();
             refractionSceneRenderTarget.Width = WindowWidth;
             refractionSceneRenderTarget.Height = WindowHeight;
-            refractionSceneRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
+            refractionSceneRenderTarget.DepthStencilEnabled = true;
             refractionSceneRenderTarget.Initialize();
 
             basicEffect = new BasicEffect(DeviceContext);

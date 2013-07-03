@@ -223,34 +223,34 @@ namespace Samples.SceneVolumetricFog
             depthMapRenderTarget.Width = WindowWidth;
             depthMapRenderTarget.Height = WindowHeight;
             depthMapRenderTarget.Format = SurfaceFormat.Single;
-            depthMapRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
+            depthMapRenderTarget.DepthStencilEnabled = true;
             depthMapRenderTarget.Initialize();
 
             frontFogDepthMapRenderTarget = Device.CreateRenderTarget();
             frontFogDepthMapRenderTarget.Width = WindowWidth;
             frontFogDepthMapRenderTarget.Height = WindowHeight;
             frontFogDepthMapRenderTarget.Format = SurfaceFormat.Single;
-            frontFogDepthMapRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
+            frontFogDepthMapRenderTarget.DepthStencilEnabled = true;
             frontFogDepthMapRenderTarget.Initialize();
 
             backFogDepthMapRenderTarget = Device.CreateRenderTarget();
             backFogDepthMapRenderTarget.Width = WindowWidth;
             backFogDepthMapRenderTarget.Height = WindowHeight;
             backFogDepthMapRenderTarget.Format = SurfaceFormat.Single;
-            backFogDepthMapRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
+            backFogDepthMapRenderTarget.DepthStencilEnabled = true;
             backFogDepthMapRenderTarget.Initialize();
 
             volumetricFogMapRenderTarget = Device.CreateRenderTarget();
             volumetricFogMapRenderTarget.Width = WindowWidth;
             volumetricFogMapRenderTarget.Height = WindowHeight;
             volumetricFogMapRenderTarget.Format = SurfaceFormat.Single;
-            volumetricFogMapRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
+            volumetricFogMapRenderTarget.DepthStencilEnabled = true;
             volumetricFogMapRenderTarget.Initialize();
 
             normalSceneRenderTarget = Device.CreateRenderTarget();
             normalSceneRenderTarget.Width = WindowWidth;
             normalSceneRenderTarget.Height = WindowHeight;
-            normalSceneRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
+            normalSceneRenderTarget.DepthStencilEnabled = true;
             normalSceneRenderTarget.Initialize();
 
             postprocess = new Postprocess(DeviceContext);

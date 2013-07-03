@@ -91,7 +91,7 @@ namespace Samples.BloomPostprocess
             var height = backBuffer.Height;
             var format = backBuffer.Format;
             var multisampleCount = backBuffer.MultisampleCount;
-            var depthFormat = backBuffer.DepthFormat;
+            var depthFormat = backBuffer.DepthStencilFormat;
 
             postprocess = new Postprocess(deviceContext);
             postprocess.Width = width;
@@ -110,7 +110,7 @@ namespace Samples.BloomPostprocess
             sceneRenderTarget.Height = height;
             sceneRenderTarget.PreferredMultisampleCount = multisampleCount;
             sceneRenderTarget.Format = format;
-            sceneRenderTarget.DepthFormat = depthFormat;
+            sceneRenderTarget.DepthStencilFormat = depthFormat;
             sceneRenderTarget.Initialize();
         }
 

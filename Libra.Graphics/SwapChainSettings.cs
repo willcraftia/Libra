@@ -91,14 +91,14 @@ namespace Libra.Graphics
         public bool AllowModeSwitch;
 
         /// <summary>
+        /// 深度ステンシルを作成するか否かを示す値。
+        /// </summary>
+        public bool DepthStencilEnabled;
+
+        /// <summary>
         /// 深度ステンシルのフォーマット。
         /// </summary>
-        /// <remarks>
-        /// このプロパティは、深度ステンシル バッファの作成で利用されます。
-        /// DepthFormat.None を指定した場合、
-        /// スワップ チェーンは深度ステンシル バッファを作成しません。
-        /// </remarks>
-        public DepthFormat DepthStencilFormat;
+        public SurfaceFormat DepthStencilFormat;
 
         /// <summary>
         /// 描画間隔。

@@ -32,8 +32,10 @@ namespace Libra.Graphics.SharpDX
         bool windowed;
         
         bool allowModeSwitch;
-        
-        DepthFormat depthStencilFormat;
+
+        bool depthStencilEnabled;
+
+        SurfaceFormat depthStencilFormat;
         
         int syncInterval;
 
@@ -76,7 +78,12 @@ namespace Libra.Graphics.SharpDX
             get { return allowModeSwitch; }
         }
 
-        public override DepthFormat DepthStencilFormat
+        public override bool DepthStencilEnabled
+        {
+            get { return depthStencilEnabled; }
+        }
+
+        public override SurfaceFormat DepthStencilFormat
         {
             get { return depthStencilFormat; }
         }
@@ -91,6 +98,7 @@ namespace Libra.Graphics.SharpDX
         public SdxSwapChain(SdxDevice device, SwapChainSettings settings)
             : base(device)
         {
+            depthStencilEnabled = settings.DepthStencilEnabled;
             depthStencilFormat = settings.DepthStencilFormat;
             allowModeSwitch = settings.AllowModeSwitch;
             syncInterval = settings.SyncInterval;

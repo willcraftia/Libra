@@ -18,7 +18,7 @@ namespace Libra.Graphics.Toolkit
 
         int preferredMultisampleCount;
 
-        DepthFormat depthFormat;
+        SurfaceFormat depthStencilFormat;
 
         RenderTargetUsage renderTargetUsage;
 
@@ -76,14 +76,14 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        public DepthFormat DepthFormat
+        public SurfaceFormat DepthStencilFormat
         {
-            get { return depthFormat; }
+            get { return depthStencilFormat; }
             set
             {
-                if (depthFormat == value) return;
+                if (depthStencilFormat == value) return;
 
-                depthFormat = value;
+                depthStencilFormat = value;
                 renderTargetsInvalid = true;
             }
         }
@@ -124,7 +124,7 @@ namespace Libra.Graphics.Toolkit
                     current.Height = height;
                     current.Format = format;
                     current.PreferredMultisampleCount = preferredMultisampleCount;
-                    current.DepthFormat = depthFormat;
+                    current.DepthStencilFormat = depthStencilFormat;
                     current.RenderTargetUsage = renderTargetUsage;
                     current.Initialize();
 
@@ -158,7 +158,7 @@ namespace Libra.Graphics.Toolkit
                     last.Height = height;
                     last.Format = format;
                     last.PreferredMultisampleCount = preferredMultisampleCount;
-                    last.DepthFormat = depthFormat;
+                    last.DepthStencilFormat = depthStencilFormat;
                     last.RenderTargetUsage = renderTargetUsage;
                     last.Initialize();
 

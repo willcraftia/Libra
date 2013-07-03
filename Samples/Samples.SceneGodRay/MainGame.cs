@@ -170,7 +170,7 @@ namespace Samples.SceneGodRay
             normalSceneRenderTarget = Device.CreateRenderTarget();
             normalSceneRenderTarget.Width = WindowWidth;
             normalSceneRenderTarget.Height = WindowHeight;
-            normalSceneRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
+            normalSceneRenderTarget.DepthStencilEnabled = true;
             normalSceneRenderTarget.Name = "Normal";
             normalSceneRenderTarget.Initialize();
 
@@ -284,7 +284,7 @@ namespace Samples.SceneGodRay
                 occlusionRenderTarget = Device.CreateRenderTarget();
                 occlusionRenderTarget.Width = (int) (WindowWidth * MapScales[currentMapScaleIndex]);
                 occlusionRenderTarget.Height = (int) (WindowHeight * MapScales[currentMapScaleIndex]);
-                occlusionRenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
+                occlusionRenderTarget.DepthStencilEnabled = true;
                 occlusionRenderTarget.Name = "Occlusion";
                 occlusionRenderTarget.Initialize();
             }

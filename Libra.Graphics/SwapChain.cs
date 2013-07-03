@@ -28,7 +28,9 @@ namespace Libra.Graphics
 
         public abstract bool AllowModeSwitch { get; }
 
-        public abstract DepthFormat DepthStencilFormat { get; }
+        public abstract bool DepthStencilEnabled { get; }
+
+        public abstract SurfaceFormat DepthStencilFormat { get; }
 
         public abstract int SyncInterval { get; }
 

@@ -38,18 +38,6 @@ namespace Libra.Games
         
         public event EventHandler Disposed;
 
-        public const int DefaultBackBufferWidth = 800;
-
-        public const int DefaultBackBufferHeight = 480;
-
-        public const SurfaceFormat DefaultBackBufferFormat = SurfaceFormat.Color;
-
-        public const DepthFormat DefaultDepthStencilFormat = DepthFormat.Depth24Stencil8;
-
-        // 自動的に利用可能なサンプル数が選択されるので、
-        // デフォルトは最大サンプル数とする。
-        public const int DefaultBackBufferMultisampleCount = D3D11Constants.MaxMultisampleCount;
-
         static readonly DeviceProfile[] profiles =
         {
             DeviceProfile.Level_11_0,
@@ -61,15 +49,17 @@ namespace Libra.Games
 
         GraphicsFactory graphicsFactory;
 
-        int preferredBackBufferWidth;
+        int preferredBackBufferWidth = 800;
 
-        int preferredBackBufferHeight;
+        int preferredBackBufferHeight = 480;
 
-        SurfaceFormat preferredBackBufferFormat;
+        SurfaceFormat preferredBackBufferFormat = SurfaceFormat.Color;
 
-        DepthFormat preferredDepthStencilFormat;
+        SurfaceFormat preferredDepthStencilFormat = SurfaceFormat.Depth24Stencil8;
 
-        int preferredBackBufferMultisampleCount;
+        // 自動的に利用可能なサンプル数が選択されるので、
+        // デフォルトは最大サンプル数とする。
+        int preferredBackBufferMultisampleCount = D3D11Constants.MaxMultisampleCount;
 
         object resizeSwapChainLock = new object();
 
@@ -117,7 +107,9 @@ namespace Libra.Games
             }
         }
 
-        public DepthFormat PreferredDepthStencilFormat
+        public bool DepthStencilEnabled { get; set; }
+
+        public SurfaceFormat PreferredDepthStencilFormat
         {
             get { return preferredDepthStencilFormat; }
             set { preferredDepthStencilFormat = value; }
@@ -151,12 +143,7 @@ namespace Libra.Games
 
             DeviceSingleThreaded = true;
             DeviceDebugEnabled = false;
-
-            preferredBackBufferWidth = DefaultBackBufferWidth;
-            preferredBackBufferHeight = DefaultBackBufferHeight;
-            preferredBackBufferFormat = DefaultBackBufferFormat;
-            preferredDepthStencilFormat = DefaultDepthStencilFormat;
-            preferredBackBufferMultisampleCount = DefaultBackBufferMultisampleCount;
+            DepthStencilEnabled = true;
             Windowed = true;
 
             game.Services.AddService<IGraphicsManager>(this);
@@ -224,7 +211,7 @@ namespace Libra.Games
                     // 深度ステンシルを用いる場合、
                     // 深度ステンシルのマルチサンプリングはレンダ ターゲットと一致させる事になるため、
                     // 深度ステンシルのフォーマットについても検査。
-                    if (preferredDepthStencilFormat != DepthFormat.None)
+                    if (DepthStencilEnabled)
                     {
                         var depthStencilMultisampleQualityLevels = Device.CheckMultisampleQualityLevels(
                             preferredDepthStencilFormat, backBufferMultisampleCount);
@@ -259,6 +246,7 @@ namespace Libra.Games
                 BackBufferMultisampleCount = backBufferMultisampleCount,
                 // 注意: Quality = 最大レベル - 1
                 BackBufferMultisampleQuality = backBufferMultisampleQualityLevels - 1,
+                DepthStencilEnabled = DepthStencilEnabled,
                 DepthStencilFormat = preferredDepthStencilFormat,
                 // TODO
                 // false にしても [alt]+[Enter] が有効なのだが？

@@ -21,12 +21,12 @@ namespace Libra.Graphics
             Device = device;
         }
 
-        public void Initialize(Texture2D texture)
+        public void Initialize(Resource resource)
         {
             if (initialized) throw new InvalidOperationException("Already initialized.");
-            if (texture == null) throw new ArgumentNullException("texture");
+            if (resource == null) throw new ArgumentNullException("resource");
 
-            Resource = texture;
+            Resource = resource;
 
             InitializeCore();
 

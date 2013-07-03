@@ -90,9 +90,8 @@ namespace Libra.Graphics.SharpDX
             {
                 Width = Width,
                 Height = Height,
-                Format = DepthFormat,
-                MultisampleCount = MultisampleCount,
-                MultisampleQuality = MultisampleQuality
+                Format = DepthStencilFormat,
+                PreferredMultisampleCount = MultisampleCount
             };
 
             depthStencil.Initialize();

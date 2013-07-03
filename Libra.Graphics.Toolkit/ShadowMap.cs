@@ -158,7 +158,7 @@ namespace Libra.Graphics.Toolkit
                 RenderTarget.Width = size;
                 RenderTarget.Height = size;
                 RenderTarget.Format = format;
-                RenderTarget.DepthFormat = DepthFormat.Depth24Stencil8;
+                RenderTarget.DepthStencilEnabled = true;
                 RenderTarget.RenderTargetUsage = RenderTargetUsage.Preserve;
                 RenderTarget.Initialize();
 

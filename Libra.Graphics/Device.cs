@@ -139,8 +139,6 @@ namespace Libra.Graphics
 
         public abstract int CheckMultisampleQualityLevels(SurfaceFormat format, int sampleCount);
 
-        public abstract int CheckMultisampleQualityLevels(DepthFormat format, int sampleCount);
-
         public void SetSwapChain(SwapChain swapChain)
         {
             swapChain.BackBuffersResizing += OnSwapChainBackBuffersResizing;
@@ -183,7 +181,8 @@ namespace Libra.Graphics
 
             BackBuffer = CreateRenderTarget();
             BackBuffer.Name = "BackBuffer_0";
-            BackBuffer.DepthFormat = swapChain.DepthStencilFormat;
+            BackBuffer.DepthStencilEnabled = swapChain.DepthStencilEnabled;
+            BackBuffer.DepthStencilFormat = swapChain.DepthStencilFormat;
             BackBuffer.RenderTargetUsage = RenderTargetUsage.Preserve;
             BackBuffer.Initialize(swapChain, 0);
 
