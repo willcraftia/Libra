@@ -3,19 +3,18 @@ cbuffer PerObject : register(b0)
     float3 ShadowColor;
 };
 
-// Texture ÇÕí èÌÉVÅ[Éì
-Texture2D<float4> Texture   : register(t0);
-Texture2D<float>  OcclusionMap   : register(t1);
+Texture2D<float4> Texture       : register(t0);
+Texture2D<float>  OcclusionMap  : register(t1);
 
-SamplerState TextureSampler : register(s0);
-SamplerState OcclusionMapSampler : register(s1);
+SamplerState TextureSampler         : register(s0);
+SamplerState OcclusionMapSampler    : register(s1);
 
 float4 PS(float2 texCoord : TEXCOORD0) : SV_Target0
 {
-    float4 scene = Texture.SampleLevel(TextureSampler, texCoord, 0);
+    float4 diffuse = Texture.SampleLevel(TextureSampler, texCoord, 0);
     float occlusion = OcclusionMap.SampleLevel(OcclusionMapSampler, texCoord, 0);
 
-    float3 c = lerp(scene.rgb * ShadowColor, scene.rgb, occlusion);
+    float3 c = lerp(diffuse.rgb * ShadowColor, diffuse.rgb, occlusion);
 
-    return float4(c, scene.a);
+    return float4(c, diffuse.a);
 }
