@@ -337,7 +337,6 @@ namespace Libra.Graphics.Toolkit
                 renderTarget = DeviceContext.Device.CreateRenderTarget();
                 renderTarget.Width = renderTargetWidth;
                 renderTarget.Height = renderTargetHeight;
-                renderTarget.Format = SurfaceFormat.Single;
                 renderTarget.PreferredMultisampleCount = preferredRenderTargetMultisampleCount;
                 renderTarget.Initialize();
 
