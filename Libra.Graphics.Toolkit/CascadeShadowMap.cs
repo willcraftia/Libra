@@ -69,6 +69,16 @@ namespace Libra.Graphics.Toolkit
         GaussianFilterSuite vsmGaussianFilterSuite;
 
         /// <summary>
+        /// 分割視錐台の境界錐台。
+        /// </summary>
+        BoundingFrustum eyeFrustum = new BoundingFrustum(Matrix.Identity);
+
+        /// <summary>
+        /// 境界錐台の頂点を取得するための配列。
+        /// </summary>
+        Vector3[] frustumCorners = new Vector3[BoundingFrustum.CornerCount];
+
+        /// <summary>
         /// デバイス コンテキストを取得します。
         /// </summary>
         public DeviceContext DeviceContext { get; private set; }
@@ -229,12 +239,19 @@ namespace Libra.Graphics.Toolkit
             // 各分割で共通のビルダ プロパティを設定。
             currentLightCameraBuilder.EyeView = pssm.View;
             currentLightCameraBuilder.LightDirection = lightDirection;
-            currentLightCameraBuilder.SceneBox = pssm.SceneBox;
 
             for (int i = 0; i < pssm.Count; i++)
             {
                 // 射影行列は分割毎に異なる。
                 currentLightCameraBuilder.EyeProjection = splitProjections[i];
+
+                eyeFrustum.Matrix = Matrix.Multiply(pssm.View, splitProjections[i]);
+                eyeFrustum.GetCorners(frustumCorners);
+
+                BoundingBox sceneBox;
+                BoundingBox.CreateFromPoints(frustumCorners, out sceneBox);
+
+                currentLightCameraBuilder.SceneBox = sceneBox;
 
                 // ライトのビューおよび射影行列の算出。
                 Matrix lightView;
