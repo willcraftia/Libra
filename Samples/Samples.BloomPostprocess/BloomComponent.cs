@@ -110,6 +110,7 @@ namespace Samples.BloomPostprocess
             sceneRenderTarget.Height = height;
             sceneRenderTarget.PreferredMultisampleCount = multisampleCount;
             sceneRenderTarget.Format = format;
+            sceneRenderTarget.DepthStencilEnabled = true;
             sceneRenderTarget.DepthStencilFormat = depthFormat;
             sceneRenderTarget.Initialize();
         }
