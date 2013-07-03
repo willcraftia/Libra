@@ -196,21 +196,21 @@ namespace Libra.Graphics.SharpDX
             }
         }
 
-        protected override void SetRenderTargetsCore(RenderTargetView[] renderTargetViews)
+        protected override void SetRenderTargetsCore(DepthStencilView depthStencilView, RenderTargetView[] renderTargetViews)
         {
+            // renderTargetViews == null の場合は depthStencilView == null である。
+            // renderTargetViews != null の場合は depthStencilView は null かもしれないし非 null かもしれない。
+
             if (renderTargetViews == null)
             {
                 // レンダ ターゲットと深度ステンシルの解除。
                 D3D11DeviceContext.OutputMerger.SetTargets((D3D11DepthStencilView) null, (D3D11RenderTargetView[]) null);
 
-                var renderTargetView = Device.BackBufferView;
-                var depthStencilView = renderTargetView.DepthStencilView;
-
-                var d3d11RenderTargetView = (renderTargetView as SdxRenderTargetView).D3D11RenderTargetView;
+                var d3d11RenderTargetView = (BackBufferView as SdxRenderTargetView).D3D11RenderTargetView;
                 D3D11DepthStencilView d3d11DepthStencilView = null;
-                if (depthStencilView != null)
+                if (BackBufferView.DepthStencilView != null)
                 {
-                    d3d11DepthStencilView = (depthStencilView as SdxDepthStencilView).D3D11DepthStencilView;
+                    d3d11DepthStencilView = (BackBufferView.DepthStencilView as SdxDepthStencilView).D3D11DepthStencilView;
                 }
 
                 // バック バッファのレンダ ターゲットと深度ステンシルの設定。
@@ -218,9 +218,6 @@ namespace Libra.Graphics.SharpDX
             }
             else
             {
-                // 深度ステンシルは先頭のレンダ ターゲットの物を利用。
-                var depthStencilView = renderTargetViews[0].DepthStencilView;
-
                 D3D11DepthStencilView d3d11DepthStencilView = null;
                 if (depthStencilView != null)
                 {

@@ -29,6 +29,8 @@ namespace Libra.Graphics
 
         Dictionary<Type, WeakReference> sharedResourceMap;
 
+        RenderTarget backBuffer;
+
         public Adapter Adapter { get; private set; }
 
         public DeviceSettings Settings { get; private set; }
@@ -37,9 +39,47 @@ namespace Libra.Graphics
 
         public abstract DeviceContext ImmediateContext { get; }
 
-        public RenderTarget BackBuffer { get; private set; }
+        public int BackBufferWidth
+        {
+            get { return backBuffer.Width; }
+        }
 
-        public RenderTargetView BackBufferView { get; private set; }
+        public int BackBufferHeight
+        {
+            get { return backBuffer.Height; }
+        }
+
+        public int BackBufferMipLevels
+        {
+            get { return backBuffer.MipLevels; }
+        }
+
+        public SurfaceFormat BackBufferFormat
+        {
+            get { return backBuffer.Format; }
+        }
+
+        public int BackBufferMultisampleCount
+        {
+            get { return backBuffer.MultisampleCount; }
+        }
+
+        public int BackBufferMultisampleQuality
+        {
+            get { return backBuffer.MultisampleQuality; }
+        }
+
+        public bool BackBufferDepthStencilEnabled
+        {
+            get { return backBuffer.DepthStencilEnabled; }
+        }
+
+        public SurfaceFormat BackBufferDepthStencilFormat
+        {
+            get { return backBuffer.DepthStencilFormat; }
+        }
+
+        internal RenderTargetView BackBufferView { get; private set; }
 
         protected Device(Adapter adapter, DeviceSettings settings)
         {
@@ -179,15 +219,15 @@ namespace Libra.Graphics
             // 深度ステンシルを共有している設定は自由に破棄できずに都合が悪い。
             // よって、共有不可 (RenderTargetUsage.Preserve) でレンダ ターゲットを生成。
 
-            BackBuffer = CreateRenderTarget();
-            BackBuffer.Name = "BackBuffer_0";
-            BackBuffer.DepthStencilEnabled = swapChain.DepthStencilEnabled;
-            BackBuffer.DepthStencilFormat = swapChain.DepthStencilFormat;
-            BackBuffer.RenderTargetUsage = RenderTargetUsage.Preserve;
-            BackBuffer.Initialize(swapChain, 0);
+            backBuffer = CreateRenderTarget();
+            backBuffer.Name = "BackBuffer_0";
+            backBuffer.DepthStencilEnabled = swapChain.DepthStencilEnabled;
+            backBuffer.DepthStencilFormat = swapChain.DepthStencilFormat;
+            backBuffer.RenderTargetUsage = RenderTargetUsage.Preserve;
+            backBuffer.Initialize(swapChain, 0);
 
             BackBufferView = CreateRenderTargetView();
-            BackBufferView.Initialize(BackBuffer);
+            BackBufferView.Initialize(backBuffer);
 
             OnBackBuffersReset(this, EventArgs.Empty);
         }
@@ -196,10 +236,10 @@ namespace Libra.Graphics
         {
             OnBackBuffersResetting(this, EventArgs.Empty);
 
-            if (BackBuffer != null)
+            if (backBuffer != null)
             {
-                BackBuffer.Dispose();
-                BackBuffer = null;
+                backBuffer.Dispose();
+                backBuffer = null;
             }
             if (BackBufferView != null)
             {

@@ -86,18 +86,11 @@ namespace Samples.BloomPostprocess
             upFilter.WidthScale = 2.0f;
             upFilter.HeightScale = 2.0f;
 
-            var backBuffer = Device.BackBuffer;
-            var width = backBuffer.Width;
-            var height = backBuffer.Height;
-            var format = backBuffer.Format;
-            var multisampleCount = backBuffer.MultisampleCount;
-            var depthFormat = backBuffer.DepthStencilFormat;
-
             postprocess = new Postprocess(deviceContext);
-            postprocess.Width = width;
-            postprocess.Height = height;
-            postprocess.Format = format;
-            postprocess.PreferredMultisampleCount = multisampleCount;
+            postprocess.Width = Device.BackBufferWidth;
+            postprocess.Height = Device.BackBufferHeight;
+            postprocess.Format = Device.BackBufferFormat;
+            postprocess.PreferredMultisampleCount = Device.BackBufferMultisampleCount;
             postprocess.Filters.Add(downFilter);
             postprocess.Filters.Add(bloomExtractFilter);
             postprocess.Filters.Add(gaussianFilterH);
@@ -106,12 +99,12 @@ namespace Samples.BloomPostprocess
             postprocess.Filters.Add(bloomCombineFilter);
 
             sceneRenderTarget = Device.CreateRenderTarget();
-            sceneRenderTarget.Width = width;
-            sceneRenderTarget.Height = height;
-            sceneRenderTarget.PreferredMultisampleCount = multisampleCount;
-            sceneRenderTarget.Format = format;
+            sceneRenderTarget.Width = Device.BackBufferWidth;
+            sceneRenderTarget.Height = Device.BackBufferHeight;
+            sceneRenderTarget.Format = Device.BackBufferFormat;
+            sceneRenderTarget.PreferredMultisampleCount = Device.BackBufferMultisampleCount;
             sceneRenderTarget.DepthStencilEnabled = true;
-            sceneRenderTarget.DepthStencilFormat = depthFormat;
+            sceneRenderTarget.DepthStencilFormat = Device.BackBufferDepthStencilFormat;
             sceneRenderTarget.Initialize();
         }
 

@@ -236,7 +236,7 @@ namespace Samples.SceneAmbientOcclusion
             normalSceneRenderTarget = Device.CreateRenderTarget();
             normalSceneRenderTarget.Width = WindowWidth;
             normalSceneRenderTarget.Height = WindowHeight;
-            normalSceneRenderTarget.PreferredMultisampleCount = Device.BackBuffer.MultisampleCount;
+            normalSceneRenderTarget.PreferredMultisampleCount = Device.BackBufferMultisampleCount;
             normalSceneRenderTarget.DepthStencilEnabled = true;
             normalSceneRenderTarget.Initialize();
 

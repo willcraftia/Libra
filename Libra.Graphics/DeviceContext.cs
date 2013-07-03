@@ -237,13 +237,13 @@ namespace Libra.Graphics
                 views = new ShaderResourceView[Count];
             }
 
-            internal void Remove(RenderTarget renderTarget)
+            internal void Remove(Resource resource)
             {
                 for (int i = 0; i < views.Length; i++)
                 {
                     var view = views[i];
 
-                    if (view != null && view.Resource == renderTarget)
+                    if (view != null && view.Resource == resource)
                     {
                         views[i] = null;
 
@@ -308,6 +308,8 @@ namespace Libra.Graphics
         BlendState blendState;
 
         DepthStencilState depthStencilState;
+
+        DepthStencilView activeDepthStencilView;
 
         RenderTargetView[] activeRenderTargetViews;
 
@@ -461,6 +463,16 @@ namespace Libra.Graphics
         public SamplerStateCollection PixelShaderSamplers { get; private set; }
 
         public ShaderResourceCollection PixelShaderResources { get; private set; }
+
+        public DepthStencilView DepthStencil
+        {
+            get { return activeDepthStencilView; }
+        }
+
+        protected RenderTargetView BackBufferView
+        {
+            get { return Device.BackBufferView; }
+        }
 
         protected DeviceContext(Device device)
         {
@@ -641,46 +653,66 @@ namespace Libra.Graphics
         {
             if (renderTargetView == null)
             {
-                // アクティブなレンダ ターゲットをクリア。
-                Array.Clear(activeRenderTargetViews, 0, activeRenderTargetViews.Length);
-
-                // #0 にバック バッファ レンダ ターゲットを設定。
-                activeRenderTargetViews[0] = Device.BackBufferView;
-
-                // シェーダ リソースとして設定されているものを解除。
-                PixelShaderResources.Remove(activeRenderTargetViews[0].RenderTarget);
-
-                SetRenderTargetsCore(null);
-
-                ClearRenderTarget(Device.BackBufferView, DiscardColor);
+                SetRenderTarget(null, null);
             }
             else
             {
+                SetRenderTarget(renderTargetView.DepthStencilView, renderTargetView);
+            }
+        }
+
+        public void SetRenderTarget(DepthStencilView depthStencilView, RenderTargetView renderTargetView)
+        {
+            if (renderTargetView == null)
+            {
+                if (depthStencilView != null)
+                    throw new ArgumentException("A depth stencil must be set along with a render target.", "depthStencilView");
+
+                // アクティブな深度ステンシルとレンダ ターゲットをクリア。
+                activeDepthStencilView = null;
+                Array.Clear(activeRenderTargetViews, 0, activeRenderTargetViews.Length);
+
+                SetRenderTargetsCore(null, null);
+
+                ClearRenderTarget(BackBufferView, DiscardColor);
+
+                // ビューポートを更新。
+                var renderTarget = BackBufferView.RenderTarget;
+                Viewport = new Viewport(0, 0, renderTarget.Width, renderTarget.Height);
+            }
+            else
+            {
+                // シェーダ リソースとして設定されているものを解除。
+                if (depthStencilView != null)
+                    PixelShaderResources.Remove(depthStencilView.DepthStencil);
+
+                PixelShaderResources.Remove(renderTargetView.RenderTarget);
+
+                activeDepthStencilView = depthStencilView;
                 activeRenderTargetViews[0] = renderTargetView;
 
-                // シェーダ リソースとして設定されているものを解除。
-                PixelShaderResources.Remove(activeRenderTargetViews[0].RenderTarget);
-
-                SetRenderTargetsCore(activeRenderTargetViews);
+                SetRenderTargetsCore(activeDepthStencilView, activeRenderTargetViews);
 
                 if (renderTargetView.RenderTarget.RenderTargetUsage == RenderTargetUsage.Discard)
                 {
                     ClearRenderTarget(renderTargetView, DiscardColor);
                 }
-            }
 
-            // #0 に設定されたレンダ ターゲットのサイズでビューポートを更新。
-            var renderTarget = activeRenderTargetViews[0].RenderTarget;
-            Viewport = new Viewport(0, 0, renderTarget.Width, renderTarget.Height);
+                // ビューポートを更新。
+                var renderTarget = renderTargetView.RenderTarget;
+                Viewport = new Viewport(0, 0, renderTarget.Width, renderTarget.Height);
+            }
         }
 
         public void SetRenderTargets(params RenderTargetView[] renderTargetViews)
         {
-            DepthStencilView depthStencilView = null;
-            if (renderTargetViews[0] != null)
-                depthStencilView = renderTargetViews[0].DepthStencilView;
+            if (renderTargetViews == null) throw new ArgumentNullException("renderTargetViews");
+            if (renderTargetViews.Length == 0) throw new ArgumentException("renderTargetViews is empty", "renderTargets");
+            if (renderTargetViews[0] == null)
+                throw new ArgumentException(string.Format("renderTargetViews[{0}] is null.", 0), "renderTargetViews");
 
-            SetRenderTargets(depthStencilView, renderTargetViews);
+            // 先頭要素のレンダ ターゲットが保持する深度ステンシルの設定を試行。
+            SetRenderTargets(renderTargetViews[0].DepthStencilView, renderTargetViews);
         }
 
         public void SetRenderTargets(DepthStencilView depthStencilView, params RenderTargetView[] renderTargetViews)
@@ -691,44 +723,34 @@ namespace Libra.Graphics
             if (renderTargetViews[0] == null)
                 throw new ArgumentException(string.Format("renderTargetViews[{0}] is null.", 0), "renderTargetViews");
 
-            if (renderTargetViews == null || renderTargetViews.Length == 0)
+            if (depthStencilView != null)
+                PixelShaderResources.Remove(depthStencilView.DepthStencil);
+
+            activeDepthStencilView = depthStencilView;
+
+            for (int i = 0; i < activeRenderTargetViews.Length; i++)
             {
-                // アクティブなレンダ ターゲットをクリア。
-                Array.Clear(activeRenderTargetViews, 0, activeRenderTargetViews.Length);
-
-                // #0 にバック バッファ レンダ ターゲットを設定。
-                activeRenderTargetViews[0] = Device.BackBufferView;
-
-                // シェーダ リソースとして設定されているものを解除。
-                PixelShaderResources.Remove(activeRenderTargetViews[0].RenderTarget);
-
-                SetRenderTargetsCore(null);
-
-                ClearRenderTarget(Device.BackBufferView, DiscardColor);
-            }
-            else
-            {
-
-                for (int i = 0; i < activeRenderTargetViews.Length; i++)
+                if (i < renderTargetViews.Length)
                 {
-                    if (i < renderTargetViews.Length)
-                    {
-                        var renderTargetView = renderTargetViews[i];
+                    var renderTargetView = renderTargetViews[i];
+                    if (renderTargetView != null)
+                        PixelShaderResources.Remove(renderTargetView.RenderTarget);
 
-                        activeRenderTargetViews[i] = renderTargetView;
-
-                        // シェーダ リソースとして設定されているものを解除。
-                        PixelShaderResources.Remove(activeRenderTargetViews[i].RenderTarget);
-                    }
-                    else
-                    {
-                        activeRenderTargetViews[i] = null;
-                    }
+                    activeRenderTargetViews[i] = renderTargetView;
                 }
+                else
+                {
+                    activeRenderTargetViews[i] = null;
+                }
+            }
 
-                SetRenderTargetsCore(renderTargetViews);
+            SetRenderTargetsCore(depthStencilView, renderTargetViews);
 
-                foreach (var renderTargetView in renderTargetViews)
+            for (int i = 0; i < renderTargetViews.Length; i++)
+            {
+                var renderTargetView = renderTargetViews[i];
+
+                if (renderTargetView != null)
                 {
                     if (renderTargetView.RenderTarget.RenderTargetUsage == RenderTargetUsage.Discard)
                     {
@@ -738,7 +760,7 @@ namespace Libra.Graphics
             }
         }
 
-        protected abstract void SetRenderTargetsCore(RenderTargetView[] renderTargets);
+        protected abstract void SetRenderTargetsCore(DepthStencilView depthStencilView, RenderTargetView[] renderTargets);
 
         protected abstract void OnBlendStateChanged();
 

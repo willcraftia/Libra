@@ -315,7 +315,7 @@ namespace Samples.DeferredShadowMapping
             normalSceneRenderTarget = Device.CreateRenderTarget();
             normalSceneRenderTarget.Width = WindowWidth;
             normalSceneRenderTarget.Height = WindowHeight;
-            normalSceneRenderTarget.PreferredMultisampleCount = Device.BackBuffer.MultisampleCount;
+            normalSceneRenderTarget.PreferredMultisampleCount = Device.BackBufferMultisampleCount;
             normalSceneRenderTarget.DepthStencilEnabled = true;
             normalSceneRenderTarget.Initialize();
 
@@ -356,7 +356,7 @@ namespace Samples.DeferredShadowMapping
             shadowSceneMap = new ShadowSceneMap(DeviceContext);
             shadowSceneMap.RenderTargetWidth = WindowWidth;
             shadowSceneMap.RenderTargetHeight = WindowHeight;
-            shadowSceneMap.PreferredRenderTargetMultisampleCount = DeviceContext.Device.BackBuffer.MultisampleCount;
+            shadowSceneMap.PreferredRenderTargetMultisampleCount = Device.BackBufferMultisampleCount;
             shadowSceneMap.SplitCount = cascadeShadowMap.SplitCount;
 
             cubeMesh = new CubeMesh(DeviceContext, 20);
