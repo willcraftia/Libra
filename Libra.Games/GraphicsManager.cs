@@ -57,7 +57,6 @@ namespace Libra.Games
 
         SurfaceFormat preferredDepthStencilFormat = SurfaceFormat.Depth24Stencil8;
 
-        // 自動的に利用可能なサンプル数が選択されるので、
         // デフォルトは最大サンプル数とする。
         int preferredBackBufferMultisampleCount = D3D11Constants.MaxMultisampleCount;
 
@@ -201,6 +200,7 @@ namespace Libra.Games
             // マルチサンプル数の決定。
             int backBufferMultisampleCount = preferredBackBufferMultisampleCount;
             int backBufferMultisampleQualityLevels = 0;
+            int backBufferMultisampleQuality = 0;
             while (1 < backBufferMultisampleCount)
             {
                 backBufferMultisampleQualityLevels = Device.CheckMultisampleQualityLevels(
@@ -237,6 +237,9 @@ namespace Libra.Games
                 backBufferMultisampleCount /= 2;
             }
 
+            if (0 < backBufferMultisampleQualityLevels)
+                backBufferMultisampleQuality = backBufferMultisampleQualityLevels - 1;
+
             var settings = new SwapChainSettings
             {
                 BackBufferWidth = backBufferMode.Width,
@@ -245,7 +248,7 @@ namespace Libra.Games
                 BackBufferFormat = backBufferMode.Format,
                 BackBufferMultisampleCount = backBufferMultisampleCount,
                 // 注意: Quality = 最大レベル - 1
-                BackBufferMultisampleQuality = backBufferMultisampleQualityLevels - 1,
+                BackBufferMultisampleQuality = backBufferMultisampleQuality,
                 DepthStencilEnabled = DepthStencilEnabled,
                 DepthStencilFormat = preferredDepthStencilFormat,
                 // TODO
