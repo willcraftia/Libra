@@ -14,7 +14,20 @@ namespace Libra.Graphics
 
         public RenderTarget RenderTarget { get; private set; }
 
-        public DepthStencilView DepthStencilView { get; private set; }
+        public DepthStencilView DepthStencilView
+        {
+            get
+            {
+                if (RenderTarget.DepthStencil == null)
+                {
+                    return null;
+                }
+                else
+                {
+                    return RenderTarget.DepthStencil.GetDepthStencilView();
+                }
+            }
+        }
 
         protected RenderTargetView(Device device)
         {
@@ -32,15 +45,10 @@ namespace Libra.Graphics
 
             InitializeRenderTargetView();
 
-            if (RenderTarget.DepthStencil != null)
-                DepthStencilView = InitializeDepthStencilView();
-
             initialized = true;
         }
 
         protected abstract void InitializeRenderTargetView();
-
-        protected abstract DepthStencilView InitializeDepthStencilView();
 
         #region IDisposable
 

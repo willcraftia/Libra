@@ -35,13 +35,6 @@ namespace Libra.Graphics.SharpDX
             D3D11RenderTargetView = new D3D11RenderTargetView(D3D11Device, d3d11Resource, description);
         }
 
-        protected override DepthStencilView InitializeDepthStencilView()
-        {
-            var depthStencilView = new SdxDepthStencilView(Device as SdxDevice);
-            depthStencilView.Initialize(RenderTarget.DepthStencil);
-            return depthStencilView;
-        }
-
         void CreateD3D11RenderTargetViewDescription(out D3D11RenderTargetViewDescription result)
         {
             result = new D3D11RenderTargetViewDescription
