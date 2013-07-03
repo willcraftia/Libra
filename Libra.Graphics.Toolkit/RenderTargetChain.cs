@@ -76,6 +76,8 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
+        public bool DepthStencilEnabled { get; set; }
+
         public SurfaceFormat DepthStencilFormat
         {
             get { return depthStencilFormat; }
@@ -124,6 +126,7 @@ namespace Libra.Graphics.Toolkit
                     current.Height = height;
                     current.Format = format;
                     current.PreferredMultisampleCount = preferredMultisampleCount;
+                    current.DepthStencilEnabled = DepthStencilEnabled;
                     current.DepthStencilFormat = depthStencilFormat;
                     current.RenderTargetUsage = renderTargetUsage;
                     current.Initialize();
@@ -158,6 +161,7 @@ namespace Libra.Graphics.Toolkit
                     last.Height = height;
                     last.Format = format;
                     last.PreferredMultisampleCount = preferredMultisampleCount;
+                    last.DepthStencilEnabled = DepthStencilEnabled;
                     last.DepthStencilFormat = depthStencilFormat;
                     last.RenderTargetUsage = renderTargetUsage;
                     last.Initialize();
