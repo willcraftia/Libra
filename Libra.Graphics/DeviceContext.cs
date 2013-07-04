@@ -249,8 +249,6 @@ namespace Libra.Graphics
                         views[i] = null;
 
                         dirtyFlags |= 1 << i;
-
-                        return;
                     }
                 }
             }
