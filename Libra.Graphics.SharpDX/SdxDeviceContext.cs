@@ -446,6 +446,47 @@ namespace Libra.Graphics.SharpDX
             D3D11Resource.ToStream(D3D11DeviceContext, d3d11Texture2D, (D3D11ImageFileFormat) format, stream);
         }
 
+        protected override void GetDataCore<T>(VertexBuffer vertexBuffer, T[] data, int startIndex, int elementCount)
+        {
+            var stagingDescription = new D3D11BufferDescription
+            {
+                SizeInBytes = vertexBuffer.ByteWidth,
+                Usage = D3D11ResourceUsage.Staging,
+                BindFlags = D3D11BindFlags.None,
+                CpuAccessFlags = D3D11CpuAccessFlags.Read,
+                OptionFlags = D3D11ResourceOptionFlags.None,
+                StructureByteStride = 0
+            };
+
+            using (var staging = new D3D11Buffer(device.D3D11Device, stagingDescription))
+            {
+                D3D11DeviceContext.CopyResource((vertexBuffer as SdxVertexBuffer).D3D11Buffer, staging);
+
+                var gcHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
+                try
+                {
+                    var dataPointer = gcHandle.AddrOfPinnedObject();
+                    var sizeOfT = Marshal.SizeOf(typeof(T));
+                    var destinationPtr = (IntPtr) (dataPointer + startIndex * sizeOfT);
+                    var sizeInBytes = ((elementCount == 0) ? data.Length : elementCount) * sizeOfT;
+
+                    var mappedResource = D3D11DeviceContext.MapSubresource(staging, 0, D3D11MapMode.Read, D3D11MapFlags.None);
+                    try
+                    {
+                        SDXUtilities.CopyMemory(destinationPtr, mappedResource.DataPointer, sizeInBytes);
+                    }
+                    finally
+                    {
+                        D3D11DeviceContext.UnmapSubresource(staging, 0);
+                    }
+                }
+                finally
+                {
+                    gcHandle.Free();
+                }
+            }
+        }
+
         D3D11Texture2D GetD3D11Texture2D(Texture2D texture)
         {
             if (texture is SdxTexture2D)

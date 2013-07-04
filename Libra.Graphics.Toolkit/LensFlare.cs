@@ -242,7 +242,7 @@ namespace Libra.Graphics.Toolkit
                 vertices[2].Position = new Vector3(-querySize * 0.5f,  querySize * 0.5f, -1.0f);
                 vertices[3].Position = new Vector3( querySize * 0.5f,  querySize * 0.5f, -1.0f);
 
-                vertexBuffer.SetData(DeviceContext, vertices);
+                DeviceContext.SetData(vertexBuffer, vertices);
 
                 dirtyFlags &= ~DirtyFlags.VertexBuffer;
             }

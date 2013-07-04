@@ -973,6 +973,11 @@ namespace Libra.Graphics
 
         protected abstract void GetDataCore<T>(ConstantBuffer constantBuffer, out T data) where T : struct;
 
+        void AssetInitialized(ConstantBuffer constantBuffer)
+        {
+            if (!constantBuffer.Initialized) throw new InvalidOperationException("The constant buffer is not initialized.");
+        }
+
         #endregion
 
         #region Texture2D
@@ -1231,6 +1236,146 @@ namespace Libra.Graphics
 
         protected abstract void SaveCore(Texture2D texture, Stream stream, ImageFileFormat format);
 
+        void AssetInitialized(Texture2D texture)
+        {
+            if (!texture.Initialized) throw new InvalidOperationException("The texture is not initialized.");
+        }
+
+        #endregion
+
+        #region VertexBuffer
+
+        public void GetData<T>(VertexBuffer vertexBuffer, T[] data, int startIndex, int elementCount) where T : struct
+        {
+            if (vertexBuffer == null) throw new ArgumentNullException("vertexBuffer");
+            if (data == null) throw new ArgumentNullException("data");
+            if (startIndex < 0) throw new ArgumentOutOfRangeException("startIndex");
+            if (data.Length < (startIndex + elementCount)) throw new ArgumentOutOfRangeException("elementCount");
+            AssetInitialized(vertexBuffer);
+
+            GetDataCore(vertexBuffer, data, startIndex, elementCount);
+        }
+
+        public void GetData<T>(VertexBuffer vertexBuffer, T[] data) where T : struct
+        {
+            GetData(vertexBuffer, data, 0, data.Length);
+        }
+
+        public void SetData<T>(VertexBuffer vertexBuffer, T[] data, int startIndex, int elementCount) where T : struct
+        {
+            if (vertexBuffer == null) throw new ArgumentNullException("vertexBuffer");
+            if (data == null) throw new ArgumentNullException("data");
+            if (startIndex < 0) throw new ArgumentOutOfRangeException("startIndex");
+            if (data.Length < (startIndex + elementCount)) throw new ArgumentOutOfRangeException("elementCount");
+            AssetInitialized(vertexBuffer);
+
+            if (vertexBuffer.Usage == ResourceUsage.Immutable)
+                throw new InvalidOperationException("Data can not be set from CPU.");
+
+            var gcHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
+            try
+            {
+                var dataPointer = gcHandle.AddrOfPinnedObject();
+                var sizeOfT = Marshal.SizeOf(typeof(T));
+
+                var sourcePointer = (IntPtr) (dataPointer + startIndex * sizeOfT);
+
+                if (vertexBuffer.Usage == ResourceUsage.Default)
+                {
+                    UpdateSubresource(vertexBuffer, 0, null, sourcePointer, 0, 0);
+                }
+                else
+                {
+                    var sizeInBytes = ((elementCount == 0) ? data.Length : elementCount) * sizeOfT;
+
+                    // TODO
+                    //
+                    // Dynamic だと D3D11MapMode.Write はエラーになる。
+                    // 対応関係を MSDN から把握できないが、どうすべきか。
+                    // ひとまず WriteDiscard とする。
+
+                    var mappedResource = Map(vertexBuffer, 0, DeviceContext.MapMode.WriteDiscard);
+                    try
+                    {
+                        GraphicsHelper.CopyMemory(mappedResource.Pointer, sourcePointer, sizeInBytes);
+                    }
+                    finally
+                    {
+                        Unmap(vertexBuffer, 0);
+                    }
+                }
+            }
+            finally
+            {
+                gcHandle.Free();
+            }
+        }
+
+        public void SetData<T>(VertexBuffer vertexBuffer, T[] data) where T : struct
+        {
+            SetData(vertexBuffer, data, 0, data.Length);
+        }
+
+        public void SetData<T>(VertexBuffer vertexBuffer, T[] data, int sourceIndex, int elementCount,
+            SetDataOptions options = SetDataOptions.None) where T : struct
+        {
+            SetData(vertexBuffer, 0, data, sourceIndex, elementCount, options);
+        }
+
+        public void SetData<T>(VertexBuffer vertexBuffer, int offsetInBytes, T[] data, int sourceIndex, int elementCount,
+            SetDataOptions options = SetDataOptions.None) where T : struct
+        {
+            if (vertexBuffer == null) throw new ArgumentNullException("vertexBuffer");
+            if (data == null) throw new ArgumentNullException("data");
+            if (sourceIndex < 0) throw new ArgumentOutOfRangeException("startIndex");
+            if (data.Length < (sourceIndex + elementCount)) throw new ArgumentOutOfRangeException("elementCount");
+            AssetInitialized(vertexBuffer);
+
+            if (vertexBuffer.Usage != ResourceUsage.Dynamic) throw new InvalidOperationException("Resource not writable.");
+
+            if (options == SetDataOptions.Discard && vertexBuffer.Usage != ResourceUsage.Dynamic)
+                throw new InvalidOperationException("Resource.Usage must be dynamic for discard option.");
+
+            var gcHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
+            try
+            {
+                var dataPointer = gcHandle.AddrOfPinnedObject();
+                var sizeOfT = Marshal.SizeOf(typeof(T));
+
+                var sourcePointer = (IntPtr) (dataPointer + sourceIndex * sizeOfT);
+                var sizeInBytes = ((elementCount == 0) ? data.Length : elementCount) * sizeOfT;
+
+                // メモ
+                //
+                // D3D11MapFlags.DoNotWait は、Discard と NoOverwite では使えない。
+                // D3D11MapFlags 参照のこと。
+
+                var mappedResource = Map(vertexBuffer, 0, (DeviceContext.MapMode) options);
+                var destinationPointer = (IntPtr) (mappedResource.Pointer + offsetInBytes);
+
+                try
+                {
+                    GraphicsHelper.CopyMemory(destinationPointer, sourcePointer, sizeInBytes);
+                }
+                finally
+                {
+                    // Unmap
+                    Unmap(vertexBuffer, 0);
+                }
+            }
+            finally
+            {
+                gcHandle.Free();
+            }
+        }
+
+        protected abstract void GetDataCore<T>(VertexBuffer vertexBuffer, T[] data, int startIndex, int elementCount) where T : struct;
+
+        void AssetInitialized(VertexBuffer vertexBuffer)
+        {
+            if (!vertexBuffer.Initialized) throw new InvalidOperationException("The vertex buffer is not initialized.");
+        }
+
         #endregion
 
         internal protected abstract MappedSubresource Map(Resource resource, int subresource, MapMode mapMode);
@@ -1267,16 +1412,6 @@ namespace Libra.Graphics
 
             // シェーダ リソースの反映。
             PixelShaderResources.Apply();
-        }
-
-        void AssetInitialized(Texture2D texture)
-        {
-            if (!texture.Initialized) throw new InvalidOperationException("The texture is not initialized.");
-        }
-
-        void AssetInitialized(ConstantBuffer constantBuffer)
-        {
-            if (!constantBuffer.Initialized) throw new InvalidOperationException("The constant buffer is not initialized.");
         }
 
         protected virtual void OnDisposing(object sender, EventArgs e)

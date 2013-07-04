@@ -233,7 +233,7 @@ namespace Samples.InstancedModel
                 instanceVertexBuffer.Initialize(instanceVertexDeclaration, instances.Length);
             }
 
-            instanceVertexBuffer.SetData(DeviceContext, instances, 0, instances.Length, SetDataOptions.Discard);
+            DeviceContext.SetData(instanceVertexBuffer, instances, 0, instances.Length, SetDataOptions.Discard);
 
             DeviceContext.AutoResolveInputLayout = false;
             DeviceContext.InputLayout = instanceInputLayout;

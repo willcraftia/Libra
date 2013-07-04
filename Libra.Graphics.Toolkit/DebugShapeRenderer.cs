@@ -230,7 +230,7 @@ namespace Libra.Graphics.Toolkit
 
                     int vertexCountToDraw = linesToDraw * 2;
 
-                    vertexBuffer.SetData(DeviceContext, verts, vertexOffset, vertexCountToDraw);
+                    DeviceContext.SetData(vertexBuffer, verts, vertexOffset, vertexCountToDraw);
                     DeviceContext.SetVertexBuffer(vertexBuffer);
                     DeviceContext.PrimitiveTopology = PrimitiveTopology.LineList;
 

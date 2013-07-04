@@ -400,7 +400,7 @@ namespace Libra.Graphics.Toolkit
 
             if (firstNewParticle < firstFreeParticle)
             {
-                vertexBuffer.SetData(DeviceContext,
+                DeviceContext.SetData(vertexBuffer,
                     firstNewParticle * stride * 4,
                     particles,
                     firstNewParticle * 4,
@@ -409,7 +409,7 @@ namespace Libra.Graphics.Toolkit
             }
             else
             {
-                vertexBuffer.SetData(DeviceContext,
+                DeviceContext.SetData(vertexBuffer,
                     firstNewParticle * stride * 4,
                     particles,
                     firstNewParticle * 4,
@@ -418,7 +418,7 @@ namespace Libra.Graphics.Toolkit
 
                 if (firstFreeParticle > 0)
                 {
-                    vertexBuffer.SetData(DeviceContext,
+                    DeviceContext.SetData(vertexBuffer,
                         firstNewParticle * stride * 4,
                         particles,
                         0,

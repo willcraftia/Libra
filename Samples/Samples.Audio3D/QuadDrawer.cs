@@ -51,7 +51,7 @@ namespace Samples.Audio3D
             vertices[2].TexCoord = new Vector2(0, textureRepeats);
             vertices[3].TexCoord = new Vector2(textureRepeats, textureRepeats);
 
-            vertexBuffer.SetData(deviceContext, vertices);
+            deviceContext.SetData(vertexBuffer, vertices);
             deviceContext.SetVertexBuffer(0, vertexBuffer);
 
             deviceContext.PrimitiveTopology = PrimitiveTopology.TriangleStrip;
