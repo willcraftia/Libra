@@ -135,6 +135,10 @@ namespace Libra.Graphics.Toolkit
             var previousRasterizerState = DeviceContext.RasterizerState;
             var previousSamplerState = DeviceContext.PixelShaderSamplers[0];
 
+            DeviceContext.BlendState = null;
+            DeviceContext.RasterizerState = null;
+            DeviceContext.DepthStencilState = DepthStencilState.None;
+
             RenderTargetChain renderTargetChain = null;
 
             foreach (var chain in renderTargetChains.Values)
@@ -179,10 +183,6 @@ namespace Libra.Graphics.Toolkit
                 }
 
                 DeviceContext.SetRenderTarget(renderTargetChain.Current);
-
-                DeviceContext.BlendState = null;
-                DeviceContext.RasterizerState = null;
-                DeviceContext.DepthStencilState = DepthStencilState.None;
 
                 filter.Texture = currentTexture;
                 filter.Apply();
