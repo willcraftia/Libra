@@ -174,14 +174,14 @@ namespace Libra.Graphics.Toolkit
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerObjectVS) != 0)
             {
-                constantBufferPerObjectVS.SetData(DeviceContext, parametersPerObjectVS);
+                DeviceContext.SetData(constantBufferPerObjectVS, parametersPerObjectVS);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerObjectVS;
             }
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerObjectPS) != 0)
             {
-                constantBufferPerObjectPS.SetData(DeviceContext, parametersPerObjectPS);
+                DeviceContext.SetData(constantBufferPerObjectPS, parametersPerObjectPS);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerObjectPS;
             }

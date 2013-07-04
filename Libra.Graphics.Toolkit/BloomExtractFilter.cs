@@ -77,7 +77,7 @@ namespace Libra.Graphics.Toolkit
         {
             if (constantBufferPerObjectDirty)
             {
-                constantBufferPerObject.SetData(DeviceContext, threshold);
+                DeviceContext.SetData(constantBufferPerObject, threshold);
 
                 constantBufferPerObjectDirty = false;
             }

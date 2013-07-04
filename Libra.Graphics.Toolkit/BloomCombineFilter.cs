@@ -136,7 +136,7 @@ namespace Libra.Graphics.Toolkit
             if (constantBufferPerObjectDirty)
             {
                 var data = new Vector4(baseIntensity, baseSaturation, bloomIntensity, bloomSaturation);
-                constantBufferPerObject.SetData(DeviceContext, data);
+                DeviceContext.SetData(constantBufferPerObject, data);
 
                 constantBufferPerObjectDirty = false;
             }

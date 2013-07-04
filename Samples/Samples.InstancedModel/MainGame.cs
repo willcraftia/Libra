@@ -253,7 +253,7 @@ namespace Samples.InstancedModel
                     Matrix.Transpose(ref modelBones[mesh.ParentBone.Index], out constants.World);
                     Matrix.Transpose(ref view, out constants.View);
                     Matrix.Transpose(ref projection, out constants.Projection);
-                    constantBuffer.SetData(DeviceContext, constants);
+                    DeviceContext.SetData(constantBuffer, constants);
 
                     DeviceContext.DrawIndexedInstanced(
                         meshPart.IndexCount, instances.Length, meshPart.StartIndexLocation, meshPart.BaseVertexLocation);
@@ -282,7 +282,7 @@ namespace Samples.InstancedModel
                         Matrix world;
                         Matrix.Multiply(ref modelBones[mesh.ParentBone.Index], ref instances[i], out world);
                         Matrix.Transpose(ref world, out constants.World);
-                        constantBuffer.SetData(DeviceContext, constants);
+                        DeviceContext.SetData(constantBuffer, constants);
 
                         DeviceContext.DrawIndexed(meshPart.IndexCount, meshPart.StartIndexLocation, meshPart.BaseVertexLocation);
                     }
@@ -310,7 +310,7 @@ namespace Samples.InstancedModel
                         Matrix.Transpose(ref world, out constants.World);
                         Matrix.Transpose(ref view, out constants.View);
                         Matrix.Transpose(ref projection, out constants.Projection);
-                        constantBuffer.SetData(DeviceContext, constants);
+                        DeviceContext.SetData(constantBuffer, constants);
 
                         DeviceContext.DrawIndexed(meshPart.IndexCount, meshPart.StartIndexLocation, meshPart.BaseVertexLocation);
                     }

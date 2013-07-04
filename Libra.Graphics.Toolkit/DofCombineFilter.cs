@@ -113,7 +113,7 @@ namespace Libra.Graphics.Toolkit
             {
                 var data = new Vector4(1.0f / focusRange, focusDistance, 0.0f, 0.0f);
 
-                constantBuffer.SetData(DeviceContext, data);
+                DeviceContext.SetData(constantBuffer, data);
 
                 constantBufferDirty = false;
             }

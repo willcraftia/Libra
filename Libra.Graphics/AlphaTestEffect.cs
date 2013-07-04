@@ -524,7 +524,7 @@ namespace Libra.Graphics
 
             if ((dirtyFlags & DirtyFlags.Contants) != 0)
             {
-                constantBuffer.SetData(DeviceContext, constants);
+                DeviceContext.SetData(constantBuffer, constants);
 
                 dirtyFlags &= ~DirtyFlags.Contants;
             }

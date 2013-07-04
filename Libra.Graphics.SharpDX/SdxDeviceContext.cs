@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 
 using D3D11BindFlags = SharpDX.Direct3D11.BindFlags;
 using D3D11Buffer = SharpDX.Direct3D11.Buffer;
+using D3D11BufferDescription = SharpDX.Direct3D11.BufferDescription;
 using D3D11CommonShaderStage = SharpDX.Direct3D11.CommonShaderStage;
 using D3D11CpuAccessFlags = SharpDX.Direct3D11.CpuAccessFlags;
 using D3D11DepthStencilClearFlags = SharpDX.Direct3D11.DepthStencilClearFlags;
@@ -298,6 +299,35 @@ namespace Libra.Graphics.SharpDX
                 d3d11ShaderResourceView = (view as SdxShaderResourceView).D3D11ShaderResourceView;
             }
             GetD3D11CommonShaderStage(shaderStage).SetShaderResource(slot, d3d11ShaderResourceView);
+        }
+
+        protected override void GetDataCore<T>(ConstantBuffer constantBuffer, out T data)
+        {
+            var stagingDescription = new D3D11BufferDescription
+            {
+                SizeInBytes = constantBuffer.ByteWidth,
+                Usage = D3D11ResourceUsage.Staging,
+                BindFlags = D3D11BindFlags.None,
+                CpuAccessFlags = D3D11CpuAccessFlags.Read,
+                OptionFlags = D3D11ResourceOptionFlags.None,
+                StructureByteStride = 0
+            };
+
+            using (var staging = new D3D11Buffer(device.D3D11Device, stagingDescription))
+            {
+                D3D11DeviceContext.CopyResource((constantBuffer as SdxConstantBuffer).D3D11Buffer, staging);
+
+                var mappedResource = D3D11DeviceContext.MapSubresource(staging, 0, D3D11MapMode.Read, D3D11MapFlags.None);
+                try
+                {
+                    // data はスタックに作る事になるので、CopyMemory ではない。
+                    data = (T) Marshal.PtrToStructure(mappedResource.DataPointer, typeof(T));
+                }
+                finally
+                {
+                    D3D11DeviceContext.UnmapSubresource(staging, 0);
+                }
+            }
         }
 
         protected override void GetDataCore<T>(

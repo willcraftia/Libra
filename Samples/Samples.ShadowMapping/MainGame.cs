@@ -160,7 +160,7 @@ namespace Samples.ShadowMapping
                     constants.SplitDistances[i].X = SplitDistances[i];
                 }
 
-                constantBuffer.SetData(context, constants);
+                context.SetData(constantBuffer, constants);
 
                 context.VertexShaderConstantBuffers[0] = constantBuffer;
                 context.PixelShaderConstantBuffers[0] = constantBuffer;

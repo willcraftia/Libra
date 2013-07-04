@@ -184,8 +184,7 @@ namespace Samples.MiniCube
             // ここではテストのためにコンパイル時に行優先としている。
 
             var worldViewProjection = world * view * projection;
-            //constantBuffer.SetData(context, Matrix.Transpose(worldViewProjection));
-            constantBuffer.SetData(DeviceContext, worldViewProjection);
+            DeviceContext.SetData(constantBuffer, worldViewProjection);
 
             DeviceContext.Draw(36);
 

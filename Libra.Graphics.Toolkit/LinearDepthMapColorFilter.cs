@@ -128,7 +128,7 @@ namespace Libra.Graphics.Toolkit
         {
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerCamera) != 0)
             {
-                constantBufferPerCamera.SetData(DeviceContext, parametersPerCamera);
+                DeviceContext.SetData(constantBufferPerCamera, parametersPerCamera);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerCamera;
             }

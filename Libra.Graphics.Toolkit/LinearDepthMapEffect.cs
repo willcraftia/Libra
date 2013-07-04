@@ -159,7 +159,7 @@ namespace Libra.Graphics.Toolkit
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerObject) != 0)
             {
-                constantBufferPerObject.SetData(DeviceContext, parametersPerObject);
+                DeviceContext.SetData(constantBufferPerObject, parametersPerObject);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerObject;
             }

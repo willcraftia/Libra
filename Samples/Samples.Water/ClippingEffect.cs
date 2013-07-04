@@ -630,13 +630,13 @@ namespace Samples.Water
 
             if ((dirtyFlags & DirtyFlags.Contants) != 0)
             {
-                constantBuffer.SetData(DeviceContext, constants);
+                DeviceContext.SetData(constantBuffer, constants);
                 dirtyFlags &= ~DirtyFlags.Contants;
             }
 
             if ((dirtyFlags & DirtyFlags.ClippingContants) != 0)
             {
-                clippingConstantBuffer.SetData(DeviceContext, clippingConstants);
+                DeviceContext.SetData(clippingConstantBuffer, clippingConstants);
                 dirtyFlags &= ~DirtyFlags.ClippingContants;
             }
 

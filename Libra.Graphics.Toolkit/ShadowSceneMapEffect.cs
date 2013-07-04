@@ -371,21 +371,21 @@ namespace Libra.Graphics.Toolkit
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerLight) != 0)
             {
-                constantBufferPerLight.SetData(DeviceContext, parametersPerLight);
+                DeviceContext.SetData(constantBufferPerLight, parametersPerLight);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerLight;
             }
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerCamera) != 0)
             {
-                constantBufferPerCamera.SetData(DeviceContext, parametersPerCamera);
+                DeviceContext.SetData(constantBufferPerCamera, parametersPerCamera);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerCamera;
             }
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPcf) != 0)
             {
-                constantBufferPcf.SetData(DeviceContext, parametersPcf);
+                DeviceContext.SetData(constantBufferPcf, parametersPcf);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPcf;
             }

@@ -152,7 +152,7 @@ namespace Samples.MiniCubeTexture
             var projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspect, 0.1f, 100.0f);
 
             var worldViewProjection = world * view * projection;
-            constantBuffer.SetData(DeviceContext, worldViewProjection);
+            DeviceContext.SetData(constantBuffer, worldViewProjection);
 
             DeviceContext.Draw(36);
 

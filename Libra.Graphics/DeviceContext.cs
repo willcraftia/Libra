@@ -783,6 +783,8 @@ namespace Libra.Graphics
 
         protected abstract void SetShaderResourceCore(ShaderStage shaderStage, int slot, ShaderResourceView view);
 
+        #region Clear
+
         public void ClearDepthStencil(DepthStencilView depthStencil, float depth = 1, byte stencil = 0)
         {
             ClearDepthStencil(depthStencil, ClearOptions.Depth | ClearOptions.Stencil, depth, stencil);
@@ -862,6 +864,10 @@ namespace Libra.Graphics
             }
         }
 
+        #endregion
+
+        #region Draw
+
         public void Draw(int vertexCount, int startVertexLocation = 0)
         {
             ApplyState();
@@ -892,10 +898,84 @@ namespace Libra.Graphics
             DrawIndexedInstancedCore(indexCountPerInstance, instanceCount, startIndexLocation, baseVertexLocation, startInstanceLocation);
         }
 
-        void AssetInitialized(Texture2D texture)
+        protected abstract void DrawCore(int vertexCount, int startVertexLocation);
+
+        protected abstract void DrawIndexedCore(int indexCount, int startIndexLocation, int baseVertexLocation);
+
+        protected abstract void DrawInstancedCore(
+            int vertexCountPerInstance,
+            int instanceCount,
+            int startVertexLocation,
+            int startInstanceLocation);
+
+        protected abstract void DrawIndexedInstancedCore(
+            int indexCountPerInstance,
+            int instanceCount,
+            int startIndexLocation = 0,
+            int baseVertexLocation = 0,
+            int startInstanceLocation = 0);
+
+        #endregion
+
+        #region ConstantBuffer
+
+        public void GetData<T>(ConstantBuffer constantBuffer, out T data) where T : struct
         {
-            if (!texture.Initialized) throw new InvalidOperationException("The texture is not initialized.");
+            if (constantBuffer == null) throw new ArgumentNullException("context");
+            AssetInitialized(constantBuffer);
+
+            GetDataCore(constantBuffer, out data);
         }
+
+        public void SetData<T>(ConstantBuffer constantBuffer, T data) where T : struct
+        {
+            if (constantBuffer == null) throw new ArgumentNullException("context");
+            if (constantBuffer.Usage == ResourceUsage.Immutable)
+                throw new InvalidOperationException("Data can not be set from CPU.");
+            AssetInitialized(constantBuffer);
+
+            // 配列を含んだ構造体を扱うために必要な処理。
+            // Marshal.AllocHGlobal でアンマネージ領域にメモリを確保し、
+            // そこへ Marshal.StructureToPtr で構造体データを配置。
+            // この領域を更新元データとして UpdateSubresource で更新する、あるいは、
+            // Map されたリソースへコピーする。
+
+            var sourcePointer = Marshal.AllocHGlobal(constantBuffer.ByteWidth);
+            try
+            {
+                Marshal.StructureToPtr(data, sourcePointer, false);
+
+                unsafe
+                {
+                    if (constantBuffer.Usage == ResourceUsage.Default)
+                    {
+                        UpdateSubresource(constantBuffer, 0, null, sourcePointer, constantBuffer.ByteWidth, 0);
+                    }
+                    else
+                    {
+                        var mappedResource = Map(constantBuffer, 0, DeviceContext.MapMode.WriteDiscard);
+                        try
+                        {
+                            GraphicsHelper.CopyMemory(mappedResource.Pointer, sourcePointer, constantBuffer.ByteWidth);
+                        }
+                        finally
+                        {
+                            Unmap(constantBuffer, 0);
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(sourcePointer);
+            }
+        }
+
+        protected abstract void GetDataCore<T>(ConstantBuffer constantBuffer, out T data) where T : struct;
+
+        #endregion
+
+        #region Texture2D
 
         public void Save(Texture2D texture, Stream stream, ImageFileFormat format = ImageFileFormat.Png)
         {
@@ -1140,23 +1220,6 @@ namespace Libra.Graphics
             }
         }
 
-        protected abstract void DrawCore(int vertexCount, int startVertexLocation);
-
-        protected abstract void DrawIndexedCore(int indexCount, int startIndexLocation, int baseVertexLocation);
-
-        protected abstract void DrawInstancedCore(
-            int vertexCountPerInstance,
-            int instanceCount,
-            int startVertexLocation,
-            int startInstanceLocation);
-
-        protected abstract void DrawIndexedInstancedCore(
-            int indexCountPerInstance,
-            int instanceCount,
-            int startIndexLocation = 0,
-            int baseVertexLocation = 0,
-            int startInstanceLocation = 0);
-
         protected abstract void GetDataCore<T>(
             Texture2D texture,
             int arrayIndex,
@@ -1167,6 +1230,8 @@ namespace Libra.Graphics
             int elementCount) where T : struct;
 
         protected abstract void SaveCore(Texture2D texture, Stream stream, ImageFileFormat format);
+
+        #endregion
 
         internal protected abstract MappedSubresource Map(Resource resource, int subresource, MapMode mapMode);
 
@@ -1202,6 +1267,16 @@ namespace Libra.Graphics
 
             // シェーダ リソースの反映。
             PixelShaderResources.Apply();
+        }
+
+        void AssetInitialized(Texture2D texture)
+        {
+            if (!texture.Initialized) throw new InvalidOperationException("The texture is not initialized.");
+        }
+
+        void AssetInitialized(ConstantBuffer constantBuffer)
+        {
+            if (!constantBuffer.Initialized) throw new InvalidOperationException("The constant buffer is not initialized.");
         }
 
         protected virtual void OnDisposing(object sender, EventArgs e)

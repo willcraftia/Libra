@@ -211,15 +211,15 @@ namespace Libra.Graphics.Toolkit
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerObject) != 0)
             {
-                constantBufferPerObject.SetData(DeviceContext, parametersPerObject);
+                DeviceContext.SetData(constantBufferPerObject, parametersPerObject);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerObject;
             }
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerRenderTarget) != 0)
             {
-                constantBuffferPerRenderTargetH.SetData(DeviceContext, parametersPerRenderTargetH);
-                constantBuffferPerRenderTargetV.SetData(DeviceContext, parametersPerRenderTargetV);
+                DeviceContext.SetData(constantBuffferPerRenderTargetH, parametersPerRenderTargetH);
+                DeviceContext.SetData(constantBuffferPerRenderTargetV, parametersPerRenderTargetV);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerRenderTarget;
             }

@@ -9,7 +9,7 @@ namespace Libra.Graphics
 {
     public abstract class ConstantBuffer : Resource
     {
-        bool initialized;
+        protected internal bool Initialized { get; set; }
 
         public int ByteWidth { get; private set; }
 
@@ -41,7 +41,7 @@ namespace Libra.Graphics
 
             InitializeCore();
 
-            initialized = true;
+            Initialized = true;
         }
 
         public void Initialize<T>(int byteWidth, T data) where T : struct
@@ -54,75 +54,16 @@ namespace Libra.Graphics
 
             InitializeCore<T>(data);
 
-            initialized = true;
-        }
-
-        public void GetData<T>(DeviceContext context, out T data) where T : struct
-        {
-            AssertInitialized();
-            if (context == null) throw new ArgumentNullException("context");
-
-            GetDataCore(context, out data);
-        }
-
-        public void SetData<T>(DeviceContext context, T data) where T : struct
-        {
-            AssertInitialized();
-            if (context == null) throw new ArgumentNullException("context");
-            if (Usage == ResourceUsage.Immutable)
-                throw new InvalidOperationException("Data can not be set from CPU.");
-
-            // 配列を含んだ構造体を扱うために必要な処理。
-            // Marshal.AllocHGlobal でアンマネージ領域にメモリを確保し、
-            // そこへ Marshal.StructureToPtr で構造体データを配置。
-            // この領域を更新元データとして UpdateSubresource で更新する、あるいは、
-            // Map されたリソースへコピーする。
-
-            var sourcePointer = Marshal.AllocHGlobal(ByteWidth);
-            try
-            {
-                Marshal.StructureToPtr(data, sourcePointer, false);
-
-                unsafe
-                {
-                    if (Usage == ResourceUsage.Default)
-                    {
-                        context.UpdateSubresource(this, 0, null, sourcePointer, ByteWidth, 0);
-                    }
-                    else
-                    {
-                        var mappedResource = context.Map(this, 0, DeviceContext.MapMode.WriteDiscard);
-                        try
-                        {
-                            GraphicsHelper.CopyMemory(mappedResource.Pointer, sourcePointer, ByteWidth);
-                        }
-                        finally
-                        {
-                            context.Unmap(this, 0);
-                        }
-                    }
-                }
-            }
-            finally
-            {
-                Marshal.FreeHGlobal(sourcePointer);
-            }
+            Initialized = true;
         }
 
         protected abstract void InitializeCore();
 
         protected abstract void InitializeCore<T>(T data) where T : struct;
 
-        protected abstract void GetDataCore<T>(DeviceContext context, out T data) where T : struct;
-
         void AssertNotInitialized()
         {
-            if (initialized) throw new InvalidOperationException("Already initialized.");
-        }
-
-        void AssertInitialized()
-        {
-            if (!initialized) throw new InvalidOperationException("Not initialized.");
+            if (Initialized) throw new InvalidOperationException("Already initialized.");
         }
     }
 }

@@ -110,7 +110,7 @@ namespace Libra.Graphics.Toolkit
         {
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerShader) != 0)
             {
-                constantBufferPerShader.SetData(DeviceContext, parametersPerShader);
+                DeviceContext.SetData(constantBufferPerShader, parametersPerShader);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerShader;
             }

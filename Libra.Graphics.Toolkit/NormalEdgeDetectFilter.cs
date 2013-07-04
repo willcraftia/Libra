@@ -137,7 +137,7 @@ namespace Libra.Graphics.Toolkit
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerRenderTarget) != 0)
             {
-                constantBufferPerRenderTarget.SetData(DeviceContext, parametersPerRenderTarget);
+                DeviceContext.SetData(constantBufferPerRenderTarget, parametersPerRenderTarget);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerRenderTarget;
             }

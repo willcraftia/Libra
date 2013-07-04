@@ -333,21 +333,21 @@ namespace Libra.Graphics.Toolkit
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerObject) != 0)
             {
-                constantBufferPerObject.SetData(DeviceContext, parametersPerObject);
+                DeviceContext.SetData(constantBufferPerObject, parametersPerObject);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerObject;
             }
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerRenderTarget) != 0)
             {
-                constantBufferPerRenderTarget.SetData(DeviceContext, parametersPerRenderTarget);
+                DeviceContext.SetData(constantBufferPerRenderTarget, parametersPerRenderTarget);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerRenderTarget;
             }
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerCamera) != 0)
             {
-                constantBufferPerCamera.SetData(DeviceContext, parametersPerCamera);
+                DeviceContext.SetData(constantBufferPerCamera, parametersPerCamera);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerCamera;
             }

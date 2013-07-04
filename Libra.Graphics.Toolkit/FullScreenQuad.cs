@@ -68,8 +68,6 @@ namespace Libra.Graphics.Toolkit
 
         #endregion
 
-        DeviceContext context;
-
         SharedDeviceResource sharedDeviceResource;
 
         ConstantBuffer constantBufferPerCamera;
@@ -79,6 +77,8 @@ namespace Libra.Graphics.Toolkit
         Matrix projection;
 
         bool constantBufferPerCameraDirty;
+
+        public DeviceContext DeviceContext { get; private set; }
 
         public Matrix Projection
         {
@@ -95,13 +95,13 @@ namespace Libra.Graphics.Toolkit
 
         public bool ViewRayEnabled { get; set; }
 
-        public FullScreenQuad(DeviceContext context)
+        public FullScreenQuad(DeviceContext deviceContext)
         {
-            if (context == null) throw new ArgumentNullException("context");
+            if (deviceContext == null) throw new ArgumentNullException("deviceContext");
 
-            this.context = context;
+            DeviceContext = deviceContext;
 
-            sharedDeviceResource = context.Device.GetSharedResource<FullScreenQuad, SharedDeviceResource>();
+            sharedDeviceResource = deviceContext.Device.GetSharedResource<FullScreenQuad, SharedDeviceResource>();
 
             parametersPerCamera.FocalLength = Vector2.One;
 
@@ -114,31 +114,31 @@ namespace Libra.Graphics.Toolkit
             {
                 if (constantBufferPerCamera == null)
                 {
-                    constantBufferPerCamera = context.Device.CreateConstantBuffer();
+                    constantBufferPerCamera = DeviceContext.Device.CreateConstantBuffer();
                     constantBufferPerCamera.Initialize<ParametersPerCamera>();
                 }
 
                 if (constantBufferPerCameraDirty)
                 {
-                    constantBufferPerCamera.SetData(context, parametersPerCamera);
+                    DeviceContext.SetData(constantBufferPerCamera, parametersPerCamera);
                     constantBufferPerCameraDirty = false;
                 }
 
-                context.VertexShaderConstantBuffers[0] = constantBufferPerCamera;
-                context.VertexShader = sharedDeviceResource.ViewRayVertexShader;
+                DeviceContext.VertexShaderConstantBuffers[0] = constantBufferPerCamera;
+                DeviceContext.VertexShader = sharedDeviceResource.ViewRayVertexShader;
             }
             else
             {
-                context.VertexShader = sharedDeviceResource.VertexShader;
+                DeviceContext.VertexShader = sharedDeviceResource.VertexShader;
             }
 
             // 入力レイアウト自動解決を OFF に。
-            context.AutoResolveInputLayout = false;
+            DeviceContext.AutoResolveInputLayout = false;
 
-            context.PrimitiveTopology = PrimitiveTopology.TriangleList;
-            context.Draw(3);
+            DeviceContext.PrimitiveTopology = PrimitiveTopology.TriangleList;
+            DeviceContext.Draw(3);
 
-            context.AutoResolveInputLayout = true;
+            DeviceContext.AutoResolveInputLayout = true;
         }
 
         #region IDisposable

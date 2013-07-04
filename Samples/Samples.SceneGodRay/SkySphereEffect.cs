@@ -245,14 +245,14 @@ namespace Samples.SceneGodRay
 
             if ((dirtyFlags & DirtyFlags.VSConstants) != 0)
             {
-                vsConstantBuffer.SetData(DeviceContext, vsConstants);
+                DeviceContext.SetData(vsConstantBuffer, vsConstants);
 
                 dirtyFlags &= ~DirtyFlags.VSConstants;
             }
 
             if ((dirtyFlags & DirtyFlags.PSConstants) != 0)
             {
-                psConstantBuffer.SetData(DeviceContext, psConstants);
+                DeviceContext.SetData(psConstantBuffer, psConstants);
 
                 dirtyFlags &= ~DirtyFlags.PSConstants;
             }

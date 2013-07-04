@@ -484,7 +484,7 @@ namespace Libra.Graphics
             Matrix finalTransformMatrix;
             Matrix.Multiply(ref transformMatrix, ref viewportTransform, out finalTransformMatrix);
 
-            constantBuffer.SetData(DeviceContext, finalTransformMatrix);
+            DeviceContext.SetData(constantBuffer, finalTransformMatrix);
 
             DeviceContext.VertexShaderConstantBuffers[0] = constantBuffer;
 

@@ -168,7 +168,7 @@ namespace Libra.Graphics.Toolkit
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerScene) != 0)
             {
-                constantBufferPerScene.SetData(DeviceContext, parametersPerScene);
+                DeviceContext.SetData(constantBufferPerScene, parametersPerScene);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerScene;
             }

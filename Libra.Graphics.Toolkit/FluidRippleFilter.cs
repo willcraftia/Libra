@@ -199,21 +199,21 @@ namespace Libra.Graphics.Toolkit
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerObject) != 0)
             {
-                constantBufferPerObject.SetData(DeviceContext, parametersPerObject);
+                DeviceContext.SetData(constantBufferPerObject, parametersPerObject);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerObject;
             }
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerRenderTarget) != 0)
             {
-                constantBufferPerRenderTarget.SetData(DeviceContext, parametersPerRenderTarget);
+                DeviceContext.SetData(constantBufferPerRenderTarget, parametersPerRenderTarget);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerRenderTarget;
             }
 
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerFrame) != 0)
             {
-                constantBufferPerFrame.SetData(DeviceContext, parametersPerFrame);
+                DeviceContext.SetData(constantBufferPerFrame, parametersPerFrame);
 
                 dirtyFlags &= ~DirtyFlags.ConstantBufferPerFrame;
             }

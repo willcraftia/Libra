@@ -149,7 +149,7 @@ namespace Samples.MiniCubeIndexed
 
             var worldViewProjection = world * view * projection;
             // 列優先としているので転置してから設定。
-            constantBuffer.SetData(DeviceContext, Matrix.Transpose(worldViewProjection));
+            DeviceContext.SetData(constantBuffer, Matrix.Transpose(worldViewProjection));
 
             DeviceContext.DrawIndexed(indexBuffer.IndexCount);
 
