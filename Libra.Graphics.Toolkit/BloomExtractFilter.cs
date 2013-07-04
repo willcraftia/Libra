@@ -28,9 +28,9 @@ namespace Libra.Graphics.Toolkit
 
         ConstantBuffer constantBufferPerObject;
 
-        bool constantBufferPerObjectDirty;
+        bool constantBufferPerObjectDirty = true;
 
-        float threshold;
+        float threshold = 0.25f;
 
         public DeviceContext DeviceContext { get; private set; }
 
@@ -65,10 +65,6 @@ namespace Libra.Graphics.Toolkit
 
             constantBufferPerObject = deviceContext.Device.CreateConstantBuffer();
             constantBufferPerObject.Initialize(16);
-
-            threshold = 0.25f;
-
-            constantBufferPerObjectDirty = true;
 
             Enabled = true;
         }
