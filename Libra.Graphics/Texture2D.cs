@@ -10,8 +10,6 @@ namespace Libra.Graphics
 {
     public abstract class Texture2D : Resource
     {
-        internal bool initialized;
-
         int width = 1;
 
         int height = 1;
@@ -108,6 +106,8 @@ namespace Libra.Graphics
             get { return new Rectangle(0, 0, width, height); }
         }
 
+        protected internal bool Initialized { get; set; }
+
         protected Texture2D(Device device)
             : base(device)
         {
@@ -137,7 +137,7 @@ namespace Libra.Graphics
 
             InitializeCore();
 
-            initialized = true;
+            Initialized = true;
         }
 
         public void Initialize(Stream stream)
@@ -147,7 +147,7 @@ namespace Libra.Graphics
 
             InitializeCore(stream);
 
-            initialized = true;
+            Initialized = true;
         }
 
         public void Initialize(string path)
@@ -182,89 +182,6 @@ namespace Libra.Graphics
             return shaderResourceView;
         }
 
-        public void Save(DeviceContext context, Stream stream, ImageFileFormat format = ImageFileFormat.Png)
-        {
-            AssertInitialized();
-
-            context.Save(this, stream, format);
-        }
-
-        // GetData メソッドは、データ取得のために内部で Staging リソースをインスタンス化し、
-        // データ取得後に破棄するため、頻繁な呼び出しは GC 負荷となり得る。
-
-        public void GetData<T>(DeviceContext context, T[] data) where T : struct
-        {
-            GetData(context, 0, 0, null, data, 0, data.Length);
-        }
-
-        public void GetData<T>(DeviceContext context, int arrayIndex, T[] data) where T : struct
-        {
-            GetData(context, arrayIndex, 0, null, data, 0, data.Length);
-        }
-
-        public void GetData<T>(DeviceContext context, T[] data, int startIndex, int elementCount) where T : struct
-        {
-            GetData(context, 0, 0, null, data, startIndex, elementCount);
-        }
-
-        public void GetData<T>(
-            DeviceContext context,
-            int arrayIndex,
-            T[] data,
-            int startIndex,
-            int elementCount) where T : struct
-        {
-            GetData(context, arrayIndex, 0, null, data, startIndex, elementCount);
-        }
-
-        public void GetData<T>(
-            DeviceContext context,
-            int arrayIndex,
-            int mipLevel,
-            Rectangle? rectangle,
-            T[] data,
-            int startIndex,
-            int elementCount) where T : struct
-        {
-            AssertInitialized();
-
-            context.GetData(this, arrayIndex, mipLevel, rectangle, data, startIndex, elementCount);
-        }
-
-        public void SetData<T>(DeviceContext context, params T[] data) where T : struct
-        {
-            SetData(context, 0, 0, data, 0, data.Length);
-        }
-
-        public void SetData<T>(DeviceContext context, int arrayIndex, params T[] data) where T : struct
-        {
-            SetData(context, arrayIndex, 0, data, 0, data.Length);
-        }
-
-        public void SetData<T>(DeviceContext context, T[] data, int startIndex, int elementCount) where T : struct
-        {
-            SetData(context, 0, 0, data, startIndex, elementCount);
-        }
-
-        public void SetData<T>(DeviceContext context, int arrayIndex, T[] data, int startIndex, int elementCount) where T : struct
-        {
-            SetData(context, arrayIndex, 0, data, startIndex, elementCount);
-        }
-
-        public void SetData<T>(DeviceContext context, int arrayIndex, int mipLevel, T[] data, int startIndex, int elementCount) where T : struct
-        {
-            AssertInitialized();
-
-            context.SetData(this, arrayIndex, mipLevel, data, startIndex, elementCount);
-        }
-
-        public void SetData<T>(DeviceContext context, int arrayIndex, int mipLevel, Rectangle? rectangle, T[] data, int startIndex, int elementCount) where T : struct
-        {
-            AssertInitialized();
-
-            context.SetData(this, arrayIndex, mipLevel, rectangle, data, startIndex, elementCount);
-        }
-
         protected abstract void InitializeCore();
 
         protected abstract void InitializeCore(Stream stream);
@@ -282,12 +199,7 @@ namespace Libra.Graphics
 
         internal void AssertNotInitialized()
         {
-            if (initialized) throw new InvalidOperationException("Already initialized.");
-        }
-
-        internal void AssertInitialized()
-        {
-            if (!initialized) throw new InvalidOperationException("Not initialized.");
+            if (Initialized) throw new InvalidOperationException("Already initialized.");
         }
     }
 }

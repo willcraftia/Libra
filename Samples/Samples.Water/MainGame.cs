@@ -705,7 +705,8 @@ namespace Samples.Water
             texture.Height = noiseBuffer.Height;
             texture.Format = SurfaceFormat.Vector4;
             texture.Initialize();
-            texture.SetData(DeviceContext, noiseNormals);
+
+            DeviceContext.SetData(texture, noiseNormals);
 
             return texture;
         }
@@ -728,7 +729,8 @@ namespace Samples.Water
             texture.Height = noiseBuffer.Height;
             texture.Format = SurfaceFormat.Single;
             texture.Initialize();
-            texture.SetData(DeviceContext, noiseBuffer.Values);
+
+            DeviceContext.SetData(texture, noiseBuffer.Values);
 
             return texture;
         }

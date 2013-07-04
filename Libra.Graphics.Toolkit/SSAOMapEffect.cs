@@ -289,8 +289,8 @@ namespace Libra.Graphics.Toolkit
                 randomNormalMap.Height = RandomNormalMapSize;
                 randomNormalMap.Format = SurfaceFormat.NormalizedByte4;
                 randomNormalMap.Initialize();
-                randomNormalMap.SetData(DeviceContext, normals);
 
+                DeviceContext.SetData(randomNormalMap, normals);
 
                 dirtyFlags &= ~DirtyFlags.RandomNormals;
             }

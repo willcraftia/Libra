@@ -892,7 +892,49 @@ namespace Libra.Graphics
             DrawIndexedInstancedCore(indexCountPerInstance, instanceCount, startIndexLocation, baseVertexLocation, startInstanceLocation);
         }
 
-        internal void GetData<T>(
+        void AssetInitialized(Texture2D texture)
+        {
+            if (!texture.Initialized) throw new InvalidOperationException("The texture is not initialized.");
+        }
+
+        public void Save(Texture2D texture, Stream stream, ImageFileFormat format = ImageFileFormat.Png)
+        {
+            if (texture == null) throw new ArgumentNullException("texture");
+            if (stream == null) throw new ArgumentNullException("stream");
+            AssetInitialized(texture);
+
+            SaveCore(texture, stream, format);
+        }
+
+        // GetData メソッドは、データ取得のために内部で Staging リソースをインスタンス化し、
+        // データ取得後に破棄するため、頻繁な呼び出しは GC 負荷となり得る。
+
+        public void GetData<T>(Texture2D texture, T[] data) where T : struct
+        {
+            GetData(texture, 0, 0, null, data, 0, data.Length);
+        }
+
+        public void GetData<T>(Texture2D texture, int arrayIndex, T[] data) where T : struct
+        {
+            GetData(texture, arrayIndex, 0, null, data, 0, data.Length);
+        }
+
+        public void GetData<T>(Texture2D texture, T[] data, int startIndex, int elementCount) where T : struct
+        {
+            GetData(texture, 0, 0, null, data, startIndex, elementCount);
+        }
+
+        public void GetData<T>(
+            Texture2D texture,
+            int arrayIndex,
+            T[] data,
+            int startIndex,
+            int elementCount) where T : struct
+        {
+            GetData(texture, arrayIndex, 0, null, data, startIndex, elementCount);
+        }
+
+        public void GetData<T>(
             Texture2D texture,
             int arrayIndex,
             int mipLevel,
@@ -908,11 +950,32 @@ namespace Libra.Graphics
             if (data == null) throw new ArgumentNullException("data");
             if (startIndex < 0) throw new ArgumentOutOfRangeException("startIndex");
             if (data.Length < (startIndex + elementCount)) throw new ArgumentOutOfRangeException("elementCount");
+            AssetInitialized(texture);
 
             GetDataCore(texture, arrayIndex, mipLevel, rectangle, data, startIndex, elementCount);
         }
 
-        internal void SetData<T>(
+        public void SetData<T>(Texture2D texture, params T[] data) where T : struct
+        {
+            SetData(texture, 0, 0, data, 0, data.Length);
+        }
+
+        public void SetData<T>(Texture2D texture, int arrayIndex, params T[] data) where T : struct
+        {
+            SetData(texture, arrayIndex, 0, data, 0, data.Length);
+        }
+
+        public void SetData<T>(Texture2D texture, T[] data, int startIndex, int elementCount) where T : struct
+        {
+            SetData(texture, 0, 0, data, startIndex, elementCount);
+        }
+
+        public void SetData<T>(Texture2D texture, int arrayIndex, T[] data, int startIndex, int elementCount) where T : struct
+        {
+            SetData(texture, arrayIndex, 0, data, startIndex, elementCount);
+        }
+
+        public void SetData<T>(
             Texture2D texture,
             int arrayIndex,
             int mipLevel,
@@ -927,6 +990,7 @@ namespace Libra.Graphics
             if (data == null) throw new ArgumentNullException("data");
             if (startIndex < 0) throw new ArgumentOutOfRangeException("startIndex");
             if (data.Length < (startIndex + elementCount)) throw new ArgumentOutOfRangeException("elementCount");
+            AssetInitialized(texture);
 
             if (texture.Usage == ResourceUsage.Immutable)
                 throw new InvalidOperationException("The specified texture is immutable.");
@@ -997,7 +1061,7 @@ namespace Libra.Graphics
             }
         }
 
-        internal void SetData<T>(
+        public void SetData<T>(
             Texture2D texture,
             int arrayIndex,
             int mipLevel,
@@ -1013,7 +1077,8 @@ namespace Libra.Graphics
             if (data == null) throw new ArgumentNullException("data");
             if (startIndex < 0) throw new ArgumentOutOfRangeException("startIndex");
             if (data.Length < (startIndex + elementCount)) throw new ArgumentOutOfRangeException("elementCount");
-            
+            AssetInitialized(texture);
+
             if (texture.Usage == ResourceUsage.Immutable)
                 throw new InvalidOperationException("The specified texture is immutable.");
 
@@ -1073,14 +1138,6 @@ namespace Libra.Graphics
             {
                 gcHandle.Free();
             }
-        }
-
-        internal void Save(Texture2D texture, Stream stream, ImageFileFormat format = ImageFileFormat.Png)
-        {
-            if (texture == null) throw new ArgumentNullException("texture");
-            if (stream == null) throw new ArgumentNullException("stream");
-
-            SaveCore(texture, stream, format);
         }
 
         protected abstract void DrawCore(int vertexCount, int startVertexLocation);

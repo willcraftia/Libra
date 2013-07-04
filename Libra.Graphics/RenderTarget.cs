@@ -53,7 +53,7 @@ namespace Libra.Graphics
             if (DepthStencilEnabled)
                 DepthStencil = InitializeDepthStencil();
 
-            initialized = true;
+            Initialized = true;
         }
 
         /// <summary>

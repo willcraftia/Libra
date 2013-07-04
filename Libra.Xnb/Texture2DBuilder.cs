@@ -66,7 +66,9 @@ namespace Libra.Xnb
             // 当面は ImmidiateContext 固定。
             // DeferredContext が必要となるならば、
             // ContentManager のサブクラスで DeviceContext を管理するなど。
-            instance.SetData(graphicsService.Device.ImmediateContext, 0, currentMipLevel, value, 0, value.Length);
+
+            var deviceContext = graphicsService.Device.ImmediateContext;
+            deviceContext.SetData(instance, 0, currentMipLevel, value, 0, value.Length);
         }
 
         protected override void Begin()
