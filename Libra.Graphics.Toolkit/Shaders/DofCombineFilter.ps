@@ -12,14 +12,23 @@ SamplerState TextureSampler         : register(s0);
 SamplerState BaseTextureSampler     : register(s1);
 SamplerState LinearDepthMapSampler  : register(s2);
 
-float4 PS(float2 texCoord : TEXCOORD0) : SV_Target
+float4 PS(float2 texCoord : TEXCOORD0,
+          float3 viewRay  : TEXCOORD1) : SV_Target
 {
     float4 bluredScene = Texture.Sample(TextureSampler, texCoord);
     float4 normalScene = BaseTexture.Sample(BaseTextureSampler, texCoord);
     float depth = LinearDepthMap.SampleLevel(LinearDepthMapSampler, texCoord, 0);
 
+    // 位置 (ビュー空間)。
+    float3 position = viewRay * depth;
+
+    // 焦点位置。
+    float3 focusPosition = float3(0, 0, -FocusDistance);
+
+    float d = distance(position, focusPosition);
+
     // ブラー係数 (FocusDistance に近い程に 0、離れている程に 1)。
-    float blurFactor = saturate(abs(depth - FocusDistance) * FocusScale);
+    float blurFactor = saturate(d * FocusScale);
 
     // 通常シーンとブラー済みシーンを線形補間。
     return lerp(normalScene, bluredScene, blurFactor);

@@ -294,6 +294,8 @@ namespace Samples.SceneDepthOfField
             dofCombineFilter.LinearDepthMap = depthRenderTarget;
             dofCombineFilter.BaseTexture = sceneRenderTarget;
 
+            postprocess.Projection = camera.Projection;
+
             finalSceneTexture = postprocess.Draw(sceneRenderTarget);
         }
 

@@ -11,6 +11,7 @@ namespace Libra.Graphics.Toolkit
     /// <summary>
     /// 被写界深度を考慮してシーンを合成するフィルタです。
     /// </summary>
+    [ViewRayRequired]
     public sealed class DofCombineFilter : IFilterEffect, IDisposable
     {
         #region SharedDeviceResource
