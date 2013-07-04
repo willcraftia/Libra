@@ -1378,6 +1378,145 @@ namespace Libra.Graphics
 
         #endregion
 
+        #region IndexBuffer
+
+        public void GetData<T>(IndexBuffer indexBuffer, T[] data, int startIndex, int elementCount) where T : struct
+        {
+            if (indexBuffer == null) throw new ArgumentNullException("indexBuffer");
+            if (data == null) throw new ArgumentNullException("data");
+            if (startIndex < 0) throw new ArgumentOutOfRangeException("startIndex");
+            if (data.Length < (startIndex + elementCount)) throw new ArgumentOutOfRangeException("elementCount");
+            AssetInitialized(indexBuffer);
+
+            GetDataCore(indexBuffer, data, startIndex, elementCount);
+        }
+
+        public void GetData<T>(IndexBuffer indexBuffer, T[] data) where T : struct
+        {
+            if (indexBuffer == null) throw new ArgumentNullException("indexBuffer");
+            if (data == null) throw new ArgumentNullException("data");
+            AssetInitialized(indexBuffer);
+
+            GetDataCore(indexBuffer, data, 0, data.Length);
+        }
+
+        public void SetData<T>(IndexBuffer indexBuffer, T[] data, int startIndex, int elementCount) where T : struct
+        {
+            if (indexBuffer == null) throw new ArgumentNullException("indexBuffer");
+            if (data == null) throw new ArgumentNullException("data");
+            if (startIndex < 0) throw new ArgumentOutOfRangeException("startIndex");
+            if (data.Length < (startIndex + elementCount)) throw new ArgumentOutOfRangeException("elementCount");
+            AssetInitialized(indexBuffer);
+
+            if (indexBuffer.Usage == ResourceUsage.Immutable)
+                throw new InvalidOperationException("Data can not be set from CPU.");
+
+            var gcHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
+            try
+            {
+                var dataPointer = gcHandle.AddrOfPinnedObject();
+                var sizeOfT = Marshal.SizeOf(typeof(T));
+
+                var sourcePointer = (IntPtr) (dataPointer + startIndex * sizeOfT);
+
+                if (indexBuffer.Usage == ResourceUsage.Default)
+                {
+                    UpdateSubresource(indexBuffer, 0, null, sourcePointer, 0, 0);
+                }
+                else
+                {
+                    var sizeInBytes = ((elementCount == 0) ? data.Length : elementCount) * sizeOfT;
+
+                    // TODO
+                    //
+                    // Dynamic だと D3D11MapMode.Write はエラーになる。
+                    // 対応関係を MSDN から把握できないが、どうすべきか。
+                    // ひとまず WriteDiscard とする。
+
+                    var mappedResource = Map(indexBuffer, 0, DeviceContext.MapMode.WriteDiscard);
+                    try
+                    {
+                        GraphicsHelper.CopyMemory(mappedResource.Pointer, sourcePointer, sizeInBytes);
+                    }
+                    finally
+                    {
+                        Unmap(indexBuffer, 0);
+                    }
+                }
+            }
+            finally
+            {
+                gcHandle.Free();
+            }
+        }
+
+        public void SetData<T>(IndexBuffer indexBuffer, params T[] data) where T : struct
+        {
+            SetData(indexBuffer, data, 0, data.Length);
+        }
+
+        public void SetData<T>(IndexBuffer indexBuffer, T[] data, int sourceIndex, int elementCount,
+            SetDataOptions options = SetDataOptions.None) where T : struct
+        {
+            SetData(indexBuffer, 0, data, sourceIndex, elementCount, options);
+        }
+
+        public void SetData<T>(IndexBuffer indexBuffer, int offsetInBytes, T[] data, int sourceIndex, int elementCount,
+            SetDataOptions options = SetDataOptions.None) where T : struct
+        {
+            if (indexBuffer == null) throw new ArgumentNullException("indexBuffer");
+            if (data == null) throw new ArgumentNullException("data");
+            if (sourceIndex < 0) throw new ArgumentOutOfRangeException("startIndex");
+            if (data.Length < (sourceIndex + elementCount)) throw new ArgumentOutOfRangeException("elementCount");
+            AssetInitialized(indexBuffer);
+
+            if (indexBuffer.Usage != ResourceUsage.Dynamic) throw new InvalidOperationException("Resource not writable.");
+
+            if (options == SetDataOptions.Discard && indexBuffer.Usage != ResourceUsage.Dynamic)
+                throw new InvalidOperationException("Resource.Usage must be dynamic for discard option.");
+
+            var gcHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
+            try
+            {
+                var dataPointer = gcHandle.AddrOfPinnedObject();
+                var sizeOfT = Marshal.SizeOf(typeof(T));
+
+                var sourcePointer = (IntPtr) (dataPointer + sourceIndex * sizeOfT);
+                var sizeInBytes = ((elementCount == 0) ? data.Length : elementCount) * sizeOfT;
+
+                // メモ
+                //
+                // D3D11MapFlags.DoNotWait は、Discard と NoOverwite では使えない。
+                // D3D11MapFlags 参照のこと。
+
+                var mappedResource = Map(indexBuffer, 0, (DeviceContext.MapMode) options);
+                var destinationPointer = (IntPtr) (mappedResource.Pointer + offsetInBytes);
+
+                try
+                {
+                    GraphicsHelper.CopyMemory(destinationPointer, sourcePointer, sizeInBytes);
+                }
+                finally
+                {
+                    // Unmap
+                    Unmap(indexBuffer, 0);
+                }
+            }
+            finally
+            {
+                gcHandle.Free();
+            }
+        }
+
+        protected abstract void GetDataCore<T>(IndexBuffer indexBuffer, T[] data, int startIndex, int elementCount) where T : struct;
+
+        void AssetInitialized(IndexBuffer indexBuffer)
+        {
+            if (!indexBuffer.Initialized) throw new InvalidOperationException("The index buffer is not initialized.");
+        }
+
+        #endregion
+
         internal protected abstract MappedSubresource Map(Resource resource, int subresource, MapMode mapMode);
 
         internal protected abstract void Unmap(Resource resource, int subresource);
