@@ -42,16 +42,6 @@ namespace Libra.Graphics.SharpDX
             throw new NotImplementedException();
         }
 
-        protected override void SaveCore(DeviceContext context, Stream stream, ImageFileFormat format)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override void GetDataCore<T>(DeviceContext context, int arrayIndex, int level, Rectangle? rectangle, T[] data, int startIndex, int elementCount)
-        {
-            throw new NotImplementedException();
-        }
-
         void AssertValidState()
         {
             switch (Format)

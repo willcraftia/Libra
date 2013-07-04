@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Runtime.InteropServices;
 
 #endregion
@@ -893,23 +894,236 @@ namespace Libra.Graphics
             DrawIndexedInstancedCore(indexCountPerInstance, instanceCount, startIndexLocation, baseVertexLocation, startInstanceLocation);
         }
 
+        internal void GetData<T>(
+            Texture2D texture,
+            int arrayIndex,
+            int mipLevel,
+            Rectangle? rectangle,
+            T[] data,
+            int startIndex,
+            int elementCount) where T : struct
+        {
+            if (texture == null) throw new ArgumentNullException("texture");
+            if ((uint) (D3D11Constants.ReqTexture2dArrayAxisDimension - 1) < (uint) arrayIndex)
+                throw new ArgumentOutOfRangeException("arrayIndex");
+            if (mipLevel < 0) throw new ArgumentOutOfRangeException("mipLevel");
+            if (data == null) throw new ArgumentNullException("data");
+            if (startIndex < 0) throw new ArgumentOutOfRangeException("startIndex");
+            if (data.Length < (startIndex + elementCount)) throw new ArgumentOutOfRangeException("elementCount");
+
+            GetDataCore(texture, arrayIndex, mipLevel, rectangle, data, startIndex, elementCount);
+        }
+
+        internal void SetData<T>(
+            Texture2D texture,
+            int arrayIndex,
+            int mipLevel,
+            T[] data,
+            int startIndex,
+            int elementCount) where T : struct
+        {
+            if (texture == null) throw new ArgumentNullException("texture");
+            if ((uint) (D3D11Constants.ReqTexture2dArrayAxisDimension - 1) < (uint) arrayIndex)
+                throw new ArgumentOutOfRangeException("arrayIndex");
+            if (mipLevel < 0) throw new ArgumentOutOfRangeException("mipLevel");
+            if (data == null) throw new ArgumentNullException("data");
+            if (startIndex < 0) throw new ArgumentOutOfRangeException("startIndex");
+            if (data.Length < (startIndex + elementCount)) throw new ArgumentOutOfRangeException("elementCount");
+
+            if (texture.Usage == ResourceUsage.Immutable)
+                throw new InvalidOperationException("The specified texture is immutable.");
+
+            int levelWidth = texture.Width >> mipLevel;
+
+            // ブロック圧縮ならばブロック サイズで調整。
+            // この場合、FormatHelper.SizeInBytes で測る値は、
+            // 1 ブロック (4x4 テクセル) に対するバイト数である点に注意。
+            if (FormatHelper.IsBlockCompression(texture.Format))
+            {
+                levelWidth /= 4;
+            }
+
+            var gcHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
+            try
+            {
+                var dataPointer = gcHandle.AddrOfPinnedObject();
+                var sizeOfT = Marshal.SizeOf(typeof(T));
+
+                var sourcePointer = (IntPtr) (dataPointer + startIndex * sizeOfT);
+
+                if (texture.Usage == ResourceUsage.Default)
+                {
+                    // Immutable と Dynamic 以外は UpdateSubresource で更新可能。
+                    // Staging は内部利用にとどめるため Default でのみ UpdateSubresource で更新。
+                    int rowPitch = FormatHelper.SizeInBytes(texture.Format) * levelWidth;
+                    UpdateSubresource(texture, mipLevel, null, sourcePointer, rowPitch, 0);
+                }
+                else
+                {
+                    var sizeInBytes = ((elementCount == 0) ? data.Length : elementCount) * sizeOfT;
+
+                    // ポインタの移動に用いるため、フォーマットから測れる要素サイズで算出しなければならない。
+                    // SizeOf(typeof(T)) では、例えばバイト配列などを渡した場合に、
+                    // そのサイズは元配列の要素の移動となり、リソース要素の移動にはならない。
+                    var rowSpan = FormatHelper.SizeInBytes(texture.Format) * levelWidth;
+
+                    // TODO
+                    //
+                    // Dynamic だと D3D11MapMode.Write はエラーになる。
+                    // 対応関係を MSDN から把握できないが、どうすべきか。
+                    // ひとまず WriteDiscard とする。
+
+                    var subresourceIndex = Resource.CalculateSubresource(mipLevel, arrayIndex, texture.MipLevels);
+                    var mappedResource = Map(texture, subresourceIndex, DeviceContext.MapMode.WriteDiscard);
+                    try
+                    {
+                        var rowSourcePointer = sourcePointer;
+                        var destinationPointer = mappedResource.Pointer;
+
+                        for (int i = 0; i < texture.Height; i++)
+                        {
+                            GraphicsHelper.CopyMemory(destinationPointer, rowSourcePointer, rowSpan);
+                            destinationPointer += mappedResource.RowPitch;
+                            rowSourcePointer += rowSpan;
+                        }
+                    }
+                    finally
+                    {
+                        Unmap(texture, subresourceIndex);
+                    }
+                }
+            }
+            finally
+            {
+                gcHandle.Free();
+            }
+        }
+
+        internal void SetData<T>(
+            Texture2D texture,
+            int arrayIndex,
+            int mipLevel,
+            Rectangle? rectangle,
+            T[] data,
+            int startIndex,
+            int elementCount) where T : struct
+        {
+            if (texture == null) throw new ArgumentNullException("texture");
+            if ((uint) (D3D11Constants.ReqTexture2dArrayAxisDimension - 1) < (uint) arrayIndex)
+                throw new ArgumentOutOfRangeException("arrayIndex");
+            if (mipLevel < 0) throw new ArgumentOutOfRangeException("mipLevel");
+            if (data == null) throw new ArgumentNullException("data");
+            if (startIndex < 0) throw new ArgumentOutOfRangeException("startIndex");
+            if (data.Length < (startIndex + elementCount)) throw new ArgumentOutOfRangeException("elementCount");
+            
+            if (texture.Usage == ResourceUsage.Immutable)
+                throw new InvalidOperationException("The specified texture is immutable.");
+
+            // 領域指定は UpdateSubresource でなければ実装が面倒であるし、
+            // 仮に実装したとしても常に全書き換えを GPU へ命令するため Dynamic の利点も失われるため、
+            // 非サポートとして除外する。
+            if (texture.Usage == ResourceUsage.Dynamic)
+                throw new NotSupportedException("Dynamic texture does not support to write data into the specified bounds.");
+
+            int levelWidth = texture.Width >> mipLevel;
+
+            // ブロック圧縮ならばブロック サイズで調整。
+            // この場合、FormatHelper.SizeInBytes で測る値は、
+            // 1 ブロック (4x4 テクセル) に対するバイト数である点に注意。
+            if (FormatHelper.IsBlockCompression(texture.Format))
+            {
+                levelWidth /= 4;
+            }
+
+            var gcHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
+            try
+            {
+                var dataPointer = gcHandle.AddrOfPinnedObject();
+                var sizeOfT = Marshal.SizeOf(typeof(T));
+
+                var sourcePointer = (IntPtr) (dataPointer + startIndex * sizeOfT);
+
+                int sourceRowPitch;
+
+                Box? destinationBox = null;
+                if (rectangle.HasValue)
+                {
+                    destinationBox = new Box(
+                        rectangle.Value.Left,
+                        rectangle.Value.Top,
+                        0,
+                        rectangle.Value.Right,
+                        rectangle.Value.Bottom,
+                        1);
+
+                    sourceRowPitch = FormatHelper.SizeInBytes(texture.Format) * rectangle.Value.Width;
+                }
+                else
+                {
+                    sourceRowPitch = FormatHelper.SizeInBytes(texture.Format) * levelWidth;
+                }
+
+                if (FormatHelper.IsBlockCompression(texture.Format))
+                {
+                    sourceRowPitch /= 4;
+                }
+
+                var subresourceIndex = Resource.CalculateSubresource(mipLevel, arrayIndex, texture.MipLevels);
+                UpdateSubresource(texture, subresourceIndex, destinationBox, sourcePointer, sourceRowPitch, 0);
+            }
+            finally
+            {
+                gcHandle.Free();
+            }
+        }
+
+        internal void Save(Texture2D texture, Stream stream, ImageFileFormat format = ImageFileFormat.Png)
+        {
+            if (texture == null) throw new ArgumentNullException("texture");
+            if (stream == null) throw new ArgumentNullException("stream");
+
+            SaveCore(texture, stream, format);
+        }
+
         protected abstract void DrawCore(int vertexCount, int startVertexLocation);
 
         protected abstract void DrawIndexedCore(int indexCount, int startIndexLocation, int baseVertexLocation);
 
-        protected abstract void DrawInstancedCore(int vertexCountPerInstance, int instanceCount,
-            int startVertexLocation, int startInstanceLocation);
+        protected abstract void DrawInstancedCore(
+            int vertexCountPerInstance,
+            int instanceCount,
+            int startVertexLocation,
+            int startInstanceLocation);
 
-        protected abstract void DrawIndexedInstancedCore(int indexCountPerInstance, int instanceCount,
-            int startIndexLocation = 0, int baseVertexLocation = 0, int startInstanceLocation = 0);
+        protected abstract void DrawIndexedInstancedCore(
+            int indexCountPerInstance,
+            int instanceCount,
+            int startIndexLocation = 0,
+            int baseVertexLocation = 0,
+            int startInstanceLocation = 0);
+
+        protected abstract void GetDataCore<T>(
+            Texture2D texture,
+            int arrayIndex,
+            int level,
+            Rectangle? rectangle,
+            T[] data,
+            int startIndex,
+            int elementCount) where T : struct;
+
+        protected abstract void SaveCore(Texture2D texture, Stream stream, ImageFileFormat format);
 
         internal protected abstract MappedSubresource Map(Resource resource, int subresource, MapMode mapMode);
 
         internal protected abstract void Unmap(Resource resource, int subresource);
 
         internal protected abstract void UpdateSubresource(
-            Resource destinationResource, int destinationSubresource, Box? destinationBox,
-            IntPtr sourcePointer, int sourceRowPitch, int sourceDepthPitch);
+            Resource destinationResource,
+            int destinationSubresource,
+            Box? destinationBox,
+            IntPtr sourcePointer,
+            int sourceRowPitch,
+            int sourceDepthPitch);
 
         void ApplyState()
         {

@@ -2,14 +2,18 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Runtime.InteropServices;
 
+using D3D11BindFlags = SharpDX.Direct3D11.BindFlags;
 using D3D11Buffer = SharpDX.Direct3D11.Buffer;
 using D3D11CommonShaderStage = SharpDX.Direct3D11.CommonShaderStage;
+using D3D11CpuAccessFlags = SharpDX.Direct3D11.CpuAccessFlags;
 using D3D11DepthStencilClearFlags = SharpDX.Direct3D11.DepthStencilClearFlags;
 using D3D11DepthStencilView = SharpDX.Direct3D11.DepthStencilView;
 using D3D11DeviceContext = SharpDX.Direct3D11.DeviceContext;
 using D3D11DeviceContextType = SharpDX.Direct3D11.DeviceContextType;
+using D3D11ImageFileFormat = SharpDX.Direct3D11.ImageFileFormat;
 using D3D11InputLayout = SharpDX.Direct3D11.InputLayout;
 using D3D11MapFlags = SharpDX.Direct3D11.MapFlags;
 using D3D11MapMode = SharpDX.Direct3D11.MapMode;
@@ -18,9 +22,13 @@ using D3D11PrimitiveTopology = SharpDX.Direct3D.PrimitiveTopology;
 using D3D11RasterizerState = SharpDX.Direct3D11.RasterizerState;
 using D3D11RenderTargetView = SharpDX.Direct3D11.RenderTargetView;
 using D3D11Resource = SharpDX.Direct3D11.Resource;
+using D3D11ResourceOptionFlags = SharpDX.Direct3D11.ResourceOptionFlags;
 using D3D11ResourceRegion = SharpDX.Direct3D11.ResourceRegion;
+using D3D11ResourceUsage = SharpDX.Direct3D11.ResourceUsage;
 using D3D11SamplerState = SharpDX.Direct3D11.SamplerState;
 using D3D11ShaderResourceView = SharpDX.Direct3D11.ShaderResourceView;
+using D3D11Texture2D = SharpDX.Direct3D11.Texture2D;
+using D3D11Texture2DDescription = SharpDX.Direct3D11.Texture2DDescription;
 using D3D11VertexBufferBinding = SharpDX.Direct3D11.VertexBufferBinding;
 using D3D11VertexShader = SharpDX.Direct3D11.VertexShader;
 using DXGIFormat = SharpDX.DXGI.Format;
@@ -290,6 +298,142 @@ namespace Libra.Graphics.SharpDX
                 d3d11ShaderResourceView = (view as SdxShaderResourceView).D3D11ShaderResourceView;
             }
             GetD3D11CommonShaderStage(shaderStage).SetShaderResource(slot, d3d11ShaderResourceView);
+        }
+
+        protected override void GetDataCore<T>(
+            Texture2D texture,
+            int arrayIndex,
+            int mipLevel,
+            Rectangle? rectangle,
+            T[] data,
+            int startIndex,
+            int elementCount)
+        {
+            int w;
+            int h;
+
+            if (rectangle.HasValue)
+            {
+                // 矩形が設定されているならば、これにサイズを合わせる。
+                w = rectangle.Value.Width;
+                h = rectangle.Value.Height;
+            }
+            else
+            {
+                // ミップマップのサイズ。
+                w = texture.Width >> mipLevel;
+                h = texture.Height >> mipLevel;
+            }
+
+            var stagingDescription = new D3D11Texture2DDescription
+            {
+                Width = w,
+                Height = h,
+                MipLevels = 1,
+                ArraySize = 1,
+                Format = (DXGIFormat) texture.Format,
+                SampleDescription =
+                {
+                    Count = 1,
+                    Quality = 0
+                },
+                Usage = D3D11ResourceUsage.Staging,
+                BindFlags = D3D11BindFlags.None,
+                CpuAccessFlags = D3D11CpuAccessFlags.Read,
+                OptionFlags = D3D11ResourceOptionFlags.None
+            };
+
+            D3D11ResourceRegion? d3d11ResourceRegion = null;
+            if (rectangle.HasValue)
+            {
+                d3d11ResourceRegion = new D3D11ResourceRegion
+                {
+                    Left = rectangle.Value.Left,
+                    Top = rectangle.Value.Top,
+                    Front = 0,
+                    Right = rectangle.Value.Right,
+                    Bottom = rectangle.Value.Bottom,
+                    Back = 1
+                };
+            }
+
+            using (var staging = new D3D11Texture2D(device.D3D11Device, stagingDescription))
+            {
+                var d3d11Texture2D = GetD3D11Texture2D(texture);
+
+                var subresourceIndex = Resource.CalculateSubresource(mipLevel, arrayIndex, texture.MipLevels);
+                D3D11DeviceContext.CopySubresourceRegion(d3d11Texture2D, subresourceIndex, d3d11ResourceRegion, staging, 0);
+
+                var gcHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
+                try
+                {
+                    var dataPointer = gcHandle.AddrOfPinnedObject();
+                    var sizeOfT = Marshal.SizeOf(typeof(T));
+                    var destinationPtr = (IntPtr) (dataPointer + startIndex * sizeOfT);
+                    var sizeInBytes = ((elementCount == 0) ? data.Length : elementCount) * sizeOfT;
+
+                    var destinationRowPitch = sizeOfT * w;
+
+                    var dataBox = D3D11DeviceContext.MapSubresource(staging, 0, D3D11MapMode.Read, D3D11MapFlags.None);
+                    try
+                    {
+                        // Texture2D に格納されたデータの整列 (マップで得られる DataBox の RowPitch) は、
+                        // 必ずしも頭の中で期待する状態であるとは限らない。
+                        // データ取得先の RowPitch と異なる場合には、メモリの一括複製では済まず、
+                        // 行ごとにポインタを動かしながら複製する必要がある。
+
+                        if (dataBox.RowPitch == destinationRowPitch)
+                        {
+                            SDXUtilities.CopyMemory(destinationPtr, dataBox.DataPointer, sizeInBytes);
+                        }
+                        else
+                        {
+                            var sourcePtr = dataBox.DataPointer;
+                            for (int i = 0; i < h; i++)
+                            {
+                                SDXUtilities.CopyMemory(destinationPtr, sourcePtr, destinationRowPitch);
+                                destinationPtr += destinationRowPitch;
+                                sourcePtr += dataBox.RowPitch;
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        D3D11DeviceContext.UnmapSubresource(staging, 0);
+                    }
+                }
+                finally
+                {
+                    gcHandle.Free();
+                }
+            }
+        }
+
+        protected override void SaveCore(Texture2D texture, Stream stream, ImageFileFormat format = ImageFileFormat.Png)
+        {
+            var d3d11Texture2D = GetD3D11Texture2D(texture);
+
+            D3D11Resource.ToStream(D3D11DeviceContext, d3d11Texture2D, (D3D11ImageFileFormat) format, stream);
+        }
+
+        D3D11Texture2D GetD3D11Texture2D(Texture2D texture)
+        {
+            if (texture is SdxTexture2D)
+            {
+                return (texture as SdxTexture2D).D3D11Texture2D;
+            }
+            else if (texture is SdxRenderTarget)
+            {
+                return (texture as SdxRenderTarget).D3D11Texture2D;
+            }
+            else if (texture is SdxDepthStencil)
+            {
+                return (texture as SdxDepthStencil).D3D11Texture2D;
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
         }
 
         D3D11CommonShaderStage GetD3D11CommonShaderStage(ShaderStage shaderStage)

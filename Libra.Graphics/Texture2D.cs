@@ -185,10 +185,8 @@ namespace Libra.Graphics
         public void Save(DeviceContext context, Stream stream, ImageFileFormat format = ImageFileFormat.Png)
         {
             AssertInitialized();
-            if (context == null) throw new ArgumentNullException("context");
-            if (stream == null) throw new ArgumentNullException("stream");
 
-            SaveCore(context, stream, format);
+            context.Save(this, stream, format);
         }
 
         // GetData メソッドは、データ取得のために内部で Staging リソースをインスタンス化し、
@@ -209,24 +207,28 @@ namespace Libra.Graphics
             GetData(context, 0, 0, null, data, startIndex, elementCount);
         }
 
-        public void GetData<T>(DeviceContext context, int arrayIndex, T[] data, int startIndex, int elementCount) where T : struct
+        public void GetData<T>(
+            DeviceContext context,
+            int arrayIndex,
+            T[] data,
+            int startIndex,
+            int elementCount) where T : struct
         {
             GetData(context, arrayIndex, 0, null, data, startIndex, elementCount);
         }
 
         public void GetData<T>(
-            DeviceContext context, int arrayIndex, int mipLevel, Rectangle? rectangle, T[] data, int startIndex, int elementCount) where T : struct
+            DeviceContext context,
+            int arrayIndex,
+            int mipLevel,
+            Rectangle? rectangle,
+            T[] data,
+            int startIndex,
+            int elementCount) where T : struct
         {
             AssertInitialized();
-            if (context == null) throw new ArgumentNullException("context");
-            if ((uint) (D3D11Constants.ReqTexture2dArrayAxisDimension - 1) < (uint) arrayIndex)
-                throw new ArgumentOutOfRangeException("arrayIndex");
-            if (mipLevel < 0) throw new ArgumentOutOfRangeException("mipLevel");
-            if (data == null) throw new ArgumentNullException("data");
-            if (startIndex < 0) throw new ArgumentOutOfRangeException("startIndex");
-            if (data.Length < (startIndex + elementCount)) throw new ArgumentOutOfRangeException("elementCount");
 
-            GetDataCore(context, arrayIndex, mipLevel, rectangle, data, startIndex, elementCount);
+            context.GetData(this, arrayIndex, mipLevel, rectangle, data, startIndex, elementCount);
         }
 
         public void SetData<T>(DeviceContext context, params T[] data) where T : struct
@@ -252,165 +254,20 @@ namespace Libra.Graphics
         public void SetData<T>(DeviceContext context, int arrayIndex, int mipLevel, T[] data, int startIndex, int elementCount) where T : struct
         {
             AssertInitialized();
-            if (context == null) throw new ArgumentNullException("context");
-            if ((uint) (D3D11Constants.ReqTexture2dArrayAxisDimension - 1) < (uint) arrayIndex)
-                throw new ArgumentOutOfRangeException("arrayIndex");
-            if (mipLevel < 0) throw new ArgumentOutOfRangeException("mipLevel");
-            if (data == null) throw new ArgumentNullException("data");
-            if (startIndex < 0) throw new ArgumentOutOfRangeException("startIndex");
-            if (data.Length < (startIndex + elementCount)) throw new ArgumentOutOfRangeException("elementCount");
 
-            if (Usage == ResourceUsage.Immutable)
-                throw new InvalidOperationException("Data can not be set from CPU.");
-
-            int levelWidth = Width >> mipLevel;
-
-            // ブロック圧縮ならばブロック サイズで調整。
-            // この場合、FormatHelper.SizeInBytes で測る値は、
-            // 1 ブロック (4x4 テクセル) に対するバイト数である点に注意。
-            if (FormatHelper.IsBlockCompression(Format))
-            {
-                levelWidth /= 4;
-            }
-
-            var gcHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
-            try
-            {
-                var dataPointer = gcHandle.AddrOfPinnedObject();
-                var sizeOfT = Marshal.SizeOf(typeof(T));
-
-                var sourcePointer = (IntPtr) (dataPointer + startIndex * sizeOfT);
-
-                if (Usage == ResourceUsage.Default)
-                {
-                    // Immutable と Dynamic 以外は UpdateSubresource で更新可能。
-                    // Staging は内部利用にとどめるため Default でのみ UpdateSubresource で更新。
-                    int rowPitch = FormatHelper.SizeInBytes(Format) * levelWidth;
-                    context.UpdateSubresource(this, mipLevel, null, sourcePointer, rowPitch, 0);
-                }
-                else
-                {
-                    var sizeInBytes = ((elementCount == 0) ? data.Length : elementCount) * sizeOfT;
-                    
-                    // ポインタの移動に用いるため、フォーマットから測れる要素サイズで算出しなければならない。
-                    // SizeOf(typeof(T)) では、例えばバイト配列などを渡した場合に、
-                    // そのサイズは元配列の要素の移動となり、リソース要素の移動にはならない。
-                    var rowSpan = FormatHelper.SizeInBytes(Format) * levelWidth;
-
-                    // TODO
-                    //
-                    // Dynamic だと D3D11MapMode.Write はエラーになる。
-                    // 対応関係を MSDN から把握できないが、どうすべきか。
-                    // ひとまず WriteDiscard とする。
-
-                    var subresourceIndex = Resource.CalculateSubresource(mipLevel, arrayIndex, mipLevels);
-                    var mappedResource = context.Map(this, subresourceIndex, DeviceContext.MapMode.WriteDiscard);
-                    try
-                    {
-                        var rowSourcePointer = sourcePointer;
-                        var destinationPointer = mappedResource.Pointer;
-
-                        for (int i = 0; i < Height; i++)
-                        {
-                            GraphicsHelper.CopyMemory(destinationPointer, rowSourcePointer, rowSpan);
-                            destinationPointer += mappedResource.RowPitch;
-                            rowSourcePointer += rowSpan;
-                        }
-                    }
-                    finally
-                    {
-                        context.Unmap(this, subresourceIndex);
-                    }
-                }
-            }
-            finally
-            {
-                gcHandle.Free();
-            }
-
+            context.SetData(this, arrayIndex, mipLevel, data, startIndex, elementCount);
         }
 
         public void SetData<T>(DeviceContext context, int arrayIndex, int mipLevel, Rectangle? rectangle, T[] data, int startIndex, int elementCount) where T : struct
         {
             AssertInitialized();
-            if (context == null) throw new ArgumentNullException("context");
-            if ((uint) (D3D11Constants.ReqTexture2dArrayAxisDimension - 1) < (uint) arrayIndex)
-                throw new ArgumentOutOfRangeException("arrayIndex");
-            if (mipLevel < 0) throw new ArgumentOutOfRangeException("mipLevel");
-            if (data == null) throw new ArgumentNullException("data");
-            if (startIndex < 0) throw new ArgumentOutOfRangeException("startIndex");
-            if (data.Length < (startIndex + elementCount)) throw new ArgumentOutOfRangeException("elementCount");
 
-            if (Usage == ResourceUsage.Immutable)
-                throw new InvalidOperationException("Data can not be set from CPU.");
-
-            // 領域指定は UpdateSubresource でなければ実装が面倒であるし、
-            // 仮に実装したとしても常に全書き換えを GPU へ命令するため Dynamic の利点も失われるため、
-            // 非サポートとして除外する。
-            if (Usage == ResourceUsage.Dynamic)
-                throw new NotSupportedException("Dynamic texture does not support to write data into the specified bounds.");
-
-            int levelWidth = Width >> mipLevel;
-
-            // ブロック圧縮ならばブロック サイズで調整。
-            // この場合、FormatHelper.SizeInBytes で測る値は、
-            // 1 ブロック (4x4 テクセル) に対するバイト数である点に注意。
-            if (FormatHelper.IsBlockCompression(Format))
-            {
-                levelWidth /= 4;
-            }
-
-            var gcHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
-            try
-            {
-                var dataPointer = gcHandle.AddrOfPinnedObject();
-                var sizeOfT = Marshal.SizeOf(typeof(T));
-
-                var sourcePointer = (IntPtr) (dataPointer + startIndex * sizeOfT);
-
-                int sourceRowPitch;
-
-                Box? destinationBox = null;
-                if (rectangle.HasValue)
-                {
-                    destinationBox = new Box(
-                        rectangle.Value.Left,
-                        rectangle.Value.Top,
-                        0,
-                        rectangle.Value.Right,
-                        rectangle.Value.Bottom,
-                        1);
-
-                    sourceRowPitch = FormatHelper.SizeInBytes(Format) * rectangle.Value.Width;
-                }
-                else
-                {
-                    sourceRowPitch = FormatHelper.SizeInBytes(Format) * levelWidth;
-                }
-
-                if (FormatHelper.IsBlockCompression(Format))
-                {
-                    sourceRowPitch /= 4;
-                }
-
-                var subresourceIndex = Resource.CalculateSubresource(mipLevel, arrayIndex, mipLevels);
-                context.UpdateSubresource(this, subresourceIndex, destinationBox, sourcePointer, sourceRowPitch, 0);
-            }
-            finally
-            {
-                gcHandle.Free();
-            }
-
+            context.SetData(this, arrayIndex, mipLevel, rectangle, data, startIndex, elementCount);
         }
 
         protected abstract void InitializeCore();
 
         protected abstract void InitializeCore(Stream stream);
-
-        protected abstract void SaveCore(DeviceContext context, Stream stream, ImageFileFormat format);
-
-        protected abstract void GetDataCore<T>(
-            DeviceContext context, int arrayIndex, int level, Rectangle? rectangle, T[] data, int startIndex, int elementCount) where T : struct;
 
         protected override void DisposeOverride(bool disposing)
         {
