@@ -76,14 +76,6 @@ namespace Libra.Graphics.Toolkit
 
         Vector2 screenLightPosition;
 
-        ShaderResourceView glowTexture;
-
-        float glowSize;
-
-        Vector2 glowOrigin;
-
-        float glowScale;
-
         bool lightBehindCamera;
 
         DirtyFlags dirtyFlags;
@@ -104,32 +96,6 @@ namespace Libra.Graphics.Toolkit
         }
 
         public FlareCollection Flares { get; private set; }
-
-        public ShaderResourceView GlowTexture
-        {
-            get { return glowTexture; }
-            set
-            {
-                if (glowTexture == value) return;
-
-                glowTexture = value;
-
-                dirtyFlags |= DirtyFlags.Glow;
-            }
-        }
-
-        public float GlowSize
-        {
-            get { return glowSize; }
-            set
-            {
-                if (glowSize == value) return;
-
-                glowSize = value;
-
-                dirtyFlags |= DirtyFlags.Glow;
-            }
-        }
 
         public Matrix View
         {
@@ -175,7 +141,6 @@ namespace Libra.Graphics.Toolkit
 
             vertices = new VertexPositionColor[4];
             querySize = 100;
-            glowSize = 400;
             Flares = new FlareCollection();
 
             dirtyFlags = DirtyFlags.VertexBuffer;
@@ -227,7 +192,6 @@ namespace Libra.Graphics.Toolkit
 
             UpdateOcclusion();
 
-            DrawGlow();
             DrawFlares();
 
             RestoreRenderStates();
@@ -290,31 +254,6 @@ namespace Libra.Graphics.Toolkit
             occlusionQuery.End();
 
             occlusionQueryActive = true;
-        }
-
-        void DrawGlow()
-        {
-            if (GlowTexture == null)
-                return;
-            
-            if (lightBehindCamera || occlusionAlpha <= 0)
-                return;
-
-            if ((dirtyFlags & DirtyFlags.Glow) != 0)
-            {
-                var texture2d = GetTexture2D(GlowTexture);
-
-                glowOrigin = new Vector2((float) texture2d.Width / 2.0f, (float) texture2d.Height / 2.0f);
-                glowScale = glowSize * 2.0f / (float) texture2d.Width;
-
-                dirtyFlags &= ~DirtyFlags.Glow;
-            }
-
-            var color = Color.White * occlusionAlpha;
-
-            spriteBatch.Begin(SpriteSortMode.Immediate);
-            spriteBatch.Draw(GlowTexture, screenLightPosition, null, color, 0, glowOrigin, glowScale);
-            spriteBatch.End();
         }
 
         void DrawFlares()

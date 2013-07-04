@@ -84,8 +84,6 @@ namespace Samples.LensFlare
             lensFlare = new TKLensFlare(DeviceContext);
             lensFlare.LightDirection = Vector3.Normalize(new Vector3(-1, -0.1f, 0.3f));
 
-            lensFlare.GlowTexture = Content.Load<Texture2D>("glow");
-
             foreach (var flareDefinition in flareDefinitions)
             {
                 var flare = new TKLensFlare.Flare(
