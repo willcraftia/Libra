@@ -106,7 +106,7 @@ namespace Libra.Graphics
             get { return new Rectangle(0, 0, width, height); }
         }
 
-        protected internal bool Initialized { get; set; }
+        public bool Initialized { get; protected internal set; }
 
         protected Texture2D(Device device)
             : base(device)
