@@ -78,12 +78,12 @@ namespace Samples.SceneDepthOfField
         /// <summary>
         /// 深度マップの描画先レンダ ターゲット。
         /// </summary>
-        RenderTarget depthMapRenderTarget;
+        RenderTarget depthRenderTarget;
 
         /// <summary>
         /// 通常シーンの描画先レンダ ターゲット。
         /// </summary>
-        RenderTarget normalSceneRenderTarget;
+        RenderTarget sceneRenderTarget;
 
         /// <summary>
         /// ポストプロセス。
@@ -187,18 +187,18 @@ namespace Samples.SceneDepthOfField
             spriteBatch = new SpriteBatch(DeviceContext);
             spriteFont = content.Load<SpriteFont>("hudFont");
 
-            depthMapRenderTarget = Device.CreateRenderTarget();
-            depthMapRenderTarget.Width = WindowWidth;
-            depthMapRenderTarget.Height = WindowWidth;
-            depthMapRenderTarget.Format = SurfaceFormat.Single;
-            depthMapRenderTarget.DepthStencilEnabled = true;
-            depthMapRenderTarget.Initialize();
+            depthRenderTarget = Device.CreateRenderTarget();
+            depthRenderTarget.Width = WindowWidth;
+            depthRenderTarget.Height = WindowHeight;
+            depthRenderTarget.Format = SurfaceFormat.Single;
+            depthRenderTarget.DepthStencilEnabled = true;
+            depthRenderTarget.Initialize();
 
-            normalSceneRenderTarget = Device.CreateRenderTarget();
-            normalSceneRenderTarget.Width = WindowWidth;
-            normalSceneRenderTarget.Height = WindowHeight;
-            normalSceneRenderTarget.DepthStencilEnabled = true;
-            normalSceneRenderTarget.Initialize();
+            sceneRenderTarget = Device.CreateRenderTarget();
+            sceneRenderTarget.Width = WindowWidth;
+            sceneRenderTarget.Height = WindowHeight;
+            sceneRenderTarget.DepthStencilEnabled = true;
+            sceneRenderTarget.Initialize();
 
             postprocess = new Postprocess(DeviceContext);
             postprocess.Width = WindowWidth;
@@ -245,11 +245,9 @@ namespace Samples.SceneDepthOfField
 
         protected override void Draw(GameTime gameTime)
         {
-            var context = Device.ImmediateContext;
-
             // 念のため状態を初期状態へ。
-            context.BlendState = BlendState.Opaque;
-            context.DepthStencilState = DepthStencilState.Default;
+            DeviceContext.BlendState = null;
+            DeviceContext.DepthStencilState = null;
 
             // 深度マップを作成。
             CreateDepthMap();
@@ -271,35 +269,32 @@ namespace Samples.SceneDepthOfField
 
         void CreateDepthMap()
         {
-            DeviceContext.SetRenderTarget(depthMapRenderTarget);
+            DeviceContext.SetRenderTarget(depthRenderTarget);
             DeviceContext.Clear(new Vector4(float.MaxValue));
 
             DrawScene(depthMapEffect);
 
             DeviceContext.SetRenderTarget(null);
-
-            // フィルタへ設定。
-            dofCombineFilter.LinearDepthMap = depthMapRenderTarget;
         }
 
         void CreateNormalSceneMap()
         {
-            DeviceContext.SetRenderTarget(normalSceneRenderTarget);
+            DeviceContext.SetRenderTarget(sceneRenderTarget);
             DeviceContext.Clear(Color.CornflowerBlue);
 
             DrawScene(basicEffect);
 
             DeviceContext.SetRenderTarget(null);
 
-            // フィルタへ設定。
-            dofCombineFilter.BaseTexture = normalSceneRenderTarget;
-
-            textureDisplay.Textures.Add(normalSceneRenderTarget);
+            textureDisplay.Textures.Add(sceneRenderTarget);
         }
 
         void ApplyPostprocess()
         {
-            finalSceneTexture = postprocess.Draw(normalSceneRenderTarget);
+            dofCombineFilter.LinearDepthMap = depthRenderTarget;
+            dofCombineFilter.BaseTexture = sceneRenderTarget;
+
+            finalSceneTexture = postprocess.Draw(sceneRenderTarget);
         }
 
         void CreateFinalSceneMap()
