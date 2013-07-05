@@ -87,7 +87,7 @@ namespace Libra.Graphics.Toolkit
             get { return parametersPerObject.MiddleGrey; }
             set
             {
-                if (value < 0.0f || 1.0f < value) throw new ArgumentOutOfRangeException("value");
+                if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
 
                 parametersPerObject.MiddleGrey = value;
 

@@ -31,15 +31,12 @@ namespace Libra.Graphics.Toolkit
         public struct ParametersPerObject
         {
             [FieldOffset(0)]
-            public float Threshold;
-
-            [FieldOffset(4)]
             public float MiddleGrey;
 
-            [FieldOffset(8)]
+            [FieldOffset(4)]
             public float MaxLuminance;
 
-            [FieldOffset(12)]
+            [FieldOffset(8)]
             public float BloomIntensity;
         }
 
@@ -61,7 +58,6 @@ namespace Libra.Graphics.Toolkit
 
         ParametersPerObject parametersPerObject = new ParametersPerObject
         {
-            Threshold = 0.5f,
             MiddleGrey = 0.5f,
             MaxLuminance = 1.0f,
             BloomIntensity = 1.0f
@@ -73,25 +69,12 @@ namespace Libra.Graphics.Toolkit
 
         public bool Enabled { get; set; }
 
-        public float Threshold
-        {
-            get { return parametersPerObject.Threshold; }
-            set
-            {
-                if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
-
-                parametersPerObject.Threshold = value;
-
-                dirtyFlags |= DirtyFlags.ConstantBufferPerObject;
-            }
-        }
-
         public float MiddleGrey
         {
             get { return parametersPerObject.MiddleGrey; }
             set
             {
-                if (value < 0.0f || 1.0f < value) throw new ArgumentOutOfRangeException("value");
+                if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
 
                 parametersPerObject.MiddleGrey = value;
 
