@@ -15,7 +15,7 @@ float3 Tone(float3 color)
     float average = LuminanceAverageMap.Sample(LuminanceAverageMapSampler, float2(0.5f, 0.5f));
     float luminance = dot(float3(0.299f, 0.587f, 0.114f), color);
     float scaled = (luminance * MiddleGrey) / average;
-    float compressed = (scaled * (1 + (scaled / MaxLuminance * MaxLuminance))) / (1 + scaled);
+    float compressed = (scaled * (1 + (scaled / (MaxLuminance * MaxLuminance)))) / (1 + scaled);
 
     return color * compressed;
 }
