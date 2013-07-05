@@ -528,6 +528,11 @@ namespace Libra.Graphics.SharpDX
             }
         }
 
+        protected override void GenerateMipsCore(ShaderResourceView shaderResourceView)
+        {
+            D3D11DeviceContext.GenerateMips((shaderResourceView as SdxShaderResourceView).D3D11ShaderResourceView);
+        }
+
         D3D11Texture2D GetD3D11Texture2D(Texture2D texture)
         {
             if (texture is SdxTexture2D)

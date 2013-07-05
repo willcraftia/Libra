@@ -1517,6 +1517,30 @@ namespace Libra.Graphics
 
         #endregion
 
+        #region ShaderResourceView
+
+        public void GenerateMips(ShaderResourceView shaderResourceView)
+        {
+            if (shaderResourceView == null) throw new ArgumentNullException("shaderResourceView");
+
+            var renderTarget = shaderResourceView.Resource as RenderTarget;
+
+            if (renderTarget == null)
+                throw new ArgumentException(
+                    "The specified shader resource view is not for a render target.",
+                    "shaderResourceView");
+            if (renderTarget.MipLevels < 2)
+                throw new ArgumentException(
+                    "The render target of the specified shader resource view does not mip map generation.",
+                    "shaderResourceView");
+
+            GenerateMipsCore(shaderResourceView);
+        }
+
+        protected abstract void GenerateMipsCore(ShaderResourceView shaderResourceView);
+
+        #endregion
+
         internal protected abstract MappedSubresource Map(Resource resource, int subresource, MapMode mapMode);
 
         internal protected abstract void Unmap(Resource resource, int subresource);
