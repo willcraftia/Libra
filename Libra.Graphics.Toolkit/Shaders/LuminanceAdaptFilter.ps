@@ -1,0 +1,27 @@
+//
+// Pattanaik による輝度の調整。
+//
+// 前フレーム平均輝度と現フレーム平均輝度から、
+// フレーム レートを考慮して現フレームで最終的に使用する平均輝度を算出する。
+//
+
+cbuffer PerFrame : register(b0)
+{
+    float DeltaTime;
+};
+
+Texture2D<float> Texture        : register(t0);
+Texture2D<float> LastTexture    : register(t1);
+SamplerState TextureSampler     : register(s0);
+SamplerState LastTextureSampler : register(s1);
+
+float4 PS(float2 texCoord : TEXCOORD0) : SV_Target
+{
+    float currentLuminance = Texture.Sample(TextureSampler, texCoord);
+    float lastLuminance = LastTexture.Sample(LastTextureSampler, texCoord);
+
+    const float tau = 0.5f;
+    float adaptedLuminance = lastLuminance + (currentLuminance + lastLuminance) * (1 - exp(-DeltaTime * tau));
+
+    return float4(adaptedLuminance, 1, 1, 1);
+}

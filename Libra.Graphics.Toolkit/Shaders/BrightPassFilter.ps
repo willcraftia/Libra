@@ -1,0 +1,32 @@
+cbuffer PerObject : register(b0)
+{
+    float Threshold     : packoffset(c0);
+    float MiddleGrey    : packoffset(c0.y);
+    float MaxLuminance  : packoffset(c0.z);
+};
+
+Texture2D<float4> Texture               : register(t0);
+Texture2D<float> LuminanceAverageMap    : register(t1);
+SamplerState TextureSampler             : register(s0);
+SamplerState LuminanceAverageMapSampler : register(s1);
+
+float3 Tone(float3 color)
+{
+    float average = LuminanceAverageMap.Sample(LuminanceAverageMapSampler, float2(0.5f, 0.5f));
+    float luminance = dot(float3(0.299f, 0.587f, 0.114f), color);
+    float scaled = (luminance * MiddleGrey) / average;
+    float compressed = (scaled * (1 + (scaled / MaxLuminance * MaxLuminance))) / (1 + scaled);
+
+    return color * compressed;
+}
+
+float4 PS(float2 texCoord : TEXCOORD0) : SV_Target
+{
+    float4 color = Texture.Sample(TextureSampler, texCoord);
+
+    float3 tone = Tone(color.rgb);
+    tone -= Threshold;
+    tone = max(tone, 0);
+
+    return float4(tone, color.a);
+}

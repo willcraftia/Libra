@@ -1,0 +1,44 @@
+//
+// メモ
+//
+// Y  =  0.29900 * R + 0.58700 * G + 0.11400 * B
+// Cb = -0.16874 * R - 0.33126 * G + 0.50000 * B
+// Cr =  0.50000 * R - 0.41869 * G - 0.08131 * B
+//
+// Y is luminance component
+// Cb is the blue-defference chroma component
+// Cr is the red-difference chroma component
+//
+// R = Y                + 1.40200 * Cr
+// G = Y - 0.34414 * Cb - 0.71414 * Cr
+// B = Y + 1.77200 * Cb
+//
+
+//
+// http://content.gpwiki.org/index.php/D3DBook:High-Dynamic_Range_Rendering
+//
+// LumAvg = exp(sigma(log(delta + Lum(x, y))) / N);
+//
+// LumAve: シーン輝度の平均値
+// delta:  log(0) を回避するための値 (輝度が 0 の場合に発生)。
+// Lum:    ピクセルの輝度
+// N:      ピクセル数
+//
+// このシェーダでは「log(delta + Lum(x, y))」 の部分を算出 (logLuminance)。
+// これに対し、平均値によるダウン サンプリングを繰り返し、
+// sigma(logLuminance) を算出する。
+// 最後に平均値フィルタを適用し、exp(sigma(logLuminance)) を算出する。
+
+Texture2D<float4> Texture : register(t0);
+SamplerState TextureSampler : register(s0);
+
+float4 PS(float2 texCoord : TEXCOORD0) : SV_Target
+{
+    float4 source = Texture.Sample(TextureSampler, texCoord);
+
+    float luminance = dot(float3(0.299f, 0.587f, 0.114f), source.rgb);
+
+    float logLuminance = log(1e-5 + luminance);
+
+    return float4(logLuminance, 1, 1, 1);
+}

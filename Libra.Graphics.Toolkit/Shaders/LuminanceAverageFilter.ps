@@ -1,0 +1,16 @@
+//
+// このシェーダは LuminanceLogFilter により生成された
+// 輝度テクスチャを対象とする。
+//
+
+Texture2D<float> Texture : register(t0);
+SamplerState TextureSampler : register(s0);
+
+float4 PS(float2 texCoord : TEXCOORD0) : SV_Target
+{
+    float logLuminance = Texture.Sample(TextureSampler, texCoord);
+
+    float averageLuminance = exp(logLuminance);
+
+    return float4(averageLuminance, 1, 1, 1);
+}

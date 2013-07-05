@@ -81,6 +81,20 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
+        internal static byte[] BrightPassCombineFilterPS {
+            get {
+                object obj = ResourceManager.GetObject("BrightPassCombineFilterPS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] BrightPassFilterPS {
+            get {
+                object obj = ResourceManager.GetObject("BrightPassFilterPS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
         internal static byte[] CloudLayerFilterPS {
             get {
                 object obj = ResourceManager.GetObject("CloudLayerFilterPS", resourceCulture);
@@ -266,6 +280,27 @@ namespace Libra.Graphics.Toolkit.Properties {
         internal static byte[] LinearFogFilterPS {
             get {
                 object obj = ResourceManager.GetObject("LinearFogFilterPS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] LuminanceAdaptFilterPS {
+            get {
+                object obj = ResourceManager.GetObject("LuminanceAdaptFilterPS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] LuminanceAverageFilterPS {
+            get {
+                object obj = ResourceManager.GetObject("LuminanceAverageFilterPS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] LuminanceLogFilterPS {
+            get {
+                object obj = ResourceManager.GetObject("LuminanceLogFilterPS", resourceCulture);
                 return ((byte[])(obj));
             }
         }

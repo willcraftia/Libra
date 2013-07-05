@@ -41,6 +41,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BezierMesh.cs" />
+    <Compile Include="BrightPassCombineFilter.cs" />
+    <Compile Include="BrightPassFilter.cs" />
     <Compile Include="CascadeShadowMap.cs" />
     <Compile Include="CloudEffect.cs" />
     <Compile Include="CloudLayerFilter.cs" />
@@ -54,6 +56,10 @@
     <Compile Include="HeightToNormalConverter.cs" />
     <Compile Include="LensFlare.cs" />
     <Compile Include="LinearFogDepthMapEffect.cs" />
+    <Compile Include="LuminanceAdaptFilter.cs" />
+    <Compile Include="LuminanceAverageFilter.cs" />
+    <Compile Include="LuminanceExtractor.cs" />
+    <Compile Include="LuminanceLogFilter.cs" />
     <Compile Include="NormalBilateralFilter.cs" />
     <Compile Include="OcclusionMergeFilter.cs" />
     <Compile Include="ParticleEffect.cs" />
@@ -147,11 +153,15 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Shaders\BrightPassCombineFilter.ps" />
+    <None Include="Shaders\BrightPassFilter.ps" />
     <None Include="Shaders\Cloud.ps" />
     <None Include="Shaders\Cloud.vs" />
     <None Include="Shaders\CloudLayerFilter.ps" />
     <None Include="Shaders\Compiled\BloomCombineFilterPS.bin" />
     <None Include="Shaders\Compiled\BloomExtractFilterPS.bin" />
+    <None Include="Shaders\Compiled\BrightPassCombineFilterPS.bin" />
+    <None Include="Shaders\Compiled\BrightPassFilterPS.bin" />
     <None Include="Shaders\Compiled\CloudLayerFilterPS.bin" />
     <None Include="Shaders\Compiled\CloudPS.bin" />
     <None Include="Shaders\Compiled\CloudVS.bin" />
@@ -176,6 +186,9 @@
     <None Include="Shaders\Compiled\LinearFogDepthMapPS.bin" />
     <None Include="Shaders\Compiled\LinearFogDepthMapVS.bin" />
     <None Include="Shaders\Compiled\LinearFogFilterPS.bin" />
+    <None Include="Shaders\Compiled\LuminanceAdaptFilterPS.bin" />
+    <None Include="Shaders\Compiled\LuminanceAverageFilterPS.bin" />
+    <None Include="Shaders\Compiled\LuminanceLogFilterPS.bin" />
     <None Include="Shaders\Compiled\MonochromeFilterPS.bin" />
     <None Include="Shaders\Compiled\NormalBilateralFilterPS.bin" />
     <None Include="Shaders\Compiled\NormalDepthBilateralFilterPS.bin" />
@@ -204,6 +217,9 @@
     <None Include="Shaders\LinearDepthMap.ps" />
     <None Include="Shaders\LinearFogDepthMap.ps" />
     <None Include="Shaders\LinearFogDepthMap.vs" />
+    <None Include="Shaders\LuminanceAdaptFilter.ps" />
+    <None Include="Shaders\LuminanceAverageFilter.ps" />
+    <None Include="Shaders\LuminanceLogFilter.ps" />
     <None Include="Shaders\NormalBilateralFilter.ps" />
     <None Include="Shaders\NormalMap.ps" />
     <None Include="Shaders\OcclusionMergeFilter.ps" />

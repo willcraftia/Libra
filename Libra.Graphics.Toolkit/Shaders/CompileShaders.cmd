@@ -11,6 +11,8 @@ set ps_profile=ps_5_0
 call :CompilePS BilateralFilter PS %ps_profile%
 call :CompilePS BloomCombineFilter PS %ps_profile%
 call :CompilePS BloomExtractFilter PS %ps_profile%
+call :CompilePS BrightPassCombineFilter PS %ps_profile%
+call :CompilePS BrightPassFilter PS %ps_profile%
 call :CompilePS CloudLayerFilter PS %ps_profile%
 call :CompilePS CombineFilter PS %ps_profile%
 call :CompilePS DofCombineFilter PS %ps_profile%
@@ -23,6 +25,9 @@ call :CompilePS HeightFogFilter PS %ps_profile%
 call :CompilePS LightScatteringFilter PS %ps_profile%
 call :CompilePS LinearDepthMapColorFilter PS %ps_profile%
 call :CompilePS LinearFogFilter PS %ps_profile%
+call :CompilePS LuminanceAdaptFilter PS %ps_profile%
+call :CompilePS LuminanceAverageFilter PS %ps_profile%
+call :CompilePS LuminanceLogFilter PS %ps_profile%
 call :CompilePS MonochromeFilter PS %ps_profile%
 call :CompilePS NormalBilateralFilter PS %ps_profile%
 call :CompilePS NormalDepthBilateralFilter PS %ps_profile%
