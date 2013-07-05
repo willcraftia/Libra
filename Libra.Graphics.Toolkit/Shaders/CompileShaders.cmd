@@ -38,6 +38,7 @@ call :CompilePS OcclusionMapColorFilter PS %ps_profile%
 call :CompilePS OcclusionMergeFilter PS %ps_profile%
 call :CompilePS RadialFilter PS %ps_profile%
 call :CompilePS ScanlineFilter PS %ps_profile%
+call :CompilePS SWDownFilter PS %ps_profile%
 call :CompilePS UpFilter PS %ps_profile%
 call :CompilePS VolumetricFogCombineFilter PS %ps_profile%
 

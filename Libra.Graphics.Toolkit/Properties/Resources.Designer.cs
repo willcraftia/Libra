@@ -445,6 +445,13 @@ namespace Libra.Graphics.Toolkit.Properties {
             }
         }
         
+        internal static byte[] SWDownFilterPS {
+            get {
+                object obj = ResourceManager.GetObject("SWDownFilterPS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
         internal static byte[] UpFilterPS {
             get {
                 object obj = ResourceManager.GetObject("UpFilterPS", resourceCulture);

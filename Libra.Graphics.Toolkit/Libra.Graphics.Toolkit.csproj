@@ -203,6 +203,7 @@
     <None Include="Shaders\Compiled\ShadowSceneMapPcfPS.bin" />
     <None Include="Shaders\Compiled\ShadowSceneMapVariancePS.bin" />
     <None Include="Shaders\Compiled\SSAOMapPS.bin" />
+    <None Include="Shaders\Compiled\SWDownFilterPS.bin" />
     <None Include="Shaders\Compiled\VolumetricFogCombineFilterPS.bin" />
     <None Include="Shaders\Compiled\VolumetricFogMapPS.bin" />
     <None Include="Shaders\Compiled\VolumetricFogMapVS.bin" />
@@ -211,6 +212,7 @@
     <None Include="Shaders\Fluid.ps" />
     <None Include="Shaders\Fluid.vs" />
     <None Include="Shaders\HeightFogFilter.ps" />
+    <None Include="Shaders\DownFilter.ps" />
     <None Include="Shaders\LinearFogFilter.ps" />
     <None Include="Shaders\HeightToGradientFilter.ps" />
     <None Include="Shaders\HeightToNormalFilter.ps" />
@@ -229,6 +231,7 @@
     <None Include="Shaders\ShadowSceneMap.ps" />
     <None Include="Shaders\SingleColorObject.ps" />
     <None Include="Shaders\SSAOMap.ps" />
+    <None Include="Shaders\SWDownFilter.ps" />
     <None Include="Shaders\VolumetricFogCombineFilter.ps" />
     <None Include="Shaders\NormalDepthBilateralFilter.ps" />
     <None Include="Shaders\OcclusionCombineFilter.ps" />
@@ -251,7 +254,6 @@
     <None Include="Shaders\CompileShaders.cmd" />
     <None Include="Shaders\DepthMap.vs" />
     <None Include="Shaders\DofCombineFilter.ps" />
-    <None Include="Shaders\DownFilter.ps" />
     <None Include="Shaders\EdgeFilter.ps" />
     <None Include="Shaders\FullScreenQuad.vs" />
     <None Include="Shaders\GaussianFilter.ps" />

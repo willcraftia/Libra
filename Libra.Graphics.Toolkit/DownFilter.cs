@@ -16,10 +16,15 @@ namespace Libra.Graphics.Toolkit
         {
             public PixelShader PixelShader { get; private set; }
 
+            public PixelShader SWPixelShader { get; private set; }
+
             public SharedDeviceResource(Device device)
             {
                 PixelShader = device.CreatePixelShader();
                 PixelShader.Initialize(Resources.DownFilterPS);
+
+                SWPixelShader = device.CreatePixelShader();
+                SWPixelShader.Initialize(Resources.SWDownFilterPS);
             }
         }
 
@@ -92,6 +97,8 @@ namespace Libra.Graphics.Toolkit
 
         public DeviceContext DeviceContext { get; private set; }
 
+        public bool Enabled { get; set; }
+
         public float WidthScale
         {
             get { return widthScale; }
@@ -114,7 +121,7 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        public bool Enabled { get; set; }
+        public bool SoftwareSamplingEnabled { get; set; }
 
         public ShaderResourceView Texture { get; set; }
 
@@ -143,39 +150,47 @@ namespace Libra.Graphics.Toolkit
 
         public void Apply()
         {
-            var viewport = DeviceContext.Viewport;
-            int currentWidth = (int) viewport.Width;
-            int currentHeight = (int) viewport.Height;
-
-            if (currentWidth != viewportWidth || currentHeight != viewportHeight)
+            if (SoftwareSamplingEnabled)
             {
-                viewportWidth = currentWidth;
-                viewportHeight = currentHeight;
+                var viewport = DeviceContext.Viewport;
+                int currentWidth = (int) viewport.Width;
+                int currentHeight = (int) viewport.Height;
 
-                dirtyFlags |= DirtyFlags.Offsets;
-            }
-
-            if ((dirtyFlags & DirtyFlags.Offsets) != 0)
-            {
-                for (int i = 0; i < KernelSize; i++)
+                if (currentWidth != viewportWidth || currentHeight != viewportHeight)
                 {
-                    parametersPerRenderTarget.Offsets[i].X = Offsets[i].X / (float) viewportWidth;
-                    parametersPerRenderTarget.Offsets[i].Y = Offsets[i].Y / (float) viewportHeight;
+                    viewportWidth = currentWidth;
+                    viewportHeight = currentHeight;
+
+                    dirtyFlags |= DirtyFlags.Offsets;
                 }
 
-                dirtyFlags &= ~DirtyFlags.Offsets;
-                dirtyFlags |= DirtyFlags.ConstantBufferPerRenderTarget;
-            }
+                if ((dirtyFlags & DirtyFlags.Offsets) != 0)
+                {
+                    for (int i = 0; i < KernelSize; i++)
+                    {
+                        parametersPerRenderTarget.Offsets[i].X = Offsets[i].X / (float) viewportWidth;
+                        parametersPerRenderTarget.Offsets[i].Y = Offsets[i].Y / (float) viewportHeight;
+                    }
 
-            if ((dirtyFlags & DirtyFlags.ConstantBufferPerRenderTarget) != 0)
+                    dirtyFlags &= ~DirtyFlags.Offsets;
+                    dirtyFlags |= DirtyFlags.ConstantBufferPerRenderTarget;
+                }
+
+                if ((dirtyFlags & DirtyFlags.ConstantBufferPerRenderTarget) != 0)
+                {
+                    DeviceContext.SetData(constantBufferPerRenderTarget, parametersPerRenderTarget);
+
+                    dirtyFlags &= ~DirtyFlags.ConstantBufferPerRenderTarget;
+                }
+
+                DeviceContext.PixelShaderConstantBuffers[0] = constantBufferPerRenderTarget;
+                DeviceContext.PixelShader = sharedDeviceResource.SWPixelShader;
+            }
+            else
             {
-                DeviceContext.SetData(constantBufferPerRenderTarget, parametersPerRenderTarget);
-
-                dirtyFlags &= ~DirtyFlags.ConstantBufferPerRenderTarget;
+                DeviceContext.PixelShader = sharedDeviceResource.PixelShader;
             }
 
-            DeviceContext.PixelShader = sharedDeviceResource.PixelShader;
-            DeviceContext.PixelShaderConstantBuffers[0] = constantBufferPerRenderTarget;
             DeviceContext.PixelShaderResources[0] = Texture;
             DeviceContext.PixelShaderSamplers[0] = TextureSampler;
         }
