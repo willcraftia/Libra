@@ -116,7 +116,7 @@ namespace Libra.Graphics.Toolkit
             {
                 DisposeRenderTargets();
                 
-                int chainCount = 1;
+                int chainCount = 0;
                 int size = 1;
                 for (; size <= width || size <= height; size *= 4)
                     chainCount++;
