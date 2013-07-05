@@ -111,7 +111,7 @@ namespace Samples.ScenePostprocess
         /// <summary>
         /// ポストプロセス。
         /// </summary>
-        Postprocess postprocess;
+        FilterChain filterChain;
 
         /// <summary>
         /// ダウン フィルタ。
@@ -310,9 +310,9 @@ namespace Samples.ScenePostprocess
             normalSceneRenderTarget.DepthStencilEnabled = true;
             normalSceneRenderTarget.Initialize();
 
-            postprocess = new Postprocess(DeviceContext);
-            postprocess.Width = WindowWidth;
-            postprocess.Height = WindowHeight;
+            filterChain = new FilterChain(DeviceContext);
+            filterChain.Width = WindowWidth;
+            filterChain.Height = WindowHeight;
 
             downFilter = new DownFilter(DeviceContext);
             upFilter = new UpFilter(DeviceContext);
@@ -480,12 +480,12 @@ namespace Samples.ScenePostprocess
         void ApplyPostprocess()
         {
             // ViewRayRequired 属性を持つフィルタを追加している場合、射影行列の設定が必須。
-            postprocess.Projection = camera.Projection;
+            filterChain.Projection = camera.Projection;
             
             // 高低フォグ フィルタはビュー行列を要求。
             heightFogFilter.View = camera.View;
 
-            finalSceneTexture = postprocess.Draw(normalSceneRenderTarget);
+            finalSceneTexture = filterChain.Draw(normalSceneRenderTarget);
         }
 
         void DrawPrimitiveMesh(PrimitiveMesh mesh, Matrix world, Vector3 color)
@@ -582,7 +582,7 @@ namespace Samples.ScenePostprocess
 
         void UpdatePostprocess()
         {
-            postprocess.Filters.Clear();
+            filterChain.Filters.Clear();
 
             switch (postprocessType)
             {
@@ -612,33 +612,33 @@ namespace Samples.ScenePostprocess
 
         void SetupDepthOfField()
         {
-            postprocess.Filters.Add(downFilter);
-            postprocess.Filters.Add(gaussianFilterH);
-            postprocess.Filters.Add(gaussianFilterV);
-            postprocess.Filters.Add(upFilter);
-            postprocess.Filters.Add(dofCombineFilter);
+            filterChain.Filters.Add(downFilter);
+            filterChain.Filters.Add(gaussianFilterH);
+            filterChain.Filters.Add(gaussianFilterV);
+            filterChain.Filters.Add(upFilter);
+            filterChain.Filters.Add(dofCombineFilter);
 
             AddCommonPasses();
         }
 
         void SetupBloom()
         {
-            postprocess.Filters.Add(bloomExtractFilter);
-            postprocess.Filters.Add(downFilter);
-            postprocess.Filters.Add(gaussianFilterH);
-            postprocess.Filters.Add(gaussianFilterV);
-            postprocess.Filters.Add(upFilter);
-            postprocess.Filters.Add(bloomCombineFilter);
+            filterChain.Filters.Add(bloomExtractFilter);
+            filterChain.Filters.Add(downFilter);
+            filterChain.Filters.Add(gaussianFilterH);
+            filterChain.Filters.Add(gaussianFilterV);
+            filterChain.Filters.Add(upFilter);
+            filterChain.Filters.Add(bloomCombineFilter);
 
             AddCommonPasses();
         }
 
         void SetupBlur()
         {
-            postprocess.Filters.Add(downFilter);
-            postprocess.Filters.Add(gaussianFilterH);
-            postprocess.Filters.Add(gaussianFilterV);
-            postprocess.Filters.Add(upFilter);
+            filterChain.Filters.Add(downFilter);
+            filterChain.Filters.Add(gaussianFilterH);
+            filterChain.Filters.Add(gaussianFilterV);
+            filterChain.Filters.Add(upFilter);
 
             AddCommonPasses();
         }
@@ -650,8 +650,8 @@ namespace Samples.ScenePostprocess
             const int iteration = 6;
             for (int i = 0; i < iteration; i++)
             {
-                postprocess.Filters.Add(bilateralFilterH);
-                postprocess.Filters.Add(bilateralFilterV);
+                filterChain.Filters.Add(bilateralFilterH);
+                filterChain.Filters.Add(bilateralFilterV);
             }
 
             AddCommonPasses();
@@ -659,15 +659,15 @@ namespace Samples.ScenePostprocess
 
         void AddCommonPasses()
         {
-            postprocess.Filters.Add(monochromeFilter);
-            postprocess.Filters.Add(scanlineFilter);
-            postprocess.Filters.Add(negativeFilter);
-            postprocess.Filters.Add(edgeFilter);
-            postprocess.Filters.Add(radialFilter);
-            postprocess.Filters.Add(normalEdgeDetectFilter);
-            postprocess.Filters.Add(linearFogFilter);
-            postprocess.Filters.Add(exponentialFogFilter);
-            postprocess.Filters.Add(heightFogFilter);
+            filterChain.Filters.Add(monochromeFilter);
+            filterChain.Filters.Add(scanlineFilter);
+            filterChain.Filters.Add(negativeFilter);
+            filterChain.Filters.Add(edgeFilter);
+            filterChain.Filters.Add(radialFilter);
+            filterChain.Filters.Add(normalEdgeDetectFilter);
+            filterChain.Filters.Add(linearFogFilter);
+            filterChain.Filters.Add(exponentialFogFilter);
+            filterChain.Filters.Add(heightFogFilter);
         }
 
         void HandleInput(GameTime gameTime)

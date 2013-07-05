@@ -8,9 +8,9 @@ using System.Collections.ObjectModel;
 
 namespace Libra.Graphics.Toolkit
 {
-    public sealed class Postprocess : IDisposable
+    public sealed class FilterChain : IDisposable
     {
-        #region PassCollection
+        #region FilterCollection
 
         public sealed class FilterCollection : Collection<IFilterEffect>
         {
@@ -103,7 +103,7 @@ namespace Libra.Graphics.Toolkit
 
         public bool Enabled { get; set; }
 
-        public Postprocess(DeviceContext context)
+        public FilterChain(DeviceContext context)
         {
             if (context == null) throw new ArgumentNullException("context");
 
@@ -233,7 +233,7 @@ namespace Libra.Graphics.Toolkit
 
         bool disposed;
 
-        ~Postprocess()
+        ~FilterChain()
         {
             Dispose(false);
         }

@@ -36,7 +36,7 @@ namespace Libra.Graphics.Toolkit
         /// <summary>
         /// ポストプロセス。
         /// </summary>
-        Postprocess postprocess;
+        FilterChain filterChain;
 
         /// <summary>
         /// ダウン サンプリング フィルタ。
@@ -256,8 +256,8 @@ namespace Libra.Graphics.Toolkit
             fullScreenQuad = new FullScreenQuad(deviceContext);
             fullScreenQuad.ViewRayEnabled = true;
 
-            postprocess = new Postprocess(DeviceContext);
-            postprocess.Format = SurfaceFormat.Single;
+            filterChain = new FilterChain(DeviceContext);
+            filterChain.Format = SurfaceFormat.Single;
 
             blurFilter = new NormalDepthBilateralFilter(DeviceContext);
             blurPassH = new GaussianFilterPass(blurFilter, GaussianFilterDirection.Horizon);
@@ -288,9 +288,9 @@ namespace Libra.Graphics.Toolkit
                 renderTarget.PreferredMultisampleCount = preferredRenderTargetMultisampleCount;
                 renderTarget.Initialize();
 
-                postprocess.Width = renderTarget.Width;
-                postprocess.Height = renderTarget.Height;
-                postprocess.PreferredMultisampleCount = preferredRenderTargetMultisampleCount;
+                filterChain.Width = renderTarget.Width;
+                filterChain.Height = renderTarget.Height;
+                filterChain.PreferredMultisampleCount = preferredRenderTargetMultisampleCount;
 
                 dirtyFlags &= ~DirtyFlags.RenderTarget;
             }
@@ -318,7 +318,7 @@ namespace Libra.Graphics.Toolkit
         {
             if ((dirtyFlags & DirtyFlags.Postprocess) != 0)
             {
-                postprocess.Filters.Clear();
+                filterChain.Filters.Clear();
 
                 if (blurScale != 1.0f)
                 {
@@ -335,18 +335,18 @@ namespace Libra.Graphics.Toolkit
                     upFilter.WidthScale = upScale;
                     upFilter.HeightScale = upScale;
 
-                    postprocess.Filters.Add(downFilter);
+                    filterChain.Filters.Add(downFilter);
                 }
 
                 for (int i = 0; i < blurIteration; i++)
                 {
-                    postprocess.Filters.Add(blurPassH);
-                    postprocess.Filters.Add(blurPassV);
+                    filterChain.Filters.Add(blurPassH);
+                    filterChain.Filters.Add(blurPassV);
                 }
 
                 if (blurScale != 1.0f)
                 {
-                    postprocess.Filters.Add(upFilter);
+                    filterChain.Filters.Add(upFilter);
                 }
 
                 dirtyFlags &= ~DirtyFlags.Postprocess;
@@ -360,7 +360,7 @@ namespace Libra.Graphics.Toolkit
             blurFilter.NormalMap = ssaoMapEffect.NormalMap;
             blurFilter.NormalMapSampler = ssaoMapEffect.NormalMapSampler;
 
-            FinalTexture = postprocess.Draw(BaseTexture);
+            FinalTexture = filterChain.Draw(BaseTexture);
         }
 
         #region IDisposable
@@ -386,7 +386,7 @@ namespace Libra.Graphics.Toolkit
             {
                 ssaoMapEffect.Dispose();
                 fullScreenQuad.Dispose();
-                postprocess.Dispose();
+                filterChain.Dispose();
                 blurFilter.Dispose();
 
                 if (renderTarget != null) renderTarget.Dispose();

@@ -108,7 +108,7 @@ namespace Samples.SceneVolumetricFog
         /// <summary>
         /// ポストプロセス。
         /// </summary>
-        Postprocess postprocess;
+        FilterChain filterChain;
 
         /// <summary>
         /// ダウン フィルタ。
@@ -253,9 +253,9 @@ namespace Samples.SceneVolumetricFog
             normalSceneRenderTarget.DepthStencilEnabled = true;
             normalSceneRenderTarget.Initialize();
 
-            postprocess = new Postprocess(DeviceContext);
-            postprocess.Width = WindowWidth;
-            postprocess.Height = WindowHeight;
+            filterChain = new FilterChain(DeviceContext);
+            filterChain.Width = WindowWidth;
+            filterChain.Height = WindowHeight;
 
             downFilter = new DownFilter(DeviceContext);
             upFilter = new UpFilter(DeviceContext);
@@ -268,10 +268,10 @@ namespace Samples.SceneVolumetricFog
             backFogDepthMapColorFilter = new LinearDepthMapColorFilter(DeviceContext);
             backFogDepthMapColorFilter.Enabled = false;
             
-            postprocess.Filters.Add(volumetricFogCombineFilter);
-            postprocess.Filters.Add(depthMapColorFilter);
-            postprocess.Filters.Add(frontFogDepthMapColorFilter);
-            postprocess.Filters.Add(backFogDepthMapColorFilter);
+            filterChain.Filters.Add(volumetricFogCombineFilter);
+            filterChain.Filters.Add(depthMapColorFilter);
+            filterChain.Filters.Add(frontFogDepthMapColorFilter);
+            filterChain.Filters.Add(backFogDepthMapColorFilter);
 
             depthMapEffect = new LinearDepthMapEffect(DeviceContext);
             fogDepthMapEffect = new LinearFogDepthMapEffect(DeviceContext);
@@ -414,7 +414,7 @@ namespace Samples.SceneVolumetricFog
 
         void ApplyPostprocess()
         {
-            finalSceneTexture = postprocess.Draw(normalSceneRenderTarget);
+            finalSceneTexture = filterChain.Draw(normalSceneRenderTarget);
         }
 
         void DrawPrimitiveMesh(PrimitiveMesh mesh, Matrix world, Vector3 color)

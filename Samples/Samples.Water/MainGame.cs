@@ -278,7 +278,7 @@ namespace Samples.Water
         /// <summary>
         /// ポストプロセス。
         /// </summary>
-        Postprocess postprocess;
+        FilterChain filterChain;
 
         /// <summary>
         /// 線形距離フォグ フィルタ。
@@ -632,15 +632,15 @@ namespace Samples.Water
 
             depthMapEffect = new LinearDepthMapEffect(DeviceContext);
 
-            postprocess = new Postprocess(DeviceContext);
-            postprocess.Width = normalSceneRenderTarget.Width;
-            postprocess.Height = normalSceneRenderTarget.Height;
+            filterChain = new FilterChain(DeviceContext);
+            filterChain.Width = normalSceneRenderTarget.Width;
+            filterChain.Height = normalSceneRenderTarget.Height;
 
             linearFogFilter = new LinearFogFilter(DeviceContext);
             linearFogFilter.FogStart = camera.FarClipDistance - 400;
             linearFogFilter.FogEnd = camera.FarClipDistance - 10;
             linearFogFilter.FogColor = Color.CornflowerBlue.ToVector3();
-            postprocess.Filters.Add(linearFogFilter);
+            filterChain.Filters.Add(linearFogFilter);
 
             rippleVertexBuffer = Device.CreateVertexBuffer();
             rippleVertexBuffer.Initialize(RippleVertices);
@@ -1170,9 +1170,9 @@ namespace Samples.Water
         void ApplyPostprocess()
         {
             // ViewRayRequired 属性を持つフィルタを追加している場合、射影行列の設定が必須。
-            postprocess.Projection = camera.Projection;
+            filterChain.Projection = camera.Projection;
 
-            finalSceneTexture = postprocess.Draw(normalSceneRenderTarget);
+            finalSceneTexture = filterChain.Draw(normalSceneRenderTarget);
         }
 
         void CreateFinalSceneMap()

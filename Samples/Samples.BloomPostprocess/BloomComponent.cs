@@ -25,7 +25,7 @@ namespace Samples.BloomPostprocess
 
         SpriteBatch spriteBatch;
 
-        Postprocess postprocess;
+        FilterChain filterChain;
 
         BloomExtractFilter bloomExtractFilter;
 
@@ -86,17 +86,17 @@ namespace Samples.BloomPostprocess
             upFilter.WidthScale = 2.0f;
             upFilter.HeightScale = 2.0f;
 
-            postprocess = new Postprocess(deviceContext);
-            postprocess.Width = Device.BackBufferWidth;
-            postprocess.Height = Device.BackBufferHeight;
-            postprocess.Format = Device.BackBufferFormat;
-            postprocess.PreferredMultisampleCount = Device.BackBufferMultisampleCount;
-            postprocess.Filters.Add(downFilter);
-            postprocess.Filters.Add(bloomExtractFilter);
-            postprocess.Filters.Add(gaussianFilterH);
-            postprocess.Filters.Add(gaussianFilterV);
-            postprocess.Filters.Add(upFilter);
-            postprocess.Filters.Add(bloomCombineFilter);
+            filterChain = new FilterChain(deviceContext);
+            filterChain.Width = Device.BackBufferWidth;
+            filterChain.Height = Device.BackBufferHeight;
+            filterChain.Format = Device.BackBufferFormat;
+            filterChain.PreferredMultisampleCount = Device.BackBufferMultisampleCount;
+            filterChain.Filters.Add(downFilter);
+            filterChain.Filters.Add(bloomExtractFilter);
+            filterChain.Filters.Add(gaussianFilterH);
+            filterChain.Filters.Add(gaussianFilterV);
+            filterChain.Filters.Add(upFilter);
+            filterChain.Filters.Add(bloomCombineFilter);
 
             sceneRenderTarget = Device.CreateRenderTarget();
             sceneRenderTarget.Width = Device.BackBufferWidth;
@@ -140,7 +140,7 @@ namespace Samples.BloomPostprocess
             // XNA の BlurAamount はガウス関数の sigma そのものに一致。
             gaussianFilter.Sigma = Settings.BlurAmount;
 
-            finalSceneTexture = postprocess.Draw(sceneRenderTarget);
+            finalSceneTexture = filterChain.Draw(sceneRenderTarget);
 
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
             spriteBatch.Draw(finalSceneTexture, Vector2.Zero, Color.White);

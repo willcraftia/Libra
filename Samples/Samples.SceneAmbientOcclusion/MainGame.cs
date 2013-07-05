@@ -112,9 +112,9 @@ namespace Samples.SceneAmbientOcclusion
         SSAOMap ssaoMap;
 
         /// <summary>
-        /// 表示シーン用ポストプロセス。
+        /// ポストプロセス。
         /// </summary>
-        Postprocess postprocessScene;
+        FilterChain filterChain;
 
         /// <summary>
         /// 閉塞マップ合成フィルタ。
@@ -240,10 +240,10 @@ namespace Samples.SceneAmbientOcclusion
             normalSceneRenderTarget.DepthStencilEnabled = true;
             normalSceneRenderTarget.Initialize();
 
-            postprocessScene = new Postprocess(DeviceContext);
-            postprocessScene.Width = normalSceneRenderTarget.Width;
-            postprocessScene.Height = normalSceneRenderTarget.Height;
-            postprocessScene.Format = normalSceneRenderTarget.Format;
+            filterChain = new FilterChain(DeviceContext);
+            filterChain.Width = normalSceneRenderTarget.Width;
+            filterChain.Height = normalSceneRenderTarget.Height;
+            filterChain.Format = normalSceneRenderTarget.Format;
 
             ssaoMap = new SSAOMap(DeviceContext);
             ssaoMap.RenderTargetWidth = WindowWidth;
@@ -259,10 +259,10 @@ namespace Samples.SceneAmbientOcclusion
             finalOcclusionMapColorFilter = new OcclusionMapColorFilter(DeviceContext);
             finalOcclusionMapColorFilter.Enabled = false;
 
-            postprocessScene.Filters.Add(occlusionCombineFilter);
-            postprocessScene.Filters.Add(linearDepthMapColorFilter);
-            postprocessScene.Filters.Add(occlusionMapColorFilter);
-            postprocessScene.Filters.Add(finalOcclusionMapColorFilter);
+            filterChain.Filters.Add(occlusionCombineFilter);
+            filterChain.Filters.Add(linearDepthMapColorFilter);
+            filterChain.Filters.Add(occlusionMapColorFilter);
+            filterChain.Filters.Add(finalOcclusionMapColorFilter);
 
             depthMapEffect = new LinearDepthMapEffect(DeviceContext);
             normalMapEffect = new NormalMapEffect(DeviceContext);
@@ -432,7 +432,7 @@ namespace Samples.SceneAmbientOcclusion
 
         void ApplyPostprocessScene()
         {
-            finalSceneTexture = postprocessScene.Draw(normalSceneRenderTarget);
+            finalSceneTexture = filterChain.Draw(normalSceneRenderTarget);
         }
 
         void CreateFinalSceneMap()

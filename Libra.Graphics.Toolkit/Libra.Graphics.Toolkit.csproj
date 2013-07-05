@@ -93,7 +93,7 @@
     <Compile Include="NegativeFilter.cs" />
     <Compile Include="NormalEdgeDetectFilter.cs" />
     <Compile Include="NormalMapEffect.cs" />
-    <Compile Include="Postprocess.cs" />
+    <Compile Include="FilterChain.cs" />
     <Compile Include="RadialFilter.cs" />
     <Compile Include="ScanlineFilter.cs" />
     <Compile Include="ShadowSceneMap.cs" />

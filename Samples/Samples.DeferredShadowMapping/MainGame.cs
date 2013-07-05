@@ -132,9 +132,9 @@ namespace Samples.DeferredShadowMapping
         ShaderResourceView finalSceneTexture;
 
         /// <summary>
-        /// 表示シーン用ポストプロセス。
+        /// ポストプロセス。
         /// </summary>
-        Postprocess scenePostprocess;
+        FilterChain filterChain;
 
         /// <summary>
         /// 閉塞マップ合成フィルタ。
@@ -319,9 +319,9 @@ namespace Samples.DeferredShadowMapping
             normalSceneRenderTarget.DepthStencilEnabled = true;
             normalSceneRenderTarget.Initialize();
 
-            scenePostprocess = new Postprocess(DeviceContext);
-            scenePostprocess.Width = normalSceneRenderTarget.Width;
-            scenePostprocess.Height = normalSceneRenderTarget.Height;
+            filterChain = new FilterChain(DeviceContext);
+            filterChain.Width = normalSceneRenderTarget.Width;
+            filterChain.Height = normalSceneRenderTarget.Height;
 
             occlusionCombineFilter = new OcclusionCombineFilter(DeviceContext);
             occlusionCombineFilter.ShadowColor = new Vector3(0.5f, 0.5f, 0.5f);
@@ -334,9 +334,9 @@ namespace Samples.DeferredShadowMapping
             occlusionMapColorFilter = new OcclusionMapColorFilter(DeviceContext);
             occlusionMapColorFilter.Enabled = false;
 
-            scenePostprocess.Filters.Add(occlusionCombineFilter);
-            scenePostprocess.Filters.Add(linearDepthMapColorFilter);
-            scenePostprocess.Filters.Add(occlusionMapColorFilter);
+            filterChain.Filters.Add(occlusionCombineFilter);
+            filterChain.Filters.Add(linearDepthMapColorFilter);
+            filterChain.Filters.Add(occlusionMapColorFilter);
 
             depthMapEffect = new LinearDepthMapEffect(DeviceContext);
 
@@ -566,7 +566,7 @@ namespace Samples.DeferredShadowMapping
             occlusionCombineFilter.OcclusionMap = shadowSceneMap.FinalTexture;
             occlusionMapColorFilter.OcclusionMap = shadowSceneMap.FinalTexture;
 
-            finalSceneTexture = scenePostprocess.Draw(normalSceneRenderTarget);
+            finalSceneTexture = filterChain.Draw(normalSceneRenderTarget);
         }
 
         void CreateFinalSceneMap()

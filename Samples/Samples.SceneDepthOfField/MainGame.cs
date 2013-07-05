@@ -88,7 +88,7 @@ namespace Samples.SceneDepthOfField
         /// <summary>
         /// ポストプロセス。
         /// </summary>
-        Postprocess postprocess;
+        FilterChain filterChain;
 
         /// <summary>
         /// ダウン フィルタ。
@@ -200,9 +200,9 @@ namespace Samples.SceneDepthOfField
             sceneRenderTarget.DepthStencilEnabled = true;
             sceneRenderTarget.Initialize();
 
-            postprocess = new Postprocess(DeviceContext);
-            postprocess.Width = WindowWidth;
-            postprocess.Height = WindowHeight;
+            filterChain = new FilterChain(DeviceContext);
+            filterChain.Width = WindowWidth;
+            filterChain.Height = WindowHeight;
 
             downFilter = new DownFilter(DeviceContext);
             upFilter = new UpFilter(DeviceContext);
@@ -213,11 +213,11 @@ namespace Samples.SceneDepthOfField
 
             dofCombineFilter = new DofCombineFilter(DeviceContext);
 
-            postprocess.Filters.Add(downFilter);
-            postprocess.Filters.Add(gaussianFilterH);
-            postprocess.Filters.Add(gaussianFilterV);
-            postprocess.Filters.Add(upFilter);
-            postprocess.Filters.Add(dofCombineFilter);
+            filterChain.Filters.Add(downFilter);
+            filterChain.Filters.Add(gaussianFilterH);
+            filterChain.Filters.Add(gaussianFilterV);
+            filterChain.Filters.Add(upFilter);
+            filterChain.Filters.Add(dofCombineFilter);
 
             depthMapEffect = new LinearDepthMapEffect(DeviceContext);
 
@@ -294,9 +294,9 @@ namespace Samples.SceneDepthOfField
             dofCombineFilter.LinearDepthMap = depthRenderTarget;
             dofCombineFilter.BaseTexture = sceneRenderTarget;
 
-            postprocess.Projection = camera.Projection;
+            filterChain.Projection = camera.Projection;
 
-            finalSceneTexture = postprocess.Draw(sceneRenderTarget);
+            finalSceneTexture = filterChain.Draw(sceneRenderTarget);
         }
 
         void CreateFinalSceneMap()
