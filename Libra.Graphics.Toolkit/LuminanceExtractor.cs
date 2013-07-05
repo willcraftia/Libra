@@ -69,8 +69,6 @@ namespace Libra.Graphics.Toolkit
             }
         }
 
-        public SurfaceFormat Format { get; set; }
-
         public ShaderResourceView LuminanceAverageMap
         {
             get { return currentAdaptedLuminanceRenderTarget; }
@@ -146,6 +144,10 @@ namespace Libra.Graphics.Toolkit
                 currentAdaptedLuminanceRenderTarget.Format = SurfaceFormat.Single;
                 currentAdaptedLuminanceRenderTarget.Initialize();
 
+                DeviceContext.SetRenderTarget(currentAdaptedLuminanceRenderTarget);
+                DeviceContext.Clear(new Vector4(0.5f, 0, 0, 1));
+                DeviceContext.SetRenderTarget(null);
+
                 lastAdaptedLuminanceRenderTarget = DeviceContext.Device.CreateRenderTarget();
                 lastAdaptedLuminanceRenderTarget.Width = 1;
                 lastAdaptedLuminanceRenderTarget.Height = 1;
@@ -165,6 +167,8 @@ namespace Libra.Graphics.Toolkit
 
         void CalculateAverageLuminance(GameTime gameTime, ShaderResourceView texture)
         {
+            DeviceContext.DepthStencilState = DepthStencilState.None;
+
             //
             // downscaleRenderTarget から輝度を抽出し、luminanceRenderTargetChain[0] へ格納。
             // レンダ ターゲットには log(delta + luminance) が描画される。
@@ -187,8 +191,6 @@ namespace Libra.Graphics.Toolkit
             {
                 DeviceContext.SetRenderTarget(luminanceRenderTargetChain[i]);
 
-                downFilter.WidthScale = 0.25f;
-                downFilter.HeightScale = 0.25f;
                 downFilter.Texture = luminanceRenderTargetChain[i - 1];
                 downFilter.Apply();
                 fullScreenQuad.Draw();
@@ -223,6 +225,8 @@ namespace Libra.Graphics.Toolkit
             fullScreenQuad.Draw();
 
             DeviceContext.SetRenderTarget(null);
+
+            DeviceContext.DepthStencilState = null;
         }
 
         void DisposeRenderTargets()

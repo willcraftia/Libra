@@ -61,9 +61,9 @@ namespace Libra.Graphics.Toolkit
 
         ParametersPerObject parametersPerObject = new ParametersPerObject
         {
-            Threshold = 0.7f,
-            MiddleGrey = 0.6f,
-            MaxLuminance = 16.0f,
+            Threshold = 0.5f,
+            MiddleGrey = 0.5f,
+            MaxLuminance = 1.0f,
             BloomIntensity = 1.0f
         };
 

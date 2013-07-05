@@ -15,13 +15,13 @@ Texture2D<float> LastTexture    : register(t1);
 SamplerState TextureSampler     : register(s0);
 SamplerState LastTextureSampler : register(s1);
 
-float4 PS(float2 texCoord : TEXCOORD0) : SV_Target
+float4 PS() : SV_Target
 {
-    float currentLuminance = Texture.Sample(TextureSampler, texCoord);
-    float lastLuminance = LastTexture.Sample(LastTextureSampler, texCoord);
+    float currentLuminance = Texture.Sample(TextureSampler, float2(0.5f, 0.5f));
+    float lastLuminance = LastTexture.Sample(LastTextureSampler, float2(0.5f, 0.5f));
 
     const float tau = 0.5f;
-    float adaptedLuminance = lastLuminance + (currentLuminance + lastLuminance) * (1 - exp(-DeltaTime * tau));
+    float adaptedLuminance = lastLuminance + (currentLuminance - lastLuminance) * (1 - exp(-DeltaTime * tau));
 
     return float4(adaptedLuminance, 1, 1, 1);
 }

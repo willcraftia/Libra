@@ -18,7 +18,7 @@ namespace Libra.Graphics.Toolkit
             public SharedDeviceResource(Device device)
             {
                 PixelShader = device.CreatePixelShader();
-                PixelShader.Initialize(Resources.LuminanceLogFilterPS);
+                PixelShader.Initialize(Resources.LuminanceAverageFilterPS);
             }
         }
 
