@@ -30,7 +30,7 @@ namespace Libra.Graphics.Toolkit
         [StructLayout(LayoutKind.Sequential, Size = 16)]
         public struct ParametersPerFrame
         {
-            public float DeltaTime;
+            public float Adaptation;
         }
 
         #endregion
@@ -40,7 +40,8 @@ namespace Libra.Graphics.Toolkit
         [Flags]
         enum DirtyFlags
         {
-            ConstantBufferPerFrame = (1 << 0)
+            ConstantBufferPerFrame  = (1 << 0),
+            ParametersPerFrame      = (1 << 1)
         }
 
         #endregion
@@ -51,7 +52,11 @@ namespace Libra.Graphics.Toolkit
 
         ParametersPerFrame parametersPerFrame;
 
-        DirtyFlags dirtyFlags = DirtyFlags.ConstantBufferPerFrame;
+        float deltaTime;
+
+        float tau = 0.4f;
+
+        DirtyFlags dirtyFlags = DirtyFlags.ConstantBufferPerFrame | DirtyFlags.ParametersPerFrame;
 
         public DeviceContext DeviceContext { get; private set; }
 
@@ -59,14 +64,27 @@ namespace Libra.Graphics.Toolkit
 
         public float DeltaTime
         {
-            get { return parametersPerFrame.DeltaTime; }
+            get { return deltaTime; }
             set
             {
                 if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
 
-                parametersPerFrame.DeltaTime = value;
+                deltaTime = value;
 
-                dirtyFlags |= DirtyFlags.ConstantBufferPerFrame;
+                dirtyFlags |= DirtyFlags.ParametersPerFrame;
+            }
+        }
+
+        public float Tau
+        {
+            get { return tau; }
+            set
+            {
+                if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
+
+                tau = value;
+
+                dirtyFlags |= DirtyFlags.ParametersPerFrame;
             }
         }
 
@@ -97,6 +115,14 @@ namespace Libra.Graphics.Toolkit
 
         public void Apply()
         {
+            if ((dirtyFlags & DirtyFlags.ParametersPerFrame) != 0)
+            {
+                parametersPerFrame.Adaptation = -deltaTime * tau;
+
+                dirtyFlags &= ~DirtyFlags.ParametersPerFrame;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerFrame;
+            }
+
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerFrame) != 0)
             {
                 DeviceContext.SetData(constantBufferPerFrame, parametersPerFrame);

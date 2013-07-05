@@ -37,7 +37,7 @@ namespace Libra.Graphics.Toolkit
             public float MiddleGrey;
 
             [FieldOffset(8)]
-            public float MaxLuminance;
+            public float MaxLuminanceSquared;
         }
 
         #endregion
@@ -47,7 +47,8 @@ namespace Libra.Graphics.Toolkit
         [Flags]
         enum DirtyFlags
         {
-            ConstantBufferPerObject = (1 << 0)
+            ConstantBufferPerObject = (1 << 0),
+            ParametersPerObject     = (1 << 1)
         }
 
         #endregion
@@ -60,10 +61,12 @@ namespace Libra.Graphics.Toolkit
         {
             Threshold = 0.5f,
             MiddleGrey = 0.5f,
-            MaxLuminance = 1.0f
+            MaxLuminanceSquared = 1.0f
         };
 
-        DirtyFlags dirtyFlags = DirtyFlags.ConstantBufferPerObject;
+        float maxLuminance = 1.0f;
+
+        DirtyFlags dirtyFlags = DirtyFlags.ConstantBufferPerObject | DirtyFlags.ParametersPerObject;
 
         public DeviceContext DeviceContext { get; private set; }
 
@@ -97,14 +100,14 @@ namespace Libra.Graphics.Toolkit
 
         public float MaxLuminance
         {
-            get { return parametersPerObject.MaxLuminance; }
+            get { return maxLuminance; }
             set
             {
                 if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
 
-                parametersPerObject.MaxLuminance = value;
+                maxLuminance = value;
 
-                dirtyFlags |= DirtyFlags.ConstantBufferPerObject;
+                dirtyFlags |= DirtyFlags.ParametersPerObject;
             }
         }
 
@@ -134,6 +137,14 @@ namespace Libra.Graphics.Toolkit
 
         public void Apply()
         {
+            if ((dirtyFlags & DirtyFlags.ParametersPerObject) != 0)
+            {
+                parametersPerObject.MaxLuminanceSquared = maxLuminance * maxLuminance;
+
+                dirtyFlags &= ~DirtyFlags.ParametersPerObject;
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObject;
+            }
+
             if ((dirtyFlags & DirtyFlags.ConstantBufferPerObject) != 0)
             {
                 DeviceContext.SetData(constantBufferPerObject, parametersPerObject);
