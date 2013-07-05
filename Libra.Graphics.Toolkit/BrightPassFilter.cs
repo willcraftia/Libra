@@ -34,9 +34,12 @@ namespace Libra.Graphics.Toolkit
             public float Threshold;
 
             [FieldOffset(4)]
-            public float MiddleGrey;
+            public float Offset;
 
             [FieldOffset(8)]
+            public float MiddleGrey;
+
+            [FieldOffset(12)]
             public float MaxLuminanceSquared;
         }
 
@@ -60,6 +63,7 @@ namespace Libra.Graphics.Toolkit
         ParametersPerObject parametersPerObject = new ParametersPerObject
         {
             Threshold = 0.5f,
+            Offset = 1.0f,
             MiddleGrey = 0.5f,
             MaxLuminanceSquared = 1.0f
         };
@@ -80,6 +84,19 @@ namespace Libra.Graphics.Toolkit
                 if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
 
                 parametersPerObject.Threshold = value;
+
+                dirtyFlags |= DirtyFlags.ConstantBufferPerObject;
+            }
+        }
+
+        public float Offset
+        {
+            get { return parametersPerObject.Offset; }
+            set
+            {
+                if (value < 0.0f) throw new ArgumentOutOfRangeException("value");
+
+                parametersPerObject.Offset = value;
 
                 dirtyFlags |= DirtyFlags.ConstantBufferPerObject;
             }

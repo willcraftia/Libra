@@ -1,8 +1,13 @@
+//
+// http://content.gpwiki.org/index.php/D3DBook:High-Dynamic_Range_Rendering
+//
+
 cbuffer PerObject : register(b0)
 {
     float Threshold             : packoffset(c0);
-    float MiddleGrey            : packoffset(c0.y);
-    float MaxLuminanceSquared   : packoffset(c0.z);
+    float Offset                : packoffset(c0.y);
+    float MiddleGrey            : packoffset(c0.z);
+    float MaxLuminanceSquared   : packoffset(c0.w);
 };
 
 Texture2D<float4> Texture               : register(t0);
@@ -17,6 +22,10 @@ float3 Tone(float3 color)
     float scaled = (luminance * MiddleGrey) / average;
     float compressed = (scaled * (1 + (scaled / MaxLuminanceSquared))) / (1 + scaled);
 
+    compressed -= Threshold;
+    compressed = max(compressed, 0);
+    compressed = compressed / (Offset + compressed);
+
     return color * compressed;
 }
 
@@ -25,8 +34,6 @@ float4 PS(float2 texCoord : TEXCOORD0) : SV_Target
     float4 color = Texture.Sample(TextureSampler, texCoord);
 
     float3 tone = Tone(color.rgb);
-    tone -= Threshold;
-    tone = max(tone, 0);
 
     return float4(tone, color.a);
 }
