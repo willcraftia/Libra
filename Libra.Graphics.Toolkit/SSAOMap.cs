@@ -13,7 +13,7 @@ namespace Libra.Graphics.Toolkit
         enum DirtyFlags
         {
             RenderTarget    = (1 << 0),
-            Postprocess     = (1 << 1)
+            FilterChain     = (1 << 1)
         }
 
         #endregion
@@ -34,7 +34,7 @@ namespace Libra.Graphics.Toolkit
         RenderTarget renderTarget;
 
         /// <summary>
-        /// ポストプロセス。
+        /// フィルタ チェーン。
         /// </summary>
         FilterChain filterChain;
 
@@ -173,7 +173,7 @@ namespace Libra.Graphics.Toolkit
 
                 blurScale = value;
 
-                dirtyFlags |= DirtyFlags.Postprocess;
+                dirtyFlags |= DirtyFlags.FilterChain;
             }
         }
 
@@ -189,7 +189,7 @@ namespace Libra.Graphics.Toolkit
 
                 blurIteration = value;
 
-                dirtyFlags |= DirtyFlags.Postprocess;
+                dirtyFlags |= DirtyFlags.FilterChain;
             }
         }
 
@@ -263,15 +263,15 @@ namespace Libra.Graphics.Toolkit
             blurPassH = new GaussianFilterPass(blurFilter, GaussianFilterDirection.Horizon);
             blurPassV = new GaussianFilterPass(blurFilter, GaussianFilterDirection.Vertical);
 
-            dirtyFlags = DirtyFlags.RenderTarget | DirtyFlags.Postprocess;
+            dirtyFlags = DirtyFlags.RenderTarget | DirtyFlags.FilterChain;
         }
 
         public void Draw()
         {
             PrepareRenderTarget();
             DrawOcclusion();
-            PreparePostprocess();
-            ApplyPostprocess();
+            PrepareFilterChain();
+            ApplyFilterChain();
         }
 
         void PrepareRenderTarget()
@@ -314,9 +314,9 @@ namespace Libra.Graphics.Toolkit
             BaseTexture = renderTarget;
         }
 
-        void PreparePostprocess()
+        void PrepareFilterChain()
         {
-            if ((dirtyFlags & DirtyFlags.Postprocess) != 0)
+            if ((dirtyFlags & DirtyFlags.FilterChain) != 0)
             {
                 filterChain.Filters.Clear();
 
@@ -349,11 +349,11 @@ namespace Libra.Graphics.Toolkit
                     filterChain.Filters.Add(upFilter);
                 }
 
-                dirtyFlags &= ~DirtyFlags.Postprocess;
+                dirtyFlags &= ~DirtyFlags.FilterChain;
             }
         }
 
-        void ApplyPostprocess()
+        void ApplyFilterChain()
         {
             blurFilter.LinearDepthMap = ssaoMapEffect.LinearDepthMap;
             blurFilter.LinearDepthMapSampler = ssaoMapEffect.LinearDepthMapSampler;

@@ -86,7 +86,7 @@ namespace Samples.SceneDepthOfField
         RenderTarget sceneRenderTarget;
 
         /// <summary>
-        /// ポストプロセス。
+        /// フィルタ チェーン。
         /// </summary>
         FilterChain filterChain;
 
@@ -126,7 +126,7 @@ namespace Samples.SceneDepthOfField
         DofCombineFilter dofCombineFilter;
 
         /// <summary>
-        /// ポストプロセス適用後の最終シーン。
+        /// フィルタ チェーン適用後の最終シーン。
         /// </summary>
         ShaderResourceView finalSceneTexture;
 
@@ -255,8 +255,8 @@ namespace Samples.SceneDepthOfField
             // 通常シーンを描画。
             CreateNormalSceneMap();
 
-            // ポストプロセスを適用。
-            ApplyPostprocess();
+            // フィルタ チェーンを適用。
+            ApplyFilterChain();
 
             // 最終的なシーンをバック バッファへ描画。
             CreateFinalSceneMap();
@@ -289,7 +289,7 @@ namespace Samples.SceneDepthOfField
             textureDisplay.Textures.Add(sceneRenderTarget);
         }
 
-        void ApplyPostprocess()
+        void ApplyFilterChain()
         {
             dofCombineFilter.LinearDepthMap = depthRenderTarget;
             dofCombineFilter.BaseTexture = sceneRenderTarget;

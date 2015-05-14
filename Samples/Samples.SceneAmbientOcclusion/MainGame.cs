@@ -102,7 +102,7 @@ namespace Samples.SceneAmbientOcclusion
         RenderTarget normalSceneRenderTarget;
 
         /// <summary>
-        /// ポストプロセス適用後の最終シーン。
+        /// フィルタ チェーン適用後の最終シーン。
         /// </summary>
         ShaderResourceView finalSceneTexture;
 
@@ -112,7 +112,7 @@ namespace Samples.SceneAmbientOcclusion
         SSAOMap ssaoMap;
 
         /// <summary>
-        /// ポストプロセス。
+        /// フィルタ チェーン。
         /// </summary>
         FilterChain filterChain;
 
@@ -318,8 +318,8 @@ namespace Samples.SceneAmbientOcclusion
             // 通常シーンを描画。
             CreateNormalSceneMap();
 
-            // 通常シーンへポストプロセスを適用。
-            ApplyPostprocessScene();
+            // 通常シーンへフィルタ チェーンを適用。
+            ApplyFilterChain();
 
             // 最終的なシーンをバック バッファへ描画。
             CreateFinalSceneMap();
@@ -430,7 +430,7 @@ namespace Samples.SceneAmbientOcclusion
             mesh.Draw();
         }
 
-        void ApplyPostprocessScene()
+        void ApplyFilterChain()
         {
             finalSceneTexture = filterChain.Draw(normalSceneRenderTarget);
         }

@@ -13,7 +13,7 @@ namespace Libra.Graphics.Toolkit
         enum DirtyFlags
         {
             RenderTarget    = (1 << 0),
-            Postprocess     = (1 << 1)
+            FilterChain     = (1 << 1)
         }
 
         #endregion
@@ -40,7 +40,7 @@ namespace Libra.Graphics.Toolkit
         int preferredRenderTargetMultisampleCount = 1;
 
         /// <summary>
-        /// ポストプロセス。
+        /// フィルタ チェーン。
         /// </summary>
         FilterChain filterChain;
 
@@ -78,7 +78,7 @@ namespace Libra.Graphics.Toolkit
         /// <summary>
         /// ダーティ フラグ。
         /// </summary>
-        DirtyFlags dirtyFlags = DirtyFlags.RenderTarget | DirtyFlags.Postprocess;
+        DirtyFlags dirtyFlags = DirtyFlags.RenderTarget | DirtyFlags.FilterChain;
 
         /// <summary>
         /// デバイス コンテキストを取得します。
@@ -207,7 +207,7 @@ namespace Libra.Graphics.Toolkit
 
                 blurScale = value;
 
-                dirtyFlags |= DirtyFlags.Postprocess;
+                dirtyFlags |= DirtyFlags.FilterChain;
             }
         }
 
@@ -220,7 +220,7 @@ namespace Libra.Graphics.Toolkit
 
                 blurRadius = value;
 
-                dirtyFlags |= DirtyFlags.Postprocess;
+                dirtyFlags |= DirtyFlags.FilterChain;
             }
         }
 
@@ -233,7 +233,7 @@ namespace Libra.Graphics.Toolkit
 
                 blurSigma = value;
 
-                dirtyFlags |= DirtyFlags.Postprocess;
+                dirtyFlags |= DirtyFlags.FilterChain;
             }
         }
 
@@ -323,8 +323,8 @@ namespace Libra.Graphics.Toolkit
         {
             PrepareRenderTarget();
             DrawShadow();
-            PreparePostprocess();
-            ApplyPostprocess();
+            PrepareFilterChain();
+            ApplyFilterChain();
         }
 
         void PrepareRenderTarget()
@@ -367,9 +367,9 @@ namespace Libra.Graphics.Toolkit
             BaseTexture = renderTarget;
         }
 
-        void PreparePostprocess()
+        void PrepareFilterChain()
         {
-            if (BlurEnabled && (dirtyFlags & DirtyFlags.Postprocess) != 0)
+            if (BlurEnabled && (dirtyFlags & DirtyFlags.FilterChain) != 0)
             {
                 filterChain.Filters.Clear();
 
@@ -409,11 +409,11 @@ namespace Libra.Graphics.Toolkit
                     filterChain.Filters.Add(upFilter);
                 }
 
-                dirtyFlags &= ~DirtyFlags.Postprocess;
+                dirtyFlags &= ~DirtyFlags.FilterChain;
             }
         }
 
-        void ApplyPostprocess()
+        void ApplyFilterChain()
         {
             if (BlurEnabled)
             {

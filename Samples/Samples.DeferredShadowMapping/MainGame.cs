@@ -127,12 +127,12 @@ namespace Samples.DeferredShadowMapping
         RenderTarget normalSceneRenderTarget;
 
         /// <summary>
-        /// ポストプロセス適用後の最終シーン。
+        /// フィルタ チェーン適用後の最終シーン。
         /// </summary>
         ShaderResourceView finalSceneTexture;
 
         /// <summary>
-        /// ポストプロセス。
+        /// フィルタ チェーン。
         /// </summary>
         FilterChain filterChain;
 
@@ -405,8 +405,8 @@ namespace Samples.DeferredShadowMapping
             // シャドウ シーン マップを描画。
             CreateShadowSceneMap();
 
-            // 通常シーンへポストプロセスを適用。
-            ApplyScenePostprocess();
+            // 通常シーンへフィルタ チェーンを適用。
+            ApplyFilterChain();
 
             // 最終的なシーンをバック バッファへ描画。
             CreateFinalSceneMap();
@@ -560,7 +560,7 @@ namespace Samples.DeferredShadowMapping
             mesh.Draw();
         }
 
-        void ApplyScenePostprocess()
+        void ApplyFilterChain()
         {
             linearDepthMapColorFilter.LinearDepthMap = depthMapRenderTarget;
             occlusionCombineFilter.OcclusionMap = shadowSceneMap.FinalTexture;

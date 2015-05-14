@@ -15,9 +15,9 @@ namespace Samples.ScenePostprocess
 {
     public sealed class MainGame : Game
     {
-        #region PostprocessType
+        #region FilterType
 
-        enum PostprocessType
+        enum FilterType
         {
             None,
             DepthOfField,
@@ -104,12 +104,12 @@ namespace Samples.ScenePostprocess
         RenderTarget normalSceneRenderTarget;
 
         /// <summary>
-        /// ポストプロセス適用後の最終シーン。
+        /// フィルタ チェーン適用後の最終シーン。
         /// </summary>
         ShaderResourceView finalSceneTexture;
 
         /// <summary>
-        /// ポストプロセス。
+        /// フィルタ チェーン。
         /// </summary>
         FilterChain filterChain;
 
@@ -249,9 +249,9 @@ namespace Samples.ScenePostprocess
         SquareMesh squareMesh;
 
         /// <summary>
-        /// 選択されているポストプロセスの種類。
+        /// 選択されているフィルタの種類。
         /// </summary>
-        PostprocessType postprocessType;
+        FilterType filterType;
 
         /// <summary>
         /// HUD テキストを表示するか否かを示す値。
@@ -282,7 +282,7 @@ namespace Samples.ScenePostprocess
             textureDisplay.Visible = false;
             Components.Add(textureDisplay);
 
-            postprocessType = PostprocessType.None;
+            filterType = FilterType.None;
         }
 
         protected override void LoadContent()
@@ -386,8 +386,8 @@ namespace Samples.ScenePostprocess
             // キーボード状態およびジョイスティック状態のハンドリング。
             HandleInput(gameTime);
 
-            // ポストプロセスの更新。
-            UpdatePostprocess();
+            // フィルタ チェーンの更新。
+            UpdateFilter();
 
             // 表示カメラの更新。
             UpdateCamera(gameTime);
@@ -414,8 +414,8 @@ namespace Samples.ScenePostprocess
             // 通常シーンを描画。
             CreateNormalSceneMap();
 
-            // ポストプロセスを適用。
-            ApplyPostprocess();
+            // フィルタ チェーンを適用。
+            ApplyFilterChain();
 
             // 最終的なシーンをバック バッファへ描画。
             CreateFinalSceneMap();
@@ -477,7 +477,7 @@ namespace Samples.ScenePostprocess
             textureDisplay.Textures.Add(normalSceneRenderTarget);
         }
 
-        void ApplyPostprocess()
+        void ApplyFilterChain()
         {
             // ViewRayRequired 属性を持つフィルタを追加している場合、射影行列の設定が必須。
             filterChain.Projection = camera.Projection;
@@ -560,7 +560,7 @@ namespace Samples.ScenePostprocess
                 "[9] Height Fog (" + heightFogFilter.Enabled + ")";
 
             string basicText =
-                "Current postprocess: " + postprocessType + "\n" +
+                "Current filter: " + filterType + "\n" +
                 "[F1] HUD on/off\n" +
                 "[F2] Inter-maps on/off\n" +
                 "[F3] None\n" +
@@ -580,25 +580,25 @@ namespace Samples.ScenePostprocess
             spriteBatch.End();
         }
 
-        void UpdatePostprocess()
+        void UpdateFilter()
         {
             filterChain.Filters.Clear();
 
-            switch (postprocessType)
+            switch (filterType)
             {
-                case PostprocessType.DepthOfField:
+                case FilterType.DepthOfField:
                     SetupDepthOfField();
                     break;
-                case PostprocessType.Bloom:
+                case FilterType.Bloom:
                     SetupBloom();
                     break;
-                case PostprocessType.Blur:
+                case FilterType.Blur:
                     SetupBlur();
                     break;
-                case PostprocessType.BilateralFilter:
+                case FilterType.BilateralFilter:
                     SetupBilateralFilter();
                     break;
-                case PostprocessType.None:
+                case FilterType.None:
                 default:
                     SetupNone();
                     break;
@@ -684,19 +684,19 @@ namespace Samples.ScenePostprocess
                 textureDisplay.Visible = !textureDisplay.Visible;
 
             if (currentKeyboardState.IsKeyUp(Keys.F3) && lastKeyboardState.IsKeyDown(Keys.F3))
-                postprocessType = PostprocessType.None;
+                filterType = FilterType.None;
 
             if (currentKeyboardState.IsKeyUp(Keys.F4) && lastKeyboardState.IsKeyDown(Keys.F4))
-                postprocessType = PostprocessType.DepthOfField;
+                filterType = FilterType.DepthOfField;
 
             if (currentKeyboardState.IsKeyUp(Keys.F5) && lastKeyboardState.IsKeyDown(Keys.F5))
-                postprocessType = PostprocessType.Bloom;
+                filterType = FilterType.Bloom;
 
             if (currentKeyboardState.IsKeyUp(Keys.F6) && lastKeyboardState.IsKeyDown(Keys.F6))
-                postprocessType = PostprocessType.Blur;
+                filterType = FilterType.Blur;
 
             if (currentKeyboardState.IsKeyUp(Keys.F7) && lastKeyboardState.IsKeyDown(Keys.F7))
-                postprocessType = PostprocessType.BilateralFilter;
+                filterType = FilterType.BilateralFilter;
 
             if (currentKeyboardState.IsKeyUp(Keys.D1) && lastKeyboardState.IsKeyDown(Keys.D1))
                 monochromeFilter.Enabled = !monochromeFilter.Enabled;

@@ -101,12 +101,12 @@ namespace Samples.SceneVolumetricFog
         RenderTarget normalSceneRenderTarget;
 
         /// <summary>
-        /// ポストプロセス適用後の最終シーン。
+        /// フィルタ チェーン適用後の最終シーン。
         /// </summary>
         ShaderResourceView finalSceneTexture;
 
         /// <summary>
-        /// ポストプロセス。
+        /// フィルタ チェーン。
         /// </summary>
         FilterChain filterChain;
 
@@ -319,8 +319,8 @@ namespace Samples.SceneVolumetricFog
             // 通常シーンを描画。
             CreateNormalSceneMap();
 
-            // ポストプロセスを実行。
-            ApplyPostprocess();
+            // フィルタ チェーンを実行。
+            ApplyFilterChain();
 
             // 最終的なシーンをバック バッファへ描画。
             CreateFinalSceneMap();
@@ -412,7 +412,7 @@ namespace Samples.SceneVolumetricFog
             textureDisplay.Textures.Add(normalSceneRenderTarget);
         }
 
-        void ApplyPostprocess()
+        void ApplyFilterChain()
         {
             finalSceneTexture = filterChain.Draw(normalSceneRenderTarget);
         }
